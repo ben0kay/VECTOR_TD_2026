@@ -821,3 +821,156 @@ function scr_enemy_cleanup(_enemy)
 
     return true;
 }
+
+/// @description Applies damage to one enemy.
+
+function scr_enemy_damage(
+    _enemy,
+    _damage
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!is_struct(_damage))
+        return false;
+
+    if (
+        _enemy.EnemyState
+        == EnemyState.DEAD
+    )
+    {
+        return false;
+    }
+
+    if (_damage.amount <= 0)
+        return false;
+
+
+    _enemy.vitals.hp.current =
+        max(
+            0,
+            _enemy.vitals.hp.current
+            - _damage.amount
+        );
+
+
+    if (_enemy.vitals.hp.current <= 0)
+    {
+        return scr_enemy_die(
+            _enemy,
+            _damage
+        );
+    }
+
+
+    return true;
+}
+
+
+/// @description Kills an enemy and awards kill attribution.
+
+function scr_enemy_die(
+    _enemy,
+    _damage
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (
+        _enemy.EnemyState
+        == EnemyState.DEAD
+    )
+    {
+        return false;
+    }
+
+
+    _enemy.EnemyState =
+        EnemyState.DEAD;
+
+
+    scr_navigation_enemy_stop(
+        _enemy
+    );
+
+
+    // ========================================================================
+    // KILL ATTRIBUTION
+    // ========================================================================
+
+    if (is_struct(_damage))
+    {
+        switch (_damage.source_type)
+        {
+            case DamageSource.PLAYER:
+            {
+                var _player =
+                    _damage.source;
+
+
+                if (
+                    instance_exists(_player)
+                    && variable_instance_exists(
+                        _player,
+                        "combat"
+                    )
+                    && is_struct(
+                        _player.combat
+                    )
+                )
+                {
+                    _player.combat.kills++;
+                }
+            }
+            break;
+
+
+            case DamageSource.TOWER:
+            {
+                // FUTURE:
+                // Award the kill to the firing tower.
+                // Tower kills will contribute to tower ranks.
+            }
+            break;
+
+
+            case DamageSource.ENEMY:
+            {
+                // FUTURE:
+                // Enemy friendly fire or special effects.
+            }
+            break;
+
+
+            case DamageSource.ENVIRONMENT:
+            {
+                // No entity receives credit.
+            }
+            break;
+        }
+    }
+
+
+    show_debug_message(
+        "ENEMY DESTROYED: "
+        + _enemy.identity.name
+    );
+
+
+    // FUTURE:
+    // credits and resource drops
+    // death effects
+    // split-on-death
+    // transported enemy release
+    // wave and milestone notifications
+
+
+    instance_destroy(
+        _enemy
+    );
+
+
+    return true;
+}

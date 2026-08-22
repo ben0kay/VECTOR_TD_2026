@@ -13,6 +13,10 @@ function scr_player_initialize(_player)
         PlayerState.ACTIVE;
 
 
+    // ========================================================================
+    // MOVEMENT
+    // ========================================================================
+
     _player.movement =
     {
         speed:
@@ -32,6 +36,10 @@ function scr_player_initialize(_player)
     };
 
 
+    // ========================================================================
+    // VITALS
+    // ========================================================================
+
     _player.vitals =
     {
         hp:
@@ -45,10 +53,14 @@ function scr_player_initialize(_player)
     };
 
 
+    // ========================================================================
+    // VISUAL
+    // ========================================================================
+
     _player.visual =
     {
         // All game entities face right at zero degrees.
-        // We use this custom value instead of image_angle.
+        // Do not use image_angle for gameplay rotation.
 
         draw_angle:
             0,
@@ -61,17 +73,47 @@ function scr_player_initialize(_player)
     };
 
 
+    // ========================================================================
+    // COMBAT
+    // ========================================================================
+
     _player.combat =
     {
         kills:
-            0
+            0,
 
-        // FUTURE:
-        // weapon
-        // firing state
-        // fire cooldown
-        // overheat
-        // damage modifiers
+        firing:
+            false,
+
+        weapon:
+        {
+            damage:
+                10,
+
+            cooldown:
+            {
+                duration:
+                    0.18,
+
+                remaining:
+                    0
+            },
+
+            projectile:
+            {
+                speed:
+                    16,
+
+                lifetime_seconds:
+                    1.5,
+
+                radius:
+                    4,
+
+                color:
+                    c_aqua
+            }
+        }
     };
 
 
@@ -82,6 +124,7 @@ function scr_player_initialize(_player)
     show_debug_message(
         "VECTOR TD 2026 - PLAYER INITIALIZED"
     );
+
 
     return true;
 }
@@ -238,9 +281,12 @@ function scr_player_update(_player)
                 _player
             );
 
+            scr_player_combat_update(
+                _player
+            );
+
 
             // FUTURE:
-            // scr_player_combat_update(_player);
             // scr_player_interaction_update(_player);
         }
         break;
@@ -255,6 +301,9 @@ function scr_player_update(_player)
                 0;
 
             _player.movement.moving =
+                false;
+
+            _player.combat.firing =
                 false;
 
 
@@ -276,6 +325,9 @@ function scr_player_update(_player)
                 0;
 
             _player.movement.moving =
+                false;
+
+            _player.combat.firing =
                 false;
 
 
@@ -355,6 +407,112 @@ function scr_player_draw(_player)
     draw_set_color(
         c_white
     );
+
+
+    return true;
+}
+
+/// @description Processes player weapon input and firing.
+
+function scr_player_combat_update(_player)
+{
+    if (!instance_exists(_player))
+        return false;
+
+
+    var _combat =
+        _player.combat;
+
+    var _weapon =
+        _combat.weapon;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    // ========================================================================
+    // COOLDOWN
+    // ========================================================================
+
+    _weapon.cooldown.remaining =
+        max(
+            0,
+            _weapon.cooldown.remaining
+            - (1 / _fps)
+        );
+
+
+    // ========================================================================
+    // FIRING INPUT
+    // ========================================================================
+
+    _combat.firing =
+        mouse_check_button(
+            mb_left
+        );
+
+
+    if (!_combat.firing)
+        return true;
+
+    if (_weapon.cooldown.remaining > 0)
+        return true;
+
+
+    // ========================================================================
+    // PROJECTILE CREATION
+    // ========================================================================
+
+    var _angle =
+        _player.visual.draw_angle;
+
+    var _spawn_distance =
+        _player.visual.radius
+        + 8;
+
+    var _spawn_x =
+        _player.x
+        + lengthdir_x(
+            _spawn_distance,
+            _angle
+        );
+
+    var _spawn_y =
+        _player.y
+        + lengthdir_y(
+            _spawn_distance,
+            _angle
+        );
+
+
+    var _projectile =
+        scr_projectile_player_create(
+            _player,
+            _spawn_x,
+            _spawn_y,
+            _angle,
+            _weapon.damage,
+            _weapon.projectile
+        );
+
+
+    if (!instance_exists(_projectile))
+        return false;
+
+
+    _weapon.cooldown.remaining =
+        _weapon.cooldown.duration;
+
+
+    // FUTURE:
+    // muzzle flash
+    // firing sound
+    // weapon heat
+    // recoil
+    // camera shake
 
 
     return true;

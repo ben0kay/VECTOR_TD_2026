@@ -77,6 +77,15 @@ enum EnemyAbility
     REGENERATE
 }
 
+/// @description Identifies the original source of damage.
+enum DamageSource
+{
+    PLAYER,
+    TOWER,
+    ENEMY,
+    ENVIRONMENT
+}
+
 
 // Staggered update helpers.
 //

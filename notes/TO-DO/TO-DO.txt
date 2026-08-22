@@ -1,0 +1,525 @@
+# VECTOR TD 2026 — REBUILD ROADMAP
+
+## Project direction
+
+Rebuild the original Vector TD with familiar gameplay, recognizable code organization, and selective improvements.
+
+The original `VECTOR RTS TD.zip` is the primary gameplay and structural reference. Preserve systems that already worked well before replacing them.
+
+### Core rules
+
+- Keep the project understandable and familiar.
+- Implement one playable system at a time.
+- Prefer complete functions and events.
+- Use enums and readable switch statements for states.
+- Group related variables into small structs.
+- Keep major state variables direct and familiar:
+
+```gml
+global.GameState
+global.LevelState
+global.CameraState
+
+PlayerState
+EnemyState
+```
+
+- Use data-driven variations where they remove duplicated objects.
+- Keep separate objects for meaningful building categories.
+- Use native `mp_grid` navigation like the original game.
+- Profile before introducing complicated optimization systems.
+- Avoid abstract systems without an immediate gameplay purpose.
+
+---
+
+# Architecture
+
+## Persistent game runtime
+
+Owned by `o_controller_main`:
+
+```gml
+global.vtd.tick
+global.vtd.settings
+global.vtd.data
+global.vtd.debug
+```
+
+Future persistent data:
+
+```gml
+global.vtd.profile
+global.vtd.upgrades
+global.vtd.statistics
+```
+
+## Current-level runtime
+
+Owned by `o_controller_level`:
+
+```gml
+global.vtd_level.time
+global.vtd_level.map
+global.vtd_level.navigation
+global.vtd_level.entities
+global.vtd_level.resources
+global.vtd_level.waves
+global.vtd_level.power
+```
+
+This data is recreated for every gameplay level.
+
+## Data-driven objects
+
+### Enemies
+
+Most enemies share:
+
+```text
+o_enemy
+```
+
+Enemy definitions determine:
+
+- Identity
+- Stats
+- Movement layer
+- Target preference
+- Attack type
+- Navigation response
+- Vector appearance or sprite
+- Abilities
+- Spawn/death behaviour
+
+Unique bosses may later use:
+
+```text
+o_enemy_boss
+```
+
+### Buildings
+
+Use separate objects for meaningful building categories:
+
+```text
+o_building_parent
+o_cpu
+o_tower
+o_wall
+o_miner
+o_refinery
+o_storage
+o_power_generator
+o_power_node
+o_support_building
+```
+
+Variations within a category remain data-driven:
+
+```text
+tower_laser
+tower_triple
+tower_electric
+
+miner_carbon
+miner_copper
+miner_silicon
+```
+
+---
+
+# Current progress
+
+## Foundation
+
+- [x] Create blank `VECTOR_TD_2026` project
+- [x] Create 4096×4096 test world
+- [x] Create persistent main controller
+- [x] Create level controller
+- [x] Add `global.vtd`
+- [x] Add `global.vtd_level`
+- [x] Add direct global state variables
+- [x] Add core enums
+- [x] Add staggered update macros
+- [x] Create ground and breach `mp_grid`s
+- [x] Add safe level-grid cleanup
+
+## Player and camera
+
+- [x] Create grouped player runtime structs
+- [x] Add switch-based `PlayerState`
+- [x] Add normalized WASD movement
+- [x] Add mouse aiming
+- [x] Use custom `visual.draw_angle`
+- [x] Add primitive player fallback
+- [x] Add camera follow mode
+- [x] Add camera roaming mode
+- [x] Add mouse-wheel zoom
+- [x] Clamp camera inside the map
+- [x] Add camera-shake foundation
+
+## CPU and first enemy
+
+- [x] Create CPU runtime
+- [x] Add CPU health and damage
+- [x] Add vector-style CPU drawing
+- [x] Create centralized enemy definitions
+- [x] Create generic `o_enemy`
+- [x] Add `enemy_weak`
+- [x] Add vector-style enemy drawing
+- [x] Add native `mp_grid` paths
+- [x] Add enemy-owned path cleanup
+- [x] Add CPU targeting
+- [x] Add contact attacks
+- [x] Add random-edge test spawning
+- [x] Add temporary development HUD
+
+---
+
+# Next milestones
+
+## 1. Enemy health and player combat
+
+- [ ] Add reusable damage packet structure
+- [ ] Add enemy damage function
+- [ ] Add enemy death function
+- [ ] Add player weapon runtime
+- [ ] Add generic player projectile object
+- [ ] Allow player bullets to damage enemies
+- [ ] Keep player bullets able to travel over walls
+- [ ] Add player firing cooldown
+- [ ] Add player projectile range/lifetime
+- [ ] Add enemy kill counter
+- [ ] Test large numbers of enemies and projectiles
+
+## 2. Basic enemy targeting
+
+Recreate familiar original Vector targeting behaviour.
+
+- [ ] CPU-seeking enemy
+- [ ] Closest-building enemy
+- [ ] Weighted building selection
+- [ ] Optional player awareness
+- [ ] Optional player-retaliation behaviour
+- [ ] Target-retention distance
+- [ ] Stagger expensive targeting checks
+- [ ] Separate movement layer from targeting behaviour
+
+## 3. Building foundation
+
+- [ ] Create `o_building_parent`
+- [ ] Create central building definitions
+- [ ] Add building identity
+- [ ] Add building HP
+- [ ] Add building footprint
+- [ ] Add construction cost
+- [ ] Add construction time
+- [ ] Add building selection
+- [ ] Add building destruction
+- [ ] Add building-grid registration
+- [ ] Remove grid cells safely during cleanup
+
+## 4. Build mode
+
+Keep placement similar to the original Vector TD.
+
+- [ ] Open build mode
+- [ ] Select a building
+- [ ] Show placement preview
+- [ ] Snap preview to grid
+- [ ] Show valid/invalid placement colour
+- [ ] Prevent overlap
+- [ ] Prevent placement outside map
+- [ ] Deduct resources
+- [ ] Place correct building-category object
+- [ ] Supply `building_key`
+- [ ] Cancel build mode
+- [ ] Add only changed cells to `grid_ground`
+- [ ] Increment navigation revision
+- [ ] Avoid full-map rebuilding
+
+## 5. Walls and breaching
+
+- [ ] Create data-driven `o_wall`
+- [ ] Add inexpensive defensive walls
+- [ ] Make ordinary enemies path around walls
+- [ ] Detect when CPU route is blocked
+- [ ] Use `grid_breach` to find a route through buildings
+- [ ] Locate the first building blocking that route
+- [ ] Set the blocker as a temporary breach target
+- [ ] Destroy the blocking building
+- [ ] Resume the original strategic target
+- [ ] Test fully enclosed CPU layouts
+- [ ] Stagger enemy repathing after placement
+
+## 6. Towers
+
+- [ ] Create `o_tower`
+- [ ] Create tower definitions
+- [ ] Add tower targeting modes
+- [ ] Add ground/flying/underground target masks
+- [ ] Add target range
+- [ ] Add target selection
+- [ ] Add custom turret `draw_angle`
+- [ ] Add generic tower projectile
+- [ ] Add single-shot tower
+- [ ] Add triple-shot tower
+- [ ] Add projectile damage
+- [ ] Add tower kill tracking
+- [ ] Add tower ranks from kills
+
+## 7. Enemy expansion
+
+All normal variants continue using `o_enemy`.
+
+- [ ] Fast weak enemy
+- [ ] Armoured enemy
+- [ ] Building hunter
+- [ ] Ranged single shooter
+- [ ] Ranged triple shooter
+- [ ] Kamikaze exploder
+- [ ] Phaser
+- [ ] Splitter
+- [ ] Transporter carrying smaller enemies
+- [ ] Flying enemy
+- [ ] Underground enemy
+- [ ] Elite tier
+- [ ] Boss foundation
+
+### Enemy ability system
+
+- [ ] Permanent definition abilities
+- [ ] Runtime-granted abilities
+- [ ] Timed abilities
+- [ ] Global enemy modifiers
+- [ ] Phasing as an ability, not a movement layer
+- [ ] Explosion-on-death
+- [ ] Split-on-death
+- [ ] Transported enemies
+- [ ] Regeneration
+- [ ] Future unusual abilities without rewriting `o_enemy`
+
+## 8. Resources and economy
+
+Keep level resource settings centralized and easy to edit.
+
+- [ ] Define resource types
+- [ ] Add starting resources to level data
+- [ ] Add maximum capacities
+- [ ] Create resource deposits
+- [ ] Create `o_miner`
+- [ ] Add carbon miner
+- [ ] Add copper miner
+- [ ] Add silicon miner
+- [ ] Create `o_storage`
+- [ ] Add resource-specific storage buildings
+- [ ] Create `o_refinery`
+- [ ] Add processing recipes
+- [ ] Add production rates
+- [ ] Display resources in HUD
+
+## 9. Local power networks
+
+Retain the improved power-network concept.
+
+- [ ] Create `o_power_generator`
+- [ ] Create `o_power_node`
+- [ ] Define connection range
+- [ ] Discover connected local networks
+- [ ] Register generators and consumers
+- [ ] Add idle power demand
+- [ ] Add active/firing power demand
+- [ ] Add research power demand
+- [ ] Add solar generation
+- [ ] Add wind generation
+- [ ] Add batteries
+- [ ] Add battery charge/discharge
+- [ ] Show powered/unpowered state
+- [ ] Rebuild only affected networks
+- [ ] Support isolated backup networks
+- [ ] Add power-grid debug overlay
+
+## 10. Waves and pressure
+
+Recreate and evolve the original spawning model.
+
+- [ ] Centralized level definition
+- [ ] Grace period
+- [ ] Baseline enemy spawning
+- [ ] Baseline spawn pool
+- [ ] Difficulty-based spawn interval
+- [ ] Enemy unlock milestones
+- [ ] Random clusters
+- [ ] Major waves
+- [ ] Weighted enemy groups
+- [ ] Spawn staggering
+- [ ] Named milestone attacks
+- [ ] Level-specific enemy pools
+- [ ] Endless-pressure support
+- [ ] Debug controls for spawning and waves
+
+Level data should remain easy to edit in one place:
+
+```gml
+levels.world_001 =
+{
+    starting_resources:
+    {
+        credits: 250000,
+        carbon: 5000,
+        copper: 500,
+        silicon: 250
+    },
+
+    enemies:
+    {
+        grace_period: 90,
+        baseline: {},
+        clusters: [],
+        waves: [],
+        milestones: []
+    }
+};
+```
+
+## 11. World generation
+
+- [ ] Decide initial map size
+- [ ] Support 8192×8192 maps
+- [ ] Add deterministic world seed
+- [ ] Generate terrain
+- [ ] Generate resource deposits
+- [ ] Choose CPU spawn area
+- [ ] Choose player spawn area
+- [ ] Choose enemy edge-spawn zones
+- [ ] Add terrain to both navigation grids
+- [ ] Add fog of war
+- [ ] Reveal terrain around player and structures
+- [ ] Cull distant drawing and effects
+
+## 12. Upgrades
+
+### Local level research
+
+Larger, specialized improvements that last only for the current level.
+
+- [ ] Create research/upgrade building
+- [ ] Define local research choices
+- [ ] Add research costs
+- [ ] Add research time
+- [ ] Add research power demand
+- [ ] Example: laser towers deal bonus shield damage
+- [ ] Example: miners extract faster
+- [ ] Example: batteries store more energy
+- [ ] Reset local research when leaving the level
+
+### Persistent upgrades
+
+Small account-wide improvements earned outside levels.
+
+- [ ] Persistent upgrade storage
+- [ ] Lobby or main-menu research interface
+- [ ] Small global damage bonuses
+- [ ] Small building-health bonuses
+- [ ] Small production bonuses
+- [ ] Apply persistent bonuses when runtimes are created
+- [ ] Keep persistent bonuses smaller than local research
+
+### Tower-specific progression
+
+- [ ] Track tower kills
+- [ ] Add tower ranks
+- [ ] Give veteran towers small stat bonuses
+- [ ] Add overclocking
+- [ ] Add overclock heat or risk
+- [ ] Decide whether veteran status survives a level
+
+## 13. Effects and presentation
+
+- [ ] Create reusable `scr_effects`
+- [ ] Create generic `o_effect`
+- [ ] Muzzle flashes
+- [ ] Projectile trails
+- [ ] Impact effects
+- [ ] Enemy death effects
+- [ ] Building destruction effects
+- [ ] Construction effects
+- [ ] Power connection effects
+- [ ] Screen shake
+- [ ] Damage flashes
+- [ ] Vector-style larger enemy designs
+- [ ] Primitive boss shapes
+- [ ] Sound foundation
+- [ ] Music foundation
+
+## 14. Interface
+
+- [ ] Main HUD
+- [ ] Resource display
+- [ ] CPU health
+- [ ] Wave information
+- [ ] Build menu
+- [ ] Building selection panel
+- [ ] Tower targeting controls
+- [ ] Power-network overlay
+- [ ] Research interface
+- [ ] Upgrade interface
+- [ ] Pause menu
+- [ ] Victory screen
+- [ ] Defeat screen
+- [ ] Main menu/lobby
+
+## 15. Performance
+
+Preserve the original project’s ability to handle large enemy counts.
+
+- [ ] Test 100 enemies
+- [ ] Test 250 enemies
+- [ ] Test 500 enemies
+- [ ] Profile path calculations
+- [ ] Stagger path requests
+- [ ] Stagger targeting checks
+- [ ] Use `IFRAMES` only for suitable logic
+- [ ] Add camera culling
+- [ ] Avoid per-frame global instance scans
+- [ ] Avoid rebuilding complete navigation grids
+- [ ] Pool effects if profiling shows a benefit
+- [ ] Test large maps
+- [ ] Test mass building placement
+- [ ] Test large waves and projectile counts
+
+---
+
+# Development order
+
+Work in this order unless testing reveals a more urgent dependency:
+
+1. Player combat and enemy death
+2. Basic building foundation
+3. Build placement
+4. Walls and breach routing
+5. First tower
+6. Enemy targeting variations
+7. Enemy ranged attacks and abilities
+8. Resources and miners
+9. Storage and refinery
+10. Local power networks
+11. Waves and level configuration
+12. World generation
+13. Upgrades
+14. Effects and interface
+15. Larger enemy roster and bosses
+
+---
+
+# Scope guard
+
+Before introducing a new abstraction, ask:
+
+1. Did the original Vector TD already solve this effectively?
+2. Can the existing familiar solution be cleaned up instead?
+3. Does this abstraction make the project easier for Ben to understand?
+4. Is the added flexibility required by current gameplay?
+5. Can the system be tested immediately?
+
+If the answer is unclear, use the simpler original-style implementation first.
