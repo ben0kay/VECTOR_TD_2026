@@ -1,7 +1,7 @@
 /// @description Processes player behaviour.
 
 if (
-    global.vtd.game_state
+    global.vtd.GameState
     != GameState.PLAYING
 )
 {

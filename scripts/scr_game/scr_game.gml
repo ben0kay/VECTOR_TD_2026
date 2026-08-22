@@ -10,7 +10,7 @@ function scr_game_initialize()
         tick:
             0,
 
-        game_state:
+        GameState:
             GameState.BOOT,
 
         settings:
@@ -49,7 +49,7 @@ function scr_game_initialize()
     // scr_building_data_initialize();
 
 
-    global.vtd.game_state =
+    global.vtd.GameState =
         GameState.PLAYING;
 
     show_debug_message(

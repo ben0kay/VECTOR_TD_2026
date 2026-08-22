@@ -3,7 +3,7 @@
 global.vtd.tick++;
 
 
-switch (global.vtd.game_state)
+switch (global.vtd.GameState)
 {
     case GameState.BOOT:
     {

@@ -9,7 +9,7 @@ function scr_player_initialize(_player)
         return false;
 
 
-    _player.player_state =
+    _player.PlayerState =
         PlayerState.ACTIVE;
 
 
@@ -222,7 +222,7 @@ function scr_player_update(_player)
         return false;
 
 
-    switch (_player.player_state)
+    switch (_player.PlayerState)
     {
         case PlayerState.ACTIVE:
         {
