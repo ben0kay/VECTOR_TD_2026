@@ -116,6 +116,22 @@ enum BuildingType
     SUPPORT
 }
 
+/// @description Determines how a tower chooses an enemy.
+enum TowerTargetMode
+{
+    CLOSEST,
+    FURTHEST,
+    LOWEST_HP,
+    HIGHEST_HP
+}
+
+/// @description Determines how projectile damage is applied.
+enum ProjectileImpact
+{
+    DIRECT,
+    EXPLOSIVE
+}
+
 
 // Staggered update helpers.
 //

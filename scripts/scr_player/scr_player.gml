@@ -433,10 +433,6 @@ function scr_player_combat_update(_player)
         );
 
 
-    // ========================================================================
-    // COOLDOWN
-    // ========================================================================
-
     _weapon.cooldown.remaining =
         max(
             0,
@@ -445,9 +441,19 @@ function scr_player_combat_update(_player)
         );
 
 
-    // ========================================================================
-    // FIRING INPUT
-    // ========================================================================
+    // Left-click belongs to building placement while build mode is active.
+
+    if (
+        global.BuildState
+        != BuildState.NONE
+    )
+    {
+        _combat.firing =
+            false;
+
+        return true;
+    }
+
 
     _combat.firing =
         mouse_check_button(
@@ -462,37 +468,29 @@ function scr_player_combat_update(_player)
         return true;
 
 
-    // ========================================================================
-    // PROJECTILE CREATION
-    // ========================================================================
-
     var _angle =
         _player.visual.draw_angle;
 
     var _spawn_distance =
-        _player.visual.radius
-        + 8;
-
-    var _spawn_x =
-        _player.x
-        + lengthdir_x(
-            _spawn_distance,
-            _angle
-        );
-
-    var _spawn_y =
-        _player.y
-        + lengthdir_y(
-            _spawn_distance,
-            _angle
-        );
+        _player.visual.radius + 8;
 
 
     var _projectile =
         scr_projectile_player_create(
             _player,
-            _spawn_x,
-            _spawn_y,
+
+            _player.x
+                + lengthdir_x(
+                    _spawn_distance,
+                    _angle
+                ),
+
+            _player.y
+                + lengthdir_y(
+                    _spawn_distance,
+                    _angle
+                ),
+
             _angle,
             _weapon.damage,
             _weapon.projectile
@@ -505,14 +503,6 @@ function scr_player_combat_update(_player)
 
     _weapon.cooldown.remaining =
         _weapon.cooldown.duration;
-
-
-    // FUTURE:
-    // muzzle flash
-    // firing sound
-    // weapon heat
-    // recoil
-    // camera shake
 
 
     return true;

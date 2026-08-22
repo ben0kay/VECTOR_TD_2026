@@ -975,22 +975,6 @@ function scr_enemy_draw(_enemy)
 }
 
 
-/// @description Releases resources owned by one enemy.
-
-function scr_enemy_cleanup(_enemy)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    scr_navigation_enemy_cleanup(
-        _enemy
-    );
-
-
-    return true;
-}
-
 /// @description Applies damage to one enemy.
 
 function scr_enemy_damage(
@@ -1065,10 +1049,6 @@ function scr_enemy_die(
     );
 
 
-    // ========================================================================
-    // KILL ATTRIBUTION
-    // ========================================================================
-
     if (is_struct(_damage))
     {
         switch (_damage.source_type)
@@ -1085,9 +1065,7 @@ function scr_enemy_die(
                         _player,
                         "combat"
                     )
-                    && is_struct(
-                        _player.combat
-                    )
+                    && is_struct(_player.combat)
                 )
                 {
                     _player.combat.kills++;
@@ -1098,24 +1076,29 @@ function scr_enemy_die(
 
             case DamageSource.TOWER:
             {
-                // FUTURE:
-                // Award the kill to the firing tower.
-                // Tower kills will contribute to tower ranks.
+                var _tower =
+                    _damage.source;
+
+
+                if (
+                    instance_exists(_tower)
+                    && variable_instance_exists(
+                        _tower,
+                        "combat"
+                    )
+                    && is_struct(_tower.combat)
+                )
+                {
+                    _tower.combat.kills++;
+                }
             }
             break;
 
 
             case DamageSource.ENEMY:
-            {
-                // FUTURE:
-                // Enemy friendly fire or special effects.
-            }
-            break;
-
-
             case DamageSource.ENVIRONMENT:
             {
-                // No entity receives credit.
+                // No player-controlled entity receives credit.
             }
             break;
         }
@@ -1129,14 +1112,30 @@ function scr_enemy_die(
 
 
     // FUTURE:
-    // credits and resource drops
-    // death effects
+    // credits and drops
+    // experience
+    // particle effect
     // split-on-death
-    // transported enemy release
-    // wave and milestone notifications
+    // transporter release
 
 
     instance_destroy(
+        _enemy
+    );
+
+
+    return true;
+}
+
+/// @description Releases resources owned by one enemy.
+
+function scr_enemy_cleanup(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    scr_navigation_enemy_cleanup(
         _enemy
     );
 

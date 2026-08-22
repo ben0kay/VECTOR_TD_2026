@@ -233,8 +233,8 @@ function scr_build_mode_place(
 
         case BuildingType.TOWER:
         {
-            // FUTURE:
-            // _object = o_tower;
+            _object =
+                o_tower;
         }
         break;
 
@@ -292,22 +292,36 @@ function scr_build_mode_place(
         return noone;
 
 
-    return instance_create_layer(
-        _preview.world_x,
-        _preview.world_y,
-        "Instances",
-        _object,
-        {
-            building_key:
-                _build.selected_key,
+    var _building =
+        instance_create_layer(
+            _preview.world_x,
+            _preview.world_y,
+            "Instances",
+            _object,
+            {
+                building_key:
+                    _build.selected_key,
 
-            placement_cell_x:
-                _preview.cell_x,
+                placement_cell_x:
+                    _preview.cell_x,
 
-            placement_cell_y:
-                _preview.cell_y
-        }
+                placement_cell_y:
+                    _preview.cell_y
+            }
+        );
+
+
+    if (!instance_exists(_building))
+        return noone;
+
+
+    show_debug_message(
+        "BUILD PLACED: "
+        + _data.identity.name
     );
+
+
+    return _building;
 }
 
 
@@ -336,6 +350,17 @@ function scr_build_mode_update(
                     "wall_basic"
                 );
             }
+            else if (
+                keyboard_check_pressed(
+                    ord("T")
+                )
+            )
+            {
+                scr_build_mode_begin(
+                    _controller,
+                    "tower_basic"
+                );
+            }
         }
         break;
 
@@ -348,16 +373,45 @@ function scr_build_mode_update(
 
 
             if (
-                keyboard_check_pressed(
-                    ord("B")
-                )
-                || mouse_check_button_pressed(
+                mouse_check_button_pressed(
                     mb_right
                 )
             )
             {
                 scr_build_mode_cancel(
                     _controller
+                );
+
+                break;
+            }
+
+
+            // Switch building type without leaving build mode.
+
+            if (
+                keyboard_check_pressed(
+                    ord("B")
+                )
+            )
+            {
+                scr_build_mode_begin(
+                    _controller,
+                    "wall_basic"
+                );
+
+                break;
+            }
+
+
+            if (
+                keyboard_check_pressed(
+                    ord("T")
+                )
+            )
+            {
+                scr_build_mode_begin(
+                    _controller,
+                    "tower_basic"
                 );
 
                 break;
@@ -373,10 +427,6 @@ function scr_build_mode_update(
                 scr_build_mode_place(
                     _controller
                 );
-
-
-                // Remain in placement mode so several walls can be placed.
-                // Right-click or B exits the mode.
 
                 scr_build_mode_preview_update(
                     _controller

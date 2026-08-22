@@ -7,6 +7,10 @@ function scr_building_data_initialize()
 {
     global.vtd.data.buildings =
     {
+        // ====================================================================
+        // BASIC WALL
+        // ====================================================================
+
         wall_basic:
         {
             identity:
@@ -44,20 +48,115 @@ function scr_building_data_initialize()
 
             construction:
             {
-                // Construction will become visible later.
-                // The wall activates immediately for this first placement test.
-
                 time_seconds:
                     0
             },
 
             economy:
             {
-                // FUTURE:
-                // Add resource costs when the economy is implemented.
-
                 cost:
                     []
+            }
+        },
+
+
+        // ====================================================================
+        // BASIC TOWER
+        // ====================================================================
+
+        tower_basic:
+        {
+            identity:
+            {
+                key:
+                    "tower_basic",
+
+                name:
+                    "Basic Tower",
+
+                type:
+                    BuildingType.TOWER
+            },
+
+            visual:
+            {
+                color:
+                    c_aqua,
+
+                turret_color:
+                    c_yellow
+            },
+
+            footprint:
+            {
+                width_cells:
+                    2,
+
+                height_cells:
+                    2
+            },
+
+            vitals:
+            {
+                hp_maximum:
+                    300
+            },
+
+            construction:
+            {
+                time_seconds:
+                    0
+            },
+
+            economy:
+            {
+                cost:
+                    []
+            },
+
+            tower:
+            {
+                range:
+                    280,
+
+                target_mode:
+                    TowerTargetMode.CLOSEST,
+
+                target_layer:
+                    EnemyMovementLayer.GROUND,
+
+                weapon:
+                {
+                    damage:
+                        10,
+
+                    cooldown_seconds:
+                        0.6,
+
+                    projectile:
+                    {
+                        speed:
+                            12,
+
+                        lifetime_seconds:
+                            3,
+
+                        radius:
+                            4,
+
+                        color:
+                            c_yellow,
+
+                        impact:
+                            ProjectileImpact.DIRECT,
+
+                        // Zero means direct damage only.
+                        // Future explosive towers can use 64, 96, 160, etc.
+
+                        damage_radius:
+                            0
+                    }
+                }
             }
         }
     };
