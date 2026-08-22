@@ -342,6 +342,8 @@ function scr_enemy_target_edge_distance(
             * 0.5;
 
 
+        // Find the closest point anywhere on the building rectangle.
+
         var _closest_x =
             clamp(
                 _enemy.x,
@@ -357,15 +359,30 @@ function scr_enemy_target_edge_distance(
             );
 
 
-        return max(
-            0,
+        var _distance_to_rectangle =
             point_distance(
                 _enemy.x,
                 _enemy.y,
                 _closest_x,
                 _closest_y
-            )
+            );
+
+
+        // A small interaction tolerance allows enemies standing in diagonal
+        // neighboring grid cells to attack the building.
+        //
+        // Without this tolerance, a 16-pixel enemy beside a 32-pixel wall can
+        // finish its path approximately 2.6 pixels outside its attack range.
+
+        var _interaction_tolerance =
+            _cell_size * 0.25;
+
+
+        return max(
+            0,
+            _distance_to_rectangle
             - _enemy.visual.radius
+            - _interaction_tolerance
         );
     }
 
