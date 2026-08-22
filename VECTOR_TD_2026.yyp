@@ -27,10 +27,10 @@
   "name":"VECTOR_TD_2026",
   "resources":[
     {"id":{"name":"o_camera","path":"objects/o_camera/o_camera.yy",},},
+    {"id":{"name":"o_controller_level","path":"objects/o_controller_level/o_controller_level.yy",},},
+    {"id":{"name":"o_controller_main","path":"objects/o_controller_main/o_controller_main.yy",},},
     {"id":{"name":"o_cpu","path":"objects/o_cpu/o_cpu.yy",},},
     {"id":{"name":"o_enemy","path":"objects/o_enemy/o_enemy.yy",},},
-    {"id":{"name":"o_game","path":"objects/o_game/o_game.yy",},},
-    {"id":{"name":"o_level","path":"objects/o_level/o_level.yy",},},
     {"id":{"name":"o_player","path":"objects/o_player/o_player.yy",},},
     {"id":{"name":"r_world_test","path":"rooms/r_world_test/r_world_test.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
