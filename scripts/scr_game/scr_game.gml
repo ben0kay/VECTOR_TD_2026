@@ -5,6 +5,72 @@
 
 function scr_game_initialize()
 {
+    global.GameState =
+        GameState.BOOT;
+
+    global.LevelState =
+        LevelState.EXITING;
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
+
+
+    global.vtd =
+    {
+        tick:
+            0,
+
+        settings:
+        {
+            view_width:
+                1366,
+
+            view_height:
+                768,
+
+            grid_cell_size:
+                32
+        },
+
+        data:
+        {
+            enemies:
+                {},
+
+            buildings:
+                {}
+        },
+
+        debug:
+        {
+            enabled:
+                true
+        }
+    };
+
+
+    // Register persistent game definitions.
+
+    scr_enemy_data_initialize();
+
+
+    // FUTURE:
+    // scr_building_data_initialize();
+    // scr_upgrade_data_initialize();
+
+
+    global.GameState =
+        GameState.PLAYING;
+
+
+    show_debug_message(
+        "VECTOR TD 2026 - GAME INITIALIZED"
+    );
+
+
+    return true;
+}
+{
     // Major state-machine variables remain direct globals.
     // This matches the familiar structure of the original Vector TD.
 

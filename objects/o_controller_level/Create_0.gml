@@ -6,6 +6,7 @@ if (instance_number(object_index) > 1)
     exit;
 }
 
+
 if (!variable_global_exists("vtd"))
 {
     show_debug_message(
@@ -29,16 +30,41 @@ if (!scr_level_initialize())
 
 
 // ============================================================================
+// CPU
+// ============================================================================
+
+var _cpu =
+    instance_create_layer(
+        room_width * 0.5,
+        room_height * 0.5,
+        "Instances",
+        o_cpu
+    );
+
+
+if (!instance_exists(_cpu))
+{
+    show_debug_message(
+        "LEVEL ERROR - CPU creation failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
+
+// ============================================================================
 // PLAYER
 // ============================================================================
 
 var _player =
     instance_create_layer(
-        room_width * 0.5,
+        (room_width * 0.5) - 256,
         room_height * 0.5,
         "Instances",
         o_player
     );
+
 
 if (!instance_exists(_player))
 {
@@ -62,6 +88,7 @@ var _camera =
         "Instances",
         o_camera
     );
+
 
 if (!instance_exists(_camera))
 {

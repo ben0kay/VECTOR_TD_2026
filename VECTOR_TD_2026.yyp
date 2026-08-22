@@ -34,6 +34,7 @@
     {"id":{"name":"o_player","path":"objects/o_player/o_player.yy",},},
     {"id":{"name":"r_world_test","path":"rooms/r_world_test/r_world_test.yy",},},
     {"id":{"name":"scr_camera","path":"scripts/scr_camera/scr_camera.yy",},},
+    {"id":{"name":"scr_cpu","path":"scripts/scr_cpu/scr_cpu.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
     {"id":{"name":"scr_enemy","path":"scripts/scr_enemy/scr_enemy.yy",},},
     {"id":{"name":"scr_EnumsMacros","path":"scripts/scr_EnumsMacros/scr_EnumsMacros.yy",},},

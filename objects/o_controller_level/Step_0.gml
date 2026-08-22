@@ -22,12 +22,45 @@ switch (global.LevelState)
             );
 
 
+        // Spawn one data-driven test enemy.
+
+        if (
+            keyboard_check_pressed(
+                ord("N")
+            )
+        )
+        {
+            scr_enemy_spawn_test();
+        }
+
+
+        // Direct CPU-damage test.
+
+        if (
+            keyboard_check_pressed(
+                ord("K")
+            )
+        )
+        {
+            var _cpu =
+                global.vtd_level.entities.cpu;
+
+
+            if (instance_exists(_cpu))
+            {
+                scr_cpu_damage(
+                    _cpu,
+                    100
+                );
+            }
+        }
+
+
         // FUTURE:
         // baseline enemy spawning
         // waves and clusters
         // resources
         // local power networks
-        // level victory and failure
     }
     break;
 
@@ -42,9 +75,11 @@ switch (global.LevelState)
 
     case LevelState.FAILED:
     {
+        // The CPU remains visible at zero health for now.
         // FUTURE:
-        // CPU destroyed
-        // defeat handling
+        // defeat screen
+        // restart
+        // return to menu
     }
     break;
 
