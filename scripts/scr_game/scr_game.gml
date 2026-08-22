@@ -5,13 +5,25 @@
 
 function scr_game_initialize()
 {
+    // Major state-machine variables remain direct globals.
+    // This matches the familiar structure of the original Vector TD.
+
+    global.GameState =
+        GameState.BOOT;
+
+    global.LevelState =
+        LevelState.EXITING;
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
+
+
+    // Related persistent data remains grouped under global.vtd.
+
     global.vtd =
     {
         tick:
             0,
-
-        GameState:
-            GameState.BOOT,
 
         settings:
         {
@@ -42,19 +54,20 @@ function scr_game_initialize()
     };
 
 
-    // Enemy and building definitions will be registered here later.
-    //
     // FUTURE:
     // scr_enemy_data_initialize();
     // scr_building_data_initialize();
+    // scr_upgrade_data_initialize();
 
 
-    global.vtd.GameState =
+    global.GameState =
         GameState.PLAYING;
+
 
     show_debug_message(
         "VECTOR TD 2026 - GAME INITIALIZED"
     );
+
 
     return true;
 }
@@ -64,6 +77,13 @@ function scr_game_initialize()
 
 function scr_level_initialize()
 {
+    global.LevelState =
+        LevelState.INITIALIZING;
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
+
+
     var _cell_size =
         global.vtd.settings.grid_cell_size;
 
@@ -80,9 +100,6 @@ function scr_level_initialize()
 
     global.vtd_level =
     {
-        state:
-            LevelState.INITIALIZING,
-
         time:
         {
             frames:
@@ -118,12 +135,12 @@ function scr_level_initialize()
             revision:
                 0,
 
-            // Normal ground enemies use this grid.
+            // Normal ground navigation.
             grid_ground:
                 -1,
 
-            // Breaching enemies use this to discover routes through
-            // buildings while still respecting terrain.
+            // Ignores buildings while still respecting terrain.
+            // Used to locate potential breach routes.
             grid_breach:
                 -1
         },
@@ -131,6 +148,9 @@ function scr_level_initialize()
         entities:
         {
             player:
+                noone,
+
+            camera:
                 noone,
 
             cpu:
@@ -167,6 +187,10 @@ function scr_level_initialize()
     };
 
 
+    // ========================================================================
+    // NAVIGATION GRIDS
+    // ========================================================================
+
     global.vtd_level.navigation.grid_ground =
         mp_grid_create(
             0,
@@ -190,13 +214,15 @@ function scr_level_initialize()
     global.vtd_level.navigation.ready =
         true;
 
-    global.vtd_level.state =
+
+    global.LevelState =
         LevelState.PLAYING;
 
 
     show_debug_message(
         "VECTOR TD 2026 - LEVEL INITIALIZED"
     );
+
 
     return true;
 }
@@ -213,6 +239,10 @@ function scr_level_cleanup()
         return false;
 
 
+    global.LevelState =
+        LevelState.EXITING;
+
+
     var _navigation =
         global.vtd_level.navigation;
 
@@ -227,6 +257,7 @@ function scr_level_cleanup()
             _navigation.grid_breach
         );
 
+
         _navigation.grid_ground =
             -1;
 
@@ -238,9 +269,6 @@ function scr_level_cleanup()
     }
 
 
-    global.vtd_level.state =
-        LevelState.EXITING;
-
     global.vtd_level =
         undefined;
 
@@ -248,6 +276,7 @@ function scr_level_cleanup()
     show_debug_message(
         "VECTOR TD 2026 - LEVEL CLEANED UP"
     );
+
 
     return true;
 }

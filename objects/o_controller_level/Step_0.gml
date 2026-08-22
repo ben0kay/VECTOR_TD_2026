@@ -1,6 +1,6 @@
 /// @description Updates the current gameplay level.
 
-switch (global.vtd_level.state)
+switch (global.LevelState)
 {
     case LevelState.INITIALIZING:
     {
@@ -13,6 +13,7 @@ switch (global.vtd_level.state)
     {
         global.vtd_level.time.frames++;
 
+
         global.vtd_level.time.seconds =
             global.vtd_level.time.frames
             / max(
@@ -22,11 +23,11 @@ switch (global.vtd_level.state)
 
 
         // FUTURE:
-        // spawning
-        // waves
-        // power networks
+        // baseline enemy spawning
+        // waves and clusters
         // resources
-        // level completion
+        // local power networks
+        // level victory and failure
     }
     break;
 
@@ -42,14 +43,15 @@ switch (global.vtd_level.state)
     case LevelState.FAILED:
     {
         // FUTURE:
-        // CPU destroyed / defeat handling
+        // CPU destroyed
+        // defeat handling
     }
     break;
 
 
     case LevelState.EXITING:
     {
-        // Cleanup is handled by the Clean Up event.
+        // Runtime cleanup belongs to the Clean Up event.
     }
     break;
 }

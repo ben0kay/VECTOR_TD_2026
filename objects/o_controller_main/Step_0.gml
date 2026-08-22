@@ -3,11 +3,11 @@
 global.vtd.tick++;
 
 
-switch (global.vtd.GameState)
+switch (global.GameState)
 {
     case GameState.BOOT:
     {
-        // Initialization is currently completed in the Create event.
+        // Initialization currently completes in the Create event.
     }
     break;
 
@@ -16,7 +16,8 @@ switch (global.vtd.GameState)
     {
         // FUTURE:
         // menu navigation
-        // persistent upgrade management
+        // persistent upgrades
+        // level selection
     }
     break;
 
@@ -39,7 +40,9 @@ switch (global.vtd.GameState)
     case GameState.GAME_OVER:
     {
         // FUTURE:
-        // results and return-to-menu handling
+        // results
+        // restart
+        // return to menu
     }
     break;
 }

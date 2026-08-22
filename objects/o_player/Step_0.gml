@@ -1,19 +1,21 @@
 /// @description Processes player behaviour.
 
 if (
-    global.vtd.GameState
+    global.GameState
     != GameState.PLAYING
 )
 {
     exit;
 }
 
+
 if (
-    global.vtd_level.state
+    global.LevelState
     != LevelState.PLAYING
 )
 {
     exit;
 }
+
 
 scr_player_update(id);

@@ -3,6 +3,9 @@
 if (!global.vtd.debug.enabled)
     exit;
 
+if (!variable_global_exists("vtd_level"))
+    exit;
+
 if (!is_struct(global.vtd_level))
     exit;
 
@@ -50,13 +53,14 @@ draw_text(
 var _camera =
     global.vtd_level.entities.camera;
 
+
 if (instance_exists(_camera))
 {
     var _mode_text =
         "FOLLOW PLAYER";
 
 
-    switch (_camera.camera_runtime.state)
+    switch (global.CameraState)
     {
         case CameraState.FOLLOW_PLAYER:
         {

@@ -41,18 +41,23 @@ function scr_camera_initialize(_camera)
     if (instance_exists(_player))
     {
         _start_x =
-            _player.x - (_view_width * 0.5);
+            _player.x
+            - (_view_width * 0.5);
 
         _start_y =
-            _player.y - (_view_height * 0.5);
+            _player.y
+            - (_view_height * 0.5);
     }
+
+
+    // CameraState is a direct global, matching the original Vector style.
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
 
 
     _camera.camera_runtime =
     {
-        state:
-            CameraState.FOLLOW_PLAYER,
-
         id:
             camera_create_view(
                 _start_x,
@@ -120,9 +125,9 @@ function scr_camera_initialize(_camera)
     };
 
 
-    // Enable viewport zero.
-    //
-    // This is done here rather than relying on room-editor camera settings.
+    // ========================================================================
+    // VIEWPORT
+    // ========================================================================
 
     view_enabled =
         true;
@@ -154,6 +159,7 @@ function scr_camera_initialize(_camera)
         "VECTOR TD 2026 - CAMERA INITIALIZED"
     );
 
+
     return true;
 }
 
@@ -169,15 +175,11 @@ function scr_camera_mode_toggle(_camera)
         return false;
 
 
-    var _runtime =
-        _camera.camera_runtime;
-
-
-    switch (_runtime.state)
+    switch (global.CameraState)
     {
         case CameraState.FOLLOW_PLAYER:
         {
-            _runtime.state =
+            global.CameraState =
                 CameraState.ROAMING;
         }
         break;
@@ -185,7 +187,7 @@ function scr_camera_mode_toggle(_camera)
 
         case CameraState.ROAMING:
         {
-            _runtime.state =
+            global.CameraState =
                 CameraState.FOLLOW_PLAYER;
         }
         break;
@@ -194,7 +196,6 @@ function scr_camera_mode_toggle(_camera)
 
     return true;
 }
-
 
 /// @description Updates camera zoom input.
 
@@ -245,6 +246,9 @@ function scr_camera_position_update(
     if (!instance_exists(_camera))
         return false;
 
+    if (!is_struct(_camera.camera_runtime))
+        return false;
+
 
     var _runtime =
         _camera.camera_runtime;
@@ -253,7 +257,7 @@ function scr_camera_position_update(
         _runtime.position;
 
 
-    switch (_runtime.state)
+    switch (global.CameraState)
     {
         case CameraState.FOLLOW_PLAYER:
         {
@@ -302,8 +306,8 @@ function scr_camera_position_update(
             }
 
 
-            // Roaming speed scales with zoom.
-            // This prevents the camera feeling extremely slow while zoomed out.
+            // Roaming movement scales with zoom so it remains comfortable
+            // when viewing a larger portion of the map.
 
             var _move_speed =
                 _runtime.roaming.move_speed
@@ -320,10 +324,9 @@ function scr_camera_position_update(
     }
 
 
-    // Keep the complete camera view inside the level.
-    //
-    // If the view ever becomes larger than the room, the maximum is held
-    // at zero rather than giving clamp() an inverted range.
+    // ========================================================================
+    // ROOM CLAMPING
+    // ========================================================================
 
     var _maximum_x =
         max(
@@ -355,7 +358,6 @@ function scr_camera_position_update(
 
     return true;
 }
-
 
 /// @description Updates and returns the current camera-shake offset.
 
