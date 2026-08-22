@@ -24,6 +24,14 @@ enum CameraState
     ROAMING
 }
 
+/// @description Defines the player's current gameplay state.
+enum PlayerState
+{
+    ACTIVE,
+    STUNNED,
+    DEAD
+}
+
 enum EnemyState
 {
     SPAWNING,
