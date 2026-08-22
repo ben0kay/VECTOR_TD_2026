@@ -191,6 +191,12 @@ function scr_enemy_initialize(_enemy)
         target:
             noone,
 
+        strategic:
+            noone,
+
+        breach:
+            noone,
+
         target_type:
             _data.targeting.target_type
     };
@@ -207,8 +213,6 @@ function scr_enemy_initialize(_enemy)
 
         needs_path:
             true,
-
-        // Spread initial path requests over several frames.
 
         repath_timer:
             real(_enemy.id) mod 4,
@@ -253,10 +257,6 @@ function scr_enemy_initialize(_enemy)
     // ========================================================================
     // ABILITIES
     // ========================================================================
-    //
-    // Copy the definition array into a separate runtime array.
-    // Runtime modifiers may later add or remove abilities without changing
-    // the persistent enemy definition.
 
     _enemy.abilities =
         [];
@@ -279,10 +279,13 @@ function scr_enemy_initialize(_enemy)
     // INITIAL TARGET
     // ========================================================================
 
-    _enemy.targeting.target =
+    _enemy.targeting.strategic =
         scr_enemy_target_acquire(
             _enemy
         );
+
+    _enemy.targeting.target =
+        _enemy.targeting.strategic;
 
 
     show_debug_message(
@@ -308,6 +311,69 @@ function scr_enemy_target_edge_distance(
         return infinity;
 
 
+    // ========================================================================
+    // BUILDING RECTANGLE
+    // ========================================================================
+
+    if (
+        _target.object_index
+        == o_building_par
+        || object_is_ancestor(
+            _target.object_index,
+            o_building_par
+        )
+    )
+    {
+        var _cell_size =
+            global.vtd_level.map.cell_size;
+
+        var _half_width =
+            (
+                _target.footprint.width_cells
+                * _cell_size
+            )
+            * 0.5;
+
+        var _half_height =
+            (
+                _target.footprint.height_cells
+                * _cell_size
+            )
+            * 0.5;
+
+
+        var _closest_x =
+            clamp(
+                _enemy.x,
+                _target.x - _half_width,
+                _target.x + _half_width
+            );
+
+        var _closest_y =
+            clamp(
+                _enemy.y,
+                _target.y - _half_height,
+                _target.y + _half_height
+            );
+
+
+        return max(
+            0,
+            point_distance(
+                _enemy.x,
+                _enemy.y,
+                _closest_x,
+                _closest_y
+            )
+            - _enemy.visual.radius
+        );
+    }
+
+
+    // ========================================================================
+    // CIRCULAR TARGET
+    // ========================================================================
+
     var _target_radius =
         0;
 
@@ -318,6 +384,10 @@ function scr_enemy_target_edge_distance(
             "visual"
         )
         && is_struct(_target.visual)
+        && variable_struct_exists(
+            _target.visual,
+            "radius"
+        )
     )
     {
         _target_radius =
@@ -355,21 +425,43 @@ function scr_enemy_attack(_enemy)
         return false;
 
 
+    var _damage =
+        scr_damage_create(
+            _enemy.attack.damage,
+            _enemy,
+            DamageSource.ENEMY
+        );
+
+    var _damage_applied =
+        false;
+
+
     switch (_enemy.attack.type)
     {
         case EnemyAttack.CONTACT:
         {
             if (_target.object_index == o_cpu)
             {
-                if (
-                    !scr_cpu_damage(
+                _damage_applied =
+                    scr_cpu_damage(
                         _target,
                         _enemy.attack.damage
-                    )
+                    );
+            }
+            else if (
+                _target.object_index
+                    == o_building_par
+                || object_is_ancestor(
+                    _target.object_index,
+                    o_building_par
                 )
-                {
-                    return false;
-                }
+            )
+            {
+                _damage_applied =
+                    scr_building_damage(
+                        _target,
+                        _damage
+                    );
             }
         }
         break;
@@ -382,6 +474,10 @@ function scr_enemy_attack(_enemy)
         }
         break;
     }
+
+
+    if (!_damage_applied)
+        return false;
 
 
     _enemy.attack.cooldown.remaining =
@@ -415,14 +511,54 @@ function scr_enemy_update(_enemy)
         );
 
 
+    // ========================================================================
+    // TARGET RECOVERY
+    // ========================================================================
+
+    if (!instance_exists(
+        _enemy.targeting.strategic
+    ))
+    {
+        _enemy.targeting.strategic =
+            scr_enemy_target_acquire(
+                _enemy
+            );
+    }
+
+
+    if (!instance_exists(
+        _enemy.targeting.breach
+    ))
+    {
+        _enemy.targeting.breach =
+            noone;
+    }
+
+
     if (!instance_exists(
         _enemy.targeting.target
     ))
     {
-        _enemy.targeting.target =
-            scr_enemy_target_acquire(
-                _enemy
-            );
+        // If the temporary breach target was destroyed, return to the
+        // original strategic objective.
+
+        if (instance_exists(
+            _enemy.targeting.strategic
+        ))
+        {
+            _enemy.targeting.target =
+                _enemy.targeting.strategic;
+        }
+        else
+        {
+            _enemy.targeting.target =
+                scr_enemy_target_acquire(
+                    _enemy
+                );
+
+            _enemy.targeting.strategic =
+                _enemy.targeting.target;
+        }
 
 
         if (!instance_exists(
@@ -562,7 +698,6 @@ function scr_enemy_update(_enemy)
 
     return true;
 }
-
 
 /// @description Spawns one data-driven enemy.
 
@@ -795,6 +930,23 @@ function scr_enemy_draw(_enemy)
         _bar_top + 3,
         false
     );
+	
+	if (instance_exists(
+    _enemy.targeting.breach
+))
+{
+    draw_set_color(
+        c_orange
+    );
+
+    draw_text(
+        _enemy.x - 24,
+        _enemy.y
+            + _enemy.visual.radius
+            + 6,
+        "BREACH"
+    );
+}
 
 
     draw_set_color(

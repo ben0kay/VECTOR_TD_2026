@@ -147,20 +147,12 @@ function scr_navigation_enemy_path_build(
         _enemy.targeting.target;
 
 
-    path_clear_points(
-        _path
-    );
-
-
     var _path_found =
-        mp_grid_path(
+        scr_navigation_path_to_target(
+            _enemy,
+            _target,
             _grid,
-            _path,
-            _enemy.x,
-            _enemy.y,
-            _target.x,
-            _target.y,
-            true
+            _path
         );
 
 
@@ -169,9 +161,35 @@ function scr_navigation_enemy_path_build(
         _enemy.navigation.reachable =
             false;
 
+        _enemy.navigation.needs_path =
+            false;
+
+        _enemy.navigation.revision_seen =
+            global.vtd_level.navigation
+                .revision;
+
+
         path_clear_points(
             _path
         );
+
+
+        // Breach only when the blocked target is the strategic objective.
+        // A breach target itself should not recursively create another
+        // breach target.
+
+        if (
+            _enemy.navigation.blocked_action
+            == EnemyBlockedAction.BREACH
+            && _enemy.targeting.target
+                == _enemy.targeting.strategic
+        )
+        {
+            scr_navigation_enemy_breach_begin(
+                _enemy
+            );
+        }
+
 
         return false;
     }
@@ -184,7 +202,8 @@ function scr_navigation_enemy_path_build(
         false;
 
     _enemy.navigation.revision_seen =
-        global.vtd_level.navigation.revision;
+        global.vtd_level.navigation
+            .revision;
 
 
     with (_enemy)
@@ -273,6 +292,483 @@ function scr_navigation_enemy_update(_enemy)
     return true;
 }
 
+/// @description Returns possible approach positions around a building.
+
+function scr_navigation_building_approach_positions(
+    _enemy,
+    _building
+)
+{
+    var _positions =
+        [];
+
+
+    if (!instance_exists(_enemy))
+        return _positions;
+
+    if (!instance_exists(_building))
+        return _positions;
+
+    if (!is_struct(_building.footprint))
+        return _positions;
+
+
+    var _origin =
+        _building.footprint.origin;
+
+    var _width =
+        _building.footprint.width_cells;
+
+    var _height =
+        _building.footprint.height_cells;
+
+
+    var _left =
+        _origin.x - 1;
+
+    var _right =
+        _origin.x + _width;
+
+    var _top =
+        _origin.y - 1;
+
+    var _bottom =
+        _origin.y + _height;
+
+
+    for (
+        var _cell_y = _top;
+        _cell_y <= _bottom;
+        ++_cell_y
+    )
+    {
+        for (
+            var _cell_x = _left;
+            _cell_x <= _right;
+            ++_cell_x
+        )
+        {
+            var _inside_building =
+                (
+                    _cell_x >= _origin.x
+                    && _cell_x
+                        < _origin.x + _width
+                    && _cell_y >= _origin.y
+                    && _cell_y
+                        < _origin.y + _height
+                );
+
+
+            if (_inside_building)
+                continue;
+
+
+            if (
+                !scr_building_cell_inside_map(
+                    _cell_x,
+                    _cell_y
+                )
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                mp_grid_get_cell(
+                    global.vtd_level.navigation
+                        .grid_ground,
+                    _cell_x,
+                    _cell_y
+                )
+                != 0
+            )
+            {
+                continue;
+            }
+
+
+            var _position =
+                scr_building_cell_to_position(
+                    _cell_x,
+                    _cell_y
+                );
+
+
+            array_push(
+                _positions,
+                {
+                    x:
+                        _position.x,
+
+                    y:
+                        _position.y,
+
+                    distance:
+                        point_distance(
+                            _enemy.x,
+                            _enemy.y,
+                            _position.x,
+                            _position.y
+                        )
+                }
+            );
+        }
+    }
+
+
+    // Sort nearest approach cells first.
+
+    for (
+        var i = 1;
+        i < array_length(_positions);
+        ++i
+    )
+    {
+        var _entry =
+            _positions[i];
+
+        var j =
+            i - 1;
+
+
+        while (
+            j >= 0
+            && _positions[j].distance
+                > _entry.distance
+        )
+        {
+            _positions[j + 1] =
+                _positions[j];
+
+            j--;
+        }
+
+
+        _positions[j + 1] =
+            _entry;
+    }
+
+
+    return _positions;
+}
+
+
+/// @description Builds a path to an ordinary target or adjacent building cell.
+
+function scr_navigation_path_to_target(
+    _enemy,
+    _target,
+    _grid,
+    _path
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_target))
+        return false;
+
+
+    // Buildings occupy blocked grid cells, so enemies must path to an
+    // accessible neighboring cell rather than the building centre.
+
+    if (
+        _target.object_index
+        == o_building_par
+        || object_is_ancestor(
+            _target.object_index,
+            o_building_par
+        )
+    )
+    {
+        var _positions =
+            scr_navigation_building_approach_positions(
+                _enemy,
+                _target
+            );
+
+
+        for (
+            var i = 0;
+            i < array_length(_positions);
+            ++i
+        )
+        {
+            var _position =
+                _positions[i];
+
+
+            path_clear_points(
+                _path
+            );
+
+
+            if (
+                mp_grid_path(
+                    _grid,
+                    _path,
+                    _enemy.x,
+                    _enemy.y,
+                    _position.x,
+                    _position.y,
+                    true
+                )
+            )
+            {
+                return true;
+            }
+        }
+
+
+        path_clear_points(
+            _path
+        );
+
+        return false;
+    }
+
+
+    path_clear_points(
+        _path
+    );
+
+
+    return mp_grid_path(
+        _grid,
+        _path,
+        _enemy.x,
+        _enemy.y,
+        _target.x,
+        _target.y,
+        true
+    );
+}
+
+
+/// @description Finds the first building crossed by a breach-grid route.
+
+function scr_navigation_enemy_breach_target_find(
+    _enemy
+)
+{
+    if (!instance_exists(_enemy))
+        return noone;
+
+    if (!instance_exists(
+        _enemy.targeting.strategic
+    ))
+    {
+        return noone;
+    }
+
+
+    var _path =
+        _enemy.navigation.path_id;
+
+    var _target =
+        _enemy.targeting.strategic;
+
+    var _breach_grid =
+        global.vtd_level.navigation
+            .grid_breach;
+
+
+    path_clear_points(
+        _path
+    );
+
+
+    if (
+        !mp_grid_path(
+            _breach_grid,
+            _path,
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y,
+            true
+        )
+    )
+    {
+        path_clear_points(
+            _path
+        );
+
+        return noone;
+    }
+
+
+    var _point_count =
+        path_get_number(
+            _path
+        );
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _sample_distance =
+        max(
+            4,
+            _cell_size * 0.4
+        );
+
+
+    var _previous_x =
+        _enemy.x;
+
+    var _previous_y =
+        _enemy.y;
+
+
+    // Sample every path segment rather than checking only path points.
+    // Native paths may contain long straight segments crossing several cells.
+
+    for (
+        var i = 0;
+        i < _point_count;
+        ++i
+    )
+    {
+        var _point_x =
+            path_get_point_x(
+                _path,
+                i
+            );
+
+        var _point_y =
+            path_get_point_y(
+                _path,
+                i
+            );
+
+
+        var _segment_length =
+            point_distance(
+                _previous_x,
+                _previous_y,
+                _point_x,
+                _point_y
+            );
+
+        var _samples =
+            max(
+                1,
+                ceil(
+                    _segment_length
+                    / _sample_distance
+                )
+            );
+
+
+        for (
+            var j = 0;
+            j <= _samples;
+            ++j
+        )
+        {
+            var _amount =
+                j / _samples;
+
+            var _sample_x =
+                lerp(
+                    _previous_x,
+                    _point_x,
+                    _amount
+                );
+
+            var _sample_y =
+                lerp(
+                    _previous_y,
+                    _point_y,
+                    _amount
+                );
+
+
+            var _cell =
+                scr_building_position_to_cell(
+                    _sample_x,
+                    _sample_y
+                );
+
+
+            var _building =
+                scr_building_at_cell(
+                    _cell.x,
+                    _cell.y
+                );
+
+
+            if (instance_exists(_building))
+            {
+                path_clear_points(
+                    _path
+                );
+
+                return _building;
+            }
+        }
+
+
+        _previous_x =
+            _point_x;
+
+        _previous_y =
+            _point_y;
+    }
+
+
+    path_clear_points(
+        _path
+    );
+
+
+    return noone;
+}
+
+
+/// @description Assigns the first blocking building as a temporary target.
+
+function scr_navigation_enemy_breach_begin(
+    _enemy
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _building =
+        scr_navigation_enemy_breach_target_find(
+            _enemy
+        );
+
+
+    if (!instance_exists(_building))
+        return false;
+
+
+    _enemy.targeting.breach =
+        _building;
+
+    _enemy.targeting.target =
+        _building;
+
+
+    scr_navigation_enemy_repath_request(
+        _enemy,
+        true
+    );
+
+
+    show_debug_message(
+        "ENEMY BREACH TARGET: "
+        + _building.identity.name
+    );
+
+
+    return true;
+}
+
 
 /// @description Deletes the native path owned by an enemy.
 
@@ -306,3 +802,4 @@ function scr_navigation_enemy_cleanup(_enemy)
 
     return true;
 }
+

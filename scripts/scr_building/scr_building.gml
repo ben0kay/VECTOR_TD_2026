@@ -743,3 +743,70 @@ function scr_building_cleanup(_building)
 
     return true;
 }
+
+/// @description Returns the building occupying one grid cell.
+
+function scr_building_at_cell(
+    _cell_x,
+    _cell_y
+)
+{
+    var _building_count =
+        instance_number(
+            o_building_par
+        );
+
+
+    for (
+        var i = 0;
+        i < _building_count;
+        ++i
+    )
+    {
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
+
+        if (!instance_exists(_building))
+            continue;
+
+        if (
+            _building.BuildingState
+            == BuildingState.DESTROYED
+        )
+        {
+            continue;
+        }
+
+        if (!_building.footprint.reserved)
+            continue;
+
+
+        for (
+            var j = 0;
+            j < array_length(
+                _building.footprint.cells
+            );
+            ++j
+        )
+        {
+            var _cell =
+                _building.footprint.cells[j];
+
+
+            if (
+                _cell.x == _cell_x
+                && _cell.y == _cell_y
+            )
+            {
+                return _building;
+            }
+        }
+    }
+
+
+    return noone;
+}
