@@ -3,6 +3,8 @@
 
 /// @description Creates the persistent game runtime.
 
+/// @description Creates the persistent game runtime.
+
 function scr_game_initialize()
 {
     global.GameState =
@@ -14,6 +16,9 @@ function scr_game_initialize()
     global.CameraState =
         CameraState.FOLLOW_PLAYER;
 
+    global.BuildState =
+        BuildState.NONE;
+
 
     global.vtd =
     {
@@ -49,81 +54,18 @@ function scr_game_initialize()
     };
 
 
-    // Register persistent game definitions.
+    // ========================================================================
+    // DATA DEFINITIONS
+    // ========================================================================
 
     scr_enemy_data_initialize();
+    scr_building_data_initialize();
 
 
     // FUTURE:
-    // scr_building_data_initialize();
     // scr_upgrade_data_initialize();
-
-
-    global.GameState =
-        GameState.PLAYING;
-
-
-    show_debug_message(
-        "VECTOR TD 2026 - GAME INITIALIZED"
-    );
-
-
-    return true;
-}
-{
-    // Major state-machine variables remain direct globals.
-    // This matches the familiar structure of the original Vector TD.
-
-    global.GameState =
-        GameState.BOOT;
-
-    global.LevelState =
-        LevelState.EXITING;
-
-    global.CameraState =
-        CameraState.FOLLOW_PLAYER;
-
-
-    // Related persistent data remains grouped under global.vtd.
-
-    global.vtd =
-    {
-        tick:
-            0,
-
-        settings:
-        {
-            view_width:
-                1366,
-
-            view_height:
-                768,
-
-            grid_cell_size:
-                32
-        },
-
-        data:
-        {
-            enemies:
-                {},
-
-            buildings:
-                {}
-        },
-
-        debug:
-        {
-            enabled:
-                true
-        }
-    };
-
-
-    // FUTURE:
-    // scr_enemy_data_initialize();
-    // scr_building_data_initialize();
-    // scr_upgrade_data_initialize();
+    // scr_resource_data_initialize();
+    // scr_level_data_initialize();
 
 
     global.GameState =

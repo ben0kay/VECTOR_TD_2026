@@ -101,6 +101,30 @@ if (!instance_exists(_camera))
 }
 
 
+// ============================================================================
+// BUILD CONTROLLER
+// ============================================================================
+
+var _build_controller =
+    instance_create_layer(
+        0,
+        0,
+        "Instances",
+        o_controller_build
+    );
+
+
+if (!instance_exists(_build_controller))
+{
+    show_debug_message(
+        "LEVEL ERROR - build controller creation failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
+
 show_debug_message(
     "VECTOR TD 2026 - TEST WORLD READY"
 );

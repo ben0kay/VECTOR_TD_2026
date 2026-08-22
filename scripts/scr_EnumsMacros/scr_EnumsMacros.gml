@@ -86,6 +86,36 @@ enum DamageSource
     ENVIRONMENT
 }
 
+/// @description Defines the current runtime state of a building.
+enum BuildingState
+{
+    CONSTRUCTING,
+    ACTIVE,
+    DISABLED,
+    DESTROYED
+}
+
+/// @description Defines the player's current build-mode state.
+enum BuildState
+{
+    NONE,
+    PLACING
+}
+
+/// @description Identifies broad building categories.
+enum BuildingType
+{
+    CPU,
+    WALL,
+    TOWER,
+    MINER,
+    REFINERY,
+    STORAGE,
+    POWER_GENERATOR,
+    POWER_NODE,
+    SUPPORT
+}
+
 
 // Staggered update helpers.
 //
