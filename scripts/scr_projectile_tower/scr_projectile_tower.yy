@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_projectile_tower",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_projectile_tower",
+  "parent":{
+    "name":"VECTOR_TD_2026",
+    "path":"VECTOR_TD_2026.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
