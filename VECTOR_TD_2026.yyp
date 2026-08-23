@@ -48,6 +48,7 @@
     {"id":{"name":"scr_cpu","path":"scripts/scr_cpu/scr_cpu.yy",},},
     {"id":{"name":"scr_damage","path":"scripts/scr_damage/scr_damage.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
+    {"id":{"name":"scr_enemy_visual","path":"scripts/scr_enemy_visual/scr_enemy_visual.yy",},},
     {"id":{"name":"scr_enemy","path":"scripts/scr_enemy/scr_enemy.yy",},},
     {"id":{"name":"scr_EnumsMacros","path":"scripts/scr_EnumsMacros/scr_EnumsMacros.yy",},},
     {"id":{"name":"scr_game","path":"scripts/scr_game/scr_game.yy",},},

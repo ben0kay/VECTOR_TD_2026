@@ -14,7 +14,15 @@ function scr_enemy_data_initialize()
         enemy_weak:
         {
             identity: { key: "enemy_weak", name: "Weak CPU Seeker" },
-            visual: { radius: 16, color: c_yellow },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+                radius: 16,
+                color: c_yellow
+            },
+
             vitals: { hp_maximum: 20 },
 
             movement:
@@ -23,15 +31,8 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting:
-            {
-                target_type: EnemyTarget.CPU
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.BREACH
-            },
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
 
             attack:
             {
@@ -52,7 +53,15 @@ function scr_enemy_data_initialize()
         enemy_hunter:
         {
             identity: { key: "enemy_hunter", name: "Building Hunter" },
-            visual: { radius: 18, color: c_red },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+                radius: 18,
+                color: c_red
+            },
+
             vitals: { hp_maximum: 40 },
 
             movement:
@@ -61,15 +70,8 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting:
-            {
-                target_type: EnemyTarget.BUILDING
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.BREACH
-            },
+            targeting: { target_type: EnemyTarget.BUILDING },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
 
             attack:
             {
@@ -90,7 +92,15 @@ function scr_enemy_data_initialize()
         enemy_phaser:
         {
             identity: { key: "enemy_phaser", name: "Phaser" },
-            visual: { radius: 14, color: c_aqua },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+                radius: 14,
+                color: c_aqua
+            },
+
             vitals: { hp_maximum: 30 },
 
             movement:
@@ -99,15 +109,8 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting:
-            {
-                target_type: EnemyTarget.CPU
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.WAIT
-            },
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.WAIT },
 
             attack:
             {
@@ -131,7 +134,15 @@ function scr_enemy_data_initialize()
         enemy_shooter_single:
         {
             identity: { key: "enemy_shooter_single", name: "Single Shooter" },
-            visual: { radius: 18, color: c_orange },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+                radius: 18,
+                color: c_orange
+            },
+
             vitals: { hp_maximum: 35 },
 
             movement:
@@ -140,15 +151,8 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting:
-            {
-                target_type: EnemyTarget.CPU
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.BREACH
-            },
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
 
             attack:
             {
@@ -179,7 +183,15 @@ function scr_enemy_data_initialize()
         enemy_shooter_triple:
         {
             identity: { key: "enemy_shooter_triple", name: "Triple Shooter" },
-            visual: { radius: 22, color: c_purple },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+                radius: 22,
+                color: c_purple
+            },
+
             vitals: { hp_maximum: 60 },
 
             movement:
@@ -188,15 +200,8 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting:
-            {
-                target_type: EnemyTarget.CPU
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.BREACH
-            },
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
 
             attack:
             {
@@ -213,14 +218,65 @@ function scr_enemy_data_initialize()
                     color: c_purple,
                     shot_count: 3,
 
-                    // This is the complete spread from the left projectile
-                    // to the right projectile.
-
+                    // Total spread from the left projectile to the right.
                     spread_degrees: 18
                 }
             },
 
             abilities: []
+        },
+
+
+        // ====================================================================
+        // LIME — KAMIKAZE EXPLODER
+        // ====================================================================
+
+        enemy_kamikaze:
+        {
+            identity: { key: "enemy_kamikaze", name: "Kamikaze Exploder" },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_kamikaze,
+                radius: 15,
+                color: c_lime
+            },
+
+            vitals: { hp_maximum: 24 },
+
+            movement:
+            {
+                speed: 3.2,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+
+                // Explosion data provides the actual damage.
+                damage: 0,
+                range: 12,
+                cooldown_seconds: 1
+            },
+
+            ability_data:
+            {
+                explosion:
+                {
+                    damage: 35,
+                    radius: 110
+                }
+            },
+
+            abilities:
+            [
+                EnemyAbility.EXPLODE_ON_DEATH
+            ]
         }
     };
 
@@ -272,6 +328,36 @@ function scr_enemy_data_valid(_data)
     if (!is_struct(_data))
         return false;
 
+
+    // ========================================================================
+    // REQUIRED STRUCTS
+    // ========================================================================
+
+    if (!variable_struct_exists(_data, "identity"))
+        return false;
+
+    if (!variable_struct_exists(_data, "visual"))
+        return false;
+
+    if (!variable_struct_exists(_data, "vitals"))
+        return false;
+
+    if (!variable_struct_exists(_data, "movement"))
+        return false;
+
+    if (!variable_struct_exists(_data, "targeting"))
+        return false;
+
+    if (!variable_struct_exists(_data, "navigation"))
+        return false;
+
+    if (!variable_struct_exists(_data, "attack"))
+        return false;
+
+    if (!variable_struct_exists(_data, "abilities"))
+        return false;
+
+
     if (!is_struct(_data.identity))
         return false;
 
@@ -296,20 +382,106 @@ function scr_enemy_data_valid(_data)
     if (!is_array(_data.abilities))
         return false;
 
+
+    // ========================================================================
+    // CORE VALUES
+    // ========================================================================
+
+    if (!variable_struct_exists(_data.identity, "key"))
+        return false;
+
     if (!is_string(_data.identity.key))
         return false;
 
     if (_data.identity.key == "")
         return false;
 
+    if (!variable_struct_exists(_data.visual, "radius"))
+        return false;
+
     if (_data.visual.radius <= 0)
+        return false;
+
+    if (!variable_struct_exists(_data.vitals, "hp_maximum"))
         return false;
 
     if (_data.vitals.hp_maximum <= 0)
         return false;
 
+    if (!variable_struct_exists(_data.movement, "speed"))
+        return false;
+
     if (_data.movement.speed < 0)
         return false;
+
+
+    // ========================================================================
+    // PROJECTILE ATTACK
+    // ========================================================================
+
+    if (_data.attack.type == EnemyAttack.PROJECTILE)
+    {
+        if (!variable_struct_exists(_data.attack, "projectile"))
+            return false;
+
+        if (!is_struct(_data.attack.projectile))
+            return false;
+
+        var _projectile = _data.attack.projectile;
+
+        if (_projectile.speed <= 0)
+            return false;
+
+        if (_projectile.lifetime_seconds <= 0)
+            return false;
+
+        if (_projectile.radius <= 0)
+            return false;
+
+        if (_projectile.shot_count <= 0)
+            return false;
+
+        if (_projectile.spread_degrees < 0)
+            return false;
+    }
+
+
+    // ========================================================================
+    // EXPLOSION ABILITY
+    // ========================================================================
+
+    var _has_explosion = false;
+
+    for (var i = 0; i < array_length(_data.abilities); ++i)
+    {
+        if (_data.abilities[i] == EnemyAbility.EXPLODE_ON_DEATH)
+        {
+            _has_explosion = true;
+            break;
+        }
+    }
+
+
+    if (_has_explosion)
+    {
+        if (!variable_struct_exists(_data, "ability_data"))
+            return false;
+
+        if (!is_struct(_data.ability_data))
+            return false;
+
+        if (!variable_struct_exists(_data.ability_data, "explosion"))
+            return false;
+
+        if (!is_struct(_data.ability_data.explosion))
+            return false;
+
+        if (_data.ability_data.explosion.damage <= 0)
+            return false;
+
+        if (_data.ability_data.explosion.radius <= 0)
+            return false;
+    }
 
 
     return true;

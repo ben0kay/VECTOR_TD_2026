@@ -111,6 +111,8 @@ function scr_enemy_initialize(_enemy)
 
     _enemy.visual =
     {
+        sprite: _data.visual.sprite,
+        draw_function: _data.visual.draw_function,
         draw_angle: 0,
         radius: _data.visual.radius,
         color: _data.visual.color
@@ -170,24 +172,8 @@ function scr_enemy_initialize(_enemy)
     };
 
 
-    // Only projectile attackers require projectile data.
-
     if (_enemy.attack.type == EnemyAttack.PROJECTILE)
     {
-        if (
-            !variable_struct_exists(_data.attack, "projectile")
-            || !is_struct(_data.attack.projectile)
-        )
-        {
-            show_debug_message(
-                "ENEMY ERROR - projectile data missing: "
-                + _enemy.identity.key
-            );
-
-            return false;
-        }
-
-
         var _projectile = _data.attack.projectile;
 
         _enemy.attack.projectile =
@@ -208,6 +194,25 @@ function scr_enemy_initialize(_enemy)
         array_push(_enemy.abilities, _data.abilities[i]);
 
 
+    _enemy.ability_runtime =
+    {
+        explosion: undefined
+    };
+
+
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
+    {
+        var _explosion = _data.ability_data.explosion;
+
+        _enemy.ability_runtime.explosion =
+        {
+            damage: _explosion.damage,
+            radius: _explosion.radius,
+            triggered: false
+        };
+    }
+
+
     _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
     _enemy.targeting.target = _enemy.targeting.strategic;
 
@@ -216,7 +221,6 @@ function scr_enemy_initialize(_enemy)
 
     return true;
 }
-
 /// @description Returns the distance between an enemy and its target edges.
 
 function scr_enemy_target_edge_distance(
@@ -346,7 +350,7 @@ function scr_enemy_target_edge_distance(
 }
 
 
-/// @description Executes one enemy contact or projectile attack.
+/// @description Executes one enemy contact, projectile, or kamikaze attack.
 
 function scr_enemy_attack(_enemy)
 {
@@ -358,6 +362,17 @@ function scr_enemy_attack(_enemy)
 
     if (!instance_exists(_target))
         return false;
+
+
+    // Kamikaze enemies detonate once they reach attack range.
+
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
+    {
+        scr_enemy_explode(_enemy);
+        scr_enemy_die(_enemy, undefined);
+
+        return true;
+    }
 
 
     switch (_enemy.attack.type)
@@ -373,7 +388,7 @@ function scr_enemy_attack(_enemy)
 
             if (_target.object_index == o_cpu)
             {
-                if (!scr_cpu_damage(_target, _enemy.attack.damage))
+                if (!scr_cpu_damage(_target, _damage.amount))
                     return false;
             }
             else if (
@@ -700,151 +715,20 @@ function scr_enemy_spawn_test()
 
 /// @description Draws one vector-style enemy.
 
+/// @description Draws one enemy using its sprite or primitive renderer.
+
 function scr_enemy_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
 
-    var _radius =
-        _enemy.visual.radius;
-
-    var _angle =
-        _enemy.visual.draw_angle;
-
-
-    var _front_x =
-        _enemy.x
-        + lengthdir_x(
-            _radius,
-            _angle
-        );
-
-    var _front_y =
-        _enemy.y
-        + lengthdir_y(
-            _radius,
-            _angle
-        );
-
-    var _back_left_x =
-        _enemy.x
-        + lengthdir_x(
-            _radius * 0.8,
-            _angle + 140
-        );
-
-    var _back_left_y =
-        _enemy.y
-        + lengthdir_y(
-            _radius * 0.8,
-            _angle + 140
-        );
-
-    var _back_right_x =
-        _enemy.x
-        + lengthdir_x(
-            _radius * 0.8,
-            _angle - 140
-        );
-
-    var _back_right_y =
-        _enemy.y
-        + lengthdir_y(
-            _radius * 0.8,
-            _angle - 140
-        );
-
-
-    draw_set_color(
-        _enemy.visual.color
-    );
-
-    draw_triangle(
-        _front_x,
-        _front_y,
-        _back_left_x,
-        _back_left_y,
-        _back_right_x,
-        _back_right_y,
-        false
-    );
-
-
-    // ========================================================================
-    // HEALTH BAR
-    // ========================================================================
-
-    var _hp_percent =
-        clamp(
-            _enemy.vitals.hp.current
-            / _enemy.vitals.hp.maximum,
-            0,
-            1
-        );
-
-    var _bar_width =
-        _radius * 2;
-
-    var _bar_left =
-        _enemy.x - _radius;
-
-    var _bar_top =
-        _enemy.y - _radius - 8;
-
-
-    draw_set_color(
-        c_dkgray
-    );
-
-    draw_rectangle(
-        _bar_left,
-        _bar_top,
-        _bar_left + _bar_width,
-        _bar_top + 3,
-        false
-    );
-
-
-    draw_set_color(
-        c_red
-    );
-
-    draw_rectangle(
-        _bar_left,
-        _bar_top,
-        _bar_left
-            + (_bar_width * _hp_percent),
-        _bar_top + 3,
-        false
-    );
-	
-	if (instance_exists(
-    _enemy.targeting.breach
-))
-{
-    draw_set_color(
-        c_orange
-    );
-
-    draw_text(
-        _enemy.x - 24,
-        _enemy.y
-            + _enemy.visual.radius
-            + 6,
-        "BREACH"
-    );
-}
-
-
-    draw_set_color(
-        c_white
-    );
+    scr_enemy_visual_draw(_enemy);
+    scr_enemy_health_bar_draw(_enemy);
 
 
     return true;
 }
-
 
 /// @description Applies damage to one enemy.
 
@@ -891,112 +775,6 @@ function scr_enemy_damage(
     return true;
 }
 
-
-/// @description Kills an enemy and awards kill attribution.
-
-function scr_enemy_die(
-    _enemy,
-    _damage
-)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-    if (
-        _enemy.EnemyState
-        == EnemyState.DEAD
-    )
-    {
-        return false;
-    }
-
-
-    _enemy.EnemyState =
-        EnemyState.DEAD;
-
-
-    scr_navigation_enemy_stop(
-        _enemy
-    );
-
-
-    if (is_struct(_damage))
-    {
-        switch (_damage.source_type)
-        {
-            case DamageSource.PLAYER:
-            {
-                var _player =
-                    _damage.source;
-
-
-                if (
-                    instance_exists(_player)
-                    && variable_instance_exists(
-                        _player,
-                        "combat"
-                    )
-                    && is_struct(_player.combat)
-                )
-                {
-                    _player.combat.kills++;
-                }
-            }
-            break;
-
-
-            case DamageSource.TOWER:
-            {
-                var _tower =
-                    _damage.source;
-
-
-                if (
-                    instance_exists(_tower)
-                    && variable_instance_exists(
-                        _tower,
-                        "combat"
-                    )
-                    && is_struct(_tower.combat)
-                )
-                {
-                    _tower.combat.kills++;
-                }
-            }
-            break;
-
-
-            case DamageSource.ENEMY:
-            case DamageSource.ENVIRONMENT:
-            {
-                // No player-controlled entity receives credit.
-            }
-            break;
-        }
-    }
-
-
-    show_debug_message(
-        "ENEMY DESTROYED: "
-        + _enemy.identity.name
-    );
-
-
-    // FUTURE:
-    // credits and drops
-    // experience
-    // particle effect
-    // split-on-death
-    // transporter release
-
-
-    instance_destroy(
-        _enemy
-    );
-
-
-    return true;
-}
 
 /// @description Releases resources owned by one enemy.
 
@@ -1123,4 +901,262 @@ function scr_enemy_spawn_edge(_enemy_key)
 
 
     return scr_enemy_spawn(_enemy_key, _spawn_x, _spawn_y);
+}
+
+/// @description Returns the distance from an explosion to a target's nearest edge.
+
+function scr_enemy_explosion_target_distance(_world_x, _world_y, _target)
+{
+    if (!instance_exists(_target))
+        return infinity;
+
+
+    if (
+        _target.object_index == o_building_par
+        || object_is_ancestor(_target.object_index, o_building_par)
+    )
+    {
+        var _cell_size = global.vtd_level.map.cell_size;
+        var _half_width = _target.footprint.width_cells * _cell_size * 0.5;
+        var _half_height = _target.footprint.height_cells * _cell_size * 0.5;
+
+        var _closest_x = clamp(
+            _world_x,
+            _target.x - _half_width,
+            _target.x + _half_width
+        );
+
+        var _closest_y = clamp(
+            _world_y,
+            _target.y - _half_height,
+            _target.y + _half_height
+        );
+
+        return point_distance(
+            _world_x,
+            _world_y,
+            _closest_x,
+            _closest_y
+        );
+    }
+
+
+    var _target_radius = 0;
+
+    if (
+        variable_instance_exists(_target, "visual")
+        && is_struct(_target.visual)
+        && variable_struct_exists(_target.visual, "radius")
+    )
+    {
+        _target_radius = _target.visual.radius;
+    }
+
+
+    return max(
+        0,
+        point_distance(_world_x, _world_y, _target.x, _target.y)
+        - _target_radius
+    );
+}
+
+/// @description Detonates one enemy and damages every valid nearby target.
+
+function scr_enemy_explode(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
+        return false;
+
+    if (!is_struct(_enemy.ability_runtime.explosion))
+        return false;
+
+
+    var _explosion = _enemy.ability_runtime.explosion;
+
+    if (_explosion.triggered)
+        return false;
+
+
+    _explosion.triggered = true;
+
+    var _world_x = _enemy.x;
+    var _world_y = _enemy.y;
+    var _damage = scr_damage_create(
+        _explosion.damage,
+        _enemy,
+        DamageSource.ENEMY
+    );
+
+
+    // ========================================================================
+    // CPU
+    // ========================================================================
+
+    var _cpu = global.vtd_level.entities.cpu;
+
+    if (
+        instance_exists(_cpu)
+        && scr_enemy_explosion_target_distance(_world_x, _world_y, _cpu)
+        <= _explosion.radius
+    )
+    {
+        scr_cpu_damage(_cpu, _damage.amount);
+    }
+
+
+    // ========================================================================
+    // PLAYER
+    // ========================================================================
+
+    var _player = global.vtd_level.entities.player;
+
+    if (
+        instance_exists(_player)
+        && scr_enemy_explosion_target_distance(_world_x, _world_y, _player)
+        <= _explosion.radius
+    )
+    {
+        scr_player_damage(_player, _damage);
+    }
+
+
+    // ========================================================================
+    // BUILDINGS
+    // ========================================================================
+
+    var _building_count = instance_number(o_building_par);
+
+    for (var i = _building_count - 1; i >= 0; --i)
+    {
+        var _building = instance_find(o_building_par, i);
+
+        if (!scr_enemy_building_target_valid(_building))
+            continue;
+
+        if (
+            scr_enemy_explosion_target_distance(
+                _world_x,
+                _world_y,
+                _building
+            )
+            > _explosion.radius
+        )
+        {
+            continue;
+        }
+
+
+        scr_building_damage(_building, _damage);
+    }
+
+
+    // Temporary vector feedback until scr_particle is implemented.
+
+    show_debug_message(
+        "ENEMY EXPLOSION: "
+        + _enemy.identity.name
+        + " | DAMAGE "
+        + string(_explosion.damage)
+        + " | RADIUS "
+        + string(_explosion.radius)
+    );
+
+
+    // FUTURE:
+    // scr_particle_explosion_create(...)
+    // camera shake
+    // sound
+    // damage falloff
+    // knockback
+    // shield interaction
+
+
+    return true;
+}
+
+/// @description Kills an enemy, processes death abilities, and awards attribution.
+
+function scr_enemy_die(_enemy, _damage)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (_enemy.EnemyState == EnemyState.DEAD)
+        return false;
+
+
+    _enemy.EnemyState = EnemyState.DEAD;
+    scr_navigation_enemy_stop(_enemy);
+
+
+    // Death abilities happen before the instance is removed.
+    // The triggered flag prevents a kamikaze attack exploding twice.
+
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
+        scr_enemy_explode(_enemy);
+
+
+    if (is_struct(_damage))
+    {
+        switch (_damage.source_type)
+        {
+            case DamageSource.PLAYER:
+            {
+                var _player = _damage.source;
+
+                if (
+                    instance_exists(_player)
+                    && variable_instance_exists(_player, "combat")
+                    && is_struct(_player.combat)
+                )
+                {
+                    _player.combat.kills++;
+                }
+            }
+            break;
+
+
+            case DamageSource.TOWER:
+            {
+                var _tower = _damage.source;
+
+                if (
+                    instance_exists(_tower)
+                    && variable_instance_exists(_tower, "combat")
+                    && is_struct(_tower.combat)
+                )
+                {
+                    _tower.combat.kills++;
+                }
+            }
+            break;
+
+
+            case DamageSource.ENEMY:
+            case DamageSource.ENVIRONMENT:
+            {
+                // No player-controlled entity receives credit.
+            }
+            break;
+        }
+    }
+
+
+    show_debug_message("ENEMY DESTROYED: " + _enemy.identity.name);
+
+
+    // FUTURE:
+    // credits and resource drops
+    // tower/player experience
+    // particle effects
+    // splitter release
+    // transporter release
+
+
+    instance_destroy(_enemy);
+
+    return true;
 }

@@ -1,21 +1,18 @@
-/// @description Updates the current gameplay level.
+/// @description Processes the active level state and temporary test controls.
 
 switch (global.LevelState)
 {
     case LevelState.INITIALIZING:
     {
-        // Initialization currently completes in the Create event.
+        // Level initialization is handled by the Create event.
     }
     break;
 
 
     case LevelState.PLAYING:
     {
-        global.vtd_level.time.frames++;
-
-        global.vtd_level.time.seconds =
-            global.vtd_level.time.frames
-            / max(1, game_get_speed(gamespeed_fps));
+        global.vtd_level.time.elapsed +=
+            1 / max(1, game_get_speed(gamespeed_fps));
 
 
         if (keyboard_check_pressed(ord("N")))
@@ -33,13 +30,16 @@ switch (global.LevelState)
         if (keyboard_check_pressed(ord("I")))
             scr_enemy_spawn_edge("enemy_shooter_triple");
 
+        if (keyboard_check_pressed(ord("O")))
+            scr_enemy_spawn_edge("enemy_kamikaze");
+
 
         if (keyboard_check_pressed(ord("K")))
         {
             var _cpu = global.vtd_level.entities.cpu;
 
             if (instance_exists(_cpu))
-                scr_cpu_damage(_cpu, 100);
+                scr_cpu_damage(_cpu, 25);
         }
 
 
