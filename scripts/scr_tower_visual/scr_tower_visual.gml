@@ -266,16 +266,19 @@ function scr_tower_visual_minigun(_tower)
     var _angle = _tower.visual.draw_angle;
     var _color = _tower.visual.turret_color;
 
+
     draw_set_color(_color);
 
     draw_circle(_x, _y, 17, true);
     draw_circle(_x, _y, 8, false);
+
 
     var _side_x = lengthdir_x(7, _angle + 90);
     var _side_y = lengthdir_y(7, _angle + 90);
 
     var _end_x = _x + lengthdir_x(38, _angle);
     var _end_y = _y + lengthdir_y(38, _angle);
+
 
     // Twin rotary barrels.
 
@@ -295,13 +298,52 @@ function scr_tower_visual_minigun(_tower)
         4
     );
 
-    draw_circle(_end_x + _side_x, _end_y + _side_y, 4, true);
-    draw_circle(_end_x - _side_x, _end_y - _side_y, 4, true);
+    draw_circle(
+        _end_x + _side_x,
+        _end_y + _side_y,
+        4,
+        true
+    );
+
+    draw_circle(
+        _end_x - _side_x,
+        _end_y - _side_y,
+        4,
+        true
+    );
+
+
+    // Build-menu previews do not contain a combat runtime.
+    // A preview simply highlights the first barrel.
+
+    var _active_side = 1;
+
+
+    if (is_struct(_tower))
+    {
+        if (
+            variable_struct_exists(_tower, "combat")
+            && is_struct(_tower.combat)
+            && variable_struct_exists(_tower.combat, "weapon")
+            && is_struct(_tower.combat.weapon)
+            && variable_struct_exists(_tower.combat.weapon, "muzzle")
+        )
+        {
+            _active_side =
+                _tower.combat.weapon.muzzle.side;
+        }
+    }
+    else if (
+        variable_instance_exists(_tower, "combat")
+        && is_struct(_tower.combat)
+    )
+    {
+        _active_side =
+            _tower.combat.weapon.muzzle.side;
+    }
+
 
     // Highlight the barrel that will fire next.
-
-    var _active_side =
-        _tower.combat.weapon.muzzle.side;
 
     draw_set_color(c_white);
 
@@ -311,6 +353,7 @@ function scr_tower_visual_minigun(_tower)
         2,
         false
     );
+
 
     draw_set_color(c_white);
 
