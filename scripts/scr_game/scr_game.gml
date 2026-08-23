@@ -40,14 +40,11 @@ function scr_game_initialize()
     // DATA DEFINITIONS
     // ========================================================================
 
-    scr_enemy_data_initialize();
-    scr_enemy_data_flyer_register();
-
-    scr_building_data_initialize();
-    scr_tower_data_initialize();
-
-    scr_resource_data_initialize();
-    scr_world_data_initialize();
+	scr_enemy_data_initialize();
+	scr_building_data_initialize();
+	scr_tower_data_initialize();
+	scr_resource_data_initialize();
+	scr_world_data_initialize();
 
 
     // FUTURE:

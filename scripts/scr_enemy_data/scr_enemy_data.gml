@@ -1,15 +1,19 @@
 /// @description Data-driven enemy definitions and lookup.
 
 
-/// @description Registers every enemy definition.
+/// @description Registers the weak CPU-seeking enemy.
 
-function scr_enemy_data_initialize()
+function scr_enemy_data_weak()
 {
-    global.vtd.data.enemies =
-    {
-        enemy_weak:
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_weak",
         {
-            identity: { key: "enemy_weak", name: "Weak CPU Seeker" },
+            identity:
+            {
+                key: "enemy_weak",
+                name: "Weak CPU Seeker"
+            },
 
             visual:
             {
@@ -19,7 +23,10 @@ function scr_enemy_data_initialize()
                 color: c_yellow
             },
 
-            vitals: { hp_maximum: 20 },
+            vitals:
+            {
+                hp_maximum: 20
+            },
 
             movement:
             {
@@ -27,8 +34,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -39,12 +53,26 @@ function scr_enemy_data_initialize()
             },
 
             abilities: []
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        enemy_hunter:
+/// @description Registers the building-hunting enemy.
+
+function scr_enemy_data_hunter()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_hunter",
         {
-            identity: { key: "enemy_hunter", name: "Building Hunter" },
+            identity:
+            {
+                key: "enemy_hunter",
+                name: "Building Hunter"
+            },
 
             visual:
             {
@@ -54,7 +82,10 @@ function scr_enemy_data_initialize()
                 color: c_red
             },
 
-            vitals: { hp_maximum: 40 },
+            vitals:
+            {
+                hp_maximum: 40
+            },
 
             movement:
             {
@@ -62,8 +93,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.BUILDING },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -74,12 +112,26 @@ function scr_enemy_data_initialize()
             },
 
             abilities: []
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        enemy_phaser:
+/// @description Registers the CPU-seeking phasing enemy.
+
+function scr_enemy_data_phaser()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_phaser",
         {
-            identity: { key: "enemy_phaser", name: "Phaser" },
+            identity:
+            {
+                key: "enemy_phaser",
+                name: "Phaser"
+            },
 
             visual:
             {
@@ -89,7 +141,10 @@ function scr_enemy_data_initialize()
                 color: c_aqua
             },
 
-            vitals: { hp_maximum: 30 },
+            vitals:
+            {
+                hp_maximum: 30
+            },
 
             movement:
             {
@@ -97,8 +152,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.WAIT },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.WAIT
+            },
 
             attack:
             {
@@ -112,12 +174,26 @@ function scr_enemy_data_initialize()
             [
                 EnemyAbility.PHASING
             ]
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        enemy_shooter_single:
+/// @description Registers the single-projectile shooter.
+
+function scr_enemy_data_shooter_single()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_shooter_single",
         {
-            identity: { key: "enemy_shooter_single", name: "Single Shooter" },
+            identity:
+            {
+                key: "enemy_shooter_single",
+                name: "Single Shooter"
+            },
 
             visual:
             {
@@ -127,7 +203,10 @@ function scr_enemy_data_initialize()
                 color: c_orange
             },
 
-            vitals: { hp_maximum: 35 },
+            vitals:
+            {
+                hp_maximum: 35
+            },
 
             movement:
             {
@@ -135,8 +214,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -157,12 +243,26 @@ function scr_enemy_data_initialize()
             },
 
             abilities: []
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        enemy_shooter_triple:
+/// @description Registers the triple-projectile shooter.
+
+function scr_enemy_data_shooter_triple()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_shooter_triple",
         {
-            identity: { key: "enemy_shooter_triple", name: "Triple Shooter" },
+            identity:
+            {
+                key: "enemy_shooter_triple",
+                name: "Triple Shooter"
+            },
 
             visual:
             {
@@ -172,7 +272,10 @@ function scr_enemy_data_initialize()
                 color: c_purple
             },
 
-            vitals: { hp_maximum: 60 },
+            vitals:
+            {
+                hp_maximum: 60
+            },
 
             movement:
             {
@@ -180,8 +283,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -202,12 +312,26 @@ function scr_enemy_data_initialize()
             },
 
             abilities: []
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        enemy_kamikaze:
+/// @description Registers the contact-exploding kamikaze enemy.
+
+function scr_enemy_data_kamikaze()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_kamikaze",
         {
-            identity: { key: "enemy_kamikaze", name: "Kamikaze Exploder" },
+            identity:
+            {
+                key: "enemy_kamikaze",
+                name: "Kamikaze Exploder"
+            },
 
             visual:
             {
@@ -217,7 +341,10 @@ function scr_enemy_data_initialize()
                 color: c_lime
             },
 
-            vitals: { hp_maximum: 24 },
+            vitals:
+            {
+                hp_maximum: 24
+            },
 
             movement:
             {
@@ -225,8 +352,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -249,16 +383,26 @@ function scr_enemy_data_initialize()
             [
                 EnemyAbility.EXPLODE_ON_DEATH
             ]
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        // ====================================================================
-        // BLUE — SPLITTER
-        // ====================================================================
+/// @description Registers the large splitting enemy.
 
-        enemy_splitter:
+function scr_enemy_data_splitter()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_splitter",
         {
-            identity: { key: "enemy_splitter", name: "Splitter" },
+            identity:
+            {
+                key: "enemy_splitter",
+                name: "Splitter"
+            },
 
             visual:
             {
@@ -268,7 +412,10 @@ function scr_enemy_data_initialize()
                 color: c_blue
             },
 
-            vitals: { hp_maximum: 80 },
+            vitals:
+            {
+                hp_maximum: 80
+            },
 
             movement:
             {
@@ -276,8 +423,15 @@ function scr_enemy_data_initialize()
                 layer: EnemyMovementLayer.GROUND
             },
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
 
             attack:
             {
@@ -304,16 +458,26 @@ function scr_enemy_data_initialize()
             [
                 EnemyAbility.SPLIT_ON_DEATH
             ]
-        },
+        }
+    );
+
+    return true;
+}
 
 
-        // ====================================================================
-        // BLUE — BRAINLESS SPLITTER CHILD
-        // ====================================================================
+/// @description Registers the brainless splitter child.
 
-        enemy_splitter_child:
+function scr_enemy_data_splitter_child()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_splitter_child",
         {
-            identity: { key: "enemy_splitter_child", name: "Splitter Shard" },
+            identity:
+            {
+                key: "enemy_splitter_child",
+                name: "Splitter Shard"
+            },
 
             visual:
             {
@@ -323,7 +487,10 @@ function scr_enemy_data_initialize()
                 color: c_aqua
             },
 
-            vitals: { hp_maximum: 12 },
+            vitals:
+            {
+                hp_maximum: 12
+            },
 
             movement:
             {
@@ -333,11 +500,18 @@ function scr_enemy_data_initialize()
                 destroy_on_impact: true
             },
 
-            // These fields remain present so every enemy definition has the
-            // same readable structure. Brainless movement ignores targeting.
+            // These remain present so every enemy definition has the same
+            // predictable structure. Brainless movement ignores targeting.
 
-            targeting: { target_type: EnemyTarget.CPU },
-            navigation: { blocked_action: EnemyBlockedAction.WAIT },
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.WAIT
+            },
 
             attack:
             {
@@ -349,20 +523,15 @@ function scr_enemy_data_initialize()
 
             abilities: []
         }
-		
-		
-		
-    };
-
-
-    show_debug_message("VECTOR TD 2026 - ENEMY DATA INITIALIZED");
+    );
 
     return true;
 }
 
-/// @description Registers the first flying enemy definition.
 
-function scr_enemy_data_flyer_register()
+/// @description Registers the first flying enemy.
+
+function scr_enemy_data_flyer()
 {
     variable_struct_set(
         global.vtd.data.enemies,
@@ -400,7 +569,7 @@ function scr_enemy_data_flyer_register()
 
             navigation:
             {
-                // Flyers ignore ground obstructions.
+                // Flyers ignore ground terrain and buildings.
                 blocked_action: EnemyBlockedAction.WAIT
             },
 
@@ -414,6 +583,58 @@ function scr_enemy_data_flyer_register()
 
             abilities: []
         }
+    );
+
+    return true;
+}
+
+
+/// @description Registers every enemy definition.
+
+function scr_enemy_data_initialize()
+{
+    global.vtd.data.enemies = {};
+
+
+    if (!scr_enemy_data_weak())
+        return false;
+
+    if (!scr_enemy_data_hunter())
+        return false;
+
+    if (!scr_enemy_data_phaser())
+        return false;
+
+    if (!scr_enemy_data_shooter_single())
+        return false;
+
+    if (!scr_enemy_data_shooter_triple())
+        return false;
+
+    if (!scr_enemy_data_kamikaze())
+        return false;
+
+    if (!scr_enemy_data_splitter())
+        return false;
+
+    if (!scr_enemy_data_splitter_child())
+        return false;
+
+    if (!scr_enemy_data_flyer())
+        return false;
+
+
+    // FUTURE:
+    // scr_enemy_data_armoured();
+    // scr_enemy_data_transporter();
+    // scr_enemy_data_underground();
+    // scr_enemy_data_siege();
+    // scr_enemy_data_elite();
+    // scr_enemy_data_boss();
+
+
+    show_debug_message(
+        "VECTOR TD 2026 - ENEMY DATA INITIALIZED"
     );
 
     return true;
