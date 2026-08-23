@@ -73,7 +73,12 @@ hud =
 hud.build_menu =
     scr_hud_build_menu_create();
 
-hud.build_menu.hovered_key = "";
+hud.build_menu.hovered_key =
+    "";
+
+
+hud.selection_panel =
+    scr_hud_selection_panel_create();
 
 
 scr_hud_build_menu_cards_rebuild(

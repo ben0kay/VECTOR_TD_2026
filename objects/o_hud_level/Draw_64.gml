@@ -19,15 +19,33 @@ scr_hud_resource_feedback_draw(id);
 scr_hud_bottom_bar_draw(id);
 
 
-if (!hud.build_menu.open)
+var _has_selection =
+    instance_exists(
+        hud.selection.target
+    );
+
+
+if (
+    !hud.build_menu.open
+    && !_has_selection
+)
+{
     scr_hud_pressure_draw(id);
+}
 
 
-scr_hud_build_menu_draw(id);
+if (_has_selection && !hud.build_menu.open)
+{
+    scr_hud_selection_panel_draw(id);
+}
+else
+{
+    scr_hud_build_menu_draw(id);
+}
+
 
 scr_hud_wave_warning_draw(id);
 scr_hud_alert_draw(id);
-scr_hud_vector_window_draw(id);
 
 
 draw_set_alpha(1);

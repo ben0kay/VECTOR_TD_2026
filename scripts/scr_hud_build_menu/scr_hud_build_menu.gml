@@ -525,9 +525,11 @@ function scr_hud_build_menu_toggle(_hud)
         return false;
 
 
-    var _menu = _hud.hud.build_menu;
+    var _menu =
+        _hud.hud.build_menu;
 
-    _menu.open = !_menu.open;
+    _menu.open =
+        !_menu.open;
 
 
     if (_menu.open)
@@ -535,16 +537,26 @@ function scr_hud_build_menu_toggle(_hud)
         var _controller =
             global.vtd_level.entities.build_controller;
 
+
         if (
             instance_exists(_controller)
-            && global.BuildState == BuildState.PLACING
+            && global.BuildState
+                == BuildState.PLACING
         )
         {
-            scr_build_mode_cancel(_controller);
+            scr_build_mode_cancel(
+                _controller
+            );
         }
 
 
-        scr_hud_build_menu_cards_rebuild(_hud);
+        _hud.hud.selection.target =
+            noone;
+
+
+        scr_hud_build_menu_cards_rebuild(
+            _hud
+        );
     }
 
 

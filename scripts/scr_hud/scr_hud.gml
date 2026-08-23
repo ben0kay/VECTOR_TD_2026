@@ -76,7 +76,7 @@ function scr_hud_building_at_position(_world_x, _world_y)
 }
 
 
-/// @description Processes level-HUD selection input.
+/// @description Processes level-HUD world selection input.
 
 function scr_hud_selection_update(_hud)
 {
@@ -92,13 +92,18 @@ function scr_hud_selection_update(_hud)
     if (global.BuildState != BuildState.NONE)
         return true;
 
+    if (_hud.hud.build_menu.open)
+        return true;
+
     if (scr_hud_pointer_blocks_world())
         return true;
 
 
     if (mouse_check_button_pressed(mb_right))
     {
-        _hud.hud.selection.target = noone;
+        _hud.hud.selection.target =
+            noone;
+
         return true;
     }
 
@@ -1871,6 +1876,929 @@ function scr_hud_tower_selection_draw(
     // overclock control
     // local-research bonuses
     // persistent-upgrade bonuses
+
+
+    return true;
+}
+
+/// @description Creates the reusable selected-building control panel.
+
+function scr_hud_selection_panel_create()
+{
+    var _closest =
+        scr_hud_button_create(
+            "target_closest",
+            "CLOSEST",
+            "NEAREST"
+        );
+
+    _closest.data =
+        TowerTargetMode.CLOSEST;
+
+
+    var _furthest =
+        scr_hud_button_create(
+            "target_furthest",
+            "FURTHEST",
+            "DISTANT"
+        );
+
+    _furthest.data =
+        TowerTargetMode.FURTHEST;
+
+
+    var _lowest_hp =
+        scr_hud_button_create(
+            "target_lowest_hp",
+            "LOWEST HP",
+            "WEAKEST"
+        );
+
+    _lowest_hp.data =
+        TowerTargetMode.LOWEST_HP;
+
+
+    var _highest_hp =
+        scr_hud_button_create(
+            "target_highest_hp",
+            "HIGHEST HP",
+            "STRONGEST"
+        );
+
+    _highest_hp.data =
+        TowerTargetMode.HIGHEST_HP;
+
+
+    var _upgrade =
+        scr_hud_button_create(
+            "action_upgrade",
+            "UPGRADE",
+            "FUTURE"
+        );
+
+    _upgrade.enabled = false;
+
+
+    var _repair =
+        scr_hud_button_create(
+            "action_repair",
+            "REPAIR",
+            "FUTURE"
+        );
+
+    _repair.enabled = false;
+
+
+    var _sell =
+        scr_hud_button_create(
+            "action_sell",
+            "SELL",
+            "50% REFUND"
+        );
+
+    _sell.accent_color = c_lime;
+
+
+    var _disable =
+        scr_hud_button_create(
+            "action_disable",
+            "DISABLE",
+            "FUTURE"
+        );
+
+    _disable.enabled = false;
+    _disable.accent_color = c_red;
+
+
+    var _continuous =
+        scr_hud_button_create(
+            "attack_continuous",
+            "CONTINUOUS",
+            "DEFAULT"
+        );
+
+    _continuous.enabled = false;
+    _continuous.selected = true;
+
+
+    var _burst =
+        scr_hud_button_create(
+            "attack_burst",
+            "BURST FIRE",
+            "FUTURE"
+        );
+
+    _burst.enabled = false;
+
+
+    return
+    {
+        target_buttons:
+        [
+            _closest,
+            _furthest,
+            _lowest_hp,
+            _highest_hp
+        ],
+
+        action_buttons:
+        {
+            upgrade: _upgrade,
+            repair: _repair,
+            sell: _sell,
+            disable: _disable
+        },
+
+        attack_buttons:
+        [
+            _continuous,
+            _burst
+        ],
+
+        sell:
+        {
+            armed: false,
+            target: noone,
+
+            remaining: 0,
+            confirmation_seconds: 2
+        },
+
+        previous_target: noone
+    };
+}
+
+/// @description Returns readable information about a tower targeting mode.
+
+function scr_hud_tower_target_mode_description(_mode)
+{
+    switch (_mode)
+    {
+        case TowerTargetMode.CLOSEST:
+            return "Targets the nearest valid enemy inside range.";
+
+        case TowerTargetMode.FURTHEST:
+            return "Targets the most distant valid enemy inside range.";
+
+        case TowerTargetMode.LOWEST_HP:
+            return "Targets the valid enemy with the least remaining health.";
+
+        case TowerTargetMode.HIGHEST_HP:
+            return "Targets the valid enemy with the most remaining health.";
+    }
+
+
+    return "Unknown targeting priority.";
+}
+
+/// @description Refunds a percentage of one building's original cost.
+
+function scr_hud_building_refund(
+    _building,
+    _fraction
+)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (!variable_instance_exists(_building, "building_data"))
+        return false;
+
+    if (!is_struct(_building.building_data))
+        return false;
+
+    if (!variable_struct_exists(_building.building_data, "economy"))
+        return false;
+
+
+    var _cost =
+        _building.building_data.economy.cost;
+
+    if (!is_array(_cost))
+        return false;
+
+
+    var _refund_fraction =
+        clamp(
+            _fraction,
+            0,
+            1
+        );
+
+
+    for (var i = 0; i < array_length(_cost); ++i)
+    {
+        var _entry = _cost[i];
+
+        if (!is_struct(_entry))
+            continue;
+
+        if (!variable_struct_exists(_entry, "resource_key"))
+            continue;
+
+        if (!variable_struct_exists(_entry, "amount"))
+            continue;
+
+
+        var _refund =
+            floor(
+                _entry.amount
+                * _refund_fraction
+            );
+
+
+        if (_refund <= 0)
+            continue;
+
+
+        scr_resource_amount_add(
+            _entry.resource_key,
+            _refund
+        );
+
+
+        scr_hud_resource_gain_push(
+            _entry.resource_key,
+            _refund
+        );
+    }
+
+
+    return true;
+}
+
+/// @description Sells a player building and refunds part of its construction cost.
+
+function scr_hud_building_sell(
+    _hud,
+    _building
+)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    if (!instance_exists(_building))
+        return false;
+
+    if (_building.identity.type == BuildingType.CPU)
+        return false;
+
+    if (_building.BuildingState == BuildingState.DESTROYED)
+        return false;
+
+
+    var _building_name =
+        _building.identity.name;
+
+
+    // Refund before destruction so physical storage capacity still exists
+    // if future buildings refund raw materials.
+
+    scr_hud_building_refund(
+        _building,
+        0.5
+    );
+
+
+    _hud.hud.selection.target =
+        noone;
+
+    _hud.hud.selection_panel.sell.armed =
+        false;
+
+    _hud.hud.selection_panel.sell.target =
+        noone;
+
+    _hud.hud.selection_panel.sell.remaining =
+        0;
+
+
+    _building.BuildingState =
+        BuildingState.DESTROYED;
+
+    instance_destroy(
+        _building
+    );
+
+
+    scr_hud_alert_push(
+        HudAlertType.INFO,
+        "STRUCTURE SOLD",
+        string_upper(_building_name)
+        + " // 50% REFUND",
+        2
+    );
+
+
+    show_debug_message(
+        "BUILDING SOLD: "
+        + _building_name
+    );
+
+
+    return true;
+}
+
+/// @description Updates the selected-building contextual control panel.
+
+function scr_hud_selection_panel_update(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _panel =
+        _hud.hud.selection_panel;
+
+    var _selected =
+        _hud.hud.selection.target;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    // ========================================================================
+    // SELL CONFIRMATION TIMER
+    // ========================================================================
+
+    _panel.sell.remaining =
+        max(
+            0,
+            _panel.sell.remaining
+            - (1 / _fps)
+        );
+
+
+    if (_panel.sell.remaining <= 0)
+    {
+        _panel.sell.armed = false;
+        _panel.sell.target = noone;
+    }
+
+
+    // A different selected building cancels the previous confirmation.
+
+    if (_panel.previous_target != _selected)
+    {
+        _panel.previous_target = _selected;
+
+        _panel.sell.armed = false;
+        _panel.sell.target = noone;
+        _panel.sell.remaining = 0;
+    }
+
+
+    if (!instance_exists(_selected))
+        return true;
+
+    if (_hud.hud.build_menu.open)
+        return true;
+
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
+
+    var _tray_top =
+        _gui_height
+        - _hud.hud.bottom.height;
+
+    var _inspector_left =
+        _gui_width
+        - _hud.hud.bottom.inspector_width;
+
+
+    // ========================================================================
+    // TARGET PRIORITY BUTTONS
+    // ========================================================================
+
+    var _target_x = 210;
+    var _target_y = _tray_top + 44;
+    var _target_width = 105;
+    var _target_height = 66;
+    var _target_gap = 7;
+
+
+    for (
+        var i = 0;
+        i < array_length(_panel.target_buttons);
+        ++i
+    )
+    {
+        var _button =
+            _panel.target_buttons[i];
+
+        scr_hud_button_bounds_set(
+            _button,
+            _target_x
+                + (i * (_target_width + _target_gap)),
+            _target_y,
+            _target_width,
+            _target_height
+        );
+
+
+        var _is_tower =
+            _selected.object_index
+            == o_tower;
+
+        _button.enabled =
+            _is_tower;
+
+        _button.selected =
+            _is_tower
+            && _selected.targeting.mode
+                == _button.data;
+
+
+        if (
+            _is_tower
+            && scr_hud_button_update(_button)
+        )
+        {
+            _selected.targeting.mode =
+                _button.data;
+
+
+            // Immediately abandon and reacquire using the new policy.
+
+            _selected.targeting.target =
+                noone;
+
+            _selected.targeting.target =
+                scr_tower_target_acquire(
+                    _selected
+                );
+
+
+            show_debug_message(
+                "TOWER TARGET MODE CHANGED: "
+                + _selected.identity.name
+                + " | "
+                + string(_selected.targeting.mode)
+            );
+        }
+    }
+
+
+    // ========================================================================
+    // ATTACK-BEHAVIOR PLACEHOLDERS
+    // ========================================================================
+
+    var _attack_x =
+        _inspector_left - 190;
+
+    var _attack_y =
+        _tray_top + 44;
+
+
+    for (
+        var i = 0;
+        i < array_length(_panel.attack_buttons);
+        ++i
+    )
+    {
+        scr_hud_button_bounds_set(
+            _panel.attack_buttons[i],
+            _attack_x,
+            _attack_y + (i * 54),
+            174,
+            46
+        );
+    }
+
+
+    // ========================================================================
+    // ACTION BUTTONS
+    // ========================================================================
+
+    var _action_y =
+        _gui_height - 52;
+
+    var _action_x = 210;
+    var _action_width = 140;
+    var _action_height = 38;
+    var _action_gap = 10;
+
+    var _upgrade =
+        _panel.action_buttons.upgrade;
+
+    var _repair =
+        _panel.action_buttons.repair;
+
+    var _sell =
+        _panel.action_buttons.sell;
+
+    var _disable =
+        _panel.action_buttons.disable;
+
+
+    scr_hud_button_bounds_set(
+        _upgrade,
+        _action_x,
+        _action_y,
+        _action_width,
+        _action_height
+    );
+
+    scr_hud_button_bounds_set(
+        _repair,
+        _action_x + (_action_width + _action_gap),
+        _action_y,
+        _action_width,
+        _action_height
+    );
+
+    scr_hud_button_bounds_set(
+        _sell,
+        _action_x + ((_action_width + _action_gap) * 2),
+        _action_y,
+        _action_width,
+        _action_height
+    );
+
+    scr_hud_button_bounds_set(
+        _disable,
+        _action_x + ((_action_width + _action_gap) * 3),
+        _action_y,
+        _action_width,
+        _action_height
+    );
+
+
+    _sell.enabled =
+        _selected.identity.type
+        != BuildingType.CPU;
+
+
+    if (
+        _panel.sell.armed
+        && _panel.sell.target == _selected
+    )
+    {
+        _sell.label =
+            "CONFIRM SELL";
+
+        _sell.subtitle =
+            string_format(
+                _panel.sell.remaining,
+                0,
+                1
+            )
+            + "s";
+
+        _sell.accent_color =
+            c_yellow;
+    }
+    else
+    {
+        _sell.label =
+            "SELL";
+
+        _sell.subtitle =
+            "50% REFUND";
+
+        _sell.accent_color =
+            c_lime;
+    }
+
+
+    if (scr_hud_button_update(_sell))
+    {
+        if (
+            _panel.sell.armed
+            && _panel.sell.target == _selected
+        )
+        {
+            scr_hud_building_sell(
+                _hud,
+                _selected
+            );
+
+            return true;
+        }
+
+
+        _panel.sell.armed =
+            true;
+
+        _panel.sell.target =
+            _selected;
+
+        _panel.sell.remaining =
+            _panel.sell.confirmation_seconds;
+    }
+
+
+    // Right-clicking while the contextual panel is open deselects.
+
+    if (
+        mouse_check_button_pressed(mb_right)
+        && scr_hud_pointer_blocks_world()
+    )
+    {
+        _hud.hud.selection.target =
+            noone;
+
+        _panel.sell.armed =
+            false;
+
+        _panel.sell.target =
+            noone;
+
+        _panel.sell.remaining =
+            0;
+    }
+
+
+    return true;
+}
+
+/// @description Draws the selected-building controls in the bottom-left HUD.
+
+function scr_hud_selection_panel_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _selected =
+        _hud.hud.selection.target;
+
+    if (!instance_exists(_selected))
+        return true;
+
+    if (_hud.hud.build_menu.open)
+        return true;
+
+
+    var _panel =
+        _hud.hud.selection_panel;
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
+
+    var _tray_top =
+        _gui_height
+        - _hud.hud.bottom.height;
+
+    var _inspector_left =
+        _gui_width
+        - _hud.hud.bottom.inspector_width;
+
+
+    // ========================================================================
+    // SECTION SEPARATORS
+    // ========================================================================
+
+    draw_set_color(c_aqua);
+
+    draw_line(
+        0,
+        _tray_top,
+        _inspector_left,
+        _tray_top
+    );
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        194,
+        _tray_top + 12,
+        194,
+        _gui_height - 14
+    );
+
+    draw_line(
+        _inspector_left - 206,
+        _tray_top + 12,
+        _inspector_left - 206,
+        _gui_height - 14
+    );
+
+
+    // ========================================================================
+    // SELECTED STRUCTURE SUMMARY
+    // ========================================================================
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        16,
+        _tray_top + 12,
+        "SELECTED STRUCTURE"
+    );
+
+
+    scr_hud_building_preview_draw(
+        _selected.building_data,
+        78,
+        _tray_top + 91,
+        100
+    );
+
+
+    draw_set_color(
+        _selected.visual.color
+    );
+
+    draw_text(
+        16,
+        _tray_top + 150,
+        string_upper(
+            _selected.identity.name
+        )
+    );
+
+
+    var _hp_ratio =
+        clamp(
+            _selected.vitals.hp.current
+            / max(
+                1,
+                _selected.vitals.hp.maximum
+            ),
+            0,
+            1
+        );
+
+
+    draw_set_color(c_dkgray);
+
+    draw_rectangle(
+        16,
+        _tray_top + 178,
+        178,
+        _tray_top + 186,
+        false
+    );
+
+
+    draw_set_color(c_lime);
+
+    draw_rectangle(
+        16,
+        _tray_top + 178,
+        16 + (162 * _hp_ratio),
+        _tray_top + 186,
+        false
+    );
+
+
+    draw_set_color(c_white);
+
+    draw_text(
+        16,
+        _tray_top + 192,
+        string(ceil(_selected.vitals.hp.current))
+        + " / "
+        + string(ceil(_selected.vitals.hp.maximum))
+    );
+
+
+    // ========================================================================
+    // TOWER-SPECIFIC CONTROLS
+    // ========================================================================
+
+    if (_selected.object_index == o_tower)
+    {
+        draw_set_color(c_aqua);
+
+        draw_text(
+            210,
+            _tray_top + 12,
+            "TARGET PRIORITY"
+        );
+
+
+        for (
+            var i = 0;
+            i < array_length(_panel.target_buttons);
+            ++i
+        )
+        {
+            scr_hud_button_draw(
+                _panel.target_buttons[i]
+            );
+        }
+
+
+        draw_set_color(c_aqua);
+
+        draw_text(
+            210,
+            _tray_top + 120,
+            string_upper(
+                scr_hud_tower_target_mode_description(
+                    _selected.targeting.mode
+                )
+            )
+        );
+
+
+        draw_set_color(c_gray);
+
+        draw_text(
+            210,
+            _tray_top + 143,
+            "RANK "
+            + string(_selected.progression.rank)
+            + "  //  KILLS "
+            + string(_selected.progression.kills)
+            + "  //  XP "
+            + string(_selected.progression.experience)
+        );
+
+
+        draw_set_color(c_aqua);
+
+        draw_text(
+            _inspector_left - 190,
+            _tray_top + 12,
+            "ATTACK BEHAVIOR"
+        );
+
+
+        for (
+            var i = 0;
+            i < array_length(_panel.attack_buttons);
+            ++i
+        )
+        {
+            scr_hud_button_draw(
+                _panel.attack_buttons[i]
+            );
+        }
+    }
+    else
+    {
+        draw_set_color(c_aqua);
+
+        draw_text(
+            210,
+            _tray_top + 12,
+            "STRUCTURE CONTROLS"
+        );
+
+
+        draw_set_color(c_gray);
+
+        draw_text_ext(
+            210,
+            _tray_top + 44,
+            "A specialized control interface for this building category will occupy this area.",
+            18,
+            max(
+                200,
+                _inspector_left - 440
+            )
+        );
+    }
+
+
+    // ========================================================================
+    // ACTION BUTTONS
+    // ========================================================================
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        210,
+        _gui_height - 64,
+        _inspector_left - 16,
+        _gui_height - 64
+    );
+
+
+    scr_hud_button_draw(
+        _panel.action_buttons.upgrade
+    );
+
+    scr_hud_button_draw(
+        _panel.action_buttons.repair
+    );
+
+    scr_hud_button_draw(
+        _panel.action_buttons.sell
+    );
+
+    scr_hud_button_draw(
+        _panel.action_buttons.disable
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 
 
     return true;
