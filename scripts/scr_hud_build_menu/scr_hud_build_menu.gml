@@ -1024,3 +1024,492 @@ function scr_hud_build_menu_draw(_hud)
 
     return true;
 }
+
+/// @description Updates the building preview selected by card hover.
+
+function scr_hud_build_menu_hover_update(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _menu = _hud.hud.build_menu;
+
+    if (!variable_struct_exists(_menu, "hovered_key"))
+        _menu.hovered_key = "";
+
+    _menu.hovered_key = "";
+
+
+    if (!_menu.open)
+        return true;
+
+
+    for (
+        var i = 0;
+        i < array_length(_menu.building_buttons);
+        ++i
+    )
+    {
+        var _button =
+            _menu.building_buttons[i];
+
+        if (_button.hovered)
+        {
+            _menu.hovered_key =
+                _button.data;
+
+            break;
+        }
+    }
+
+
+    return true;
+}
+
+/// @description Returns one optional building-description field.
+
+function scr_hud_building_description_get(
+    _building_data,
+    _field,
+    _fallback
+)
+{
+    if (!is_struct(_building_data))
+        return _fallback;
+
+    if (!is_struct(_building_data.identity))
+        return _fallback;
+
+    if (
+        !variable_struct_exists(
+            _building_data.identity,
+            _field
+        )
+    )
+    {
+        return _fallback;
+    }
+
+
+    return variable_struct_get(
+        _building_data.identity,
+        _field
+    );
+}
+
+/// @description Draws a vector preview for one building definition.
+
+function scr_hud_building_preview_draw(
+    _building_data,
+    _center_x,
+    _center_y,
+    _size
+)
+{
+    if (!is_struct(_building_data))
+        return false;
+
+
+    var _color =
+        _building_data.visual.color;
+
+    var _half_size =
+        _size * 0.5;
+
+
+    // ========================================================================
+    // PREVIEW FRAME
+    // ========================================================================
+
+    draw_set_color(c_dkgray);
+
+    draw_rectangle(
+        _center_x - _half_size,
+        _center_y - _half_size,
+        _center_x + _half_size,
+        _center_y + _half_size,
+        false
+    );
+
+    draw_set_color(_color);
+
+    draw_rectangle(
+        _center_x - _half_size + 5,
+        _center_y - _half_size + 5,
+        _center_x + _half_size - 5,
+        _center_y + _half_size - 5,
+        true
+    );
+
+
+    // ========================================================================
+    // CATEGORY-SPECIFIC VECTOR
+    // ========================================================================
+
+    switch (_building_data.identity.type)
+    {
+        case BuildingType.TOWER:
+        {
+            var _preview =
+            {
+                id: 0,
+                x: _center_x,
+                y: _center_y,
+
+                visual:
+                {
+                    draw_angle: 315,
+                    turret_color:
+                        _building_data.visual.turret_color
+                }
+            };
+
+
+            if (
+                variable_struct_exists(
+                    _building_data.tower,
+                    "draw_function"
+                )
+            )
+            {
+                _building_data.tower
+                    .draw_function(_preview);
+            }
+        }
+        break;
+
+
+        case BuildingType.WALL:
+        {
+            draw_set_color(_color);
+
+            draw_rectangle(
+                _center_x - 24,
+                _center_y - 24,
+                _center_x + 24,
+                _center_y + 24,
+                false
+            );
+
+            draw_line(
+                _center_x - 24,
+                _center_y,
+                _center_x + 24,
+                _center_y
+            );
+
+            draw_line(
+                _center_x,
+                _center_y - 24,
+                _center_x,
+                _center_y + 24
+            );
+        }
+        break;
+
+
+        case BuildingType.MINER:
+        {
+            draw_set_color(_color);
+
+            draw_circle(
+                _center_x,
+                _center_y,
+                22,
+                false
+            );
+
+            draw_line_width(
+                _center_x - 20,
+                _center_y - 20,
+                _center_x + 20,
+                _center_y + 20,
+                3
+            );
+
+            draw_line_width(
+                _center_x + 20,
+                _center_y - 20,
+                _center_x - 20,
+                _center_y + 20,
+                3
+            );
+
+            draw_circle(
+                _center_x,
+                _center_y,
+                6,
+                true
+            );
+        }
+        break;
+
+
+        case BuildingType.STORAGE:
+        {
+            draw_set_color(_color);
+
+            draw_rectangle(
+                _center_x - 26,
+                _center_y - 22,
+                _center_x + 26,
+                _center_y + 22,
+                false
+            );
+
+            draw_rectangle(
+                _center_x - 19,
+                _center_y - 15,
+                _center_x + 19,
+                _center_y + 15,
+                true
+            );
+
+            draw_line(
+                _center_x - 26,
+                _center_y - 7,
+                _center_x + 26,
+                _center_y - 7
+            );
+
+            draw_line(
+                _center_x - 26,
+                _center_y + 7,
+                _center_x + 26,
+                _center_y + 7
+            );
+        }
+        break;
+    }
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws information for a hovered build-menu card.
+
+function scr_hud_build_preview_inspector_draw(
+    _hud,
+    _left,
+    _top,
+    _right,
+    _bottom
+)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _menu =
+        _hud.hud.build_menu;
+
+    var _building_key =
+        _menu.hovered_key;
+
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        _left + 18,
+        _top + 14,
+        "STRUCTURE DATABASE"
+    );
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        _left + 18,
+        _top + 38,
+        _right - 18,
+        _top + 38
+    );
+
+
+    if (_building_key == "")
+    {
+        draw_set_color(c_gray);
+
+        draw_text(
+            _left + 18,
+            _top + 58,
+            "Hover over a building card for information."
+        );
+
+        return true;
+    }
+
+
+    var _data =
+        scr_building_data_get(
+            _building_key
+        );
+
+    if (!scr_building_data_valid(_data))
+        return false;
+
+
+    var _preview_size = 124;
+
+    var _preview_center_x =
+        _left + 82;
+
+    var _preview_center_y =
+        _top + 116;
+
+
+    scr_hud_building_preview_draw(
+        _data,
+        _preview_center_x,
+        _preview_center_y,
+        _preview_size
+    );
+
+
+    var _text_left =
+        _left + 164;
+
+    var _text_width =
+        max(
+            100,
+            _right - _text_left - 18
+        );
+
+
+    draw_set_color(
+        _data.visual.color
+    );
+
+    draw_text(
+        _text_left,
+        _top + 54,
+        string_upper(
+            _data.identity.name
+        )
+    );
+
+
+    draw_set_color(c_white);
+
+    draw_text(
+        _text_left,
+        _top + 78,
+        scr_hud_building_description_get(
+            _data,
+            "description_short",
+            scr_hud_building_role_text(_data)
+        )
+    );
+
+
+    draw_set_color(c_gray);
+
+    draw_text_ext(
+        _text_left,
+        _top + 104,
+        scr_hud_building_description_get(
+            _data,
+            "description_long",
+            "No detailed description has been supplied."
+        ),
+        17,
+        _text_width
+    );
+
+
+    // ========================================================================
+    // IMPORTANT STATISTICS
+    // ========================================================================
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        _left + 18,
+        _bottom - 52,
+        "HP  "
+        + string(
+            _data.vitals.hp_maximum
+        )
+    );
+
+
+    switch (_data.identity.type)
+    {
+        case BuildingType.TOWER:
+        {
+            draw_text(
+                _left + 132,
+                _bottom - 52,
+                "RANGE  "
+                + string(_data.tower.range)
+            );
+
+            draw_text(
+                _left + 270,
+                _bottom - 52,
+                "DAMAGE  "
+                + string(
+                    _data.tower.weapon.damage
+                )
+            );
+
+            draw_text(
+                _left + 414,
+                _bottom - 52,
+                "RATE  "
+                + string(
+                    _data.tower.weapon
+                        .cooldown_seconds
+                )
+                + "s"
+            );
+        }
+        break;
+
+
+        case BuildingType.MINER:
+        {
+            draw_text(
+                _left + 132,
+                _bottom - 52,
+                "RATE  "
+                + string(
+                    _data.miner
+                        .extraction_rate_per_second
+                )
+                + "/s"
+            );
+
+            draw_text(
+                _left + 286,
+                _bottom - 52,
+                "HOPPER  "
+                + string(
+                    _data.miner.hopper_capacity
+                )
+            );
+        }
+        break;
+
+
+        case BuildingType.STORAGE:
+        {
+            draw_text(
+                _left + 132,
+                _bottom - 52,
+                "CAPACITY  "
+                + string(
+                    _data.storage.capacity
+                )
+            );
+        }
+        break;
+    }
+
+
+    draw_set_color(c_white);
+
+    return true;
+}

@@ -966,7 +966,7 @@ function scr_hud_top_bar_draw(_hud)
 }
 
 
-/// @description Draws the permanent lower HUD and inspector.
+/// @description Draws the permanent lower HUD and contextual inspector.
 
 function scr_hud_bottom_bar_draw(_hud)
 {
@@ -977,8 +977,11 @@ function scr_hud_bottom_bar_draw(_hud)
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
 
-    var _height = _hud.hud.bottom.height;
-    var _top = _gui_height - _height;
+    var _height =
+        _hud.hud.bottom.height;
+
+    var _top =
+        _gui_height - _height;
 
     var _inspector_width =
         _hud.hud.bottom.inspector_width;
@@ -986,6 +989,10 @@ function scr_hud_bottom_bar_draw(_hud)
     var _inspector_left =
         _gui_width - _inspector_width;
 
+
+    // ========================================================================
+    // SHELL
+    // ========================================================================
 
     draw_set_alpha(
         _hud.hud.bottom.background_alpha
@@ -1021,10 +1028,29 @@ function scr_hud_bottom_bar_draw(_hud)
 
 
     // ========================================================================
-    // MAIN INSPECTOR
+    // BUILD DATABASE INSPECTOR
     // ========================================================================
 
-    if (instance_exists(_hud.hud.selection.target))
+    if (_hud.hud.build_menu.open)
+    {
+        scr_hud_build_preview_inspector_draw(
+            _hud,
+            _inspector_left,
+            _top,
+            _gui_width,
+            _gui_height
+        );
+    }
+
+    // ========================================================================
+    // SELECTED WORLD STRUCTURE
+    // ========================================================================
+
+    else if (
+        instance_exists(
+            _hud.hud.selection.target
+        )
+    )
     {
         scr_hud_selection_content_draw(
             _hud,
@@ -1034,6 +1060,11 @@ function scr_hud_bottom_bar_draw(_hud)
             _gui_height
         );
     }
+
+    // ========================================================================
+    // EMPTY INSPECTOR
+    // ========================================================================
+
     else
     {
         draw_set_color(c_aqua);
@@ -1058,7 +1089,7 @@ function scr_hud_bottom_bar_draw(_hud)
         draw_text(
             _inspector_left + 18,
             _top + 56,
-            "Select a building for information."
+            "Select a structure for information."
         );
     }
 

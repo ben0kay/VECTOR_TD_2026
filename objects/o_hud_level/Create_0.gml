@@ -24,7 +24,7 @@ hud =
     bottom:
     {
         height: 220,
-        inspector_width: 400,
+        inspector_width: 660,
         color: c_aqua,
         background_alpha: 0.92
     },
@@ -60,6 +60,8 @@ hud =
 
 hud.build_menu =
     scr_hud_build_menu_create();
+
+hud.build_menu.hovered_key = "";
 
 scr_hud_build_menu_cards_rebuild(id);
 

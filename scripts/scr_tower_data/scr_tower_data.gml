@@ -10,7 +10,9 @@ function scr_tower_data_basic_ground()
             {
                 key: "tower_basic",
                 name: "Basic Tower",
-                type: BuildingType.TOWER
+                type: BuildingType.TOWER,
+				description_short: "Reliable ground-defense cannon.",
+				description_long: "A balanced defensive tower designed to engage ordinary ground targets. It offers dependable range, damage and firing speed without specializing against a particular enemy."
             },
 
             visual:
@@ -83,7 +85,12 @@ function scr_tower_data_anti_air()
             {
                 key: "tower_anti_air",
                 name: "Anti-Air Tower",
-                type: BuildingType.TOWER
+                type: BuildingType.TOWER,
+				description_short:
+    "Dedicated defense against flying enemies.",
+
+description_long:
+    "A fast-tracking anti-air installation that engages flying targets over buildings and dead terrain. It cannot target enemies travelling along the ground."
             },
 
             visual:
