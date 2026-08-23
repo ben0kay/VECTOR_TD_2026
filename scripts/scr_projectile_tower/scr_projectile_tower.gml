@@ -1,7 +1,7 @@
 /// @description Tower projectile creation, collision, impact, and drawing.
 
 
-/// @description Creates one tower projectile.
+/// @description Creates one layer-restricted tower projectile.
 
 function scr_projectile_tower_create(
     _owner,
@@ -9,7 +9,8 @@ function scr_projectile_tower_create(
     _world_y,
     _draw_angle,
     _damage,
-    _projectile_data
+    _projectile_data,
+    _target_layer
 )
 {
     if (!instance_exists(_owner))
@@ -25,43 +26,23 @@ function scr_projectile_tower_create(
         "Instances",
         o_projectile_tower,
         {
-            projectile_owner:
-                _owner,
-
-            projectile_damage:
-                _damage,
-
-            projectile_speed:
-                _projectile_data.speed,
-
-            projectile_lifetime:
-                _projectile_data
-                    .lifetime_seconds,
-
-            projectile_radius:
-                _projectile_data.radius,
-
-            projectile_color:
-                _projectile_data.color,
-
-            projectile_angle:
-                _draw_angle,
-
-            projectile_impact:
-                _projectile_data.impact,
-
-            projectile_damage_radius:
-                _projectile_data.damage_radius
+            projectile_owner: _owner,
+            projectile_damage: _damage,
+            projectile_speed: _projectile_data.speed,
+            projectile_lifetime: _projectile_data.lifetime_seconds,
+            projectile_radius: _projectile_data.radius,
+            projectile_color: _projectile_data.color,
+            projectile_angle: _draw_angle,
+            projectile_impact: _projectile_data.impact,
+            projectile_damage_radius: _projectile_data.damage_radius,
+            projectile_target_layer: _target_layer
         }
     );
 }
 
-
 /// @description Initializes one tower projectile.
 
-function scr_projectile_tower_initialize(
-    _projectile
-)
+function scr_projectile_tower_initialize(_projectile)
 {
     if (!instance_exists(_projectile))
         return false;
@@ -69,53 +50,38 @@ function scr_projectile_tower_initialize(
 
     _projectile.combat =
     {
-        owner:
-            _projectile.projectile_owner,
-
-        damage:
-            _projectile.projectile_damage,
-
-        impact:
-            _projectile.projectile_impact,
-
-        damage_radius:
-            _projectile
-                .projectile_damage_radius
+        owner: _projectile.projectile_owner,
+        damage: _projectile.projectile_damage,
+        impact: _projectile.projectile_impact,
+        damage_radius: _projectile.projectile_damage_radius,
+        target_layer: _projectile.projectile_target_layer
     };
 
 
     _projectile.movement =
     {
-        speed:
-            _projectile.projectile_speed
+        speed: _projectile.projectile_speed
     };
 
 
     _projectile.life =
     {
-        remaining:
-            _projectile.projectile_lifetime
+        remaining: _projectile.projectile_lifetime
     };
 
 
     _projectile.visual =
     {
-        draw_angle:
-            _projectile.projectile_angle,
-
-        radius:
-            _projectile.projectile_radius,
-
-        color:
-            _projectile.projectile_color
+        draw_angle: _projectile.projectile_angle,
+        radius: _projectile.projectile_radius,
+        color: _projectile.projectile_color
     };
 
 
     return true;
 }
 
-
-/// @description Finds the closest enemy crossed by a projectile segment.
+/// @description Finds the closest valid enemy crossed by a projectile segment.
 
 function scr_projectile_tower_enemy_find(
     _projectile,
@@ -125,35 +91,24 @@ function scr_projectile_tower_enemy_find(
     _end_y
 )
 {
-    var _result =
-        noone;
-
-    var _best_distance =
-        infinity;
-
-    var _count =
-        instance_number(o_enemy);
+    var _result = noone;
+    var _best_distance = infinity;
+    var _count = instance_number(o_enemy);
 
 
-    for (
-        var i = 0;
-        i < _count;
-        ++i
-    )
+    for (var i = 0; i < _count; ++i)
     {
-        var _enemy =
-            instance_find(
-                o_enemy,
-                i
-            );
-
+        var _enemy = instance_find(o_enemy, i);
 
         if (!instance_exists(_enemy))
             continue;
 
+        if (_enemy.EnemyState == EnemyState.DEAD)
+            continue;
+
         if (
-            _enemy.EnemyState
-            == EnemyState.DEAD
+            _enemy.movement.layer
+            != _projectile.combat.target_layer
         )
         {
             continue;
@@ -177,8 +132,7 @@ function scr_projectile_tower_enemy_find(
 
         if (
             _distance_squared
-            > _collision_radius
-                * _collision_radius
+            > _collision_radius * _collision_radius
         )
         {
             continue;
@@ -196,11 +150,8 @@ function scr_projectile_tower_enemy_find(
 
         if (_distance < _best_distance)
         {
-            _best_distance =
-                _distance;
-
-            _result =
-                _enemy;
+            _best_distance = _distance;
+            _result = _enemy;
         }
     }
 

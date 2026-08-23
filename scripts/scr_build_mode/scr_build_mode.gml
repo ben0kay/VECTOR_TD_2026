@@ -290,6 +290,9 @@ function scr_build_mode_update(_controller)
             else if (keyboard_check_pressed(ord("T")))
                 scr_build_mode_begin(_controller, "tower_basic");
 
+            else if (keyboard_check_pressed(ord("Y")))
+                scr_build_mode_begin(_controller, "tower_anti_air");
+
             else if (keyboard_check_pressed(ord("1")))
                 scr_build_mode_begin(_controller, "miner_carbon");
 
@@ -328,6 +331,9 @@ function scr_build_mode_update(_controller)
 
             else if (keyboard_check_pressed(ord("T")))
                 scr_build_mode_begin(_controller, "tower_basic");
+
+            else if (keyboard_check_pressed(ord("Y")))
+                scr_build_mode_begin(_controller, "tower_anti_air");
 
             else if (keyboard_check_pressed(ord("1")))
                 scr_build_mode_begin(_controller, "miner_carbon");

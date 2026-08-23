@@ -10,7 +10,6 @@ function scr_game_initialize()
     global.CameraState = CameraState.FOLLOW_PLAYER;
     global.BuildState = BuildState.NONE;
 
-
     global.vtd =
     {
         tick: 0,
@@ -37,9 +36,7 @@ function scr_game_initialize()
     };
 
 
-    // ========================================================================
-    // DATA DEFINITIONS
-    // ========================================================================
+    // Base definitions.
 
     scr_enemy_data_initialize();
     scr_building_data_initialize();
@@ -47,17 +44,24 @@ function scr_game_initialize()
     scr_world_data_initialize();
 
 
+    // Additional definitions remain separated by gameplay feature.
+
+    scr_combat_expansion_data_initialize();
+
+
     // FUTURE:
     // scr_upgrade_data_initialize();
+    // scr_boss_data_initialize();
 
 
     global.GameState = GameState.PLAYING;
 
-    show_debug_message("VECTOR TD 2026 - GAME INITIALIZED");
+    show_debug_message(
+        "VECTOR TD 2026 - GAME INITIALIZED"
+    );
 
     return true;
 }
-
 /// @description Creates the runtime belonging to the current level.
 
 function scr_level_initialize()

@@ -349,6 +349,9 @@ function scr_enemy_data_initialize()
 
             abilities: []
         }
+		
+		
+		
     };
 
 

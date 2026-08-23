@@ -209,16 +209,19 @@ function scr_enemy_health_bar_draw(_enemy)
 
     var _radius = _enemy.visual.radius;
 
+    var _hover =
+        scr_enemy_visual_hover_offset_get(_enemy);
+
     var _hp_percent = clamp(
         _enemy.vitals.hp.current
-        / _enemy.vitals.hp.maximum,
+        / max(1, _enemy.vitals.hp.maximum),
         0,
         1
     );
 
     var _bar_width = _radius * 2;
     var _bar_left = _enemy.x - _radius;
-    var _bar_top = _enemy.y - _radius - 8;
+    var _bar_top = _enemy.y + _hover - _radius - 8;
 
 
     draw_set_color(c_dkgray);
@@ -335,6 +338,148 @@ function scr_enemy_visual_splitter_child(_enemy)
         2
     );
 
+
+    return true;
+}
+
+/// @description Returns the visual hover offset for one flying enemy.
+
+function scr_enemy_visual_hover_offset_get(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return 0;
+
+    if (_enemy.movement.layer != EnemyMovementLayer.FLYING)
+        return 0;
+
+    return -10 + sin(
+        (global.vtd.tick * 5)
+        + real(_enemy.id)
+    ) * 3;
+}
+
+
+/// @description Draws a visibly hovering flying drone.
+
+function scr_enemy_visual_flyer(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+
+    var _hover =
+        scr_enemy_visual_hover_offset_get(_enemy);
+
+    var _draw_x = _enemy.x;
+    var _draw_y = _enemy.y + _hover;
+
+
+    // ========================================================================
+    // GROUND SHADOW
+    // ========================================================================
+
+    var _shadow_scale =
+        0.75
+        + sin(
+            (global.vtd.tick * 5)
+            + real(_enemy.id)
+        ) * 0.08;
+
+    draw_set_alpha(0.22);
+    draw_set_color(c_black);
+
+    draw_ellipse(
+        _enemy.x - (_radius * _shadow_scale),
+        _enemy.y + 7 - (_radius * 0.28),
+        _enemy.x + (_radius * _shadow_scale),
+        _enemy.y + 7 + (_radius * 0.28),
+        false
+    );
+
+
+    // ========================================================================
+    // VECTOR AIRFRAME
+    // ========================================================================
+
+    draw_set_alpha(1);
+    draw_set_color(_enemy.visual.color);
+
+    var _front_x =
+        _draw_x + lengthdir_x(_radius, _angle);
+
+    var _front_y =
+        _draw_y + lengthdir_y(_radius, _angle);
+
+    var _back_x =
+        _draw_x + lengthdir_x(_radius * 0.75, _angle + 180);
+
+    var _back_y =
+        _draw_y + lengthdir_y(_radius * 0.75, _angle + 180);
+
+    var _left_x =
+        _draw_x + lengthdir_x(_radius * 1.15, _angle + 90);
+
+    var _left_y =
+        _draw_y + lengthdir_y(_radius * 1.15, _angle + 90);
+
+    var _right_x =
+        _draw_x + lengthdir_x(_radius * 1.15, _angle - 90);
+
+    var _right_y =
+        _draw_y + lengthdir_y(_radius * 1.15, _angle - 90);
+
+
+    draw_line_width(_front_x, _front_y, _left_x, _left_y, 2);
+    draw_line_width(_left_x, _left_y, _back_x, _back_y, 2);
+    draw_line_width(_back_x, _back_y, _right_x, _right_y, 2);
+    draw_line_width(_right_x, _right_y, _front_x, _front_y, 2);
+
+    draw_line_width(_left_x, _left_y, _right_x, _right_y, 2);
+
+
+    // Inner engine ring.
+
+    draw_circle(
+        _draw_x,
+        _draw_y,
+        _radius * 0.38,
+        false
+    );
+
+    draw_set_color(c_white);
+
+    draw_circle(
+        _draw_x,
+        _draw_y,
+        2,
+        true
+    );
+
+
+    // Small downward altitude markers.
+
+    draw_set_color(_enemy.visual.color);
+
+    draw_line(
+        _draw_x - 5,
+        _draw_y + _radius * 0.55,
+        _draw_x - 2,
+        _draw_y + _radius * 0.85
+    );
+
+    draw_line(
+        _draw_x + 5,
+        _draw_y + _radius * 0.55,
+        _draw_x + 2,
+        _draw_y + _radius * 0.85
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
     return true;
 }

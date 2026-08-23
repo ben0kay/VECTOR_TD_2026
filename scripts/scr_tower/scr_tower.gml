@@ -11,36 +11,29 @@ function scr_tower_initialize(_tower)
     if (!is_struct(_tower.building_data))
         return false;
 
-    if (
-        !variable_struct_exists(
-            _tower.building_data,
-            "tower"
-        )
-    )
-    {
+    if (!variable_struct_exists(_tower.building_data, "tower"))
         return false;
-    }
 
 
-    var _data =
-        _tower.building_data.tower;
-
+    var _data = _tower.building_data.tower;
 
     _tower.visual.turret_color =
         _tower.building_data.visual.turret_color;
 
     _tower.visual.draw_angle = 0;
+    _tower.visual.draw_function = scr_tower_visual_ground;
+
+
+    if (variable_struct_exists(_data, "draw_function"))
+    {
+        _tower.visual.draw_function =
+            _data.draw_function;
+    }
 
 
     var _requires_line_of_sight = true;
 
-
-    if (
-        variable_struct_exists(
-            _data,
-            "requires_line_of_sight"
-        )
-    )
+    if (variable_struct_exists(_data, "requires_line_of_sight"))
     {
         _requires_line_of_sight =
             _data.requires_line_of_sight;
@@ -69,33 +62,23 @@ function scr_tower_initialize(_tower)
 
             cooldown:
             {
-                duration:
-                    _data.weapon.cooldown_seconds,
-
+                duration: _data.weapon.cooldown_seconds,
                 remaining: 0
             },
 
             projectile:
             {
-                speed:
-                    _data.weapon.projectile.speed,
+                speed: _data.weapon.projectile.speed,
 
                 lifetime_seconds:
-                    _data.weapon.projectile
-                        .lifetime_seconds,
+                    _data.weapon.projectile.lifetime_seconds,
 
-                radius:
-                    _data.weapon.projectile.radius,
-
-                color:
-                    _data.weapon.projectile.color,
-
-                impact:
-                    _data.weapon.projectile.impact,
+                radius: _data.weapon.projectile.radius,
+                color: _data.weapon.projectile.color,
+                impact: _data.weapon.projectile.impact,
 
                 damage_radius:
-                    _data.weapon.projectile
-                        .damage_radius
+                    _data.weapon.projectile.damage_radius
             }
         }
     };
@@ -297,36 +280,33 @@ function scr_tower_fire(_tower)
     if (!instance_exists(_tower))
         return false;
 
-    if (!instance_exists(
-        _tower.targeting.target
-    ))
-    {
+    if (!instance_exists(_tower.targeting.target))
         return false;
-    }
 
 
-    var _angle =
-        _tower.visual.draw_angle;
-
-    var _muzzle_distance =
-        36;
+    var _angle = _tower.visual.draw_angle;
+    var _muzzle_distance = 36;
 
     var _projectile =
         scr_projectile_tower_create(
             _tower,
+
             _tower.x
-                + lengthdir_x(
-                    _muzzle_distance,
-                    _angle
-                ),
+            + lengthdir_x(
+                _muzzle_distance,
+                _angle
+            ),
+
             _tower.y
-                + lengthdir_y(
-                    _muzzle_distance,
-                    _angle
-                ),
+            + lengthdir_y(
+                _muzzle_distance,
+                _angle
+            ),
+
             _angle,
             _tower.combat.weapon.damage,
-            _tower.combat.weapon.projectile
+            _tower.combat.weapon.projectile,
+            _tower.targeting.layer
         );
 
 
@@ -334,13 +314,12 @@ function scr_tower_fire(_tower)
         return false;
 
 
-    _tower.combat.weapon
-        .cooldown.remaining =
-        _tower.combat.weapon
-            .cooldown.duration;
+    _tower.combat.weapon.cooldown.remaining =
+        _tower.combat.weapon.cooldown.duration;
 
 
     // FUTURE:
+    // alternate anti-air barrels
     // muzzle particles
     // firing sound
     // recoil
@@ -445,52 +424,3 @@ function scr_tower_update(_tower)
 }
 
 
-/// @description Draws the rotating portion of one tower.
-
-function scr_tower_draw(_tower)
-{
-    if (!instance_exists(_tower))
-        return false;
-
-
-    var _angle =
-        _tower.visual.draw_angle;
-
-
-    draw_set_color(
-        _tower.visual.turret_color
-    );
-
-
-    draw_circle(
-        _tower.x,
-        _tower.y,
-        14,
-        false
-    );
-
-
-    draw_line_width(
-        _tower.x,
-        _tower.y,
-        _tower.x
-            + lengthdir_x(
-                34,
-                _angle
-            ),
-        _tower.y
-            + lengthdir_y(
-                34,
-                _angle
-            ),
-        5
-    );
-
-
-    draw_set_color(
-        c_white
-    );
-
-
-    return true;
-}
