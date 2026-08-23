@@ -3,8 +3,6 @@
 
 /// @description Registers every enemy definition.
 
-/// @description Registers every enemy definition.
-
 function scr_enemy_data_initialize()
 {
     global.vtd.data.enemies =
@@ -15,22 +13,9 @@ function scr_enemy_data_initialize()
 
         enemy_weak:
         {
-            identity:
-            {
-                key: "enemy_weak",
-                name: "Weak CPU Seeker"
-            },
-
-            visual:
-            {
-                radius: 16,
-                color: c_yellow
-            },
-
-            vitals:
-            {
-                hp_maximum: 20
-            },
+            identity: { key: "enemy_weak", name: "Weak CPU Seeker" },
+            visual: { radius: 16, color: c_yellow },
+            vitals: { hp_maximum: 20 },
 
             movement:
             {
@@ -66,22 +51,9 @@ function scr_enemy_data_initialize()
 
         enemy_hunter:
         {
-            identity:
-            {
-                key: "enemy_hunter",
-                name: "Building Hunter"
-            },
-
-            visual:
-            {
-                radius: 18,
-                color: c_red
-            },
-
-            vitals:
-            {
-                hp_maximum: 40
-            },
+            identity: { key: "enemy_hunter", name: "Building Hunter" },
+            visual: { radius: 18, color: c_red },
+            vitals: { hp_maximum: 40 },
 
             movement:
             {
@@ -117,22 +89,9 @@ function scr_enemy_data_initialize()
 
         enemy_phaser:
         {
-            identity:
-            {
-                key: "enemy_phaser",
-                name: "Phaser"
-            },
-
-            visual:
-            {
-                radius: 14,
-                color: c_aqua
-            },
-
-            vitals:
-            {
-                hp_maximum: 30
-            },
+            identity: { key: "enemy_phaser", name: "Phaser" },
+            visual: { radius: 14, color: c_aqua },
+            vitals: { hp_maximum: 30 },
 
             movement:
             {
@@ -147,9 +106,6 @@ function scr_enemy_data_initialize()
 
             navigation:
             {
-                // The phaser uses grid_breach because its PHASING ability
-                // allows it to ignore buildings.
-
                 blocked_action: EnemyBlockedAction.WAIT
             },
 
@@ -165,6 +121,106 @@ function scr_enemy_data_initialize()
             [
                 EnemyAbility.PHASING
             ]
+        },
+
+
+        // ====================================================================
+        // ORANGE — SINGLE SHOOTER
+        // ====================================================================
+
+        enemy_shooter_single:
+        {
+            identity: { key: "enemy_shooter_single", name: "Single Shooter" },
+            visual: { radius: 18, color: c_orange },
+            vitals: { hp_maximum: 35 },
+
+            movement:
+            {
+                speed: 1.5,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+                damage: 4,
+                range: 240,
+                cooldown_seconds: 1.2,
+
+                projectile:
+                {
+                    speed: 8,
+                    lifetime_seconds: 5,
+                    radius: 4,
+                    color: c_orange,
+                    shot_count: 1,
+                    spread_degrees: 0
+                }
+            },
+
+            abilities: []
+        },
+
+
+        // ====================================================================
+        // PURPLE — TRIPLE SHOOTER
+        // ====================================================================
+
+        enemy_shooter_triple:
+        {
+            identity: { key: "enemy_shooter_triple", name: "Triple Shooter" },
+            visual: { radius: 22, color: c_purple },
+            vitals: { hp_maximum: 60 },
+
+            movement:
+            {
+                speed: 1.25,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+                damage: 4,
+                range: 260,
+                cooldown_seconds: 1.5,
+
+                projectile:
+                {
+                    speed: 8,
+                    lifetime_seconds: 5,
+                    radius: 4,
+                    color: c_purple,
+                    shot_count: 3,
+
+                    // This is the complete spread from the left projectile
+                    // to the right projectile.
+
+                    spread_degrees: 18
+                }
+            },
+
+            abilities: []
         }
     };
 

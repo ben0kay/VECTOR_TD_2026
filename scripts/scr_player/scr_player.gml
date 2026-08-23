@@ -507,3 +507,43 @@ function scr_player_combat_update(_player)
 
     return true;
 }
+
+/// @description Applies one damage packet to the player.
+
+function scr_player_damage(_player, _damage)
+{
+    if (!instance_exists(_player))
+        return false;
+
+    if (!is_struct(_damage))
+        return false;
+
+    if (_player.PlayerState == PlayerState.DEAD)
+        return false;
+
+    if (_damage.amount <= 0)
+        return false;
+
+
+    _player.vitals.hp.current = max(
+        0,
+        _player.vitals.hp.current - _damage.amount
+    );
+
+
+    if (_player.vitals.hp.current <= 0)
+    {
+        _player.PlayerState = PlayerState.DEAD;
+
+        show_debug_message("VECTOR TD 2026 - PLAYER DESTROYED");
+
+        // FUTURE:
+        // player respawn
+        // lives
+        // level failure rules
+        // death particles
+    }
+
+
+    return true;
+}

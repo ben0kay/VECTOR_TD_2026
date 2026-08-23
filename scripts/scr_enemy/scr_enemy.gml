@@ -72,231 +72,147 @@ function scr_enemy_target_acquire(_enemy)
 }
 
 
-/// @description Initializes one generic enemy.
+/// @description Initializes one generic enemy from its data definition.
 
 function scr_enemy_initialize(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-
-    if (
-        !variable_instance_exists(
-            _enemy,
-            "enemy_key"
-        )
-    )
+    if (!variable_instance_exists(_enemy, "enemy_key"))
     {
-        show_debug_message(
-            "ENEMY ERROR - enemy_key was not supplied."
-        );
-
+        show_debug_message("ENEMY ERROR - enemy_key was not supplied.");
         return false;
     }
 
 
-    var _data =
-        scr_enemy_data_get(
-            _enemy.enemy_key
-        );
-
+    var _data = scr_enemy_data_get(_enemy.enemy_key);
 
     if (!scr_enemy_data_valid(_data))
     {
         show_debug_message(
-            "ENEMY ERROR - invalid definition: "
-            + string(_enemy.enemy_key)
+            "ENEMY ERROR - invalid definition: " + string(_enemy.enemy_key)
         );
 
         return false;
     }
 
 
-    _enemy.enemy_data =
-        _data;
+    _enemy.enemy_data = _data;
+    _enemy.EnemyState = EnemyState.SPAWNING;
 
-
-    // ========================================================================
-    // STATE
-    // ========================================================================
-
-    _enemy.EnemyState =
-        EnemyState.SPAWNING;
-
-
-    // ========================================================================
-    // IDENTITY
-    // ========================================================================
 
     _enemy.identity =
     {
-        key:
-            _data.identity.key,
-
-        name:
-            _data.identity.name
+        key: _data.identity.key,
+        name: _data.identity.name
     };
 
-
-    // ========================================================================
-    // VISUAL
-    // ========================================================================
 
     _enemy.visual =
     {
-        draw_angle:
-            0,
-
-        radius:
-            _data.visual.radius,
-
-        color:
-            _data.visual.color
+        draw_angle: 0,
+        radius: _data.visual.radius,
+        color: _data.visual.color
     };
 
-
-    // ========================================================================
-    // VITALS
-    // ========================================================================
 
     _enemy.vitals =
     {
         hp:
         {
-            current:
-                _data.vitals.hp_maximum,
-
-            maximum:
-                _data.vitals.hp_maximum
+            current: _data.vitals.hp_maximum,
+            maximum: _data.vitals.hp_maximum
         }
     };
 
-
-    // ========================================================================
-    // MOVEMENT
-    // ========================================================================
 
     _enemy.movement =
     {
-        speed:
-            _data.movement.speed,
-
-        layer:
-            _data.movement.layer
+        speed: _data.movement.speed,
+        layer: _data.movement.layer
     };
 
-
-    // ========================================================================
-    // TARGETING
-    // ========================================================================
 
     _enemy.targeting =
     {
-        target:
-            noone,
-
-        strategic:
-            noone,
-
-        breach:
-            noone,
-
-        target_type:
-            _data.targeting.target_type
+        target: noone,
+        strategic: noone,
+        breach: noone,
+        target_type: _data.targeting.target_type
     };
 
-
-    // ========================================================================
-    // NAVIGATION
-    // ========================================================================
 
     _enemy.navigation =
     {
-        path_id:
-            path_add(),
-
-        needs_path:
-            true,
-
-        repath_timer:
-            real(_enemy.id) mod 4,
-
-        revision_seen:
-            -1,
-
-        reachable:
-            true,
-
-        blocked_action:
-            _data.navigation.blocked_action
+        path_id: path_add(),
+        needs_path: true,
+        repath_timer: real(_enemy.id) mod 4,
+        revision_seen: -1,
+        reachable: true,
+        blocked_action: _data.navigation.blocked_action
     };
 
-
-    // ========================================================================
-    // ATTACK
-    // ========================================================================
 
     _enemy.attack =
     {
-        type:
-            _data.attack.type,
-
-        damage:
-            _data.attack.damage,
-
-        range:
-            _data.attack.range,
+        type: _data.attack.type,
+        damage: _data.attack.damage,
+        range: _data.attack.range,
 
         cooldown:
         {
-            duration:
-                _data.attack.cooldown_seconds,
+            duration: _data.attack.cooldown_seconds,
+            remaining: 0
+        },
 
-            remaining:
-                0
-        }
+        projectile: undefined
     };
 
 
-    // ========================================================================
-    // ABILITIES
-    // ========================================================================
+    // Only projectile attackers require projectile data.
 
-    _enemy.abilities =
-        [];
-
-
-    for (
-        var i = 0;
-        i < array_length(_data.abilities);
-        ++i
-    )
+    if (_enemy.attack.type == EnemyAttack.PROJECTILE)
     {
-        array_push(
-            _enemy.abilities,
-            _data.abilities[i]
-        );
+        if (
+            !variable_struct_exists(_data.attack, "projectile")
+            || !is_struct(_data.attack.projectile)
+        )
+        {
+            show_debug_message(
+                "ENEMY ERROR - projectile data missing: "
+                + _enemy.identity.key
+            );
+
+            return false;
+        }
+
+
+        var _projectile = _data.attack.projectile;
+
+        _enemy.attack.projectile =
+        {
+            speed: _projectile.speed,
+            lifetime_seconds: _projectile.lifetime_seconds,
+            radius: _projectile.radius,
+            color: _projectile.color,
+            shot_count: _projectile.shot_count,
+            spread_degrees: _projectile.spread_degrees
+        };
     }
 
 
-    // ========================================================================
-    // INITIAL TARGET
-    // ========================================================================
+    _enemy.abilities = [];
 
-    _enemy.targeting.strategic =
-        scr_enemy_target_acquire(
-            _enemy
-        );
-
-    _enemy.targeting.target =
-        _enemy.targeting.strategic;
+    for (var i = 0; i < array_length(_data.abilities); ++i)
+        array_push(_enemy.abilities, _data.abilities[i]);
 
 
-    show_debug_message(
-        "ENEMY CREATED: "
-        + _enemy.identity.name
-    );
+    _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
+    _enemy.targeting.target = _enemy.targeting.strategic;
 
+
+    show_debug_message("ENEMY CREATED: " + _enemy.identity.name);
 
     return true;
 }
@@ -430,7 +346,7 @@ function scr_enemy_target_edge_distance(
 }
 
 
-/// @description Executes one enemy attack.
+/// @description Executes one enemy contact or projectile attack.
 
 function scr_enemy_attack(_enemy)
 {
@@ -438,51 +354,40 @@ function scr_enemy_attack(_enemy)
         return false;
 
 
-    var _target =
-        _enemy.targeting.target;
-
+    var _target = _enemy.targeting.target;
 
     if (!instance_exists(_target))
         return false;
-
-
-    var _damage =
-        scr_damage_create(
-            _enemy.attack.damage,
-            _enemy,
-            DamageSource.ENEMY
-        );
-
-    var _damage_applied =
-        false;
 
 
     switch (_enemy.attack.type)
     {
         case EnemyAttack.CONTACT:
         {
+            var _damage = scr_damage_create(
+                _enemy.attack.damage,
+                _enemy,
+                DamageSource.ENEMY
+            );
+
+
             if (_target.object_index == o_cpu)
             {
-                _damage_applied =
-                    scr_cpu_damage(
-                        _target,
-                        _enemy.attack.damage
-                    );
+                if (!scr_cpu_damage(_target, _enemy.attack.damage))
+                    return false;
             }
             else if (
-                _target.object_index
-                    == o_building_par
-                || object_is_ancestor(
-                    _target.object_index,
-                    o_building_par
-                )
+                _target.object_index == o_building_par
+                || object_is_ancestor(_target.object_index, o_building_par)
             )
             {
-                _damage_applied =
-                    scr_building_damage(
-                        _target,
-                        _damage
-                    );
+                if (!scr_building_damage(_target, _damage))
+                    return false;
+            }
+            else if (_target.object_index == o_player)
+            {
+                if (!scr_player_damage(_target, _damage))
+                    return false;
             }
         }
         break;
@@ -490,20 +395,55 @@ function scr_enemy_attack(_enemy)
 
         case EnemyAttack.PROJECTILE:
         {
-            // FUTURE:
-            // Create a data-driven enemy projectile.
+            var _projectile = _enemy.attack.projectile;
+
+            if (!is_struct(_projectile))
+                return false;
+
+
+            var _base_angle = point_direction(
+                _enemy.x,
+                _enemy.y,
+                _target.x,
+                _target.y
+            );
+
+            var _shot_count = max(1, floor(_projectile.shot_count));
+            var _spread = _projectile.spread_degrees;
+
+
+            for (var i = 0; i < _shot_count; ++i)
+            {
+                var _amount = 0.5;
+
+                if (_shot_count > 1)
+                    _amount = i / (_shot_count - 1);
+
+
+                var _angle = _base_angle + lerp(
+                    -_spread * 0.5,
+                    _spread * 0.5,
+                    _amount
+                );
+
+                var _muzzle_distance = _enemy.visual.radius + 6;
+
+
+                scr_projectile_enemy_create(
+                    _enemy,
+                    _enemy.x + lengthdir_x(_muzzle_distance, _angle),
+                    _enemy.y + lengthdir_y(_muzzle_distance, _angle),
+                    _angle,
+                    _enemy.attack.damage,
+                    _projectile
+                );
+            }
         }
         break;
     }
 
 
-    if (!_damage_applied)
-        return false;
-
-
-    _enemy.attack.cooldown.remaining =
-        _enemy.attack.cooldown.duration;
-
+    _enemy.attack.cooldown.remaining = _enemy.attack.cooldown.duration;
 
     return true;
 }

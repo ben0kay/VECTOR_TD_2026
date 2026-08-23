@@ -18,25 +18,21 @@ switch (global.LevelState)
             / max(1, game_get_speed(gamespeed_fps));
 
 
-        // Yellow enemy: heads directly toward the CPU.
-
         if (keyboard_check_pressed(ord("N")))
             scr_enemy_spawn_edge("enemy_weak");
-
-
-        // Red enemy: finds and attacks the closest building.
 
         if (keyboard_check_pressed(ord("J")))
             scr_enemy_spawn_edge("enemy_hunter");
 
-
-        // Cyan enemy: heads toward the CPU through buildings.
-
         if (keyboard_check_pressed(ord("H")))
             scr_enemy_spawn_edge("enemy_phaser");
 
+        if (keyboard_check_pressed(ord("U")))
+            scr_enemy_spawn_edge("enemy_shooter_single");
 
-        // Direct CPU-damage test.
+        if (keyboard_check_pressed(ord("I")))
+            scr_enemy_spawn_edge("enemy_shooter_triple");
+
 
         if (keyboard_check_pressed(ord("K")))
         {
@@ -48,10 +44,10 @@ switch (global.LevelState)
 
 
         // FUTURE:
-        // baseline enemy spawning
+        // baseline spawning
         // clusters
-        // major waves
-        // level milestones
+        // waves
+        // milestones
     }
     break;
 
@@ -67,16 +63,14 @@ switch (global.LevelState)
     case LevelState.FAILED:
     {
         // FUTURE:
-        // defeat screen
-        // restart
-        // return to menu
+        // defeat handling
     }
     break;
 
 
     case LevelState.EXITING:
     {
-        // Runtime cleanup belongs to the Clean Up event.
+        // Cleanup belongs to the Clean Up event.
     }
     break;
 }
