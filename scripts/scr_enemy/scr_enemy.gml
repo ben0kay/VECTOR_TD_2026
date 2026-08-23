@@ -160,6 +160,122 @@ function scr_enemy_initialize(_enemy)
             maximum: _data.vitals.hp_maximum
         }
     };
+	
+	_enemy.vitals.shield =
+	{
+	    enabled: false,
+
+	    current: 0,
+
+	    maximum:
+	        _data.vitals.shield_maximum,
+
+	    color:
+	        make_color_rgb(
+	            255,
+	            110,
+	            120
+	        ),
+
+	    hit_flash: 0
+	};
+
+	_enemy.modifiers = [];
+
+	if (
+	    variable_instance_exists(
+	        _enemy,
+	        "spawn_modifiers"
+	    )
+	)
+	{
+	    _enemy.modifiers =
+	        scr_enemy_modifiers_copy(
+	            _enemy.spawn_modifiers
+	        );
+	}
+
+
+	// Activate the runtime effects supplied by each modifier.
+
+	for (
+	    var i = 0;
+	    i < array_length(_enemy.modifiers);
+	    ++i
+	)
+	{
+	    switch (_enemy.modifiers[i])
+	    {
+	        case EnemyModifier.SHIELDED:
+	        {
+	            if (_enemy.vitals.shield.maximum > 0)
+	            {
+	                _enemy.vitals.shield.enabled = true;
+
+	                _enemy.vitals.shield.current =
+	                    _enemy.vitals.shield.maximum;
+	            }
+	        }
+	        break;
+	    }
+	}
+
+
+	if (
+	    variable_struct_exists(
+	        _data.visual,
+	        "shield_color"
+	    )
+	)
+	{
+	    _enemy.vitals.shield.color =
+	        _data.visual.shield_color;
+	}
+	
+	
+	if (
+    variable_struct_exists(
+        _data.vitals,
+        "shield_maximum"
+    )
+    && _data.vitals.shield_maximum > 0
+	)
+	{
+	    var _shield_color =
+	        make_color_rgb(
+	            255,
+	            110,
+	            120
+	        );
+
+
+	    if (
+	        variable_struct_exists(
+	            _data.visual,
+	            "shield_color"
+	        )
+	    )
+	    {
+	        _shield_color =
+	            _data.visual.shield_color;
+	    }
+
+
+	    _enemy.vitals.shield =
+	    {
+	        current:
+	            _data.vitals.shield_maximum,
+
+	        maximum:
+	            _data.vitals.shield_maximum,
+
+	        color:
+	            _shield_color,
+
+	        hit_flash:
+	            0
+	    };
+	}
 
 
     var _brainless = false;
@@ -684,16 +800,20 @@ function scr_enemy_update(_enemy)
     return true;
 }
 
-/// @description Spawns one data-driven enemy with an optional direction.
+/// @description Spawns one data-driven enemy with optional direction and modifiers.
 
 function scr_enemy_spawn(
     _enemy_key,
     _world_x,
     _world_y,
-    _spawn_direction = undefined
+    _spawn_direction = undefined,
+    _spawn_modifiers = []
 )
 {
-    var _data = scr_enemy_data_get(_enemy_key);
+    var _data =
+        scr_enemy_data_get(
+            _enemy_key
+        );
 
     if (!scr_enemy_data_valid(_data))
         return noone;
@@ -701,7 +821,13 @@ function scr_enemy_spawn(
 
     var _creation_variables =
     {
-        enemy_key: _enemy_key
+        enemy_key:
+            _enemy_key,
+
+        spawn_modifiers:
+            scr_enemy_modifiers_copy(
+                _spawn_modifiers
+            )
     };
 
 
@@ -733,9 +859,7 @@ function scr_enemy_spawn_test()
 }
 
 
-/// @description Draws one vector-style enemy.
-
-/// @description Draws one enemy using its sprite or primitive renderer.
+/// @description Draws one enemy, its shield and its health display.
 
 function scr_enemy_draw(_enemy)
 {
@@ -743,14 +867,27 @@ function scr_enemy_draw(_enemy)
         return false;
 
 
-    scr_enemy_visual_draw(_enemy);
-    scr_enemy_health_bar_draw(_enemy);
+    scr_enemy_shield_visual_update(
+        _enemy
+    );
+
+    scr_enemy_shield_draw(
+        _enemy
+    );
+
+    scr_enemy_visual_draw(
+        _enemy
+    );
+
+    scr_enemy_health_bar_draw(
+        _enemy
+    );
 
 
     return true;
 }
 
-/// @description Applies damage to one enemy.
+/// @description Applies shield-aware damage to one enemy.
 
 function scr_enemy_damage(
     _enemy,
@@ -763,24 +900,133 @@ function scr_enemy_damage(
     if (!is_struct(_damage))
         return false;
 
-    if (
-        _enemy.EnemyState
-        == EnemyState.DEAD
-    )
-    {
+    if (_enemy.EnemyState == EnemyState.DEAD)
         return false;
-    }
 
     if (_damage.amount <= 0)
         return false;
 
 
-    _enemy.vitals.hp.current =
-        max(
-            0,
-            _enemy.vitals.hp.current
-            - _damage.amount
-        );
+    var _damage_type =
+        DamageType.KINETIC;
+
+
+    if (
+        variable_struct_exists(
+            _damage,
+            "damage_type"
+        )
+    )
+    {
+        _damage_type =
+            _damage.damage_type;
+    }
+
+
+    var _remaining_damage =
+        _damage.amount;
+
+    var _shield =
+        _enemy.vitals.shield;
+
+
+    // ========================================================================
+    // SHIELD DAMAGE
+    // ========================================================================
+
+    if (
+        _shield.enabled
+        && _shield.current > 0
+    )
+    {
+        var _shield_multiplier =
+            max(
+                0.01,
+                scr_damage_shield_multiplier(
+                    _damage_type
+                )
+            );
+
+        var _potential_shield_damage =
+            _remaining_damage
+            * _shield_multiplier;
+
+        var _shield_before =
+            _shield.current;
+
+        var _shield_damage =
+            min(
+                _shield_before,
+                _potential_shield_damage
+            );
+
+
+        _shield.current -=
+            _shield_damage;
+
+        _shield.hit_flash =
+            1;
+
+
+        // Convert absorbed shield damage back into raw packet damage.
+        // Any unconsumed packet damage can overflow into health.
+
+        var _raw_damage_absorbed =
+            _shield_damage
+            / _shield_multiplier;
+
+        _remaining_damage =
+            max(
+                0,
+                _remaining_damage
+                - _raw_damage_absorbed
+            );
+
+
+        if (
+            _shield_before > 0
+            && _shield.current <= 0
+        )
+        {
+            _shield.current = 0;
+            _shield.enabled = false;
+
+
+            scr_effect_shockwave_create(
+                _enemy.x,
+                _enemy.y,
+                _enemy.visual.radius + 16,
+                _shield.color
+            );
+
+
+            // FUTURE:
+            // shield-break particles
+            // shield-break sound
+        }
+    }
+
+
+    // ========================================================================
+    // EXPOSED HEALTH DAMAGE
+    // ========================================================================
+
+    if (_remaining_damage > 0)
+    {
+        var _health_damage =
+            _remaining_damage
+            * scr_damage_health_multiplier(
+                _damage_type
+            );
+
+
+        _enemy.vitals.hp.current =
+            max(
+                0,
+                _enemy.vitals.hp.current
+                - _health_damage
+            );
+    }
 
 
     if (_enemy.vitals.hp.current <= 0)
@@ -876,9 +1122,12 @@ function scr_enemy_closest_building_get(_enemy)
     return _closest;
 }
 
-/// @description Spawns one enemy type at a random map edge.
+/// @description Spawns one enemy configuration at a random map edge.
 
-function scr_enemy_spawn_edge(_enemy_key)
+function scr_enemy_spawn_edge(
+    _enemy_key,
+    _spawn_modifiers = []
+)
 {
     var _margin = 64;
     var _spawn_x = _margin;
@@ -889,38 +1138,68 @@ function scr_enemy_spawn_edge(_enemy_key)
     {
         case 0:
         {
-            _spawn_x = random_range(_margin, room_width - _margin);
-            _spawn_y = _margin;
+            _spawn_x =
+                random_range(
+                    _margin,
+                    room_width - _margin
+                );
+
+            _spawn_y =
+                _margin;
         }
         break;
 
 
         case 1:
         {
-            _spawn_x = room_width - _margin;
-            _spawn_y = random_range(_margin, room_height - _margin);
+            _spawn_x =
+                room_width - _margin;
+
+            _spawn_y =
+                random_range(
+                    _margin,
+                    room_height - _margin
+                );
         }
         break;
 
 
         case 2:
         {
-            _spawn_x = random_range(_margin, room_width - _margin);
-            _spawn_y = room_height - _margin;
+            _spawn_x =
+                random_range(
+                    _margin,
+                    room_width - _margin
+                );
+
+            _spawn_y =
+                room_height - _margin;
         }
         break;
 
 
         case 3:
         {
-            _spawn_x = _margin;
-            _spawn_y = random_range(_margin, room_height - _margin);
+            _spawn_x =
+                _margin;
+
+            _spawn_y =
+                random_range(
+                    _margin,
+                    room_height - _margin
+                );
         }
         break;
     }
 
 
-    return scr_enemy_spawn(_enemy_key, _spawn_x, _spawn_y);
+    return scr_enemy_spawn(
+        _enemy_key,
+        _spawn_x,
+        _spawn_y,
+        undefined,
+        _spawn_modifiers
+    );
 }
 
 /// @description Returns the distance from an explosion to a target's nearest edge.
@@ -1216,6 +1495,8 @@ function scr_enemy_brainless_update(_enemy)
 
     return true;
 }
+
+
 /// @description Releases evenly spaced brainless children from a splitter.
 
 function scr_enemy_split(_enemy)
@@ -1223,14 +1504,22 @@ function scr_enemy_split(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-    if (!scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
+    if (
+        !scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.SPLIT_ON_DEATH
+        )
+    )
+    {
         return false;
+    }
 
     if (!is_struct(_enemy.ability_runtime.split))
         return false;
 
 
-    var _split = _enemy.ability_runtime.split;
+    var _split =
+        _enemy.ability_runtime.split;
 
     if (_split.triggered)
         return false;
@@ -1239,10 +1528,14 @@ function scr_enemy_split(_enemy)
     _split.triggered = true;
 
 
-    var _count = max(1, floor(_split.count));
-    var _angle_step = 360 / _count;
+    var _count =
+        max(
+            1,
+            floor(_split.count)
+        );
 
-    // Randomly rotate the entire pattern while preserving equal spacing.
+    var _angle_step =
+        360 / _count;
 
     var _base_angle =
         random(360)
@@ -1274,7 +1567,11 @@ function scr_enemy_split(_enemy)
             _split.enemy_key,
             _spawn_x,
             _spawn_y,
-            _angle
+            _angle,
+
+            // Children inherit composable spawn modifiers.
+
+            _enemy.modifiers
         );
     }
 
@@ -1282,7 +1579,7 @@ function scr_enemy_split(_enemy)
     // FUTURE:
     // split particles
     // split sound
-    // children inheriting modifiers from the parent
+    // modifier inheritance exceptions
     // several possible child enemy keys
 
 
@@ -1485,6 +1782,95 @@ function scr_enemy_rewards_grant(_enemy, _damage)
     return true;
 }
 
+/// @description Returns a safe independent copy of a modifier array.
+
+function scr_enemy_modifiers_copy(_modifiers)
+{
+    var _copy = [];
+
+    if (!is_array(_modifiers))
+        return _copy;
+
+
+    for (var i = 0; i < array_length(_modifiers); ++i)
+        array_push(_copy, _modifiers[i]);
+
+
+    return _copy;
+}
+
+/// @description Returns whether an enemy currently has a modifier.
+
+function scr_enemy_modifier_has(
+    _enemy,
+    _modifier
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!variable_instance_exists(_enemy, "modifiers"))
+        return false;
+
+    if (!is_array(_enemy.modifiers))
+        return false;
+
+
+    for (
+        var i = 0;
+        i < array_length(_enemy.modifiers);
+        ++i
+    )
+    {
+        if (_enemy.modifiers[i] == _modifier)
+            return true;
+    }
+
+
+    return false;
+}
+
+/// @description Adds one modifier to an existing enemy.
+
+function scr_enemy_modifier_add(
+    _enemy,
+    _modifier
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!variable_instance_exists(_enemy, "modifiers"))
+        _enemy.modifiers = [];
+
+    if (scr_enemy_modifier_has(_enemy, _modifier))
+        return true;
+
+
+    array_push(
+        _enemy.modifiers,
+        _modifier
+    );
+
+
+    switch (_modifier)
+    {
+        case EnemyModifier.SHIELDED:
+        {
+            if (_enemy.vitals.shield.maximum <= 0)
+                return false;
+
+            _enemy.vitals.shield.enabled = true;
+
+            _enemy.vitals.shield.current =
+                _enemy.vitals.shield.maximum;
+        }
+        break;
+    }
+
+
+    return true;
+}
 
 /// @description Kills an enemy, processes abilities, and awards valid kills.
 

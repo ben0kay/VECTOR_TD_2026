@@ -1,9 +1,23 @@
-/// @description Draws one visible generic enemy.
+/// @description Draws one enemy with optional shield and health display.
 
-if (OUTSIDE_VIEW_128)
-    exit;
+function scr_enemy_draw(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
 
-if (!scr_fog_position_visible(x, y))
-    exit;
 
-scr_enemy_draw(id);
+    scr_enemy_shield_draw(
+        _enemy
+    );
+
+    scr_enemy_visual_draw(
+        _enemy
+    );
+
+    scr_enemy_health_bar_draw(
+        _enemy
+    );
+
+
+    return true;
+}

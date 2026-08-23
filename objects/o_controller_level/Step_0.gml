@@ -49,15 +49,15 @@ switch (global.LevelState)
 		if (keyboard_check_pressed(ord("F")))
 		scr_enemy_spawn_edge("enemy_flyer");
 			
-			if (keyboard_check_pressed(ord("A")))
-			{
-			    scr_hud_alert_push(
-			        HudAlertType.INFO,
-			        "SYSTEM MESSAGE",
-			        "VECTOR ALERT SYSTEM OPERATIONAL",
-			        4
-			    );
-			}
+			if (keyboard_check_pressed(ord("X")))
+		{
+		    scr_enemy_spawn_edge(
+		        "enemy_weak",
+		        [
+		            EnemyModifier.SHIELDED
+		        ]
+		    );
+		}
 			
 	
 

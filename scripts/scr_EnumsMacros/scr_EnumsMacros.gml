@@ -32,6 +32,7 @@ enum EnemyMovementLayer { GROUND, FLYING, UNDERGROUND }
 enum EnemyBlockedAction { WAIT, RETARGET, BREACH }
 enum EnemyAttack { CONTACT, PROJECTILE }
 enum EnemyAbility { PHASING, EXPLODE_ON_DEATH, SPLIT_ON_DEATH, TRANSPORT_ENEMIES, REGENERATE }
+enum EnemyModifier { SHIELDED }
 
 
 // ============================================================================

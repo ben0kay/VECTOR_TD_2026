@@ -33,6 +33,9 @@ function scr_enemy_data_initialize()
 
     if (!scr_enemy_data_flyer())
         return false;
+	
+	if (!scr_enemy_data_shielded())
+    return false;
 
 
     // FUTURE:
@@ -241,6 +244,12 @@ function scr_enemy_data_valid(_data)
 
     if (_data.vitals.hp_maximum <= 0)
         return false;
+	
+	if (!variable_struct_exists(_data.vitals, "shield_maximum"))
+    return false;
+
+	if (_data.vitals.shield_maximum < 0)
+	    return false;
 
     if (!variable_struct_exists(_data.movement, "speed"))
         return false;
@@ -322,8 +331,6 @@ function scr_enemy_data_valid(_data)
 }
 
 
-/// @description Registers the weak CPU-seeking enemy.
-
 function scr_enemy_data_weak()
 {
     variable_struct_set(
@@ -346,7 +353,8 @@ function scr_enemy_data_weak()
 
             vitals:
             {
-                hp_maximum: 20
+                hp_maximum: 20,
+                shield_maximum: 25
             },
 
             movement:
@@ -373,8 +381,8 @@ function scr_enemy_data_weak()
                 cooldown_seconds: 1
             },
 
-			rewards:
-    scr_enemy_rewards_create(5, 1),
+            rewards:
+            scr_enemy_rewards_create(5, 1),
 
             abilities: []
         }
@@ -382,7 +390,6 @@ function scr_enemy_data_weak()
 
     return true;
 }
-
 
 /// @description Registers the building-hunting enemy.
 
@@ -408,7 +415,8 @@ function scr_enemy_data_hunter()
 
             vitals:
             {
-                hp_maximum: 40
+                hp_maximum: 40,
+                shield_maximum: 25
             },
 
             movement:
@@ -434,9 +442,9 @@ function scr_enemy_data_hunter()
                 range: 4,
                 cooldown_seconds: 1
             },
-				
-			rewards:
-    scr_enemy_rewards_create(8, 2),		
+			
+            rewards:
+            scr_enemy_rewards_create(8, 2),		
 
             abilities: []
         }
@@ -444,7 +452,6 @@ function scr_enemy_data_hunter()
 
     return true;
 }
-
 
 /// @description Registers the CPU-seeking phasing enemy.
 
@@ -470,7 +477,8 @@ function scr_enemy_data_phaser()
 
             vitals:
             {
-                hp_maximum: 30
+                hp_maximum: 30,
+                shield_maximum: 25
             },
 
             movement:
@@ -496,9 +504,9 @@ function scr_enemy_data_phaser()
                 range: 4,
                 cooldown_seconds: 0.8
             },
-			
-			rewards:
-    scr_enemy_rewards_create(12, 2),
+		
+            rewards:
+            scr_enemy_rewards_create(12, 2),
 
             abilities:
             [
@@ -509,7 +517,6 @@ function scr_enemy_data_phaser()
 
     return true;
 }
-
 
 /// @description Registers the single-projectile shooter.
 
@@ -535,7 +542,8 @@ function scr_enemy_data_shooter_single()
 
             vitals:
             {
-                hp_maximum: 35
+                hp_maximum: 35,
+                shield_maximum: 25
             },
 
             movement:
@@ -571,9 +579,9 @@ function scr_enemy_data_shooter_single()
                     spread_degrees: 0
                 }
             },
-				
-			rewards:
-    scr_enemy_rewards_create(10, 2),	
+			
+            rewards:
+            scr_enemy_rewards_create(10, 2),	
 
             abilities: []
         }
@@ -581,7 +589,6 @@ function scr_enemy_data_shooter_single()
 
     return true;
 }
-
 
 /// @description Registers the triple-projectile shooter.
 
@@ -607,7 +614,8 @@ function scr_enemy_data_shooter_triple()
 
             vitals:
             {
-                hp_maximum: 60
+                hp_maximum: 60,
+                shield_maximum: 25
             },
 
             movement:
@@ -644,8 +652,8 @@ function scr_enemy_data_shooter_triple()
                 }
             },
 
-			rewards:
-    scr_enemy_rewards_create(16, 3),
+            rewards:
+            scr_enemy_rewards_create(16, 3),
 
             abilities: []
         }
@@ -653,7 +661,6 @@ function scr_enemy_data_shooter_triple()
 
     return true;
 }
-
 
 /// @description Registers the contact-exploding kamikaze enemy.
 
@@ -679,7 +686,8 @@ function scr_enemy_data_kamikaze()
 
             vitals:
             {
-                hp_maximum: 24
+                hp_maximum: 24,
+                shield_maximum: 25
             },
 
             movement:
@@ -715,8 +723,8 @@ function scr_enemy_data_kamikaze()
                 }
             },
 
-			rewards:
-    scr_enemy_rewards_create(12, 2),
+            rewards:
+            scr_enemy_rewards_create(12, 2),
 
             abilities:
             [
@@ -727,7 +735,6 @@ function scr_enemy_data_kamikaze()
 
     return true;
 }
-
 
 /// @description Registers the large splitting enemy.
 
@@ -753,7 +760,8 @@ function scr_enemy_data_splitter()
 
             vitals:
             {
-                hp_maximum: 80
+                hp_maximum: 80,
+                shield_maximum: 25
             },
 
             movement:
@@ -792,9 +800,9 @@ function scr_enemy_data_splitter()
                     angle_offset: 0
                 }
             },
-				
-			rewards:
-    scr_enemy_rewards_create(18, 4),	
+			
+            rewards:
+            scr_enemy_rewards_create(18, 4),	
 
             abilities:
             [
@@ -805,7 +813,6 @@ function scr_enemy_data_splitter()
 
     return true;
 }
-
 
 /// @description Registers the brainless splitter child.
 
@@ -831,7 +838,8 @@ function scr_enemy_data_splitter_child()
 
             vitals:
             {
-                hp_maximum: 12
+                hp_maximum: 12,
+                shield_maximum: 25
             },
 
             movement:
@@ -862,9 +870,9 @@ function scr_enemy_data_splitter_child()
                 range: 0,
                 cooldown_seconds: 0
             },
-				
-			rewards:
-    scr_enemy_rewards_create(0, 0),	
+			
+            rewards:
+            scr_enemy_rewards_create(0, 0),	
 
             abilities: []
         }
@@ -898,7 +906,8 @@ function scr_enemy_data_flyer()
 
             vitals:
             {
-                hp_maximum: 45
+                hp_maximum: 45,
+				shield_maximum: 25
             },
 
             movement:
@@ -936,3 +945,82 @@ function scr_enemy_data_flyer()
     return true;
 }
 
+/// @description Registers the first naturally shielded ground enemy.
+
+function scr_enemy_data_shielded()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_shielded",
+        {
+            identity:
+            {
+                key: "enemy_shielded",
+                name: "Shielded Drone"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_triangle,
+
+                radius: 20,
+
+                color:
+                    make_color_rgb(
+                        210,
+                        70,
+                        90
+                    ),
+
+                shield_color:
+                    make_color_rgb(
+                        255,
+                        125,
+                        145
+                    )
+            },
+
+            vitals:
+            {
+                hp_maximum: 75,
+                shield_maximum: 80
+            },
+
+            movement:
+            {
+                speed: 1.65,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 10,
+                range: 5,
+                cooldown_seconds: 1
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    25,
+                    4
+                ),
+
+            abilities: []
+        }
+    );
+
+
+    return true;
+}
