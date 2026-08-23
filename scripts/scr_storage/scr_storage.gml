@@ -62,12 +62,15 @@ function scr_storage_initialize(_storage)
 
 
     _storage.storage =
-    {
-        resource_key: _data.storage.resource_key,
-        current: 0,
-        capacity: _data.storage.capacity,
-        registered: false
-    };
+{
+    resource_key: _data.storage.resource_key,
+
+    current: 0,
+    capacity: _data.storage.capacity,
+
+    incoming_reserved: 0,
+    registered: false
+};
 
 
     var _entry =
@@ -94,10 +97,29 @@ function scr_storage_initialize(_storage)
     return true;
 }
 
+/// @description Returns unoccupied and unreserved storage capacity.
 
-/// @description Returns whether storage can accept a resource.
+function scr_storage_available_space(_storage)
+{
+    if (!instance_exists(_storage))
+        return 0;
 
-function scr_storage_accepts(
+    if (!variable_instance_exists(_storage, "storage"))
+        return 0;
+
+
+    return max(
+        0,
+        _storage.storage.capacity
+        - _storage.storage.current
+        - _storage.storage.incoming_reserved
+    );
+}
+
+
+/// @description Returns whether an existing cargo destination remains valid.
+
+function scr_storage_destination_valid(
     _storage,
     _resource_key
 )
@@ -111,10 +133,75 @@ function scr_storage_accepts(
     if (_storage.BuildingState != BuildingState.ACTIVE)
         return false;
 
-    if (_storage.storage.resource_key != _resource_key)
+    return _storage.storage.resource_key == _resource_key;
+}
+
+
+/// @description Reserves storage space for incoming cargo.
+
+function scr_storage_reservation_create(
+    _storage,
+    _resource_key,
+    _amount
+)
+{
+    if (!scr_storage_accepts(_storage, _resource_key))
+        return 0;
+
+
+    var _reserved = min(
+        max(0, _amount),
+        scr_storage_available_space(_storage)
+    );
+
+
+    _storage.storage.incoming_reserved += _reserved;
+
+    return _reserved;
+}
+
+
+/// @description Releases a previous incoming-cargo reservation.
+
+function scr_storage_reservation_release(
+    _storage,
+    _amount
+)
+{
+    if (!instance_exists(_storage))
         return false;
 
-    return _storage.storage.current < _storage.storage.capacity;
+    if (!variable_instance_exists(_storage, "storage"))
+        return false;
+
+
+    _storage.storage.incoming_reserved = max(
+        0,
+        _storage.storage.incoming_reserved
+        - max(0, _amount)
+    );
+
+
+    return true;
+}
+
+/// @description Returns whether storage can reserve more of a resource.
+
+function scr_storage_accepts(
+    _storage,
+    _resource_key
+)
+{
+    if (!scr_storage_destination_valid(
+        _storage,
+        _resource_key
+    ))
+    {
+        return false;
+    }
+
+
+    return scr_storage_available_space(_storage) > 0;
 }
 
 
@@ -161,16 +248,29 @@ function scr_storage_nearest_get(
 }
 
 
-/// @description Deposits cargo and returns the undelivered remainder.
+/// @description Deposits reserved cargo and returns its remainder.
 
 function scr_storage_receive(
     _storage,
     _resource_key,
-    _amount
+    _amount,
+    _reserved_amount
 )
 {
-    if (!scr_storage_accepts(_storage, _resource_key))
+    if (!scr_storage_destination_valid(
+        _storage,
+        _resource_key
+    ))
+    {
         return _amount;
+    }
+
+
+    scr_storage_reservation_release(
+        _storage,
+        _reserved_amount
+    );
+
 
     if (_amount <= 0)
         return 0;
@@ -180,7 +280,15 @@ function scr_storage_receive(
         _storage.storage.capacity
         - _storage.storage.current;
 
-    var _accepted = min(_amount, _space);
+    var _attempt = min(
+        _amount,
+        max(0, _reserved_amount)
+    );
+
+    var _accepted = min(
+        _attempt,
+        _space
+    );
 
 
     _storage.storage.current += _accepted;
@@ -193,7 +301,10 @@ function scr_storage_receive(
         _entry.current += _accepted;
 
 
-    return max(0, _amount - _accepted);
+    return max(
+        0,
+        _amount - _accepted
+    );
 }
 
 

@@ -14,11 +14,25 @@ hud =
         target: noone
     },
 
+    top:
+    {
+        height: 44,
+        color: c_aqua,
+        background_alpha: 0.92
+    },
+
+    bottom:
+    {
+        height: 220,
+        inspector_width: 400,
+        color: c_aqua,
+        background_alpha: 0.92
+    },
+
     window:
     {
         width: 380,
         height: 220,
-        margin_right: 24,
 
         color: c_aqua,
         background_alpha: 0.88,

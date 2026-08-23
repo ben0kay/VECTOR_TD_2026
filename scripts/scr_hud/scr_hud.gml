@@ -245,23 +245,44 @@ function scr_hud_selection_content_draw(
     draw_set_valign(fa_top);
 
 
-    // ========================================================================
-    // GENERIC BUILDING INFORMATION
-    // ========================================================================
-
     draw_set_color(c_aqua);
-    draw_text(_left + 18, _top + 14, string_upper(_selected.identity.name));
+
+    draw_text(
+        _left + 18,
+        _top + 14,
+        string_upper(_selected.identity.name)
+    );
+
 
     draw_set_color(c_dkgray);
-    draw_line(_left + 18, _top + 38, _right - 18, _top + 38);
+
+    draw_line(
+        _left + 18,
+        _top + 38,
+        _right - 18,
+        _top + 38
+    );
+
+
+    var _building_status =
+        scr_hud_building_status_get(_selected);
+
+    var _building_status_color = c_lime;
+
+
+    if (_selected.BuildingState == BuildingState.DISABLED)
+        _building_status_color = c_yellow;
+
+    if (_selected.BuildingState == BuildingState.DESTROYED)
+        _building_status_color = c_red;
 
 
     scr_hud_label_value_draw(
         _left + 18,
         _top + 50,
         "STATUS",
-        string(_selected.BuildingState),
-        c_lime
+        _building_status,
+        _building_status_color
     );
 
 
@@ -275,10 +296,6 @@ function scr_hud_selection_content_draw(
         c_white
     );
 
-
-    // ========================================================================
-    // MINER INFORMATION
-    // ========================================================================
 
     switch (_selected.object_index)
     {
@@ -303,7 +320,13 @@ function scr_hud_selection_content_draw(
 
 
             draw_set_color(c_dkgray);
-            draw_line(_left + 18, _top + 98, _right - 18, _top + 98);
+
+            draw_line(
+                _left + 18,
+                _top + 98,
+                _right - 18,
+                _top + 98
+            );
 
 
             scr_hud_label_value_draw(
@@ -338,21 +361,22 @@ function scr_hud_selection_content_draw(
             var _miner_status =
                 scr_hud_miner_status_get(_selected);
 
-            var _status_color = c_white;
+            var _miner_status_color = c_white;
+
 
             switch (_miner_status)
             {
                 case "EXTRACTING":
-                    _status_color = c_lime;
+                    _miner_status_color = c_lime;
                 break;
 
                 case "HOPPER FULL":
-                    _status_color = c_yellow;
+                    _miner_status_color = c_yellow;
                 break;
 
                 case "RESOURCE DEPLETED":
                 case "NO RESOURCE NODE":
-                    _status_color = c_red;
+                    _miner_status_color = c_red;
                 break;
             }
 
@@ -362,16 +386,137 @@ function scr_hud_selection_content_draw(
                 _top + 170,
                 "OPERATION",
                 _miner_status,
-                _status_color
+                _miner_status_color
+            );
+
+
+            var _drone_text = "NONE";
+
+            if (instance_exists(_selected.logistics.assigned_drone))
+                _drone_text = "ASSIGNED";
+
+
+            scr_hud_label_value_draw(
+                _left + 18,
+                _top + 190,
+                "CARGO DRONE",
+                _drone_text,
+                c_aqua
             );
 
 
             // FUTURE:
-            // power-network state
-            // assigned cargo drone
-            // extraction modifiers
-            // overclock state
+            // power state
+            // overclocking
+            // extraction upgrades
             // underground noise
+        }
+        break;
+
+
+        case o_storage:
+        {
+            var _resource_data =
+                scr_resource_data_get(
+                    _selected.storage.resource_key
+                );
+
+            var _resource_name =
+                _selected.storage.resource_key;
+
+            var _resource_color =
+                _selected.visual.color;
+
+
+            if (scr_resource_data_valid(_resource_data))
+            {
+                _resource_name =
+                    _resource_data.identity.name;
+
+                _resource_color =
+                    _resource_data.visual.color;
+            }
+
+
+            draw_set_color(c_dkgray);
+
+            draw_line(
+                _left + 18,
+                _top + 98,
+                _right - 18,
+                _top + 98
+            );
+
+
+            scr_hud_label_value_draw(
+                _left + 18,
+                _top + 110,
+                "RESOURCE",
+                _resource_name,
+                _resource_color
+            );
+
+
+            scr_hud_label_value_draw(
+                _left + 18,
+                _top + 130,
+                "CONTENTS",
+                string_format(_selected.storage.current, 0, 1)
+                + " / "
+                + string_format(_selected.storage.capacity, 0, 1),
+                _resource_color
+            );
+
+
+            scr_hud_label_value_draw(
+                _left + 18,
+                _top + 150,
+                "INCOMING",
+                string_format(
+                    _selected.storage.incoming_reserved,
+                    0,
+                    1
+                ),
+                c_aqua
+            );
+
+
+            var _storage_status =
+                scr_hud_storage_status_get(_selected);
+
+            var _storage_status_color = c_white;
+
+
+            switch (_storage_status)
+            {
+                case "DELIVERY INCOMING":
+                    _storage_status_color = c_aqua;
+                break;
+
+                case "AVAILABLE":
+                    _storage_status_color = c_lime;
+                break;
+
+                case "FULL":
+                    _storage_status_color = c_yellow;
+                break;
+            }
+
+
+            scr_hud_label_value_draw(
+                _left + 18,
+                _top + 170,
+                "OPERATION",
+                _storage_status,
+                _storage_status_color
+            );
+
+
+            // FUTURE:
+            // storage transfer rules
+            // accepted-resource filters
+            // priority settings
+            // cargo ports
         }
         break;
 
@@ -411,6 +556,10 @@ function scr_hud_vector_window_draw(_hud)
 
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
+	
+	var _usable_bottom =
+    _gui_height
+    - _hud.hud.bottom.height;
 
     var _anchor_x = _gui_width * 0.5;
     var _anchor_y = _gui_height * 0.5;
@@ -484,10 +633,15 @@ function scr_hud_vector_window_draw(_hud)
 
 
     var _center_y = clamp(
-        _anchor_y,
-        _screen_margin + _full_half_height,
-        _gui_height - _screen_margin - _full_half_height
-    );
+    _anchor_y,
+    _hud.hud.top.height
+        + _screen_margin
+        + _full_half_height,
+
+    _usable_bottom
+        - _screen_margin
+        - _full_half_height
+);
 
 
     _center_x = clamp(
@@ -639,6 +793,303 @@ function scr_hud_vector_window_draw(_hud)
             _center_y - _full_half_height,
             _center_x + _full_half_width,
             _center_y + _full_half_height
+        );
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    return true;
+}
+
+/// @description Returns readable building-state text.
+
+function scr_hud_building_status_get(_building)
+{
+    if (!instance_exists(_building))
+        return "OFFLINE";
+
+
+    switch (_building.BuildingState)
+    {
+        case BuildingState.CONSTRUCTING:
+            return "CONSTRUCTING";
+
+        case BuildingState.ACTIVE:
+            return "ACTIVE";
+
+        case BuildingState.DISABLED:
+            return "DISABLED";
+
+        case BuildingState.DESTROYED:
+            return "DESTROYED";
+    }
+
+
+    return "UNKNOWN";
+}
+
+
+/// @description Returns readable storage activity text.
+
+function scr_hud_storage_status_get(_storage)
+{
+    if (!instance_exists(_storage))
+        return "OFFLINE";
+
+    if (!variable_instance_exists(_storage, "storage"))
+        return "UNINITIALIZED";
+
+    if (_storage.storage.current >= _storage.storage.capacity)
+        return "FULL";
+
+    if (_storage.storage.incoming_reserved > 0)
+        return "DELIVERY INCOMING";
+
+    if (_storage.storage.current > 0)
+        return "AVAILABLE";
+
+    return "EMPTY";
+}
+
+
+/// @description Draws the permanent top resource bar.
+
+function scr_hud_top_bar_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _gui_width = display_get_gui_width();
+    var _height = _hud.hud.top.height;
+
+
+    draw_set_alpha(_hud.hud.top.background_alpha);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_width, _height, false);
+
+
+    draw_set_alpha(1);
+    draw_set_color(_hud.hud.top.color);
+    draw_line(0, _height, _gui_width, _height);
+
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
+
+    draw_set_color(c_white);
+    draw_text(16, _height * 0.5, "LEVEL RESOURCES");
+
+
+    var _draw_x = 170;
+
+
+    if (
+        variable_struct_exists(
+            global.vtd_level.resources,
+            "entries"
+        )
+    )
+    {
+        var _entries = global.vtd_level.resources.entries;
+        var _keys = variable_struct_get_names(_entries);
+
+
+        for (var i = 0; i < array_length(_keys); ++i)
+        {
+            var _entry =
+                variable_struct_get(
+                    _entries,
+                    _keys[i]
+                );
+
+            var _resource_data =
+                scr_resource_data_get(_entry.key);
+
+            var _name = _entry.key;
+            var _color = c_white;
+
+
+            if (scr_resource_data_valid(_resource_data))
+            {
+                _name = _resource_data.identity.name;
+                _color = _resource_data.visual.color;
+            }
+
+
+            draw_set_color(_color);
+
+            draw_text(
+                _draw_x,
+                _height * 0.5,
+                string_upper(_name)
+                + " "
+                + string(floor(_entry.current))
+                + " / "
+                + string(floor(_entry.capacity))
+            );
+
+
+            _draw_x += 210;
+        }
+    }
+
+
+    var _cpu = global.vtd_level.entities.cpu;
+
+
+    if (instance_exists(_cpu))
+    {
+        draw_set_halign(fa_right);
+        draw_set_color(c_aqua);
+
+        draw_text(
+            _gui_width - 16,
+            _height * 0.5,
+            "CPU "
+            + string(ceil(_cpu.vitals.hp.current))
+            + " / "
+            + string(ceil(_cpu.vitals.hp.maximum))
+        );
+    }
+
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+
+    return true;
+}
+
+
+/// @description Draws the permanent lower HUD and main inspector.
+
+function scr_hud_bottom_bar_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _gui_width = display_get_gui_width();
+    var _gui_height = display_get_gui_height();
+
+    var _height = _hud.hud.bottom.height;
+    var _top = _gui_height - _height;
+
+    var _inspector_width =
+        _hud.hud.bottom.inspector_width;
+
+    var _inspector_left =
+        _gui_width - _inspector_width;
+
+
+    // ========================================================================
+    // SHELL
+    // ========================================================================
+
+    draw_set_alpha(_hud.hud.bottom.background_alpha);
+    draw_set_color(c_black);
+
+    draw_rectangle(
+        0,
+        _top,
+        _gui_width,
+        _gui_height,
+        false
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(_hud.hud.bottom.color);
+
+    draw_line(
+        0,
+        _top,
+        _gui_width,
+        _top
+    );
+
+    draw_line(
+        _inspector_left,
+        _top,
+        _inspector_left,
+        _gui_height
+    );
+
+
+    // ========================================================================
+    // CURRENT TEST CONTROLS
+    // ========================================================================
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    draw_set_color(c_aqua);
+    draw_text(18, _top + 14, "CONSTRUCTION");
+
+    draw_set_color(c_white);
+    draw_text(18, _top + 42, "B  WALL");
+    draw_text(18, _top + 62, "T  TOWER");
+
+    draw_text(130, _top + 42, "1  CARBON MINER");
+    draw_text(130, _top + 62, "2  SILICON MINER");
+    draw_text(130, _top + 82, "3  COPPER MINER");
+
+    draw_text(310, _top + 42, "4  CARBON STORAGE");
+    draw_text(310, _top + 62, "5  SILICON STORAGE");
+    draw_text(310, _top + 82, "6  COPPER STORAGE");
+
+    draw_set_color(c_gray);
+    draw_text(18, _top + 118, "LEFT CLICK  PLACE / SELECT");
+    draw_text(18, _top + 138, "RIGHT CLICK  CANCEL / DESELECT");
+    draw_text(18, _top + 168, "Future build buttons will replace these test keys.");
+
+
+    // ========================================================================
+    // MAIN INSPECTOR
+    // ========================================================================
+
+    if (instance_exists(_hud.hud.selection.target))
+    {
+        scr_hud_selection_content_draw(
+            _hud,
+            _inspector_left,
+            _top,
+            _gui_width,
+            _gui_height
+        );
+    }
+    else
+    {
+        draw_set_color(c_aqua);
+
+        draw_text(
+            _inspector_left + 18,
+            _top + 14,
+            "STRUCTURE INSPECTOR"
+        );
+
+
+        draw_set_color(c_dkgray);
+
+        draw_line(
+            _inspector_left + 18,
+            _top + 38,
+            _gui_width - 18,
+            _top + 38
+        );
+
+
+        draw_set_color(c_gray);
+
+        draw_text(
+            _inspector_left + 18,
+            _top + 56,
+            "Select a building for information."
         );
     }
 

@@ -23,10 +23,11 @@ function scr_logistics_drone_initialize(_drone)
 
 
     _drone.assignment =
-    {
-        source: _source,
-        destination: noone
-    };
+	{
+	    source: _source,
+	    destination: noone,
+	    reserved_amount: 0
+	};
 
 
     _drone.movement =
@@ -152,11 +153,54 @@ function scr_logistics_drone_load(_drone)
     return true;
 }
 
+/// @description Releases a cargo drone's destination reservation.
 
-/// @description Selects the nearest compatible storage destination.
+function scr_logistics_drone_reservation_release(_drone)
+{
+    if (!instance_exists(_drone))
+        return false;
+
+
+    var _destination =
+        _drone.assignment.destination;
+
+    var _reserved =
+        _drone.assignment.reserved_amount;
+
+
+    if (
+        instance_exists(_destination)
+        && _reserved > 0
+    )
+    {
+        scr_storage_reservation_release(
+            _destination,
+            _reserved
+        );
+    }
+
+
+    _drone.assignment.destination = noone;
+    _drone.assignment.reserved_amount = 0;
+
+    return true;
+}
+
+/// @description Finds and reserves compatible storage for cargo.
 
 function scr_logistics_drone_destination_find(_drone)
 {
+    if (!instance_exists(_drone))
+        return false;
+
+
+    scr_logistics_drone_reservation_release(_drone);
+
+
+    if (_drone.cargo.current <= 0)
+        return false;
+
+
     var _storage = scr_storage_nearest_get(
         _drone.x,
         _drone.y,
@@ -164,11 +208,27 @@ function scr_logistics_drone_destination_find(_drone)
     );
 
 
+    if (!instance_exists(_storage))
+        return false;
+
+
+    var _reserved =
+        scr_storage_reservation_create(
+            _storage,
+            _drone.cargo.resource_key,
+            _drone.cargo.current
+        );
+
+
+    if (_reserved <= 0)
+        return false;
+
+
     _drone.assignment.destination = _storage;
+    _drone.assignment.reserved_amount = _reserved;
 
-    return instance_exists(_storage);
+    return true;
 }
-
 
 /// @description Processes one cargo drone's current state.
 
@@ -241,19 +301,26 @@ function scr_logistics_drone_update(_drone)
 
         case CargoDroneState.TO_STORAGE:
         {
-            var _storage = _drone.assignment.destination;
+            var _storage =
+                _drone.assignment.destination;
 
 
             if (
-                !scr_storage_accepts(
+                !scr_storage_destination_valid(
                     _storage,
                     _drone.cargo.resource_key
                 )
             )
             {
-                _drone.assignment.destination = noone;
+                scr_logistics_drone_reservation_release(_drone);
 
-                if (!scr_logistics_drone_destination_find(_drone))
+
+                if (scr_logistics_drone_destination_find(_drone))
+                {
+                    _drone.CargoDroneState =
+                        CargoDroneState.TO_STORAGE;
+                }
+                else
                 {
                     _drone.CargoDroneState =
                         CargoDroneState.WAITING_STORAGE;
@@ -275,19 +342,30 @@ function scr_logistics_drone_update(_drone)
                     scr_storage_receive(
                         _storage,
                         _drone.cargo.resource_key,
-                        _drone.cargo.current
+                        _drone.cargo.current,
+                        _drone.assignment.reserved_amount
                     );
+
+
+                _drone.assignment.destination = noone;
+                _drone.assignment.reserved_amount = 0;
 
 
                 if (_drone.cargo.current > 0)
                 {
-                    _drone.assignment.destination = noone;
-                    _drone.CargoDroneState =
-                        CargoDroneState.WAITING_STORAGE;
+                    if (scr_logistics_drone_destination_find(_drone))
+                    {
+                        _drone.CargoDroneState =
+                            CargoDroneState.TO_STORAGE;
+                    }
+                    else
+                    {
+                        _drone.CargoDroneState =
+                            CargoDroneState.WAITING_STORAGE;
+                    }
                 }
                 else if (instance_exists(_source))
                 {
-                    _drone.assignment.destination = noone;
                     _drone.CargoDroneState =
                         CargoDroneState.TO_SOURCE;
                 }
@@ -303,8 +381,6 @@ function scr_logistics_drone_update(_drone)
 
         case CargoDroneState.WAITING_STORAGE:
         {
-            // Avoid scanning every storage every frame.
-
             if (IFRAMES_30)
             {
                 if (scr_logistics_drone_destination_find(_drone))
@@ -456,8 +532,7 @@ function scr_logistics_drone_draw(_drone)
     return true;
 }
 
-
-/// @description Releases a cargo drone's miner assignment.
+/// @description Releases cargo reservations and miner assignment.
 
 function scr_logistics_drone_cleanup(_drone)
 {
@@ -466,6 +541,9 @@ function scr_logistics_drone_cleanup(_drone)
 
     if (!variable_instance_exists(_drone, "assignment"))
         return true;
+
+
+    scr_logistics_drone_reservation_release(_drone);
 
 
     var _source = _drone.assignment.source;
