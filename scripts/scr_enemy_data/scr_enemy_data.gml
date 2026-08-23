@@ -327,7 +327,7 @@ function scr_enemy_data_initialize()
 
             movement:
             {
-                speed: 5,
+                speed: 3,
                 layer: EnemyMovementLayer.GROUND,
                 brainless: true,
                 destroy_on_impact: true

@@ -212,43 +212,38 @@ function scr_building_footprint_valid(
     if (!global.vtd_level.navigation.ready)
         return false;
 
-
-    var _cells =
-        scr_building_footprint_cells_get(
-            _cell_x,
-            _cell_y,
-            _width_cells,
-            _height_cells
-        );
+    if (!global.vtd_level.world.ready)
+        return false;
 
 
-    for (
-        var i = 0;
-        i < array_length(_cells);
-        ++i
-    )
+    var _cells = scr_building_footprint_cells_get(
+        _cell_x,
+        _cell_y,
+        _width_cells,
+        _height_cells
+    );
+
+
+    for (var i = 0; i < array_length(_cells); ++i)
     {
-        var _cell =
-            _cells[i];
+        var _cell = _cells[i];
 
 
-        if (
-            !scr_building_cell_inside_map(
-                _cell.x,
-                _cell.y
-            )
-        )
-        {
+        if (!scr_building_cell_inside_map(_cell.x, _cell.y))
             return false;
-        }
 
 
-        // A value other than zero means the navigation cell is blocked.
+        // Permanent terrain and resources reject construction.
+
+        if (!scr_world_cell_buildable(_cell.x, _cell.y))
+            return false;
+
+
+        // Buildings and other temporary ground blockers also reject it.
 
         if (
             mp_grid_get_cell(
-                global.vtd_level.navigation
-                    .grid_ground,
+                global.vtd_level.navigation.grid_ground,
                 _cell.x,
                 _cell.y
             )
@@ -260,14 +255,8 @@ function scr_building_footprint_valid(
     }
 
 
-    if (
-        scr_building_footprint_entity_blocked(
-            _cells
-        )
-    )
-    {
+    if (scr_building_footprint_entity_blocked(_cells))
         return false;
-    }
 
 
     return true;
@@ -352,9 +341,7 @@ function scr_building_footprint_reserve(
 
 /// @description Releases an instance's footprint from the ground grid.
 
-function scr_building_footprint_release(
-    _building
-)
+function scr_building_footprint_release(_building)
 {
     if (!instance_exists(_building))
         return false;
@@ -363,35 +350,27 @@ function scr_building_footprint_release(
         return true;
 
 
-    // During room shutdown, the level controller may already have destroyed
-    // the shared navigation grids.
+    var _released_cells = _building.footprint.cells;
+
+
+    // Mark the building unreserved before refreshing. This prevents
+    // scr_building_at_cell() from finding the building being released.
+
+    _building.footprint.cells = [];
+    _building.footprint.reserved = false;
+
 
     if (
-        variable_global_exists(
-            "vtd_level"
-        )
-        && is_struct(
-            global.vtd_level
-        )
-        && global.vtd_level
-            .navigation.ready
+        variable_global_exists("vtd_level")
+        && is_struct(global.vtd_level)
+        && global.vtd_level.navigation.ready
     )
     {
-        for (
-            var i = 0;
-            i < array_length(
-                _building.footprint.cells
-            );
-            ++i
-        )
+        for (var i = 0; i < array_length(_released_cells); ++i)
         {
-            var _cell =
-                _building.footprint.cells[i];
+            var _cell = _released_cells[i];
 
-
-            mp_grid_clear_cell(
-                global.vtd_level.navigation
-                    .grid_ground,
+            scr_navigation_cell_refresh(
                 _cell.x,
                 _cell.y
             );
@@ -402,16 +381,8 @@ function scr_building_footprint_release(
     }
 
 
-    _building.footprint.cells =
-        [];
-
-    _building.footprint.reserved =
-        false;
-
-
     return true;
 }
-
 
 /// @description Initializes one generic building parent instance.
 

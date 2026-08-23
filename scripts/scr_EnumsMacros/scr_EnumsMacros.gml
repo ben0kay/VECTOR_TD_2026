@@ -132,6 +132,23 @@ enum ProjectileImpact
     EXPLOSIVE
 }
 
+/// @description Identifies the permanent contents of a world cell.
+enum WorldCellType
+{
+    EMPTY,
+    DEAD,
+    RESOURCE
+}
+
+
+/// @description Selects the broad world-generation algorithm.
+enum WorldGenerationStyle
+{
+    NONE,
+    CLUSTERS,
+    CAVERNS
+}
+
 
 // Staggered update helpers.
 //

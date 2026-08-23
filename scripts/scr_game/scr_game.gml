@@ -85,84 +85,55 @@ function scr_game_initialize()
 
 function scr_level_initialize()
 {
-    global.LevelState =
-        LevelState.INITIALIZING;
-
-    global.CameraState =
-        CameraState.FOLLOW_PLAYER;
+    global.LevelState = LevelState.INITIALIZING;
+    global.CameraState = CameraState.FOLLOW_PLAYER;
 
 
-    var _cell_size =
-        global.vtd.settings.grid_cell_size;
-
-    var _columns =
-        ceil(
-            room_width / _cell_size
-        );
-
-    var _rows =
-        ceil(
-            room_height / _cell_size
-        );
+    var _cell_size = global.vtd.settings.grid_cell_size;
+    var _columns = ceil(room_width / _cell_size);
+    var _rows = ceil(room_height / _cell_size);
 
 
     global.vtd_level =
     {
         time:
         {
-            frames:
-                0,
-
-            seconds:
-                0
+            frames: 0,
+            seconds: 0
         },
 
         map:
         {
-            width:
-                room_width,
-
-            height:
-                room_height,
-
-            cell_size:
-                _cell_size,
-
-            columns:
-                _columns,
-
-            rows:
-                _rows
+            width: room_width,
+            height: room_height,
+            cell_size: _cell_size,
+            columns: _columns,
+            rows: _rows
         },
+
+        world: undefined,
 
         navigation:
         {
-            ready:
-                false,
+            ready: false,
+            revision: 0,
 
-            revision:
-                0,
+            // Terrain and buildings.
+            grid_ground: -1,
 
-            // Normal ground navigation.
-            grid_ground:
-                -1,
+            // Terrain only. Used by phasing and breach investigation.
+            grid_breach: -1,
 
-            // Ignores buildings while still respecting terrain.
-            // Used to locate potential breach routes.
-            grid_breach:
-                -1
+            // No ordinary obstacles. Used by flying enemies.
+            grid_flying: -1
         },
 
         entities:
         {
-            player:
-                noone,
-
-            camera:
-                noone,
-
-            cpu:
-                noone
+            player: noone,
+            camera: noone,
+            cpu: noone,
+            build_controller: noone
         },
 
         resources:
@@ -196,41 +167,60 @@ function scr_level_initialize()
 
 
     // ========================================================================
-    // NAVIGATION GRIDS
+    // NAVIGATION
     // ========================================================================
 
-    global.vtd_level.navigation.grid_ground =
-        mp_grid_create(
-            0,
-            0,
-            _columns,
-            _rows,
-            _cell_size,
-            _cell_size
-        );
-
-    global.vtd_level.navigation.grid_breach =
-        mp_grid_create(
-            0,
-            0,
-            _columns,
-            _rows,
-            _cell_size,
-            _cell_size
-        );
-
-    global.vtd_level.navigation.ready =
-        true;
-
-
-    global.LevelState =
-        LevelState.PLAYING;
-
-
-    show_debug_message(
-        "VECTOR TD 2026 - LEVEL INITIALIZED"
+    global.vtd_level.navigation.grid_ground = mp_grid_create(
+        0,
+        0,
+        _columns,
+        _rows,
+        _cell_size,
+        _cell_size
     );
 
+    global.vtd_level.navigation.grid_breach = mp_grid_create(
+        0,
+        0,
+        _columns,
+        _rows,
+        _cell_size,
+        _cell_size
+    );
+
+    global.vtd_level.navigation.grid_flying = mp_grid_create(
+        0,
+        0,
+        _columns,
+        _rows,
+        _cell_size,
+        _cell_size
+    );
+
+
+    global.vtd_level.navigation.ready = true;
+
+
+    // ========================================================================
+    // WORLD
+    // ========================================================================
+
+    if (!scr_world_initialize())
+    {
+        show_debug_message("LEVEL ERROR - world initialization failed.");
+        return false;
+    }
+
+
+    // Temporary foundation test. Replace this with the selected level's
+    // generator when CLUSTERS and CAVERNS are implemented.
+
+    scr_world_test_cluster_create();
+
+
+    global.LevelState = LevelState.PLAYING;
+
+    show_debug_message("VECTOR TD 2026 - LEVEL INITIALIZED");
 
     return true;
 }
@@ -247,44 +237,36 @@ function scr_level_cleanup()
         return false;
 
 
-    global.LevelState =
-        LevelState.EXITING;
+    global.LevelState = LevelState.EXITING;
 
 
-    var _navigation =
-        global.vtd_level.navigation;
+    scr_world_cleanup();
 
+
+    var _navigation = global.vtd_level.navigation;
 
     if (_navigation.ready)
     {
-        mp_grid_destroy(
-            _navigation.grid_ground
-        );
+        if (_navigation.grid_ground >= 0)
+            mp_grid_destroy(_navigation.grid_ground);
 
-        mp_grid_destroy(
-            _navigation.grid_breach
-        );
+        if (_navigation.grid_breach >= 0)
+            mp_grid_destroy(_navigation.grid_breach);
+
+        if (_navigation.grid_flying >= 0)
+            mp_grid_destroy(_navigation.grid_flying);
 
 
-        _navigation.grid_ground =
-            -1;
-
-        _navigation.grid_breach =
-            -1;
-
-        _navigation.ready =
-            false;
+        _navigation.grid_ground = -1;
+        _navigation.grid_breach = -1;
+        _navigation.grid_flying = -1;
+        _navigation.ready = false;
     }
 
 
-    global.vtd_level =
-        undefined;
+    global.vtd_level = undefined;
 
-
-    show_debug_message(
-        "VECTOR TD 2026 - LEVEL CLEANED UP"
-    );
-
+    show_debug_message("VECTOR TD 2026 - LEVEL CLEANED UP");
 
     return true;
 }

@@ -15,11 +15,6 @@ function scr_navigation_enemy_grid_get(_enemy)
         return -1;
 
 
-    // FUTURE:
-    // Flying enemies may eventually use direct movement or a dedicated grid.
-    // Underground enemies may eventually use a separate terrain grid.
-    // Phasing is an ability, not a movement layer.
-
     switch (_enemy.movement.layer)
     {
         case EnemyMovementLayer.GROUND:
@@ -31,26 +26,26 @@ function scr_navigation_enemy_grid_get(_enemy)
                 )
             )
             {
-                return global.vtd_level
-                    .navigation.grid_breach;
+                // Phasers ignore buildings but still respect terrain.
+                return global.vtd_level.navigation.grid_breach;
             }
 
-            return global.vtd_level
-                .navigation.grid_ground;
+            return global.vtd_level.navigation.grid_ground;
         }
 
 
         case EnemyMovementLayer.FLYING:
         {
-            return global.vtd_level
-                .navigation.grid_breach;
+            // Flyers ignore buildings and natural terrain.
+            return global.vtd_level.navigation.grid_flying;
         }
 
 
         case EnemyMovementLayer.UNDERGROUND:
         {
-            return global.vtd_level
-                .navigation.grid_breach;
+            // Underground rules can receive their own grid later.
+            // For now they ignore buildings but respect terrain.
+            return global.vtd_level.navigation.grid_breach;
         }
     }
 
@@ -764,6 +759,76 @@ function scr_navigation_enemy_breach_begin(
         "ENEMY BREACH TARGET: "
         + _building.identity.name
     );
+
+
+    return true;
+}
+
+/// @description Refreshes one navigation cell from terrain and buildings.
+
+function scr_navigation_cell_refresh(_cell_x, _cell_y)
+{
+    if (!scr_world_cell_inside(_cell_x, _cell_y))
+        return false;
+
+    if (!global.vtd_level.navigation.ready)
+        return false;
+
+
+    var _terrain_blocked =
+        !scr_world_cell_buildable(
+            _cell_x,
+            _cell_y
+        );
+
+    var _building =
+        scr_building_at_cell(
+            _cell_x,
+            _cell_y
+        );
+
+    var _building_blocked =
+        instance_exists(_building);
+
+
+    // Ground navigation includes terrain and buildings.
+
+    if (_terrain_blocked || _building_blocked)
+    {
+        mp_grid_add_cell(
+            global.vtd_level.navigation.grid_ground,
+            _cell_x,
+            _cell_y
+        );
+    }
+    else
+    {
+        mp_grid_clear_cell(
+            global.vtd_level.navigation.grid_ground,
+            _cell_x,
+            _cell_y
+        );
+    }
+
+
+    // The breach grid ignores buildings but never ignores terrain.
+
+    if (_terrain_blocked)
+    {
+        mp_grid_add_cell(
+            global.vtd_level.navigation.grid_breach,
+            _cell_x,
+            _cell_y
+        );
+    }
+    else
+    {
+        mp_grid_clear_cell(
+            global.vtd_level.navigation.grid_breach,
+            _cell_x,
+            _cell_y
+        );
+    }
 
 
     return true;
