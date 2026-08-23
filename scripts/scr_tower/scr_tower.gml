@@ -15,7 +15,13 @@ function scr_tower_initialize(_tower)
         return false;
 
 
-    var _data = _tower.building_data.tower;
+    var _data =
+        _tower.building_data.tower;
+
+
+    // ========================================================================
+    // VISUALS
+    // ========================================================================
 
     _tower.visual.turret_color =
         _tower.building_data.visual.turret_color;
@@ -30,6 +36,10 @@ function scr_tower_initialize(_tower)
             _data.draw_function;
     }
 
+
+    // ========================================================================
+    // TARGETING
+    // ========================================================================
 
     var _requires_line_of_sight = true;
 
@@ -51,37 +61,94 @@ function scr_tower_initialize(_tower)
     };
 
 
+    // ========================================================================
+    // COMBAT
+    // ========================================================================
+
     _tower.combat =
     {
-        kills: 0,
-        range: _data.range,
+        base:
+        {
+            range:
+                _data.range,
+
+            damage:
+                _data.weapon.damage,
+
+            cooldown_seconds:
+                _data.weapon.cooldown_seconds
+        },
+
+        range:
+            _data.range,
 
         weapon:
         {
-            damage: _data.weapon.damage,
+            damage:
+                _data.weapon.damage,
 
             cooldown:
             {
-                duration: _data.weapon.cooldown_seconds,
-                remaining: 0
+                duration:
+                    _data.weapon.cooldown_seconds,
+
+                remaining:
+                    0
             },
 
             projectile:
             {
-                speed: _data.weapon.projectile.speed,
+                speed:
+                    _data.weapon.projectile.speed,
 
                 lifetime_seconds:
                     _data.weapon.projectile.lifetime_seconds,
 
-                radius: _data.weapon.projectile.radius,
-                color: _data.weapon.projectile.color,
-                impact: _data.weapon.projectile.impact,
+                radius:
+                    _data.weapon.projectile.radius,
+
+                color:
+                    _data.weapon.projectile.color,
+
+                impact:
+                    _data.weapon.projectile.impact,
 
                 damage_radius:
                     _data.weapon.projectile.damage_radius
             }
         }
     };
+
+
+    // ========================================================================
+    // INDIVIDUAL TOWER PROGRESSION
+    // ========================================================================
+
+    _tower.progression =
+    {
+        kills: 0,
+        experience: 0,
+
+        rank: 1,
+        maximum_rank: 10,
+
+        next_experience:
+            scr_tower_rank_experience_required(2),
+
+        bonus:
+        {
+            // Small veteran improvements per completed rank.
+
+            damage_per_rank: 0.01,
+            range_per_rank: 0.005,
+            cooldown_per_rank: 0.005
+        }
+    };
+
+
+    scr_tower_progression_stats_apply(
+        _tower
+    );
 
 
     return true;
@@ -423,4 +490,156 @@ function scr_tower_update(_tower)
     return true;
 }
 
+/// @description Returns total experience required to enter a tower rank.
 
+function scr_tower_rank_experience_required(_rank)
+{
+    switch (_rank)
+    {
+        case 1:  return 0;
+        case 2:  return 10;
+        case 3:  return 25;
+        case 4:  return 45;
+        case 5:  return 70;
+        case 6:  return 100;
+        case 7:  return 140;
+        case 8:  return 190;
+        case 9:  return 250;
+        case 10: return 325;
+    }
+
+
+    return infinity;
+}
+
+/// @description Recalculates one tower's small veteran stat bonuses.
+
+function scr_tower_progression_stats_apply(_tower)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!variable_instance_exists(_tower, "progression"))
+        return false;
+
+
+    var _veteran_levels =
+        max(
+            0,
+            _tower.progression.rank - 1
+        );
+
+
+    var _damage_multiplier =
+        1
+        + (
+            _veteran_levels
+            * _tower.progression.bonus.damage_per_rank
+        );
+
+    var _range_multiplier =
+        1
+        + (
+            _veteran_levels
+            * _tower.progression.bonus.range_per_rank
+        );
+
+    var _cooldown_multiplier =
+        max(
+            0.5,
+            1
+            - (
+                _veteran_levels
+                * _tower.progression.bonus.cooldown_per_rank
+            )
+        );
+
+
+    _tower.combat.weapon.damage =
+        _tower.combat.base.damage
+        * _damage_multiplier;
+
+    _tower.combat.range =
+        _tower.combat.base.range
+        * _range_multiplier;
+
+    _tower.combat.weapon.cooldown.duration =
+        _tower.combat.base.cooldown_seconds
+        * _cooldown_multiplier;
+
+
+    return true;
+}
+
+/// @description Grants experience and processes tower rank promotions.
+
+function scr_tower_experience_add(_tower, _amount)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!variable_instance_exists(_tower, "progression"))
+        return false;
+
+    if (_amount <= 0)
+        return true;
+
+
+    var _progression =
+        _tower.progression;
+
+    _progression.experience += _amount;
+
+
+    while (_progression.rank < _progression.maximum_rank)
+    {
+        var _next_rank =
+            _progression.rank + 1;
+
+        var _requirement =
+            scr_tower_rank_experience_required(
+                _next_rank
+            );
+
+        if (_progression.experience < _requirement)
+            break;
+
+
+        _progression.rank =
+            _next_rank;
+
+        scr_tower_progression_stats_apply(
+            _tower
+        );
+
+
+        scr_hud_alert_push(
+            HudAlertType.SUCCESS,
+            "TOWER PROMOTED",
+            string_upper(_tower.identity.name)
+            + " REACHED RANK "
+            + string(_progression.rank),
+            2.5
+        );
+
+
+        show_debug_message(
+            "TOWER RANK UP: "
+            + _tower.identity.name
+            + " | RANK "
+            + string(_progression.rank)
+        );
+    }
+
+
+    _progression.next_experience =
+        scr_tower_rank_experience_required(
+            min(
+                _progression.maximum_rank,
+                _progression.rank + 1
+            )
+        );
+
+
+    return true;
+}

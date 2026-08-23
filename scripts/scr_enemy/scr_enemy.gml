@@ -108,6 +108,39 @@ function scr_enemy_initialize(_enemy)
         name: _data.identity.name
     };
 
+	_enemy.rewards =
+	{
+	    experience:
+	        _data.rewards.experience,
+
+	    resources:
+	        []
+	};
+
+
+	for (
+	    var i = 0;
+	    i < array_length(_data.rewards.resources);
+	    ++i
+	)
+	{
+	    var _reward =
+	        _data.rewards.resources[i];
+
+	    array_push(
+	        _enemy.rewards.resources,
+	        {
+	            resource_key:
+	                _reward.resource_key,
+
+	            amount:
+	                _reward.amount,
+
+	            chance:
+	                _reward.chance
+	        }
+	    );
+	}	
 
     _enemy.visual =
     {
@@ -1312,6 +1345,149 @@ function scr_enemy_visual_direction_update(_enemy)
 
 /// @description Kills an enemy, processes abilities, and awards attribution.
 
+/// @description Returns whether a damage source qualifies for combat rewards.
+
+function scr_enemy_reward_source_valid(_damage)
+{
+    if (!is_struct(_damage))
+        return false;
+
+
+    switch (_damage.source_type)
+    {
+        case DamageSource.PLAYER:
+        case DamageSource.TOWER:
+            return instance_exists(_damage.source);
+    }
+
+
+    return false;
+}
+
+/// @description Grants one defeated enemy's fixed rewards.
+
+function scr_enemy_rewards_grant(_enemy, _damage)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!scr_enemy_reward_source_valid(_damage))
+        return false;
+
+    if (!variable_instance_exists(_enemy, "rewards"))
+        return false;
+
+
+    var _credits_earned = 0;
+
+
+    // ========================================================================
+    // RESOURCE REWARDS
+    // ========================================================================
+
+    for (
+        var i = 0;
+        i < array_length(_enemy.rewards.resources);
+        ++i
+    )
+    {
+        var _reward =
+            _enemy.rewards.resources[i];
+
+        if (_reward.amount <= 0)
+            continue;
+
+        if (random(1) > _reward.chance)
+            continue;
+
+
+        var _accepted =
+            scr_resource_amount_add(
+                _reward.resource_key,
+                _reward.amount
+            );
+
+
+        if (
+            _reward.resource_key
+            == "resource_credits"
+        )
+        {
+            _credits_earned += _accepted;
+        }
+    }
+
+
+    // ========================================================================
+    // LEVEL STATISTICS
+    // ========================================================================
+
+    if (!variable_struct_exists(global.vtd_level.combat, "credits_earned"))
+        global.vtd_level.combat.credits_earned = 0;
+
+    global.vtd_level.combat.credits_earned +=
+        _credits_earned;
+
+
+    if (_credits_earned > 0)
+    {
+        scr_hud_resource_gain_push(
+            "resource_credits",
+            _credits_earned
+        );
+    }
+
+
+    // ========================================================================
+    // SOURCE ATTRIBUTION
+    // ========================================================================
+
+    switch (_damage.source_type)
+    {
+        case DamageSource.PLAYER:
+        {
+            var _player =
+                _damage.source;
+
+            if (
+                instance_exists(_player)
+                && variable_instance_exists(_player, "combat")
+            )
+            {
+                _player.combat.kills++;
+            }
+        }
+        break;
+
+
+        case DamageSource.TOWER:
+        {
+            var _tower =
+                _damage.source;
+
+            if (
+                instance_exists(_tower)
+                && variable_instance_exists(_tower, "progression")
+            )
+            {
+                _tower.progression.kills++;
+
+                scr_tower_experience_add(
+                    _tower,
+                    _enemy.rewards.experience
+                );
+            }
+        }
+        break;
+    }
+
+
+    return true;
+}
+
+
+/// @description Kills an enemy, processes abilities, and awards valid kills.
+
 function scr_enemy_die(_enemy, _damage)
 {
     if (!instance_exists(_enemy))
@@ -1321,10 +1497,17 @@ function scr_enemy_die(_enemy, _damage)
         return false;
 
 
-    _enemy.EnemyState = EnemyState.DEAD;
+    _enemy.EnemyState =
+        EnemyState.DEAD;
 
-    scr_navigation_enemy_stop(_enemy);
+    scr_navigation_enemy_stop(
+        _enemy
+    );
 
+
+    // ========================================================================
+    // DEATH ABILITIES
+    // ========================================================================
 
     if (
         scr_enemy_has_ability(
@@ -1333,7 +1516,9 @@ function scr_enemy_die(_enemy, _damage)
         )
     )
     {
-        scr_enemy_explode(_enemy);
+        scr_enemy_explode(
+            _enemy
+        );
     }
 
 
@@ -1344,76 +1529,36 @@ function scr_enemy_die(_enemy, _damage)
         )
     )
     {
-        scr_enemy_split(_enemy);
+        scr_enemy_split(
+            _enemy
+        );
     }
 
 
-    // Every defeated enemy contributes to level milestones.
+    // ========================================================================
+    // LEVEL KILL COUNT
+    // ========================================================================
 
     if (
         variable_global_exists("vtd_level")
         && is_struct(global.vtd_level)
-        && variable_struct_exists(
-            global.vtd_level,
-            "combat"
-        )
+        && variable_struct_exists(global.vtd_level, "combat")
     )
     {
         global.vtd_level.combat.kills++;
     }
 
 
+    // ========================================================================
+    // VALID REWARD AND KILL ATTRIBUTION
+    // ========================================================================
+
     if (is_struct(_damage))
     {
-        switch (_damage.source_type)
-        {
-            case DamageSource.PLAYER:
-            {
-                var _player = _damage.source;
-
-
-                if (
-                    instance_exists(_player)
-                    && variable_instance_exists(
-                        _player,
-                        "combat"
-                    )
-                    && is_struct(_player.combat)
-                )
-                {
-                    _player.combat.kills++;
-                }
-            }
-            break;
-
-
-            case DamageSource.TOWER:
-            {
-                var _tower = _damage.source;
-
-
-                if (
-                    instance_exists(_tower)
-                    && variable_instance_exists(
-                        _tower,
-                        "combat"
-                    )
-                    && is_struct(_tower.combat)
-                )
-                {
-                    _tower.combat.kills++;
-                }
-            }
-            break;
-
-
-            case DamageSource.ENEMY:
-            case DamageSource.ENVIRONMENT:
-            {
-                // No player-controlled entity receives credit.
-            }
-            break;
-        }
+        scr_enemy_rewards_grant(
+            _enemy,
+            _damage
+        );
     }
 
 
@@ -1424,13 +1569,15 @@ function scr_enemy_die(_enemy, _damage)
 
 
     // FUTURE:
-    // credits and drops
-    // experience
     // particles
+    // physical item drops
     // transporter release
+    // elite reward modifiers
 
 
-    instance_destroy(_enemy);
+    instance_destroy(
+        _enemy
+    );
 
     return true;
 }

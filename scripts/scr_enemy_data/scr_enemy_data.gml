@@ -51,6 +51,25 @@ function scr_enemy_data_initialize()
     return true;
 }
 
+/// @description Creates a standard fixed enemy reward definition.
+
+function scr_enemy_rewards_create(_credits, _experience)
+{
+    return
+    {
+        experience: max(0, _experience),
+
+        resources:
+        [
+            {
+                resource_key: "resource_credits",
+                amount: max(0, _credits),
+                chance: 1
+            }
+        ]
+    };
+}
+
 
 /// @description Returns one enemy definition.
 
@@ -146,6 +165,56 @@ function scr_enemy_data_valid(_data)
 
     if (!is_array(_data.abilities))
         return false;
+	
+	if (!variable_struct_exists(_data, "rewards"))
+    return false;
+
+	if (!is_struct(_data.rewards))
+	    return false;
+
+	if (!variable_struct_exists(_data.rewards, "experience"))
+	    return false;
+
+	if (!variable_struct_exists(_data.rewards, "resources"))
+	    return false;
+
+	if (_data.rewards.experience < 0)
+	    return false;
+
+	if (!is_array(_data.rewards.resources))
+	    return false;
+
+
+	for (
+	    var i = 0;
+	    i < array_length(_data.rewards.resources);
+	    ++i
+	)
+	{
+	    var _reward =
+	        _data.rewards.resources[i];
+
+	    if (!is_struct(_reward))
+	        return false;
+
+	    if (!variable_struct_exists(_reward, "resource_key"))
+	        return false;
+
+	    if (!variable_struct_exists(_reward, "amount"))
+	        return false;
+
+	    if (!variable_struct_exists(_reward, "chance"))
+	        return false;
+
+	    if (!is_string(_reward.resource_key))
+	        return false;
+
+	    if (_reward.amount < 0)
+	        return false;
+
+	    if (_reward.chance < 0 || _reward.chance > 1)
+	        return false;
+	}
 
 
     // ========================================================================
@@ -304,6 +373,9 @@ function scr_enemy_data_weak()
                 cooldown_seconds: 1
             },
 
+			rewards:
+    scr_enemy_rewards_create(5, 1),
+
             abilities: []
         }
     );
@@ -362,6 +434,9 @@ function scr_enemy_data_hunter()
                 range: 4,
                 cooldown_seconds: 1
             },
+				
+			rewards:
+    scr_enemy_rewards_create(8, 2),		
 
             abilities: []
         }
@@ -421,6 +496,9 @@ function scr_enemy_data_phaser()
                 range: 4,
                 cooldown_seconds: 0.8
             },
+			
+			rewards:
+    scr_enemy_rewards_create(12, 2),
 
             abilities:
             [
@@ -493,6 +571,9 @@ function scr_enemy_data_shooter_single()
                     spread_degrees: 0
                 }
             },
+				
+			rewards:
+    scr_enemy_rewards_create(10, 2),	
 
             abilities: []
         }
@@ -563,6 +644,9 @@ function scr_enemy_data_shooter_triple()
                 }
             },
 
+			rewards:
+    scr_enemy_rewards_create(16, 3),
+
             abilities: []
         }
     );
@@ -630,6 +714,9 @@ function scr_enemy_data_kamikaze()
                     radius: 110
                 }
             },
+
+			rewards:
+    scr_enemy_rewards_create(12, 2),
 
             abilities:
             [
@@ -705,6 +792,9 @@ function scr_enemy_data_splitter()
                     angle_offset: 0
                 }
             },
+				
+			rewards:
+    scr_enemy_rewards_create(18, 4),	
 
             abilities:
             [
@@ -772,6 +862,9 @@ function scr_enemy_data_splitter_child()
                 range: 0,
                 cooldown_seconds: 0
             },
+				
+			rewards:
+    scr_enemy_rewards_create(0, 0),	
 
             abilities: []
         }
@@ -832,6 +925,9 @@ function scr_enemy_data_flyer()
                 range: 8,
                 cooldown_seconds: 0.8
             },
+				
+			rewards:
+    scr_enemy_rewards_create(12, 2),	
 
             abilities: []
         }

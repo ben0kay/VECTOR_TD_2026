@@ -6,6 +6,7 @@ if (instance_number(object_index) > 1)
     exit;
 }
 
+
 hud =
 {
     selection:
@@ -24,7 +25,6 @@ hud =
     {
         height: 220,
 
-        // The inspector rises above the horizontal build tray.
         inspector_height: 300,
         inspector_width: 500,
 
@@ -57,14 +57,34 @@ hud =
 
         opening_speed: 0.09,
         closing_speed: 0.11
+    },
+
+    resource_feedback:
+    {
+        resource_key: "",
+        amount: 0,
+
+        remaining: 0,
+        duration: 1.25
     }
 };
 
-hud.build_menu = scr_hud_build_menu_create();
+
+hud.build_menu =
+    scr_hud_build_menu_create();
+
 hud.build_menu.hovered_key = "";
 
-scr_hud_build_menu_cards_rebuild(id);
 
-global.vtd_level.entities.hud = id;
+scr_hud_build_menu_cards_rebuild(
+    id
+);
 
-show_debug_message("VECTOR TD 2026 - LEVEL HUD INITIALIZED");
+
+global.vtd_level.entities.hud =
+    id;
+
+
+show_debug_message(
+    "VECTOR TD 2026 - LEVEL HUD INITIALIZED"
+);

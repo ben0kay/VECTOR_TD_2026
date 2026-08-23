@@ -13,7 +13,8 @@ if (
         == BuildingState.DESTROYED
 )
 {
-    hud.selection.target = noone;
+    hud.selection.target =
+        noone;
 }
 
 
@@ -23,3 +24,4 @@ scr_hud_build_menu_hover_update(id);
 scr_hud_selection_update(id);
 scr_hud_vector_window_update(id);
 scr_hud_alert_update(id);
+scr_hud_resource_feedback_update(id);

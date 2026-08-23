@@ -519,6 +519,12 @@ function scr_hud_selection_content_draw(
             // cargo ports
         }
         break;
+		
+		case o_tower:
+		{
+    scr_hud_tower_selection_draw(_selected, _left, _top, _right);
+		}
+		break;
 
 
         default:
@@ -1605,4 +1611,267 @@ function scr_hud_top_cell_draw(
 
 
     return _right;
+}
+
+/// @description Pushes resource-gain feedback into the level HUD.
+
+function scr_hud_resource_gain_push(
+    _resource_key,
+    _amount
+)
+{
+    if (_amount <= 0)
+        return false;
+
+    if (!variable_global_exists("vtd_level"))
+        return false;
+
+    if (!variable_struct_exists(global.vtd_level.entities, "hud"))
+        return false;
+
+
+    var _hud =
+        global.vtd_level.entities.hud;
+
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _feedback =
+        _hud.hud.resource_feedback;
+
+
+    if (
+        _feedback.resource_key
+        == _resource_key
+        && _feedback.remaining > 0
+    )
+    {
+        _feedback.amount += _amount;
+    }
+    else
+    {
+        _feedback.resource_key =
+            _resource_key;
+
+        _feedback.amount =
+            _amount;
+    }
+
+
+    _feedback.remaining =
+        _feedback.duration;
+
+
+    return true;
+}
+
+/// @description Updates the temporary resource-gain HUD feedback.
+
+function scr_hud_resource_feedback_update(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _feedback =
+        _hud.hud.resource_feedback;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    _feedback.remaining =
+        max(
+            0,
+            _feedback.remaining
+            - (1 / _fps)
+        );
+
+
+    return true;
+}
+
+/// @description Draws temporary resource-gain feedback in the top HUD.
+
+function scr_hud_resource_feedback_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _feedback =
+        _hud.hud.resource_feedback;
+
+    if (_feedback.remaining <= 0)
+        return true;
+
+
+    var _progress =
+        _feedback.remaining
+        / max(0.01, _feedback.duration);
+
+    var _alpha =
+        clamp(
+            _progress * 2,
+            0,
+            1
+        );
+
+
+    var _resource_data =
+        scr_resource_data_get(
+            _feedback.resource_key
+        );
+
+    var _color = c_lime;
+
+    if (scr_resource_data_valid(_resource_data))
+        _color = _resource_data.visual.color;
+
+
+    draw_set_halign(fa_right);
+    draw_set_valign(fa_middle);
+
+    draw_set_alpha(_alpha);
+    draw_set_color(_color);
+
+    draw_text(
+        158,
+        22,
+        "+"
+        + string(
+            floor(_feedback.amount)
+        )
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+
+    return true;
+}
+
+/// @description Draws progression and combat information for a selected tower.
+
+function scr_hud_tower_selection_draw(
+    _tower,
+    _left,
+    _top,
+    _right
+)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        _left + 18,
+        _top + 98,
+        _right - 18,
+        _top + 98
+    );
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 110,
+        "RANK",
+        string(_tower.progression.rank)
+        + " / "
+        + string(_tower.progression.maximum_rank),
+        c_yellow
+    );
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 130,
+        "KILLS",
+        _tower.progression.kills,
+        c_white
+    );
+
+
+    var _experience_text =
+        "MAXIMUM";
+
+    if (
+        _tower.progression.rank
+        < _tower.progression.maximum_rank
+    )
+    {
+        _experience_text =
+            string(_tower.progression.experience)
+            + " / "
+            + string(_tower.progression.next_experience);
+    }
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 150,
+        "EXPERIENCE",
+        _experience_text,
+        c_aqua
+    );
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 170,
+        "DAMAGE",
+        string_format(
+            _tower.combat.weapon.damage,
+            0,
+            1
+        ),
+        c_white
+    );
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 190,
+        "RANGE",
+        string_format(
+            _tower.combat.range,
+            0,
+            1
+        ),
+        c_white
+    );
+
+
+    scr_hud_label_value_draw(
+        _left + 18,
+        _top + 210,
+        "FIRE DELAY",
+        string_format(
+            _tower.combat.weapon.cooldown.duration,
+            0,
+            3
+        )
+        + "s",
+        c_white
+    );
+
+
+    // FUTURE:
+    // targeting-mode controls
+    // rank progress bar
+    // overclock control
+    // local-research bonuses
+    // persistent-upgrade bonuses
+
+
+    return true;
 }

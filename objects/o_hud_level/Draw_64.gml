@@ -14,10 +14,14 @@ draw_set_valign(fa_top);
 
 
 scr_hud_top_bar_draw(id);
+scr_hud_resource_feedback_draw(id);
+
 scr_hud_bottom_bar_draw(id);
+
 
 if (!hud.build_menu.open)
     scr_hud_pressure_draw(id);
+
 
 scr_hud_build_menu_draw(id);
 
