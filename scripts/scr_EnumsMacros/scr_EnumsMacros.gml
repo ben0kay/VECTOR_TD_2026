@@ -74,6 +74,42 @@ enum ResourceType
     RAW_MATERIAL
 }
 
+enum DamageType
+{
+    KINETIC,
+    EXPLOSIVE,
+    LASER
+}
+
+enum AttackAreaShape
+{
+    POINT,
+    CIRCLE,
+    LINE,
+    CONE,
+    CAPSULE
+}
+
+enum EffectType
+{
+    SHOCKWAVE,
+    IMPACT_FLASH,
+    BEAM_IMPACT
+}
+
+enum TowerWeaponType
+{
+    PROJECTILE,
+    HITSCAN,
+    BEAM
+}
+
+enum TowerMuzzleMode
+{
+    CENTER,
+    ALTERNATING
+}
+
 
 // Staggered update helpers.
 //
