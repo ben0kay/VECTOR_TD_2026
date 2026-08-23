@@ -107,53 +107,39 @@ function scr_build_mode_cancel(
 
 /// @description Updates the snapped placement preview.
 
-function scr_build_mode_preview_update(
-    _controller
-)
+function scr_build_mode_preview_update(_controller)
 {
     if (!instance_exists(_controller))
         return false;
 
 
-    var _data =
-        scr_building_data_get(
-            _controller.build.selected_key
-        );
+    var _data = scr_building_data_get(
+        _controller.build.selected_key
+    );
 
 
     if (!scr_building_data_valid(_data))
         return false;
 
 
-    var _mouse_cell =
-        scr_building_position_to_cell(
-            mouse_x,
-            mouse_y
-        );
+    var _mouse_cell = scr_building_position_to_cell(
+        mouse_x,
+        mouse_y
+    );
+
+    var _preview = _controller.build.preview;
 
 
-    var _preview =
-        _controller.build.preview;
+    _preview.cell_x = _mouse_cell.x;
+    _preview.cell_y = _mouse_cell.y;
 
 
-    _preview.cell_x =
-        _mouse_cell.x;
+    var _position = scr_building_cell_to_position(
+        _preview.cell_x,
+        _preview.cell_y
+    );
 
-    _preview.cell_y =
-        _mouse_cell.y;
-
-
-    var _position =
-        scr_building_cell_to_position(
-            _preview.cell_x,
-            _preview.cell_y
-        );
-
-
-    // Centre multi-cell buildings around their complete footprint.
-
-    var _cell_size =
-        global.vtd_level.map.cell_size;
+    var _cell_size = global.vtd_level.map.cell_size;
 
 
     _preview.world_x =
@@ -173,13 +159,11 @@ function scr_build_mode_preview_update(
         );
 
 
-    _preview.valid =
-        scr_building_footprint_valid(
-            _preview.cell_x,
-            _preview.cell_y,
-            _data.footprint.width_cells,
-            _data.footprint.height_cells
-        );
+    _preview.valid = scr_build_mode_placement_valid(
+        _data,
+        _preview.cell_x,
+        _preview.cell_y
+    );
 
 
     return true;
@@ -188,64 +172,45 @@ function scr_build_mode_preview_update(
 
 /// @description Creates the selected building at the preview position.
 
-function scr_build_mode_place(
-    _controller
-)
+function scr_build_mode_place(_controller)
 {
     if (!instance_exists(_controller))
         return noone;
 
 
-    var _build =
-        _controller.build;
-
-    var _preview =
-        _build.preview;
+    var _build = _controller.build;
+    var _preview = _build.preview;
 
 
     if (!_preview.valid)
         return noone;
 
 
-    var _data =
-        scr_building_data_get(
-            _build.selected_key
-        );
+    var _data = scr_building_data_get(
+        _build.selected_key
+    );
 
 
     if (!scr_building_data_valid(_data))
         return noone;
 
 
-    var _object =
-        noone;
+    var _object = noone;
 
 
     switch (_data.identity.type)
     {
         case BuildingType.WALL:
-        {
-            _object =
-                o_wall;
-        }
+            _object = o_wall;
         break;
-
 
         case BuildingType.TOWER:
-        {
-            _object =
-                o_tower;
-        }
+            _object = o_tower;
         break;
-
 
         case BuildingType.MINER:
-        {
-            // FUTURE:
-            // _object = o_miner;
-        }
+            _object = o_miner;
         break;
-
 
         case BuildingType.REFINERY:
         {
@@ -254,14 +219,12 @@ function scr_build_mode_place(
         }
         break;
 
-
         case BuildingType.STORAGE:
         {
             // FUTURE:
             // _object = o_storage;
         }
         break;
-
 
         case BuildingType.POWER_GENERATOR:
         {
@@ -270,14 +233,12 @@ function scr_build_mode_place(
         }
         break;
 
-
         case BuildingType.POWER_NODE:
         {
             // FUTURE:
             // _object = o_power_node;
         }
         break;
-
 
         case BuildingType.SUPPORT:
         {
@@ -292,23 +253,17 @@ function scr_build_mode_place(
         return noone;
 
 
-    var _building =
-        instance_create_layer(
-            _preview.world_x,
-            _preview.world_y,
-            "Instances",
-            _object,
-            {
-                building_key:
-                    _build.selected_key,
-
-                placement_cell_x:
-                    _preview.cell_x,
-
-                placement_cell_y:
-                    _preview.cell_y
-            }
-        );
+    var _building = instance_create_layer(
+        _preview.world_x,
+        _preview.world_y,
+        "Instances",
+        _object,
+        {
+            building_key: _build.selected_key,
+            placement_cell_x: _preview.cell_x,
+            placement_cell_y: _preview.cell_y
+        }
+    );
 
 
     if (!instance_exists(_building))
@@ -316,8 +271,7 @@ function scr_build_mode_place(
 
 
     show_debug_message(
-        "BUILD PLACED: "
-        + _data.identity.name
+        "BUILD PLACED: " + _data.identity.name
     );
 
 
@@ -327,9 +281,7 @@ function scr_build_mode_place(
 
 /// @description Processes build-mode input.
 
-function scr_build_mode_update(
-    _controller
-)
+function scr_build_mode_update(_controller)
 {
     if (!instance_exists(_controller))
         return false;
@@ -339,98 +291,75 @@ function scr_build_mode_update(
     {
         case BuildState.NONE:
         {
-            if (
-                keyboard_check_pressed(
-                    ord("B")
-                )
-            )
-            {
-                scr_build_mode_begin(
-                    _controller,
-                    "wall_basic"
-                );
-            }
-            else if (
-                keyboard_check_pressed(
-                    ord("T")
-                )
-            )
-            {
-                scr_build_mode_begin(
-                    _controller,
-                    "tower_basic"
-                );
-            }
+            if (keyboard_check_pressed(ord("B")))
+                scr_build_mode_begin(_controller, "wall_basic");
+
+            else if (keyboard_check_pressed(ord("T")))
+                scr_build_mode_begin(_controller, "tower_basic");
+
+            else if (keyboard_check_pressed(ord("1")))
+                scr_build_mode_begin(_controller, "miner_carbon");
+
+            else if (keyboard_check_pressed(ord("2")))
+                scr_build_mode_begin(_controller, "miner_silicon");
+
+            else if (keyboard_check_pressed(ord("3")))
+                scr_build_mode_begin(_controller, "miner_copper");
         }
         break;
 
 
         case BuildState.PLACING:
         {
-            scr_build_mode_preview_update(
-                _controller
-            );
+            scr_build_mode_preview_update(_controller);
 
 
-            if (
-                mouse_check_button_pressed(
-                    mb_right
-                )
-            )
+            if (mouse_check_button_pressed(mb_right))
             {
-                scr_build_mode_cancel(
-                    _controller
-                );
-
+                scr_build_mode_cancel(_controller);
                 break;
             }
 
 
-            // Switch building type without leaving build mode.
-
-            if (
-                keyboard_check_pressed(
-                    ord("B")
-                )
-            )
+            if (keyboard_check_pressed(ord("B")))
             {
-                scr_build_mode_begin(
-                    _controller,
-                    "wall_basic"
-                );
-
+                scr_build_mode_begin(_controller, "wall_basic");
                 break;
             }
 
 
-            if (
-                keyboard_check_pressed(
-                    ord("T")
-                )
-            )
+            if (keyboard_check_pressed(ord("T")))
             {
-                scr_build_mode_begin(
-                    _controller,
-                    "tower_basic"
-                );
-
+                scr_build_mode_begin(_controller, "tower_basic");
                 break;
             }
 
 
-            if (
-                mouse_check_button_pressed(
-                    mb_left
-                )
-            )
+            if (keyboard_check_pressed(ord("1")))
             {
-                scr_build_mode_place(
-                    _controller
-                );
+                scr_build_mode_begin(_controller, "miner_carbon");
+                break;
+            }
 
-                scr_build_mode_preview_update(
-                    _controller
-                );
+
+            if (keyboard_check_pressed(ord("2")))
+            {
+                scr_build_mode_begin(_controller, "miner_silicon");
+                break;
+            }
+
+
+            if (keyboard_check_pressed(ord("3")))
+            {
+                scr_build_mode_begin(_controller, "miner_copper");
+                break;
+            }
+
+
+            if (mouse_check_button_pressed(mb_left))
+            {
+                scr_build_mode_place(_controller);
+                scr_build_mode_preview_update(_controller);
             }
         }
         break;
@@ -547,4 +476,40 @@ function scr_build_mode_draw(
 
 
     return true;
+}
+
+/// @description Returns whether the selected building can occupy a footprint.
+
+function scr_build_mode_placement_valid(
+    _data,
+    _cell_x,
+    _cell_y
+)
+{
+    if (!scr_building_data_valid(_data))
+        return false;
+
+
+    switch (_data.identity.type)
+    {
+        case BuildingType.MINER:
+        {
+            return scr_miner_placement_valid(
+                _data,
+                _cell_x,
+                _cell_y
+            );
+        }
+
+
+        default:
+        {
+            return scr_building_footprint_valid(
+                _cell_x,
+                _cell_y,
+                _data.footprint.width_cells,
+                _data.footprint.height_cells
+            );
+        }
+    }
 }

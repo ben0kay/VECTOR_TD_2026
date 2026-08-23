@@ -1,162 +1,249 @@
 /// @description Data-driven building definitions and lookup.
 
-
 /// @description Registers every building definition.
 
 function scr_building_data_initialize()
 {
     global.vtd.data.buildings =
     {
-        // ====================================================================
-        // BASIC WALL
-        // ====================================================================
-
         wall_basic:
         {
             identity:
             {
-                key:
-                    "wall_basic",
-
-                name:
-                    "Basic Wall",
-
-                type:
-                    BuildingType.WALL
+                key: "wall_basic",
+                name: "Basic Wall",
+                type: BuildingType.WALL
             },
 
             visual:
             {
-                color:
-                    c_fuchsia
+                color: c_fuchsia
             },
 
             footprint:
             {
-                width_cells:
-                    1,
-
-                height_cells:
-                    1
+                width_cells: 1,
+                height_cells: 1
             },
 
             vitals:
             {
-                hp_maximum:
-                    200
+                hp_maximum: 200
             },
 
             construction:
             {
-                time_seconds:
-                    0
+                time_seconds: 0
             },
 
             economy:
             {
-                cost:
-                    []
+                cost: []
             }
         },
 
-
-        // ====================================================================
-        // BASIC TOWER
-        // ====================================================================
 
         tower_basic:
         {
             identity:
             {
-                key:
-                    "tower_basic",
-
-                name:
-                    "Basic Tower",
-
-                type:
-                    BuildingType.TOWER
+                key: "tower_basic",
+                name: "Basic Tower",
+                type: BuildingType.TOWER
             },
 
             visual:
             {
-                color:
-                    c_aqua,
-
-                turret_color:
-                    c_yellow
+                color: c_aqua,
+                turret_color: c_yellow
             },
 
             footprint:
             {
-                width_cells:
-                    2,
-
-                height_cells:
-                    2
+                width_cells: 2,
+                height_cells: 2
             },
 
             vitals:
             {
-                hp_maximum:
-                    300
+                hp_maximum: 300
             },
 
             construction:
             {
-                time_seconds:
-                    0
+                time_seconds: 0
             },
 
             economy:
             {
-                cost:
-                    []
+                cost: []
             },
 
             tower:
             {
-                range:
-                    280,
-
-                target_mode:
-                    TowerTargetMode.CLOSEST,
-
-                target_layer:
-                    EnemyMovementLayer.GROUND,
+                range: 280,
+                target_mode: TowerTargetMode.CLOSEST,
+                target_layer: EnemyMovementLayer.GROUND,
 
                 weapon:
                 {
-                    damage:
-                        10,
-
-                    cooldown_seconds:
-                        0.6,
+                    damage: 10,
+                    cooldown_seconds: 0.6,
 
                     projectile:
                     {
-                        speed:
-                            12,
-
-                        lifetime_seconds:
-                            3,
-
-                        radius:
-                            4,
-
-                        color:
-                            c_yellow,
-
-                        impact:
-                            ProjectileImpact.DIRECT,
-
-                        // Zero means direct damage only.
-                        // Future explosive towers can use 64, 96, 160, etc.
-
-                        damage_radius:
-                            0
+                        speed: 12,
+                        lifetime_seconds: 3,
+                        radius: 4,
+                        color: c_yellow,
+                        impact: ProjectileImpact.DIRECT,
+                        damage_radius: 0
                     }
                 }
+            }
+        },
+
+
+        // ====================================================================
+        // CARBON MINER
+        // ====================================================================
+
+        miner_carbon:
+        {
+            identity:
+            {
+                key: "miner_carbon",
+                name: "Carbon Miner",
+                type: BuildingType.MINER
+            },
+
+            visual:
+            {
+                color: make_color_rgb(90, 210, 120)
+            },
+
+            footprint:
+            {
+                width_cells: 1,
+                height_cells: 1
+            },
+
+            vitals:
+            {
+                hp_maximum: 180
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            miner:
+            {
+                resource_key: "resource_carbon",
+                extraction_rate_per_second: 5,
+                hopper_capacity: 100
+            }
+        },
+
+
+        // ====================================================================
+        // SILICON MINER
+        // ====================================================================
+
+        miner_silicon:
+        {
+            identity:
+            {
+                key: "miner_silicon",
+                name: "Silicon Miner",
+                type: BuildingType.MINER
+            },
+
+            visual:
+            {
+                color: make_color_rgb(80, 190, 255)
+            },
+
+            footprint:
+            {
+                width_cells: 1,
+                height_cells: 1
+            },
+
+            vitals:
+            {
+                hp_maximum: 180
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            miner:
+            {
+                resource_key: "resource_silicon",
+                extraction_rate_per_second: 4,
+                hopper_capacity: 100
+            }
+        },
+
+
+        // ====================================================================
+        // COPPER MINER
+        // ====================================================================
+
+        miner_copper:
+        {
+            identity:
+            {
+                key: "miner_copper",
+                name: "Copper Miner",
+                type: BuildingType.MINER
+            },
+
+            visual:
+            {
+                color: make_color_rgb(230, 125, 65)
+            },
+
+            footprint:
+            {
+                width_cells: 1,
+                height_cells: 1
+            },
+
+            vitals:
+            {
+                hp_maximum: 180
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            miner:
+            {
+                resource_key: "resource_copper",
+                extraction_rate_per_second: 4.5,
+                hopper_capacity: 100
             }
         }
     };

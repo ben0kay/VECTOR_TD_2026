@@ -63,13 +63,17 @@ function scr_resource_node_initialize(_node)
     };
 
 
+    _node.claim =
+    {
+        miner: noone
+    };
+
+
     _node.visual =
     {
         sprite: _data.visual.sprite,
         draw_function: _data.visual.draw_function,
         color: _data.visual.color,
-
-        // Stable visual variation for individual cells.
         rotation: irandom(3) * 90,
         scale: random_range(0.8, 1)
     };
@@ -77,7 +81,6 @@ function scr_resource_node_initialize(_node)
 
     return true;
 }
-
 
 /// @description Draws the primitive crystal used by unsprited resource nodes.
 
@@ -158,12 +161,16 @@ function scr_resource_node_visual_crystal(_node)
 }
 
 
-/// @description Draws one resource node using a sprite or primitive fallback.
+/// @description Draws one unclaimed resource node.
 
 function scr_resource_node_draw(_node)
 {
     if (!instance_exists(_node))
         return false;
+
+
+    if (instance_exists(_node.claim.miner))
+        return true;
 
 
     if (_node.visual.sprite != -1)
@@ -186,9 +193,6 @@ function scr_resource_node_draw(_node)
     }
 
 
-    // Temporary remaining-resource debug text.
-    // This can later be shown only when selected or scanned.
-
     draw_set_color(c_white);
 
     draw_text(
@@ -199,4 +203,31 @@ function scr_resource_node_draw(_node)
 
 
     return true;
+}
+
+/// @description Returns the resource node occupying one world cell.
+
+function scr_resource_node_at_cell(_cell_x, _cell_y)
+{
+    var _count = instance_number(o_resource_node);
+
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _node = instance_find(o_resource_node, i);
+
+        if (!instance_exists(_node))
+            continue;
+
+        if (
+            _node.world_cell_x == _cell_x
+            && _node.world_cell_y == _cell_y
+        )
+        {
+            return _node;
+        }
+    }
+
+
+    return noone;
 }

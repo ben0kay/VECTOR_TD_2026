@@ -278,58 +278,63 @@ function scr_building_footprint_reserve(
         return false;
 
 
-    if (
-        !scr_building_footprint_valid(
-            _cell_x,
-            _cell_y,
-            _building.footprint.width_cells,
-            _building.footprint.height_cells
-        )
-    )
+    var _valid = false;
+
+
+    switch (_building.identity.type)
     {
-        return false;
+        case BuildingType.MINER:
+        {
+            _valid = scr_miner_placement_valid(
+                _building.building_data,
+                _cell_x,
+                _cell_y
+            );
+        }
+        break;
+
+
+        default:
+        {
+            _valid = scr_building_footprint_valid(
+                _cell_x,
+                _cell_y,
+                _building.footprint.width_cells,
+                _building.footprint.height_cells
+            );
+        }
+        break;
     }
 
 
-    var _cells =
-        scr_building_footprint_cells_get(
-            _cell_x,
-            _cell_y,
-            _building.footprint.width_cells,
-            _building.footprint.height_cells
-        );
+    if (!_valid)
+        return false;
 
 
-    for (
-        var i = 0;
-        i < array_length(_cells);
-        ++i
-    )
+    var _cells = scr_building_footprint_cells_get(
+        _cell_x,
+        _cell_y,
+        _building.footprint.width_cells,
+        _building.footprint.height_cells
+    );
+
+
+    for (var i = 0; i < array_length(_cells); ++i)
     {
-        var _cell =
-            _cells[i];
-
+        var _cell = _cells[i];
 
         mp_grid_add_cell(
-            global.vtd_level.navigation
-                .grid_ground,
+            global.vtd_level.navigation.grid_ground,
             _cell.x,
             _cell.y
         );
     }
 
 
-    _building.footprint.origin.x =
-        _cell_x;
-
-    _building.footprint.origin.y =
-        _cell_y;
-
-    _building.footprint.cells =
-        _cells;
-
-    _building.footprint.reserved =
-        true;
+    _building.footprint.origin.x = _cell_x;
+    _building.footprint.origin.y = _cell_y;
+    _building.footprint.cells = _cells;
+    _building.footprint.reserved = true;
 
 
     global.vtd_level.navigation.revision++;
