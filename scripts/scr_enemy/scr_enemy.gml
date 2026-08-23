@@ -1526,8 +1526,7 @@ function scr_enemy_split(_enemy)
     return true;
 }
 
-
-/// @description Updates an enemy's visual angle from its actual movement.
+/// @description Updates an enemy's custom draw angle from its real movement.
 
 function scr_enemy_visual_direction_update(_enemy)
 {
@@ -1535,29 +1534,56 @@ function scr_enemy_visual_direction_update(_enemy)
         return false;
 
 
-    if (!variable_struct_exists(_enemy.movement, "previous_position"))
+    // ========================================================================
+    // BRAINLESS MOVEMENT
+    // ========================================================================
+
+    // Brainless enemies control their movement direction directly.
+
+    if (_enemy.movement.brainless)
     {
-        _enemy.movement.previous_position =
-        {
-            x: _enemy.x,
-            y: _enemy.y
-        };
+        _enemy.visual.draw_angle =
+            _enemy.movement.direction;
 
         return true;
     }
 
 
-    var _previous =
-        _enemy.movement.previous_position;
+    // ========================================================================
+    // ATTACKING
+    // ========================================================================
+
+    // Stationary attacking enemies face their current target.
+
+    if (
+        _enemy.EnemyState == EnemyState.ATTACKING
+        && instance_exists(_enemy.targeting.target)
+    )
+    {
+        _enemy.visual.draw_angle =
+            point_direction(
+                _enemy.x,
+                _enemy.y,
+                _enemy.targeting.target.x,
+                _enemy.targeting.target.y
+            );
+
+        return true;
+    }
+
+
+    // ========================================================================
+    // ACTUAL MOVEMENT
+    // ========================================================================
 
     var _moved_x =
-        _enemy.x - _previous.x;
+        _enemy.x - _enemy.xprevious;
 
     var _moved_y =
-        _enemy.y - _previous.y;
+        _enemy.y - _enemy.yprevious;
 
 
-    // Ignore extremely small movement to prevent visual jitter.
+    // Use actual displacement whenever the enemy moved this frame.
 
     if (
         abs(_moved_x) > 0.01
@@ -1566,21 +1592,32 @@ function scr_enemy_visual_direction_update(_enemy)
     {
         _enemy.visual.draw_angle =
             point_direction(
-                _previous.x,
-                _previous.y,
+                _enemy.xprevious,
+                _enemy.yprevious,
                 _enemy.x,
                 _enemy.y
             );
+
+        return true;
     }
 
 
-    _previous.x = _enemy.x;
-    _previous.y = _enemy.y;
+    // Native GameMaker paths maintain the built-in direction variable.
+    // This handles a newly assigned path before its first movement frame.
+
+    if (
+        _enemy.EnemyState == EnemyState.MOVING
+        && _enemy.path_index != -1
+    )
+    {
+        _enemy.visual.draw_angle =
+            _enemy.direction;
+    }
+
 
     return true;
 }
 
-/// @description Kills an enemy, processes abilities, and awards attribution.
 
 /// @description Returns whether a damage source qualifies for combat rewards.
 
