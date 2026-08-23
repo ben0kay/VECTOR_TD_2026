@@ -19,14 +19,16 @@ function scr_world_initialize()
 
         generation:
         {
+            key: "",
             style: WorldGenerationStyle.NONE,
-            seed: irandom(2147483646)
+            seed: 0
         },
 
         grid:
         {
             cell_type: ds_grid_create(_columns, _rows),
-            resource_key: ds_grid_create(_columns, _rows)
+            resource_key: ds_grid_create(_columns, _rows),
+            vein_id: ds_grid_create(_columns, _rows)
         }
     };
 
@@ -39,6 +41,11 @@ function scr_world_initialize()
     ds_grid_clear(
         global.vtd_level.world.grid.resource_key,
         ""
+    );
+
+    ds_grid_clear(
+        global.vtd_level.world.grid.vein_id,
+        -1
     );
 
 
@@ -299,9 +306,13 @@ function scr_world_cleanup()
     if (ds_exists(_world.grid.resource_key, ds_type_grid))
         ds_grid_destroy(_world.grid.resource_key);
 
+    if (ds_exists(_world.grid.vein_id, ds_type_grid))
+        ds_grid_destroy(_world.grid.vein_id);
+
 
     _world.grid.cell_type = -1;
     _world.grid.resource_key = -1;
+    _world.grid.vein_id = -1;
 
 
     return true;
@@ -545,7 +556,7 @@ function scr_world_cluster_grow(
 }
 
 
-/// @description Realizes the completed world blueprint as terrain and navigation.
+/// @description Realizes the completed world blueprint and navigation.
 
 function scr_world_blueprint_realize()
 {
@@ -555,7 +566,9 @@ function scr_world_blueprint_realize()
 
     var _columns = global.vtd_level.map.columns;
     var _rows = global.vtd_level.map.rows;
-    var _placed = 0;
+
+    var _dead_count = 0;
+    var _resource_count = 0;
 
 
     for (var _cell_x = 0; _cell_x < _columns; ++_cell_x)
@@ -568,16 +581,20 @@ function scr_world_blueprint_realize()
             );
 
 
+            if (_cell_type == WorldCellType.EMPTY)
+                continue;
+
+
+            var _position = scr_building_cell_to_position(
+                _cell_x,
+                _cell_y
+            );
+
+
             switch (_cell_type)
             {
                 case WorldCellType.DEAD:
                 {
-                    var _position = scr_building_cell_to_position(
-                        _cell_x,
-                        _cell_y
-                    );
-
-
                     var _dead_cell = instance_create_layer(
                         _position.x,
                         _position.y,
@@ -591,40 +608,65 @@ function scr_world_blueprint_realize()
 
 
                     if (!instance_exists(_dead_cell))
-                    {
-                        show_debug_message(
-                            "WORLD ERROR - dead-cell realization failed."
-                        );
-
                         return false;
-                    }
 
 
-                    mp_grid_add_cell(
-                        global.vtd_level.navigation.grid_ground,
-                        _cell_x,
-                        _cell_y
-                    );
-
-                    mp_grid_add_cell(
-                        global.vtd_level.navigation.grid_breach,
-                        _cell_x,
-                        _cell_y
-                    );
-
-                    _placed++;
+                    _dead_count++;
                 }
                 break;
 
 
                 case WorldCellType.RESOURCE:
                 {
-                    // FUTURE:
-                    // Create the appropriate resource-node representation.
-                    // Resource terrain will also block ground and breach grids.
+                    var _resource_key = scr_world_cell_resource_get(
+                        _cell_x,
+                        _cell_y
+                    );
+
+                    var _vein_id = ds_grid_get(
+                        global.vtd_level.world.grid.vein_id,
+                        _cell_x,
+                        _cell_y
+                    );
+
+
+                    var _resource_node = instance_create_layer(
+                        _position.x,
+                        _position.y,
+                        "Instances",
+                        o_resource_node,
+                        {
+                            world_cell_x: _cell_x,
+                            world_cell_y: _cell_y,
+                            resource_key: _resource_key,
+                            vein_id: _vein_id
+                        }
+                    );
+
+
+                    if (!instance_exists(_resource_node))
+                        return false;
+
+
+                    _resource_count++;
                 }
                 break;
             }
+
+
+            // Both dead terrain and resource terrain block ground movement.
+
+            mp_grid_add_cell(
+                global.vtd_level.navigation.grid_ground,
+                _cell_x,
+                _cell_y
+            );
+
+            mp_grid_add_cell(
+                global.vtd_level.navigation.grid_breach,
+                _cell_x,
+                _cell_y
+            );
         }
     }
 
@@ -633,9 +675,11 @@ function scr_world_blueprint_realize()
 
 
     show_debug_message(
-        "WORLD TERRAIN REALIZED: "
-        + string(_placed)
-        + " DEAD CELLS"
+        "WORLD REALIZED: "
+        + string(_dead_count)
+        + " DEAD | "
+        + string(_resource_count)
+        + " RESOURCE"
     );
 
 
@@ -739,22 +783,24 @@ function scr_world_generate(_world_key)
     }
 
 
+    if (_generated)
+        _generated = scr_world_resources_generate(_generation);
+
+    if (_generated)
+        _generated = scr_world_blueprint_realize();
+
+
     random_set_seed(_previous_seed);
 
 
     if (!_generated)
     {
         show_debug_message(
-            "WORLD ERROR - generation failed: "
-            + _world_key
+            "WORLD ERROR - generation failed: " + _world_key
         );
 
         return false;
     }
-
-
-    if (!scr_world_blueprint_realize())
-        return false;
 
 
     show_debug_message(
@@ -762,6 +808,500 @@ function scr_world_generate(_world_key)
         + _data.identity.name
         + " | SEED "
         + string(_seed)
+    );
+
+
+    return true;
+}
+
+/// @description Returns whether one dead cell touches empty space.
+
+function scr_world_dead_cell_exposed(_cell_x, _cell_y)
+{
+    if (
+        scr_world_cell_type_get(_cell_x, _cell_y)
+        != WorldCellType.DEAD
+    )
+    {
+        return false;
+    }
+
+
+    var _directions =
+    [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1]
+    ];
+
+
+    for (var i = 0; i < array_length(_directions); ++i)
+    {
+        var _check_x = _cell_x + _directions[i][0];
+        var _check_y = _cell_y + _directions[i][1];
+
+
+        if (!scr_world_cell_inside(_check_x, _check_y))
+            continue;
+
+
+        if (
+            scr_world_cell_type_get(_check_x, _check_y)
+            == WorldCellType.EMPTY
+        )
+        {
+            return true;
+        }
+    }
+
+
+    return false;
+}
+
+
+/// @description Selects one resource key from a weighted world pool.
+
+function scr_world_resource_key_roll(_pool)
+{
+    if (!is_array(_pool))
+        return "";
+
+    if (array_length(_pool) <= 0)
+        return "";
+
+
+    var _total_weight = 0;
+
+    for (var i = 0; i < array_length(_pool); ++i)
+        _total_weight += max(0, _pool[i].weight);
+
+
+    if (_total_weight <= 0)
+        return "";
+
+
+    var _roll = random(_total_weight);
+    var _cumulative = 0;
+
+
+    for (var i = 0; i < array_length(_pool); ++i)
+    {
+        _cumulative += max(0, _pool[i].weight);
+
+        if (_roll <= _cumulative)
+            return _pool[i].resource_key;
+    }
+
+
+    return _pool[array_length(_pool) - 1].resource_key;
+}
+
+
+/// @description Converts one dead cell into one resource cell.
+
+function scr_world_resource_cell_set(
+    _cell_x,
+    _cell_y,
+    _resource_key,
+    _vein_id
+)
+{
+    if (
+        scr_world_cell_type_get(_cell_x, _cell_y)
+        != WorldCellType.DEAD
+    )
+    {
+        return false;
+    }
+
+
+    ds_grid_set(
+        global.vtd_level.world.grid.cell_type,
+        _cell_x,
+        _cell_y,
+        WorldCellType.RESOURCE
+    );
+
+    ds_grid_set(
+        global.vtd_level.world.grid.resource_key,
+        _cell_x,
+        _cell_y,
+        _resource_key
+    );
+
+    ds_grid_set(
+        global.vtd_level.world.grid.vein_id,
+        _cell_x,
+        _cell_y,
+        _vein_id
+    );
+
+
+    return true;
+}
+
+
+/// @description Grows one resource vein through exposed connected rock.
+
+function scr_world_resource_vein_grow(
+    _start_x,
+    _start_y,
+    _resource_key,
+    _target_size,
+    _vein_id
+)
+{
+    if (
+        !scr_world_dead_cell_exposed(
+            _start_x,
+            _start_y
+        )
+    )
+    {
+        return 0;
+    }
+
+
+    var _open =
+    [
+        {
+            x: _start_x,
+            y: _start_y
+        }
+    ];
+
+    var _placed = 0;
+
+    var _directions =
+    [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+        [1, 1],
+        [1, -1],
+        [-1, 1],
+        [-1, -1]
+    ];
+
+
+    while (
+        array_length(_open) > 0
+        && _placed < _target_size
+    )
+    {
+        var _index = irandom(array_length(_open) - 1);
+        var _cell = _open[_index];
+
+        array_delete(_open, _index, 1);
+
+
+        if (
+            !scr_world_dead_cell_exposed(
+                _cell.x,
+                _cell.y
+            )
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            !scr_world_resource_cell_set(
+                _cell.x,
+                _cell.y,
+                _resource_key,
+                _vein_id
+            )
+        )
+        {
+            continue;
+        }
+
+
+        _placed++;
+
+
+        for (var i = 0; i < array_length(_directions); ++i)
+        {
+            var _next_x =
+                _cell.x + _directions[i][0];
+
+            var _next_y =
+                _cell.y + _directions[i][1];
+
+
+            if (
+                scr_world_dead_cell_exposed(
+                    _next_x,
+                    _next_y
+                )
+            )
+            {
+                array_push(
+                    _open,
+                    {
+                        x: _next_x,
+                        y: _next_y
+                    }
+                );
+            }
+        }
+    }
+
+
+    return _placed;
+}
+
+
+/// @description Finds one exposed dead cell in a distance ring.
+
+function scr_world_resource_exposed_cell_find(
+    _minimum_distance,
+    _maximum_distance
+)
+{
+    var _center_x = global.vtd_level.map.columns * 0.5;
+    var _center_y = global.vtd_level.map.rows * 0.5;
+
+
+    for (
+        var _radius = _minimum_distance;
+        _radius <= _maximum_distance;
+        ++_radius
+    )
+    {
+        var _candidates = [];
+
+
+        for (var _offset_x = -_radius; _offset_x <= _radius; ++_offset_x)
+        {
+            for (var _offset_y = -_radius; _offset_y <= _radius; ++_offset_y)
+            {
+                if (
+                    abs(_offset_x) != _radius
+                    && abs(_offset_y) != _radius
+                )
+                {
+                    continue;
+                }
+
+
+                var _cell_x = floor(_center_x + _offset_x);
+                var _cell_y = floor(_center_y + _offset_y);
+
+
+                if (
+                    scr_world_dead_cell_exposed(
+                        _cell_x,
+                        _cell_y
+                    )
+                )
+                {
+                    array_push(
+                        _candidates,
+                        {
+                            x: _cell_x,
+                            y: _cell_y
+                        }
+                    );
+                }
+            }
+        }
+
+
+        if (array_length(_candidates) > 0)
+        {
+            return _candidates[
+                irandom(array_length(_candidates) - 1)
+            ];
+        }
+    }
+
+
+    return undefined;
+}
+
+
+/// @description Generates guaranteed resource veins near the map centre.
+
+function scr_world_resources_guaranteed_generate(
+    _resource_settings,
+    _next_vein_id
+)
+{
+    var _guaranteed = _resource_settings.guaranteed;
+
+
+    for (var i = 0; i < array_length(_guaranteed); ++i)
+    {
+        var _entry = _guaranteed[i];
+
+        var _cell = scr_world_resource_exposed_cell_find(
+            _entry.minimum_distance_cells,
+            _entry.maximum_distance_cells
+        );
+
+
+        if (is_undefined(_cell))
+        {
+            show_debug_message(
+                "WORLD RESOURCE WARNING - guaranteed resource not placed: "
+                + _entry.resource_key
+            );
+
+            continue;
+        }
+
+
+        var _size = irandom_range(
+            _entry.vein_size_min,
+            _entry.vein_size_max
+        );
+
+
+        var _placed = scr_world_resource_vein_grow(
+            _cell.x,
+            _cell.y,
+            _entry.resource_key,
+            _size,
+            _next_vein_id
+        );
+
+
+        if (_placed > 0)
+            _next_vein_id++;
+    }
+
+
+    return _next_vein_id;
+}
+
+
+/// @description Generates random weighted resource veins.
+
+function scr_world_resources_random_generate(
+    _resource_settings,
+    _next_vein_id
+)
+{
+    var _veins_created = 0;
+
+    var _columns = global.vtd_level.map.columns;
+    var _rows = global.vtd_level.map.rows;
+
+
+    for (var _cell_x = 0; _cell_x < _columns; ++_cell_x)
+    {
+        for (var _cell_y = 0; _cell_y < _rows; ++_cell_y)
+        {
+            if (
+                _veins_created
+                >= _resource_settings.maximum_random_veins
+            )
+            {
+                return _next_vein_id;
+            }
+
+
+            if (
+                !scr_world_dead_cell_exposed(
+                    _cell_x,
+                    _cell_y
+                )
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                random(1)
+                > _resource_settings.vein_start_chance
+            )
+            {
+                continue;
+            }
+
+
+            var _resource_key = scr_world_resource_key_roll(
+                _resource_settings.pool
+            );
+
+            var _data = scr_resource_data_get(_resource_key);
+
+            if (!scr_resource_data_valid(_data))
+                continue;
+
+
+            var _target_size = irandom_range(
+                _data.generation.vein_size_min,
+                _data.generation.vein_size_max
+            );
+
+
+            var _placed = scr_world_resource_vein_grow(
+                _cell_x,
+                _cell_y,
+                _resource_key,
+                _target_size,
+                _next_vein_id
+            );
+
+
+            if (_placed > 0)
+            {
+                _veins_created++;
+                _next_vein_id++;
+            }
+        }
+    }
+
+
+    return _next_vein_id;
+}
+
+
+/// @description Converts selected exposed rock cells into resource veins.
+
+function scr_world_resources_generate(_generation)
+{
+    if (!variable_struct_exists(_generation, "resources"))
+        return true;
+
+    if (!is_struct(_generation.resources))
+        return false;
+
+
+    var _settings = _generation.resources;
+
+    if (!_settings.enabled)
+        return true;
+
+
+    var _next_vein_id = 0;
+
+
+    // Guaranteed resources are placed first so random veins cannot consume
+    // every suitable nearby rock face.
+
+    _next_vein_id = scr_world_resources_guaranteed_generate(
+        _settings,
+        _next_vein_id
+    );
+
+
+    _next_vein_id = scr_world_resources_random_generate(
+        _settings,
+        _next_vein_id
+    );
+
+
+    show_debug_message(
+        "WORLD RESOURCE VEINS GENERATED: "
+        + string(_next_vein_id)
     );
 
 

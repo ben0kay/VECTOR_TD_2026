@@ -26,6 +26,7 @@ function scr_game_initialize()
         {
             enemies: {},
             buildings: {},
+            resources: {},
             worlds: {}
         },
 
@@ -42,12 +43,12 @@ function scr_game_initialize()
 
     scr_enemy_data_initialize();
     scr_building_data_initialize();
+    scr_resource_data_initialize();
     scr_world_data_initialize();
 
 
     // FUTURE:
     // scr_upgrade_data_initialize();
-    // scr_resource_data_initialize();
 
 
     global.GameState = GameState.PLAYING;

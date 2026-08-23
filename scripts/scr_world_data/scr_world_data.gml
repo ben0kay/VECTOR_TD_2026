@@ -18,9 +18,6 @@ function scr_world_data_initialize()
             generation:
             {
                 style: WorldGenerationStyle.CLUSTERS,
-
-                // Use -1 for a newly rolled map each run.
-                // Use a fixed positive value to reproduce the same map.
                 seed: -1,
 
                 safe_radius_cells: 9,
@@ -35,15 +32,55 @@ function scr_world_data_initialize()
                     size_max: 64,
 
                     minimum_distance_cells: 8,
-
                     growth_chance: 0.82,
                     maximum_seed_attempts: 1000
+                },
+
+                resources:
+                {
+                    enabled: true,
+
+                    // Chance for one exposed dead cell to begin a vein.
+                    vein_start_chance: 0.035,
+
+                    // Prevents extremely ore-heavy maps.
+                    maximum_random_veins: 18,
+
+                    pool:
+                    [
+                        {
+                            resource_key: "resource_carbon",
+                            weight: 50
+                        },
+
+                        {
+                            resource_key: "resource_silicon",
+                            weight: 30
+                        },
+
+                        {
+                            resource_key: "resource_copper",
+                            weight: 20
+                        }
+                    ],
+
+                    guaranteed:
+                    [
+                        {
+                            resource_key: "resource_carbon",
+
+                            // Distance is measured from the map centre in cells.
+                            minimum_distance_cells: 10,
+                            maximum_distance_cells: 30,
+
+                            vein_size_min: 5,
+                            vein_size_max: 8
+                        }
+                    ]
                 }
             }
 
             // FUTURE:
-            // resources
-            // guaranteed deposits
             // cavern settings
             // enemy spawning
             // waves and milestones
