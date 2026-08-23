@@ -22,6 +22,9 @@ switch (global.LevelState)
         // TEMPORARY ENEMY TEST CONTROLS
         // ================================================================
 
+		if (keyboard_check_pressed(ord("Q")))
+			room_restart();
+
         if (keyboard_check_pressed(ord("N")))
             scr_enemy_spawn_edge("enemy_weak");
 
@@ -42,7 +45,8 @@ switch (global.LevelState)
 
         if (keyboard_check_pressed(ord("L")))
             scr_enemy_spawn_edge("enemy_splitter");
-
+			
+	
 
         // Direct CPU damage test.
 
