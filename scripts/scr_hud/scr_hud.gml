@@ -1102,20 +1102,15 @@ function scr_hud_bottom_bar_draw(_hud)
     return true;
 }
 
-/// @description Draws current enemy-pressure information.
+/// @description Draws live enemy-pressure information.
 
 function scr_hud_pressure_draw(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
-    if (!variable_struct_exists(
-        global.vtd_level.entities,
-        "spawner"
-    ))
-    {
+    if (!variable_struct_exists(global.vtd_level.entities, "spawner"))
         return true;
-    }
 
 
     var _spawner =
@@ -1126,26 +1121,29 @@ function scr_hud_pressure_draw(_hud)
 
 
     var _runtime = _spawner.spawner;
+    var _data = _runtime.data;
 
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
 
     var _bottom_top =
-        _gui_height
-        - _hud.hud.bottom.height;
+        _gui_height - _hud.hud.bottom.height;
 
     var _x =
         _gui_width
         - _hud.hud.bottom.inspector_width
-        - 280;
+        - 300;
 
-    var _y =
-        _bottom_top + 14;
+    var _y = _bottom_top + 14;
 
 
     draw_set_color(c_aqua);
     draw_text(_x, _y, "ENEMY PRESSURE");
 
+
+    // ========================================================================
+    // CURRENT PRESSURE STATE
+    // ========================================================================
 
     if (_runtime.time.grace_remaining > 0)
     {
@@ -1153,8 +1151,8 @@ function scr_hud_pressure_draw(_hud)
 
         draw_text(
             _x,
-            _y + 28,
-            "GRACE "
+            _y + 24,
+            "GRACE PERIOD // "
             + string(ceil(
                 _runtime.time.grace_remaining
             ))
@@ -1164,60 +1162,123 @@ function scr_hud_pressure_draw(_hud)
     else
     {
         draw_set_color(c_red);
-
-        draw_text(
-            _x,
-            _y + 28,
-            "PRESSURE ACTIVE"
-        );
+        draw_text(_x, _y + 24, "PRESSURE ACTIVE");
     }
 
+
+    // ========================================================================
+    // POPULATION
+    // ========================================================================
 
     draw_set_color(c_white);
 
     draw_text(
         _x,
-        _y + 52,
+        _y + 48,
         "ENEMIES  "
         + string(instance_number(o_enemy))
+        + " / "
+        + string(_data.maximum_alive_enemies)
     );
 
     draw_text(
         _x,
-        _y + 72,
+        _y + 68,
         "QUEUED   "
         + string(array_length(_runtime.queue))
+        + " / "
+        + string(_data.maximum_queued_enemies)
     );
 
     draw_text(
         _x,
-        _y + 92,
+        _y + 88,
         "KILLS    "
         + string(global.vtd_level.combat.kills)
     );
 
 
+    // ========================================================================
+    // ACTIVE WAVE WARNING
+    // ========================================================================
+
+    if (_runtime.waves.warning.active)
+    {
+        var _warning =
+            _runtime.waves.warning;
+
+        draw_set_color(c_red);
+
+        draw_text(
+            _x,
+            _y + 116,
+            "INBOUND  "
+            + _warning.wave_name
+        );
+
+        draw_text(
+            _x,
+            _y + 136,
+            scr_enemy_spawner_side_name(
+                _warning.side
+            )
+            + " // "
+            + string(ceil(_warning.remaining))
+            + "s"
+        );
+    }
+    else
+    {
+        draw_set_color(c_gray);
+
+        draw_text(
+            _x,
+            _y + 116,
+            "NEXT CLUSTER  "
+            + string(max(
+                0,
+                ceil(_runtime.clusters.timer)
+            ))
+            + "s"
+        );
+
+        draw_text(
+            _x,
+            _y + 136,
+            "NEXT WAVE     "
+            + string(max(
+                0,
+                ceil(_runtime.waves.timer)
+            ))
+            + "s"
+        );
+    }
+
+
+    // ========================================================================
+    // LAST MAJOR EVENTS
+    // ========================================================================
+
     draw_set_color(c_gray);
 
+    var _last_event = "NONE";
+
+    if (_runtime.waves.last_name != "")
+        _last_event = _runtime.waves.last_name;
+
+    if (_runtime.milestones.last_name != "")
+        _last_event = _runtime.milestones.last_name;
+
     draw_text(
         _x,
-        _y + 122,
-        "NEXT CLUSTER  "
-        + string(ceil(_runtime.clusters.timer))
-        + "s"
+        _y + 162,
+        "LAST EVENT  "
+        + _last_event
     );
 
     draw_text(
         _x,
-        _y + 142,
-        "NEXT WAVE     "
-        + string(ceil(_runtime.waves.timer))
-        + "s"
-    );
-
-    draw_text(
-        _x,
-        _y + 172,
+        _y + 186,
         "G: END GRACE   M: FORCE WAVE"
     );
 

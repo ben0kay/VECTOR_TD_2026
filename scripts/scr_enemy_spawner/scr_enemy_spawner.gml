@@ -741,29 +741,34 @@ function scr_enemy_spawner_wave_trigger(_spawner)
 }
 
 
-/// @description Releases a warned wave into the queue.
+/// @description Releases a warned wave into the spawn queue.
 
 function scr_enemy_spawner_wave_release(_spawner)
 {
-    var _data =
-        _spawner.spawner.data.waves;
+    if (!instance_exists(_spawner))
+        return false;
 
-    var _runtime =
-        _spawner.spawner.waves;
 
-    var _warning =
-        _runtime.warning;
-
+    var _data = _spawner.spawner.data.waves;
+    var _runtime = _spawner.spawner.waves;
+    var _warning = _runtime.warning;
 
     if (!_warning.active)
         return false;
 
+    if (
+        _warning.wave_index < 0
+        || _warning.wave_index
+            >= array_length(_data.definitions)
+    )
+    {
+        _warning.active = false;
+        return false;
+    }
+
 
     var _wave =
-        _data.definitions[
-            _warning.wave_index
-        ];
-
+        _data.definitions[_warning.wave_index];
 
     var _queued =
         scr_enemy_spawner_group_queue(
@@ -784,6 +789,8 @@ function scr_enemy_spawner_wave_release(_spawner)
         );
 
 
+    // Keep trying if the queue is temporarily full.
+
     if (!_queued)
     {
         _warning.remaining = 1;
@@ -791,9 +798,32 @@ function scr_enemy_spawner_wave_release(_spawner)
     }
 
 
+    var _side_name =
+        scr_enemy_spawner_side_name(
+            _warning.side
+        );
+
+
+    scr_hud_alert_push(
+        HudAlertType.DANGER,
+        "WAVE ENGAGED",
+        _wave.name
+        + " // "
+        + _side_name,
+        3
+    );
+
+
+    show_debug_message(
+        "MAJOR WAVE RELEASED: "
+        + _wave.name
+        + " FROM "
+        + _side_name
+    );
+
+
     _runtime.last_name = _wave.name;
     _runtime.index = _warning.wave_index + 1;
-
 
     _warning.active = false;
     _warning.remaining = 0;
@@ -801,12 +831,10 @@ function scr_enemy_spawner_wave_release(_spawner)
     _warning.wave_name = "";
     _warning.side = SpawnSide.RANDOM;
 
-
     _runtime.timer = random_range(
         _data.interval_min_seconds,
         _data.interval_max_seconds
     );
-
 
     return true;
 }

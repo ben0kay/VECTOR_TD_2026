@@ -8,49 +8,47 @@ function scr_cpu_initialize(_cpu)
     if (!instance_exists(_cpu))
         return false;
 
-
     _cpu.vitals =
     {
         hp:
         {
-            current:
-                1000,
-
-            maximum:
-                1000
+            current: 1000,
+            maximum: 1000
         }
     };
 
+    _cpu.alerts =
+    {
+        thresholds:
+        [
+            { percent: 0.75, triggered: false },
+            { percent: 0.50, triggered: false },
+            { percent: 0.25, triggered: false },
+            { percent: 0.10, triggered: false }
+        ],
+
+        destroyed: false
+    };
 
     _cpu.visual =
     {
-        radius:
-            64,
-
-        color:
-            c_blue
+        radius: 64,
+        color: c_blue
     };
 
-
-    global.vtd_level.entities.cpu =
-        _cpu;
-
+    global.vtd_level.entities.cpu = _cpu;
 
     show_debug_message(
         "VECTOR TD 2026 - CPU INITIALIZED"
     );
 
-
     return true;
 }
 
 
-/// @description Applies damage to the CPU.
+/// @description Applies damage and health warnings to the CPU.
 
-function scr_cpu_damage(
-    _cpu,
-    _damage
-)
+function scr_cpu_damage(_cpu, _damage)
 {
     if (!instance_exists(_cpu))
         return false;
@@ -58,28 +56,83 @@ function scr_cpu_damage(
     if (_damage <= 0)
         return false;
 
-    if (
-        global.LevelState
-        != LevelState.PLAYING
-    )
-    {
+    if (global.LevelState != LevelState.PLAYING)
         return false;
+
+
+    var _hp = _cpu.vitals.hp;
+
+    var _previous_percent = clamp(
+        _hp.current / max(1, _hp.maximum),
+        0,
+        1
+    );
+
+    _hp.current = max(
+        0,
+        _hp.current - _damage
+    );
+
+    var _current_percent = clamp(
+        _hp.current / max(1, _hp.maximum),
+        0,
+        1
+    );
+
+
+    // ========================================================================
+    // HEALTH WARNINGS
+    // ========================================================================
+
+    for (var i = 0; i < array_length(_cpu.alerts.thresholds); ++i)
+    {
+        var _warning = _cpu.alerts.thresholds[i];
+
+        if (_warning.triggered)
+            continue;
+
+        if (
+            _previous_percent > _warning.percent
+            && _current_percent <= _warning.percent
+        )
+        {
+            _warning.triggered = true;
+
+            var _percent_text =
+                string(round(_warning.percent * 100))
+                + "% INTEGRITY REMAINING";
+
+            var _alert_type = HudAlertType.WARNING;
+
+            if (_warning.percent <= 0.25)
+                _alert_type = HudAlertType.DANGER;
+
+            scr_hud_alert_push(
+                _alert_type,
+                "CPU UNDER ATTACK",
+                _percent_text,
+                4
+            );
+        }
     }
 
 
-    _cpu.vitals.hp.current =
-        max(
-            0,
-            _cpu.vitals.hp.current
-            - _damage
+    // ========================================================================
+    // DESTRUCTION
+    // ========================================================================
+
+    if (_hp.current <= 0 && !_cpu.alerts.destroyed)
+    {
+        _cpu.alerts.destroyed = true;
+
+        scr_hud_alert_push(
+            HudAlertType.DANGER,
+            "CPU DESTROYED",
+            "LEVEL FAILURE",
+            6
         );
 
-
-    if (_cpu.vitals.hp.current <= 0)
-    {
-        global.LevelState =
-            LevelState.FAILED;
-
+        global.LevelState = LevelState.FAILED;
 
         show_debug_message(
             "VECTOR TD 2026 - CPU DESTROYED"

@@ -47,14 +47,14 @@ switch (global.LevelState)
             scr_enemy_spawn_edge("enemy_splitter");
 			
 			if (keyboard_check_pressed(ord("A")))
-{
-    scr_hud_alert_push(
-        HudAlertType.INFO,
-        "SYSTEM MESSAGE",
-        "VECTOR ALERT SYSTEM OPERATIONAL",
-        4
-    );
-}
+			{
+			    scr_hud_alert_push(
+			        HudAlertType.INFO,
+			        "SYSTEM MESSAGE",
+			        "VECTOR ALERT SYSTEM OPERATIONAL",
+			        4
+			    );
+			}
 			
 	
 
