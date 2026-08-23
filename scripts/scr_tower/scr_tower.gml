@@ -418,9 +418,17 @@ function scr_tower_fire(_tower)
     if (!instance_exists(_target))
         return false;
 
+
     var _weapon = _tower.combat.weapon;
     var _muzzle = scr_tower_muzzle_position_get(_tower);
     var _fired = false;
+
+
+    // Store the impact position before damage is applied.
+    // Hitscan and beam damage may immediately destroy the target.
+
+    var _target_x = _target.x;
+    var _target_y = _target.y;
 
 
     switch (_weapon.type)
@@ -439,7 +447,8 @@ function scr_tower_fire(_tower)
                     _tower.targeting.layer
                 );
 
-            _fired = instance_exists(_projectile);
+            _fired =
+                instance_exists(_projectile);
         }
         break;
 
@@ -454,19 +463,28 @@ function scr_tower_fire(_tower)
                     _weapon.damage_type
                 );
 
-            scr_enemy_damage(_target, _damage);
+
+            scr_enemy_damage(
+                _target,
+                _damage
+            );
+
+
+            // Use the stored position because the shot may have killed
+            // and destroyed its target immediately.
 
             scr_tower_trace_set(
                 _tower,
                 _muzzle.x,
                 _muzzle.y,
-                _target.x,
-                _target.y,
+                _target_x,
+                _target_y,
                 _weapon.hitscan.color,
                 c_white,
                 _weapon.hitscan.width,
                 _weapon.hitscan.visual_seconds
             );
+
 
             _fired = true;
         }
@@ -483,26 +501,34 @@ function scr_tower_fire(_tower)
                     _weapon.damage_type
                 );
 
-            scr_enemy_damage(_target, _damage);
+
+            scr_enemy_damage(
+                _target,
+                _damage
+            );
+
+
+            // Beam endpoint also uses the position captured before damage.
 
             scr_tower_trace_set(
                 _tower,
                 _muzzle.x,
                 _muzzle.y,
-                _target.x,
-                _target.y,
+                _target_x,
+                _target_y,
                 _weapon.beam.color_outer,
                 _weapon.beam.color_core,
                 _weapon.beam.width,
                 _weapon.beam.visual_seconds
             );
 
+
             _fired = true;
 
 
             // FUTURE PARTICLE HOOK:
-            // Spawn small ember particles along this beam.
-            // Damage remains independent from those particles.
+            // Ember particles can be distributed between the stored
+            // muzzle and impact positions.
         }
         break;
     }
@@ -511,10 +537,21 @@ function scr_tower_fire(_tower)
     if (!_fired)
         return false;
 
+
     _weapon.cooldown.remaining =
         _weapon.cooldown.duration;
 
-    scr_tower_muzzle_advance(_tower);
+
+    scr_tower_muzzle_advance(
+        _tower
+    );
+
+
+    // Clear the reference if this shot destroyed its target.
+
+    if (!instance_exists(_tower.targeting.target))
+        _tower.targeting.target = noone;
+
 
     // FUTURE:
     // firing sounds
@@ -523,9 +560,9 @@ function scr_tower_fire(_tower)
     // firing power demand
     // heat generation
 
+
     return true;
 }
-
 /// @description Updates targeting, firing and temporary weapon visuals.
 
 function scr_tower_update(_tower)
