@@ -858,30 +858,6 @@ function scr_enemy_spawner_wave_update(
 }
 
 
-/// @description Updates the major-wave timer.
-
-function scr_enemy_spawner_wave_update(
-    _spawner,
-    _step_seconds
-)
-{
-    var _data = _spawner.spawner.data.waves;
-    var _runtime = _spawner.spawner.waves;
-
-    if (!_data.enabled)
-        return true;
-
-
-    _runtime.timer -= _step_seconds;
-
-    if (_runtime.timer <= 0)
-        scr_enemy_spawner_wave_trigger(_spawner);
-
-
-    return true;
-}
-
-
 /// @description Returns whether a milestone key already triggered.
 
 function scr_enemy_spawner_milestone_reached(
