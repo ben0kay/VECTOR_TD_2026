@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_combat_expansion_data",
+  "%Name":"scr_tower_data",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_combat_expansion_data",
+  "name":"scr_tower_data",
   "parent":{
     "name":"scripts",
     "path":"folders/scripts.yy",

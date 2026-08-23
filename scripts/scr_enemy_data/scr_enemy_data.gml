@@ -360,6 +360,65 @@ function scr_enemy_data_initialize()
     return true;
 }
 
+/// @description Registers the first flying enemy definition.
+
+function scr_enemy_data_flyer_register()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_flyer",
+        {
+            identity:
+            {
+                key: "enemy_flyer",
+                name: "Flying Drone"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_flyer,
+                radius: 18,
+                color: c_aqua
+            },
+
+            vitals:
+            {
+                hp_maximum: 45
+            },
+
+            movement:
+            {
+                speed: 2.2,
+                layer: EnemyMovementLayer.FLYING
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                // Flyers ignore ground obstructions.
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 7,
+                range: 8,
+                cooldown_seconds: 0.8
+            },
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
 
 /// @description Returns one enemy definition.
 

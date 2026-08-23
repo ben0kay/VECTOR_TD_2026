@@ -1,11 +1,15 @@
 /// @description Data-driven building definitions and lookup.
 
-/// @description Registers every building definition.
+/// @description Registers all non-tower building definitions.
 
 function scr_building_data_initialize()
 {
     global.vtd.data.buildings =
     {
+        // ====================================================================
+        // WALL
+        // ====================================================================
+
         wall_basic:
         {
             identity:
@@ -43,66 +47,9 @@ function scr_building_data_initialize()
         },
 
 
-        tower_basic:
-        {
-            identity:
-            {
-                key: "tower_basic",
-                name: "Basic Tower",
-                type: BuildingType.TOWER
-            },
-
-            visual:
-            {
-                color: c_aqua,
-                turret_color: c_yellow
-            },
-
-            footprint:
-            {
-                width_cells: 2,
-                height_cells: 2
-            },
-
-            vitals:
-            {
-                hp_maximum: 300
-            },
-
-            construction:
-            {
-                time_seconds: 0
-            },
-
-            economy:
-            {
-                cost: []
-            },
-
-            tower:
-            {
-                range: 280,
-                target_mode: TowerTargetMode.CLOSEST,
-                target_layer: EnemyMovementLayer.GROUND,
-
-                weapon:
-                {
-                    damage: 10,
-                    cooldown_seconds: 0.6,
-
-                    projectile:
-                    {
-                        speed: 12,
-                        lifetime_seconds: 3,
-                        radius: 4,
-                        color: c_yellow,
-                        impact: ProjectileImpact.DIRECT,
-                        damage_radius: 0
-                    }
-                }
-            }
-        },
-
+        // ====================================================================
+        // MINERS
+        // ====================================================================
 
         miner_carbon:
         {
@@ -236,6 +183,10 @@ function scr_building_data_initialize()
         },
 
 
+        // ====================================================================
+        // STORAGE
+        // ====================================================================
+
         storage_carbon:
         {
             identity:
@@ -364,6 +315,16 @@ function scr_building_data_initialize()
             }
         }
     };
+
+
+    // FUTURE NON-TOWER BUILDINGS:
+    // refinery
+    // research centre
+    // power generator
+    // power node
+    // battery
+    // repair facility
+    // drone hub
 
 
     show_debug_message(

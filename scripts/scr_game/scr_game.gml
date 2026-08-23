@@ -36,21 +36,23 @@ function scr_game_initialize()
     };
 
 
-    // Base definitions.
+    // ========================================================================
+    // DATA DEFINITIONS
+    // ========================================================================
 
     scr_enemy_data_initialize();
+    scr_enemy_data_flyer_register();
+
     scr_building_data_initialize();
+    scr_tower_data_initialize();
+
     scr_resource_data_initialize();
     scr_world_data_initialize();
 
 
-    // Additional definitions remain separated by gameplay feature.
-
-    scr_combat_expansion_data_initialize();
-
-
     // FUTURE:
     // scr_upgrade_data_initialize();
+    // scr_research_data_initialize();
     // scr_boss_data_initialize();
 
 
@@ -62,6 +64,7 @@ function scr_game_initialize()
 
     return true;
 }
+
 /// @description Creates the runtime belonging to the current level.
 
 function scr_level_initialize()
