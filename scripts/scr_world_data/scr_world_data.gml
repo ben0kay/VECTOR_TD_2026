@@ -565,7 +565,7 @@ function scr_world_data_initialize()
             ]
         }
     ]
-}
+},
 
 
                 milestones:
