@@ -1,39 +1,13 @@
 /// @description Resource storage initialization, delivery, drawing, and cleanup.
 
 
-/// @description Returns or creates one level resource inventory entry.
+/// @description Returns or creates one shared level resource entry.
 
 function scr_storage_level_entry_get(_resource_key)
 {
-    if (!variable_global_exists("vtd_level"))
-        return undefined;
-
-    if (!is_struct(global.vtd_level))
-        return undefined;
-
-
-    if (!variable_struct_exists(global.vtd_level.resources, "entries"))
-        global.vtd_level.resources.entries = {};
-
-
-    var _entries = global.vtd_level.resources.entries;
-
-
-    if (!variable_struct_exists(_entries, _resource_key))
-    {
-        variable_struct_set(
-            _entries,
-            _resource_key,
-            {
-                key: _resource_key,
-                current: 0,
-                capacity: 0
-            }
-        );
-    }
-
-
-    return variable_struct_get(_entries, _resource_key);
+    return scr_resource_level_entry_get(
+        _resource_key
+    );
 }
 
 

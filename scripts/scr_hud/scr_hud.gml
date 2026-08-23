@@ -855,8 +855,7 @@ function scr_hud_storage_status_get(_storage)
     return "EMPTY";
 }
 
-
-/// @description Draws the permanent top resource bar.
+/// @description Draws the full-width compact level information bar.
 
 function scr_hud_top_bar_draw(_hud)
 {
@@ -868,99 +867,279 @@ function scr_hud_top_bar_draw(_hud)
     var _height = _hud.hud.top.height;
 
 
+    // ========================================================================
+    // BACKGROUND
+    // ========================================================================
+
     draw_set_alpha(_hud.hud.top.background_alpha);
     draw_set_color(c_black);
-    draw_rectangle(0, 0, _gui_width, _height, false);
+
+    draw_rectangle(
+        0,
+        0,
+        _gui_width,
+        _height,
+        false
+    );
 
 
     draw_set_alpha(1);
     draw_set_color(_hud.hud.top.color);
-    draw_line(0, _height, _gui_width, _height);
+
+    draw_line(
+        0,
+        _height,
+        _gui_width,
+        _height
+    );
 
 
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_middle);
+    // ========================================================================
+    // FIXED RIGHT-HAND CELLS
+    // ========================================================================
 
-    draw_set_color(c_white);
-    draw_text(16, _height * 0.5, "LEVEL RESOURCES");
+    var _time_width = 130;
+    var _cpu_width = 180;
+    var _enemy_width = 120;
+    var _tower_width = 110;
+
+    var _right_cells_width =
+        _time_width
+        + _cpu_width
+        + _enemy_width
+        + _tower_width;
+
+    var _right_x =
+        _gui_width - _right_cells_width;
 
 
-    var _draw_x = 170;
+    // ========================================================================
+    // CREDITS - ALWAYS FIRST
+    // ========================================================================
+
+    var _draw_x = 0;
+    var _credit_width = 170;
+
+    _draw_x =
+        scr_hud_top_cell_draw(
+            _draw_x,
+            _credit_width,
+            _height,
+            "Credits",
+            string(
+                floor(
+                    scr_resource_amount_get(
+                        "resource_credits"
+                    )
+                )
+            ),
+            c_aqua
+        );
 
 
-    if (
-        variable_struct_exists(
-            global.vtd_level.resources,
-            "entries"
-        )
-    )
+    // ========================================================================
+    // DATA-DRIVEN RAW RESOURCES
+    // ========================================================================
+
+    var _resource_width = 155;
+    var _hidden_resources = 0;
+
+    var _resource_keys =
+        variable_struct_get_names(
+            global.vtd.data.resources
+        );
+
+
+    for (var i = 0; i < array_length(_resource_keys); ++i)
     {
-        var _entries = global.vtd_level.resources.entries;
-        var _keys = variable_struct_get_names(_entries);
-
-
-        for (var i = 0; i < array_length(_keys); ++i)
-        {
-            var _entry =
-                variable_struct_get(
-                    _entries,
-                    _keys[i]
-                );
-
-            var _resource_data =
-                scr_resource_data_get(_entry.key);
-
-            var _name = _entry.key;
-            var _color = c_white;
-
-
-            if (scr_resource_data_valid(_resource_data))
-            {
-                _name = _resource_data.identity.name;
-                _color = _resource_data.visual.color;
-            }
-
-
-            draw_set_color(_color);
-
-            draw_text(
-                _draw_x,
-                _height * 0.5,
-                string_upper(_name)
-                + " "
-                + string(floor(_entry.current))
-                + " / "
-                + string(floor(_entry.capacity))
+        var _resource_data =
+            scr_resource_data_get(
+                _resource_keys[i]
             );
 
+        if (!scr_resource_data_valid(_resource_data))
+            continue;
 
-            _draw_x += 210;
+        if (
+            _resource_data.identity.type
+            != ResourceType.RAW_MATERIAL
+        )
+        {
+            continue;
         }
+
+
+        if (_draw_x + _resource_width > _right_x)
+        {
+            _hidden_resources++;
+            continue;
+        }
+
+
+        var _entry =
+            scr_resource_level_entry_get(
+                _resource_data.identity.key
+            );
+
+        var _value = "0 / 0";
+
+        if (is_struct(_entry))
+        {
+            _value =
+                string(floor(_entry.current))
+                + " / "
+                + string(floor(_entry.capacity));
+        }
+
+
+        _draw_x =
+            scr_hud_top_cell_draw(
+                _draw_x,
+                _resource_width,
+                _height,
+                _resource_data.identity.name,
+                _value,
+                _resource_data.visual.color
+            );
     }
 
+
+    // If future resources cannot fit, make that obvious.
+
+    if (
+        _hidden_resources > 0
+        && _draw_x + 72 <= _right_x
+    )
+    {
+        scr_hud_top_cell_draw(
+            _draw_x,
+            72,
+            _height,
+            "More",
+            "+" + string(_hidden_resources),
+            c_gray
+        );
+    }
+
+
+    // ========================================================================
+    // TOWER COUNT
+    // ========================================================================
+
+    var _cell_x = _right_x;
+
+    _cell_x =
+        scr_hud_top_cell_draw(
+            _cell_x,
+            _tower_width,
+            _height,
+            "Towers",
+            string(instance_number(o_tower)),
+            c_yellow
+        );
+
+
+    // ========================================================================
+    // ENEMY COUNT
+    // ========================================================================
+
+    _cell_x =
+        scr_hud_top_cell_draw(
+            _cell_x,
+            _enemy_width,
+            _height,
+            "Enemies",
+            string(instance_number(o_enemy)),
+            c_red
+        );
+
+
+    // ========================================================================
+    // CPU HEALTH
+    // ========================================================================
+
+    var _cpu_text = "OFFLINE";
+    var _cpu_color = c_red;
 
     var _cpu = global.vtd_level.entities.cpu;
 
 
     if (instance_exists(_cpu))
     {
-        draw_set_halign(fa_right);
-        draw_set_color(c_aqua);
-
-        draw_text(
-            _gui_width - 16,
-            _height * 0.5,
-            "CPU "
-            + string(ceil(_cpu.vitals.hp.current))
+        _cpu_text =
+            string(ceil(_cpu.vitals.hp.current))
             + " / "
-            + string(ceil(_cpu.vitals.hp.maximum))
-        );
+            + string(ceil(_cpu.vitals.hp.maximum));
+
+        var _hp_ratio =
+            _cpu.vitals.hp.current
+            / max(1, _cpu.vitals.hp.maximum);
+
+        _cpu_color =
+            _hp_ratio > 0.5
+            ? c_lime
+            : (
+                _hp_ratio > 0.25
+                ? c_yellow
+                : c_red
+            );
     }
 
 
+    _cell_x =
+        scr_hud_top_cell_draw(
+            _cell_x,
+            _cpu_width,
+            _height,
+            "CPU Integrity",
+            _cpu_text,
+            _cpu_color
+        );
+
+
+    // ========================================================================
+    // ELAPSED TIME - ALWAYS LAST
+    // ========================================================================
+
+    var _seconds =
+        floor(
+            global.vtd_level.time.seconds
+        );
+
+    var _minutes =
+        floor(
+            _seconds / 60
+        );
+
+    var _remaining_seconds =
+        _seconds mod 60;
+
+    var _time_text =
+        string(_minutes)
+        + ":"
+        + (
+            _remaining_seconds < 10
+            ? "0"
+            : ""
+        )
+        + string(_remaining_seconds);
+
+
+    scr_hud_top_cell_draw(
+        _cell_x,
+        _time_width,
+        _height,
+        "Elapsed",
+        _time_text,
+        c_aqua
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
-    draw_set_color(c_white);
+
 
     return true;
 }
@@ -1379,3 +1558,51 @@ function scr_hud_wave_warning_draw(_hud)
     return true;
 }
 
+/// @description Draws one reusable compact top-HUD information cell.
+
+function scr_hud_top_cell_draw(
+    _x,
+    _width,
+    _height,
+    _label,
+    _value,
+    _color
+)
+{
+    var _left = _x;
+    var _right = _x + _width;
+    var _middle_y = _height * 0.5;
+
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        _right,
+        8,
+        _right,
+        _height - 8
+    );
+
+
+    // Small vector status diamond.
+
+    draw_set_color(_color);
+
+    draw_line(_left + 10, _middle_y, _left + 15, _middle_y - 5);
+    draw_line(_left + 15, _middle_y - 5, _left + 20, _middle_y);
+    draw_line(_left + 20, _middle_y, _left + 15, _middle_y + 5);
+    draw_line(_left + 15, _middle_y + 5, _left + 10, _middle_y);
+
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    draw_set_color(_color);
+    draw_text(_left + 28, 7, string_upper(_label));
+
+    draw_set_color(c_white);
+    draw_text(_left + 28, 22, _value);
+
+
+    return _right;
+}

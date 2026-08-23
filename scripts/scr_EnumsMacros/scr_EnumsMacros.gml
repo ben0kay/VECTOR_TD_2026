@@ -68,6 +68,12 @@ enum HudAlertType { INFO, WARNING, DANGER, MILESTONE, SUCCESS }
 enum HudAlertState { OPENING, HOLDING, CLOSING }
 enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
 
+enum ResourceType
+{
+    CURRENCY,
+    RAW_MATERIAL
+}
+
 
 // Staggered update helpers.
 //

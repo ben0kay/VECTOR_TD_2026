@@ -401,11 +401,6 @@ function scr_building_data_initialize()
     };
 
 
-    // Towers register into this same building database.
-
-    scr_tower_data_initialize();
-
-
     // FUTURE NON-TOWER BUILDINGS:
     // refinery
     // research centre

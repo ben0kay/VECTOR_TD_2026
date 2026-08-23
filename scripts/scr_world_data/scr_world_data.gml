@@ -14,6 +14,29 @@ function scr_world_data_initialize()
                 key: "world_test",
                 name: "Test Cluster World"
             },
+			
+			starting_resources:
+			[
+			    {
+			        resource_key: "resource_credits",
+			        amount: 2500
+			    },
+
+			    {
+			        resource_key: "resource_carbon",
+			        amount: 0
+			    },
+
+			    {
+			        resource_key: "resource_silicon",
+			        amount: 0
+			    },
+
+			    {
+			        resource_key: "resource_copper",
+			        amount: 0
+			    }
+			],
 
             generation:
             {

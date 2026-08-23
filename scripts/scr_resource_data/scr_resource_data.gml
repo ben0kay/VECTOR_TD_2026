@@ -1,18 +1,45 @@
 /// @description Data-driven raw resource definitions.
 
 
-/// @description Registers every raw resource definition.
+/// @description Registers every currency and physical resource definition.
 
 function scr_resource_data_initialize()
 {
     global.vtd.data.resources =
     {
+        // ====================================================================
+        // CURRENCY
+        // ====================================================================
+
+        resource_credits:
+        {
+            identity:
+            {
+                key: "resource_credits",
+                name: "Credits",
+                type: ResourceType.CURRENCY
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: undefined,
+                color: c_aqua
+            }
+        },
+
+
+        // ====================================================================
+        // RAW MATERIALS
+        // ====================================================================
+
         resource_carbon:
         {
             identity:
             {
                 key: "resource_carbon",
-                name: "Carbon"
+                name: "Carbon",
+                type: ResourceType.RAW_MATERIAL
             },
 
             visual:
@@ -41,7 +68,8 @@ function scr_resource_data_initialize()
             identity:
             {
                 key: "resource_silicon",
-                name: "Silicon"
+                name: "Silicon",
+                type: ResourceType.RAW_MATERIAL
             },
 
             visual:
@@ -70,7 +98,8 @@ function scr_resource_data_initialize()
             identity:
             {
                 key: "resource_copper",
-                name: "Copper"
+                name: "Copper",
+                type: ResourceType.RAW_MATERIAL
             },
 
             visual:
@@ -95,7 +124,9 @@ function scr_resource_data_initialize()
     };
 
 
-    show_debug_message("VECTOR TD 2026 - RESOURCE DATA INITIALIZED");
+    show_debug_message(
+        "VECTOR TD 2026 - RESOURCE DATA INITIALIZED"
+    );
 
     return true;
 }
@@ -141,25 +172,20 @@ function scr_resource_data_valid(_data)
     if (!variable_struct_exists(_data, "visual"))
         return false;
 
-    if (!variable_struct_exists(_data, "node"))
-        return false;
-
-    if (!variable_struct_exists(_data, "generation"))
-        return false;
-
-
     if (!is_struct(_data.identity))
         return false;
 
     if (!is_struct(_data.visual))
         return false;
 
-    if (!is_struct(_data.node))
+    if (!variable_struct_exists(_data.identity, "key"))
         return false;
 
-    if (!is_struct(_data.generation))
+    if (!variable_struct_exists(_data.identity, "name"))
         return false;
 
+    if (!variable_struct_exists(_data.identity, "type"))
+        return false;
 
     if (!is_string(_data.identity.key))
         return false;
@@ -167,21 +193,417 @@ function scr_resource_data_valid(_data)
     if (_data.identity.key == "")
         return false;
 
-    if (_data.node.amount_min <= 0)
+
+    switch (_data.identity.type)
+    {
+        case ResourceType.CURRENCY:
+        {
+            // Currency exists only in the level economy.
+            // It does not spawn as a physical world deposit.
+
+            return true;
+        }
+
+
+        case ResourceType.RAW_MATERIAL:
+        {
+            if (!variable_struct_exists(_data, "node"))
+                return false;
+
+            if (!variable_struct_exists(_data, "generation"))
+                return false;
+
+            if (!is_struct(_data.node))
+                return false;
+
+            if (!is_struct(_data.generation))
+                return false;
+
+            if (_data.node.amount_min <= 0)
+                return false;
+
+            if (_data.node.amount_max < _data.node.amount_min)
+                return false;
+
+            if (_data.generation.vein_size_min <= 0)
+                return false;
+
+            if (
+                _data.generation.vein_size_max
+                < _data.generation.vein_size_min
+            )
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+
+    return false;
+}
+
+/// @description Returns or creates one level resource entry.
+
+function scr_resource_level_entry_get(_resource_key)
+{
+    if (!variable_global_exists("vtd_level"))
+        return undefined;
+
+    if (!is_struct(global.vtd_level))
+        return undefined;
+
+    if (!variable_struct_exists(global.vtd_level.resources, "entries"))
+        global.vtd_level.resources.entries = {};
+
+
+    var _entries = global.vtd_level.resources.entries;
+
+    if (!variable_struct_exists(_entries, _resource_key))
+    {
+        var _data = scr_resource_data_get(_resource_key);
+
+        if (!scr_resource_data_valid(_data))
+            return undefined;
+
+        variable_struct_set(
+            _entries,
+            _resource_key,
+            {
+                key: _resource_key,
+                type: _data.identity.type,
+
+                current: 0,
+                capacity: 0,
+
+                unlimited_capacity:
+                    _data.identity.type
+                    == ResourceType.CURRENCY
+            }
+        );
+    }
+
+
+    return variable_struct_get(_entries, _resource_key);
+}
+
+/// @description Initializes the level economy from one world definition.
+
+function scr_resource_level_initialize(_world_data)
+{
+    if (!is_struct(_world_data))
         return false;
 
-    if (_data.node.amount_max < _data.node.amount_min)
+
+    global.vtd_level.resources =
+    {
+        entries: {}
+    };
+
+
+    // Register every known resource so the HUD has stable ordering.
+
+    var _resource_keys =
+        variable_struct_get_names(
+            global.vtd.data.resources
+        );
+
+
+    for (var i = 0; i < array_length(_resource_keys); ++i)
+    {
+        scr_resource_level_entry_get(
+            _resource_keys[i]
+        );
+    }
+
+
+    if (!variable_struct_exists(_world_data, "starting_resources"))
+        return true;
+
+    if (!is_array(_world_data.starting_resources))
         return false;
 
-    if (_data.generation.vein_size_min <= 0)
-        return false;
 
-    if (
-        _data.generation.vein_size_max
-        < _data.generation.vein_size_min
+    for (
+        var i = 0;
+        i < array_length(_world_data.starting_resources);
+        ++i
     )
     {
+        var _starting =
+            _world_data.starting_resources[i];
+
+        if (!is_struct(_starting))
+            continue;
+
+        if (!variable_struct_exists(_starting, "resource_key"))
+            continue;
+
+        if (!variable_struct_exists(_starting, "amount"))
+            continue;
+
+
+        var _entry =
+            scr_resource_level_entry_get(
+                _starting.resource_key
+            );
+
+        if (!is_struct(_entry))
+            continue;
+
+
+        _entry.current =
+            max(0, _starting.amount);
+
+
+        // Physical resources normally gain capacity from storage buildings.
+        // Starting physical materials receive enough temporary capacity to exist.
+
+        if (!_entry.unlimited_capacity)
+        {
+            _entry.capacity =
+                max(
+                    _entry.capacity,
+                    _entry.current
+                );
+        }
+    }
+
+
+    return true;
+}
+
+/// @description Returns the available amount of one level resource.
+
+function scr_resource_amount_get(_resource_key)
+{
+    var _entry =
+        scr_resource_level_entry_get(
+            _resource_key
+        );
+
+    if (!is_struct(_entry))
+        return 0;
+
+    return _entry.current;
+}
+
+/// @description Adds an amount to one level resource.
+
+function scr_resource_amount_add(_resource_key, _amount)
+{
+    if (_amount <= 0)
+        return 0;
+
+
+    var _entry =
+        scr_resource_level_entry_get(
+            _resource_key
+        );
+
+    if (!is_struct(_entry))
+        return 0;
+
+
+    var _accepted = _amount;
+
+    if (!_entry.unlimited_capacity)
+    {
+        _accepted =
+            min(
+                _amount,
+                max(
+                    0,
+                    _entry.capacity
+                    - _entry.current
+                )
+            );
+    }
+
+
+    _entry.current += _accepted;
+
+    return _accepted;
+}
+
+/// @description Returns whether the level can afford a cost array.
+
+function scr_resource_cost_can_afford(_cost)
+{
+    if (!is_array(_cost))
         return false;
+
+
+    for (var i = 0; i < array_length(_cost); ++i)
+    {
+        var _entry = _cost[i];
+
+        if (!is_struct(_entry))
+            return false;
+
+        if (!variable_struct_exists(_entry, "resource_key"))
+            return false;
+
+        if (!variable_struct_exists(_entry, "amount"))
+            return false;
+
+        if (_entry.amount < 0)
+            return false;
+
+        if (
+            scr_resource_amount_get(_entry.resource_key)
+            < _entry.amount
+        )
+        {
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
+/// @description Removes an amount from one level resource.
+
+function scr_resource_amount_remove(_resource_key, _amount)
+{
+    if (_amount <= 0)
+        return true;
+
+
+    var _entry =
+        scr_resource_level_entry_get(
+            _resource_key
+        );
+
+    if (!is_struct(_entry))
+        return false;
+
+    if (_entry.current < _amount)
+        return false;
+
+
+    var _resource_data =
+        scr_resource_data_get(_resource_key);
+
+    if (!scr_resource_data_valid(_resource_data))
+        return false;
+
+
+    // Currency has no physical storage instances.
+
+    if (
+        _resource_data.identity.type
+        == ResourceType.CURRENCY
+    )
+    {
+        _entry.current -= _amount;
+        return true;
+    }
+
+
+    // Physical materials are removed from their actual storage buildings.
+
+    var _remaining = _amount;
+    var _storage_count = instance_number(o_storage);
+
+
+    for (var i = 0; i < _storage_count; ++i)
+    {
+        var _storage = instance_find(o_storage, i);
+
+        if (!instance_exists(_storage))
+            continue;
+
+        if (!variable_instance_exists(_storage, "storage"))
+            continue;
+
+        if (_storage.storage.resource_key != _resource_key)
+            continue;
+
+
+        var _removed =
+            min(
+                _remaining,
+                _storage.storage.current
+            );
+
+        _storage.storage.current -= _removed;
+        _remaining -= _removed;
+
+
+        if (_remaining <= 0)
+            break;
+    }
+
+
+    if (_remaining > 0)
+        return false;
+
+
+    _entry.current -= _amount;
+
+    return true;
+}
+
+/// @description Pays a complete building cost after affordability is confirmed.
+
+function scr_resource_cost_pay(_cost)
+{
+    if (!scr_resource_cost_can_afford(_cost))
+        return false;
+
+
+    for (var i = 0; i < array_length(_cost); ++i)
+    {
+        var _entry = _cost[i];
+
+        if (
+            !scr_resource_amount_remove(
+                _entry.resource_key,
+                _entry.amount
+            )
+        )
+        {
+            show_debug_message(
+                "RESOURCE PAYMENT ERROR - deduction failed: "
+                + _entry.resource_key
+            );
+
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
+/// @description Refunds a previously paid building cost.
+
+function scr_resource_cost_refund(_cost)
+{
+    if (!is_array(_cost))
+        return false;
+
+
+    for (var i = 0; i < array_length(_cost); ++i)
+    {
+        var _entry = _cost[i];
+
+        if (!is_struct(_entry))
+            continue;
+
+        if (!variable_struct_exists(_entry, "resource_key"))
+            continue;
+
+        if (!variable_struct_exists(_entry, "amount"))
+            continue;
+
+        scr_resource_amount_add(
+            _entry.resource_key,
+            _entry.amount
+        );
     }
 
 

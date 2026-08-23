@@ -70,6 +70,24 @@ function scr_level_initialize()
     global.CameraState = CameraState.FOLLOW_PLAYER;
 
 
+    var _world_key = "world_test";
+
+    var _world_data =
+        scr_world_data_get(
+            _world_key
+        );
+
+    if (!scr_world_data_valid(_world_data))
+    {
+        show_debug_message(
+            "LEVEL ERROR - invalid world definition: "
+            + _world_key
+        );
+
+        return false;
+    }
+
+
     var _cell_size = global.vtd.settings.grid_cell_size;
     var _columns = ceil(room_width / _cell_size);
     var _rows = ceil(room_height / _cell_size);
@@ -77,6 +95,11 @@ function scr_level_initialize()
 
     global.vtd_level =
     {
+        identity:
+        {
+            world_key: _world_key
+        },
+
         time:
         {
             frames: 0,
@@ -113,11 +136,7 @@ function scr_level_initialize()
 
         resources:
         {
-            // FUTURE:
-            // credits
-            // carbon
-            // copper
-            // silicon
+            entries: {}
         },
 
         waves:
@@ -142,35 +161,52 @@ function scr_level_initialize()
 
 
     // ========================================================================
+    // LEVEL ECONOMY
+    // ========================================================================
+
+    if (!scr_resource_level_initialize(_world_data))
+    {
+        show_debug_message(
+            "LEVEL ERROR - resource initialization failed."
+        );
+
+        return false;
+    }
+
+
+    // ========================================================================
     // NAVIGATION
     // ========================================================================
 
-    global.vtd_level.navigation.grid_ground = mp_grid_create(
-        0,
-        0,
-        _columns,
-        _rows,
-        _cell_size,
-        _cell_size
-    );
+    global.vtd_level.navigation.grid_ground =
+        mp_grid_create(
+            0,
+            0,
+            _columns,
+            _rows,
+            _cell_size,
+            _cell_size
+        );
 
-    global.vtd_level.navigation.grid_breach = mp_grid_create(
-        0,
-        0,
-        _columns,
-        _rows,
-        _cell_size,
-        _cell_size
-    );
+    global.vtd_level.navigation.grid_breach =
+        mp_grid_create(
+            0,
+            0,
+            _columns,
+            _rows,
+            _cell_size,
+            _cell_size
+        );
 
-    global.vtd_level.navigation.grid_flying = mp_grid_create(
-        0,
-        0,
-        _columns,
-        _rows,
-        _cell_size,
-        _cell_size
-    );
+    global.vtd_level.navigation.grid_flying =
+        mp_grid_create(
+            0,
+            0,
+            _columns,
+            _rows,
+            _cell_size,
+            _cell_size
+        );
 
 
     global.vtd_level.navigation.ready = true;
@@ -182,21 +218,29 @@ function scr_level_initialize()
 
     if (!scr_world_initialize())
     {
-        show_debug_message("LEVEL ERROR - world initialization failed.");
+        show_debug_message(
+            "LEVEL ERROR - world initialization failed."
+        );
+
         return false;
     }
 
 
-    if (!scr_world_generate("world_test"))
+    if (!scr_world_generate(_world_key))
     {
-        show_debug_message("LEVEL ERROR - world generation failed.");
+        show_debug_message(
+            "LEVEL ERROR - world generation failed."
+        );
+
         return false;
     }
 
 
     global.LevelState = LevelState.PLAYING;
 
-    show_debug_message("VECTOR TD 2026 - LEVEL INITIALIZED");
+    show_debug_message(
+        "VECTOR TD 2026 - LEVEL INITIALIZED"
+    );
 
     return true;
 }

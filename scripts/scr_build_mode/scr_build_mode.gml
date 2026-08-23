@@ -170,7 +170,7 @@ function scr_build_mode_preview_update(_controller)
 }
 
 
-/// @description Creates the selected building at the preview position.
+/// @description Pays for and creates the selected building.
 
 function scr_build_mode_place(_controller)
 {
@@ -185,13 +185,17 @@ function scr_build_mode_place(_controller)
         return noone;
 
 
-    var _data = scr_building_data_get(_build.selected_key);
+    var _data =
+        scr_building_data_get(
+            _build.selected_key
+        );
 
     if (!scr_building_data_valid(_data))
         return noone;
 
 
     var _object = noone;
+
 
     switch (_data.identity.type)
     {
@@ -245,21 +249,52 @@ function scr_build_mode_place(_controller)
         return noone;
 
 
-    var _building = instance_create_layer(
-        _preview.world_x,
-        _preview.world_y,
-        "Instances",
-        _object,
-        {
-            building_key: _build.selected_key,
-            placement_cell_x: _preview.cell_x,
-            placement_cell_y: _preview.cell_y
-        }
-    );
+    // Confirm affordability immediately before payment.
+
+    if (
+        !scr_resource_cost_pay(
+            _data.economy.cost
+        )
+    )
+    {
+        scr_hud_alert_push(
+            HudAlertType.WARNING,
+            "INSUFFICIENT RESOURCES",
+            "CONSTRUCTION COST CANNOT BE PAID",
+            2
+        );
+
+        return noone;
+    }
+
+
+    var _building =
+        instance_create_layer(
+            _preview.world_x,
+            _preview.world_y,
+            "Instances",
+            _object,
+            {
+                building_key: _build.selected_key,
+                placement_cell_x: _preview.cell_x,
+                placement_cell_y: _preview.cell_y
+            }
+        );
 
 
     if (!instance_exists(_building))
+    {
+        scr_resource_cost_refund(
+            _data.economy.cost
+        );
+
+        show_debug_message(
+            "BUILD ERROR - creation failed and cost was refunded: "
+            + _data.identity.name
+        );
+
         return noone;
+    }
 
 
     show_debug_message(
@@ -429,7 +464,7 @@ function scr_build_mode_draw(
     return true;
 }
 
-/// @description Returns whether the selected building can occupy a footprint.
+/// @description Returns whether the selected building can be afforded and placed.
 
 function scr_build_mode_placement_valid(
     _data,
@@ -439,6 +474,16 @@ function scr_build_mode_placement_valid(
 {
     if (!scr_building_data_valid(_data))
         return false;
+
+
+    if (
+        !scr_resource_cost_can_afford(
+            _data.economy.cost
+        )
+    )
+    {
+        return false;
+    }
 
 
     switch (_data.identity.type)
