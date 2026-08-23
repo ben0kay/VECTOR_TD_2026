@@ -3,84 +3,173 @@
 
 /// @description Registers every enemy definition.
 
+/// @description Registers every enemy definition.
+
 function scr_enemy_data_initialize()
 {
     global.vtd.data.enemies =
     {
+        // ====================================================================
+        // YELLOW — CPU SEEKER
+        // ====================================================================
+
         enemy_weak:
         {
             identity:
             {
-                key:
-                    "enemy_weak",
-
-                name:
-                    "Weak Drone"
+                key: "enemy_weak",
+                name: "Weak CPU Seeker"
             },
 
             visual:
             {
-                radius:
-                    16,
-
-                color:
-                    c_yellow
+                radius: 16,
+                color: c_yellow
             },
 
             vitals:
             {
-                hp_maximum:
-                    20
+                hp_maximum: 20
             },
 
             movement:
             {
-                speed:
-                    2,
-
-                layer:
-                    EnemyMovementLayer.GROUND
+                speed: 2,
+                layer: EnemyMovementLayer.GROUND
             },
 
             targeting:
             {
-                target_type:
-                    EnemyTarget.CPU
+                target_type: EnemyTarget.CPU
             },
 
             navigation:
             {
-                blocked_action:
-                    EnemyBlockedAction.BREACH
+                blocked_action: EnemyBlockedAction.BREACH
             },
 
             attack:
             {
-                type:
-                    EnemyAttack.CONTACT,
+                type: EnemyAttack.CONTACT,
+                damage: 5,
+                range: 4,
+                cooldown_seconds: 1
+            },
 
-                damage:
-                    5,
+            abilities: []
+        },
 
-                range:
-                    4,
 
-                cooldown_seconds:
-                    1
+        // ====================================================================
+        // RED — BUILDING HUNTER
+        // ====================================================================
+
+        enemy_hunter:
+        {
+            identity:
+            {
+                key: "enemy_hunter",
+                name: "Building Hunter"
+            },
+
+            visual:
+            {
+                radius: 18,
+                color: c_red
+            },
+
+            vitals:
+            {
+                hp_maximum: 40
+            },
+
+            movement:
+            {
+                speed: 1.6,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 8,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            abilities: []
+        },
+
+
+        // ====================================================================
+        // CYAN — PHASER
+        // ====================================================================
+
+        enemy_phaser:
+        {
+            identity:
+            {
+                key: "enemy_phaser",
+                name: "Phaser"
+            },
+
+            visual:
+            {
+                radius: 14,
+                color: c_aqua
+            },
+
+            vitals:
+            {
+                hp_maximum: 30
+            },
+
+            movement:
+            {
+                speed: 2.4,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                // The phaser uses grid_breach because its PHASING ability
+                // allows it to ignore buildings.
+
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 6,
+                range: 4,
+                cooldown_seconds: 0.8
             },
 
             abilities:
             [
-                // The first basic drone has no special abilities.
+                EnemyAbility.PHASING
             ]
         }
     };
 
 
-    show_debug_message(
-        "VECTOR TD 2026 - ENEMY DATA INITIALIZED"
-    );
-
+    show_debug_message("VECTOR TD 2026 - ENEMY DATA INITIALIZED");
 
     return true;
 }

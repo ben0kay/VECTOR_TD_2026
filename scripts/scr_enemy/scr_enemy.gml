@@ -30,7 +30,7 @@ function scr_enemy_has_ability(
 }
 
 
-/// @description Acquires the enemy's intended target.
+/// @description Acquires an enemy's intended strategic target.
 
 function scr_enemy_target_acquire(_enemy)
 {
@@ -42,24 +42,28 @@ function scr_enemy_target_acquire(_enemy)
     {
         case EnemyTarget.CPU:
         {
-            return global.vtd_level
-                .entities.cpu;
+            return global.vtd_level.entities.cpu;
         }
 
 
         case EnemyTarget.BUILDING:
         {
-            // FUTURE:
-            // Find nearby or weighted building candidates.
+            var _building = scr_enemy_closest_building_get(_enemy);
 
-            return noone;
+            // If no ordinary building exists, attack the CPU instead.
+            // This prevents building hunters having no objective at the
+            // beginning of a level.
+
+            if (!instance_exists(_building))
+                return global.vtd_level.entities.cpu;
+
+            return _building;
         }
 
 
         case EnemyTarget.PLAYER:
         {
-            return global.vtd_level
-                .entities.player;
+            return global.vtd_level.entities.player;
         }
     }
 
@@ -746,84 +750,11 @@ function scr_enemy_spawn(
 }
 
 
-/// @description Spawns a test enemy from a random map edge.
+/// @description Spawns the default CPU-seeking test enemy.
 
 function scr_enemy_spawn_test()
 {
-    var _margin =
-        64;
-
-    var _spawn_x =
-        _margin;
-
-    var _spawn_y =
-        _margin;
-
-
-    switch (irandom(3))
-    {
-        case 0:
-        {
-            _spawn_x =
-                random_range(
-                    _margin,
-                    room_width - _margin
-                );
-
-            _spawn_y =
-                _margin;
-        }
-        break;
-
-
-        case 1:
-        {
-            _spawn_x =
-                room_width - _margin;
-
-            _spawn_y =
-                random_range(
-                    _margin,
-                    room_height - _margin
-                );
-        }
-        break;
-
-
-        case 2:
-        {
-            _spawn_x =
-                random_range(
-                    _margin,
-                    room_width - _margin
-                );
-
-            _spawn_y =
-                room_height - _margin;
-        }
-        break;
-
-
-        case 3:
-        {
-            _spawn_x =
-                _margin;
-
-            _spawn_y =
-                random_range(
-                    _margin,
-                    room_height - _margin
-                );
-        }
-        break;
-    }
-
-
-    return scr_enemy_spawn(
-        "enemy_weak",
-        _spawn_x,
-        _spawn_y
-    );
+    return scr_enemy_spawn_edge("enemy_weak");
 }
 
 
@@ -1141,4 +1072,115 @@ function scr_enemy_cleanup(_enemy)
 
 
     return true;
+}
+
+/// @description Returns whether a building is a valid enemy target.
+
+function scr_enemy_building_target_valid(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (
+        _building.object_index != o_building_par
+        && !object_is_ancestor(_building.object_index, o_building_par)
+    )
+    {
+        return false;
+    }
+
+    if (!variable_instance_exists(_building, "BuildingState"))
+        return false;
+
+    if (_building.BuildingState == BuildingState.DESTROYED)
+        return false;
+
+    return _building.vitals.hp.current > 0;
+}
+
+/// @description Returns the closest valid building to an enemy.
+
+function scr_enemy_closest_building_get(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return noone;
+
+
+    var _closest = noone;
+    var _closest_distance = infinity;
+    var _building_count = instance_number(o_building_par);
+
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building = instance_find(o_building_par, i);
+
+        if (!scr_enemy_building_target_valid(_building))
+            continue;
+
+
+        var _distance = point_distance(
+            _enemy.x,
+            _enemy.y,
+            _building.x,
+            _building.y
+        );
+
+
+        if (_distance < _closest_distance)
+        {
+            _closest = _building;
+            _closest_distance = _distance;
+        }
+    }
+
+
+    return _closest;
+}
+
+/// @description Spawns one enemy type at a random map edge.
+
+function scr_enemy_spawn_edge(_enemy_key)
+{
+    var _margin = 64;
+    var _spawn_x = _margin;
+    var _spawn_y = _margin;
+
+
+    switch (irandom(3))
+    {
+        case 0:
+        {
+            _spawn_x = random_range(_margin, room_width - _margin);
+            _spawn_y = _margin;
+        }
+        break;
+
+
+        case 1:
+        {
+            _spawn_x = room_width - _margin;
+            _spawn_y = random_range(_margin, room_height - _margin);
+        }
+        break;
+
+
+        case 2:
+        {
+            _spawn_x = random_range(_margin, room_width - _margin);
+            _spawn_y = room_height - _margin;
+        }
+        break;
+
+
+        case 3:
+        {
+            _spawn_x = _margin;
+            _spawn_y = random_range(_margin, room_height - _margin);
+        }
+        break;
+    }
+
+
+    return scr_enemy_spawn(_enemy_key, _spawn_x, _spawn_y);
 }
