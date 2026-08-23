@@ -1307,3 +1307,273 @@ function scr_world_resources_generate(_generation)
 
     return true;
 }
+
+/// @description Returns whether a circle overlaps permanent solid terrain.
+
+function scr_world_circle_solid(
+    _world_x,
+    _world_y,
+    _radius
+)
+{
+    if (!variable_global_exists("vtd_level"))
+        return false;
+
+    if (!is_struct(global.vtd_level))
+        return false;
+
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _cell_left = floor(
+        (_world_x - _radius)
+        / _cell_size
+    );
+
+    var _cell_right = floor(
+        (_world_x + _radius)
+        / _cell_size
+    );
+
+    var _cell_top = floor(
+        (_world_y - _radius)
+        / _cell_size
+    );
+
+    var _cell_bottom = floor(
+        (_world_y + _radius)
+        / _cell_size
+    );
+
+
+    for (var _cell_y = _cell_top; _cell_y <= _cell_bottom; ++_cell_y)
+    {
+        for (var _cell_x = _cell_left; _cell_x <= _cell_right; ++_cell_x)
+        {
+            if (
+                !scr_building_cell_inside_map(
+                    _cell_x,
+                    _cell_y
+                )
+            )
+            {
+                continue;
+            }
+
+
+            var _cell_type =
+                scr_world_cell_type_get(
+                    _cell_x,
+                    _cell_y
+                );
+
+
+            // Both dead rock and resource rock are physically solid.
+
+            if (
+                _cell_type != WorldCellType.DEAD
+                && _cell_type != WorldCellType.RESOURCE
+            )
+            {
+                continue;
+            }
+
+
+            var _left = _cell_x * _cell_size;
+            var _top = _cell_y * _cell_size;
+            var _right = _left + _cell_size;
+            var _bottom = _top + _cell_size;
+
+            var _closest_x = clamp(
+                _world_x,
+                _left,
+                _right
+            );
+
+            var _closest_y = clamp(
+                _world_y,
+                _top,
+                _bottom
+            );
+
+
+            if (
+                point_distance(
+                    _world_x,
+                    _world_y,
+                    _closest_x,
+                    _closest_y
+                )
+                <= _radius
+            )
+            {
+                return true;
+            }
+        }
+    }
+
+
+    return false;
+}
+
+
+/// @description Sweeps a moving circle against permanent terrain.
+
+function scr_world_moving_circle_solid(
+    _start_x,
+    _start_y,
+    _end_x,
+    _end_y,
+    _radius
+)
+{
+    var _distance = point_distance(
+        _start_x,
+        _start_y,
+        _end_x,
+        _end_y
+    );
+
+
+    var _sample_distance = max(
+        1,
+        _radius * 0.5
+    );
+
+    var _steps = max(
+        1,
+        ceil(_distance / _sample_distance)
+    );
+
+
+    for (var i = 1; i <= _steps; ++i)
+    {
+        var _progress = i / _steps;
+
+        var _check_x = lerp(
+            _start_x,
+            _end_x,
+            _progress
+        );
+
+        var _check_y = lerp(
+            _start_y,
+            _end_y,
+            _progress
+        );
+
+
+        if (
+            scr_world_circle_solid(
+                _check_x,
+                _check_y,
+                _radius
+            )
+        )
+        {
+            return true;
+        }
+    }
+
+
+    return false;
+}
+
+
+/// @description Returns whether dead terrain blocks a line of sight.
+
+function scr_world_line_blocked_by_dead(
+    _start_x,
+    _start_y,
+    _end_x,
+    _end_y
+)
+{
+    if (!variable_global_exists("vtd_level"))
+        return false;
+
+    if (!is_struct(global.vtd_level))
+        return false;
+
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _x0 = floor(_start_x / _cell_size);
+    var _y0 = floor(_start_y / _cell_size);
+
+    var _x1 = floor(_end_x / _cell_size);
+    var _y1 = floor(_end_y / _cell_size);
+
+
+    var _difference_x = abs(_x1 - _x0);
+    var _difference_y = abs(_y1 - _y0);
+
+    var _step_x = -1;
+    var _step_y = -1;
+
+    if (_x0 < _x1)
+        _step_x = 1;
+
+    if (_y0 < _y1)
+        _step_y = 1;
+
+
+    var _error =
+        _difference_x
+        - _difference_y;
+
+    var _guard =
+        global.vtd_level.map.columns
+        + global.vtd_level.map.rows
+        + 4;
+
+
+    repeat (_guard)
+    {
+        if (
+            scr_building_cell_inside_map(
+                _x0,
+                _y0
+            )
+        )
+        {
+            if (
+                scr_world_cell_type_get(
+                    _x0,
+                    _y0
+                )
+                == WorldCellType.DEAD
+            )
+            {
+                return true;
+            }
+        }
+
+
+        if (_x0 == _x1 && _y0 == _y1)
+            break;
+
+
+        var _error_double =
+            _error * 2;
+
+
+        if (_error_double > -_difference_y)
+        {
+            _error -= _difference_y;
+            _x0 += _step_x;
+        }
+
+
+        if (_error_double < _difference_x)
+        {
+            _error += _difference_x;
+            _y0 += _step_y;
+        }
+    }
+
+
+    return false;
+}

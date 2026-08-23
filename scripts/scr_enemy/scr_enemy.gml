@@ -1091,19 +1091,50 @@ function scr_enemy_brainless_update(_enemy)
         );
 
 
-    _enemy.visual.draw_angle = _enemy.movement.direction;
+    _enemy.visual.draw_angle =
+        _enemy.movement.direction;
 
 
-    // Reuse the hostile projectile sweep test. It already finds the first
-    // CPU, player, or building crossed between two positions.
+    // ========================================================================
+    // PERMANENT TERRAIN IMPACT
+    // ========================================================================
 
-    var _target = scr_projectile_enemy_hit_find(
-        _enemy,
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y
-    );
+    if (
+        scr_world_moving_circle_solid(
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y,
+            _enemy.visual.radius
+        )
+    )
+    {
+        // This is terrain removal, not a player/tower kill.
+        //
+        // FUTURE:
+        // impact particles
+        // terrain-impact sound
+        // optional explosion-on-terrain behavior
+
+        instance_destroy(_enemy);
+        return true;
+    }
+
+
+    // ========================================================================
+    // ENTITY IMPACT
+    // ========================================================================
+
+    // This sweep finds the first CPU, player, or building crossed.
+
+    var _target =
+        scr_projectile_enemy_hit_find(
+            _enemy,
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y
+        );
 
 
     if (instance_exists(_target))
@@ -1118,7 +1149,9 @@ function scr_enemy_brainless_update(_enemy)
             && _enemy.movement.destroy_on_impact
         )
         {
-            scr_enemy_die(_enemy, undefined);
+            // Impact deaths are not credited to the player or a tower.
+
+            instance_destroy(_enemy);
         }
 
 
@@ -1126,11 +1159,16 @@ function scr_enemy_brainless_update(_enemy)
     }
 
 
+    // ========================================================================
+    // MOVEMENT
+    // ========================================================================
+
     _enemy.x = _end_x;
     _enemy.y = _end_y;
 
 
     var _margin = 128;
+
 
     if (
         _enemy.x < -_margin
@@ -1145,7 +1183,6 @@ function scr_enemy_brainless_update(_enemy)
 
     return true;
 }
-
 /// @description Releases evenly spaced brainless children from a splitter.
 
 function scr_enemy_split(_enemy)

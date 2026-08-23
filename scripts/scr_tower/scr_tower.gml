@@ -1,7 +1,7 @@
 /// @description Generic data-driven tower targeting, firing, and drawing.
 
 
-/// @description Initializes one tower after its building parent initializes.
+/// @description Initializes one tower after its building parent.
 
 function scr_tower_initialize(_tower)
 {
@@ -27,47 +27,52 @@ function scr_tower_initialize(_tower)
 
 
     _tower.visual.turret_color =
-        _tower.building_data.visual
-            .turret_color;
+        _tower.building_data.visual.turret_color;
 
-    _tower.visual.draw_angle =
-        0;
+    _tower.visual.draw_angle = 0;
+
+
+    var _requires_line_of_sight = true;
+
+
+    if (
+        variable_struct_exists(
+            _data,
+            "requires_line_of_sight"
+        )
+    )
+    {
+        _requires_line_of_sight =
+            _data.requires_line_of_sight;
+    }
 
 
     _tower.targeting =
     {
-        target:
-            noone,
+        target: noone,
+        mode: _data.target_mode,
+        layer: _data.target_layer,
 
-        mode:
-            _data.target_mode,
-
-        layer:
-            _data.target_layer
+        requires_line_of_sight:
+            _requires_line_of_sight
     };
 
 
     _tower.combat =
     {
-        kills:
-            0,
-
-        range:
-            _data.range,
+        kills: 0,
+        range: _data.range,
 
         weapon:
         {
-            damage:
-                _data.weapon.damage,
+            damage: _data.weapon.damage,
 
             cooldown:
             {
                 duration:
-                    _data.weapon
-                        .cooldown_seconds,
+                    _data.weapon.cooldown_seconds,
 
-                remaining:
-                    0
+                remaining: 0
             },
 
             projectile:
@@ -100,7 +105,7 @@ function scr_tower_initialize(_tower)
 }
 
 
-/// @description Returns whether an enemy can be targeted by a tower.
+/// @description Returns whether an enemy is visible and targetable.
 
 function scr_tower_target_valid(
     _tower,
@@ -113,13 +118,8 @@ function scr_tower_target_valid(
     if (!instance_exists(_enemy))
         return false;
 
-    if (
-        _enemy.EnemyState
-        == EnemyState.DEAD
-    )
-    {
+    if (_enemy.EnemyState == EnemyState.DEAD)
         return false;
-    }
 
     if (
         _enemy.movement.layer
@@ -130,16 +130,36 @@ function scr_tower_target_valid(
     }
 
 
-    return (
+    if (
         point_distance(
             _tower.x,
             _tower.y,
             _enemy.x,
             _enemy.y
         )
-        <= _tower.combat.range
+        > _tower.combat.range
             + _enemy.visual.radius
-    );
+    )
+    {
+        return false;
+    }
+
+
+    if (
+        _tower.targeting.requires_line_of_sight
+        && scr_world_line_blocked_by_dead(
+            _tower.x,
+            _tower.y,
+            _enemy.x,
+            _enemy.y
+        )
+    )
+    {
+        return false;
+    }
+
+
+    return true;
 }
 
 
