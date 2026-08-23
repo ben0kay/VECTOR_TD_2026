@@ -858,31 +858,16 @@ function scr_enemy_spawn_test()
     return scr_enemy_spawn_edge("enemy_weak");
 }
 
-
-/// @description Draws one enemy, its shield and its health display.
+/// @description Draws one enemy, its optional shield and health display.
 
 function scr_enemy_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-
-    scr_enemy_shield_visual_update(
-        _enemy
-    );
-
-    scr_enemy_shield_draw(
-        _enemy
-    );
-
-    scr_enemy_visual_draw(
-        _enemy
-    );
-
-    scr_enemy_health_bar_draw(
-        _enemy
-    );
-
+    scr_enemy_shield_draw(_enemy);
+    scr_enemy_visual_draw(_enemy);
+    scr_enemy_health_bar_draw(_enemy);
 
     return true;
 }
