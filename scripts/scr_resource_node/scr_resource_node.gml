@@ -169,6 +169,8 @@ function scr_resource_node_draw(_node)
         return false;
 
 
+    // The miner provides the visible representation while this node is claimed.
+
     if (instance_exists(_node.claim.miner))
         return true;
 
@@ -191,15 +193,6 @@ function scr_resource_node_draw(_node)
     {
         _node.visual.draw_function(_node);
     }
-
-
-    draw_set_color(c_white);
-
-    draw_text(
-        _node.x - 12,
-        _node.y + 12,
-        string(floor(_node.amount.current))
-    );
 
 
     return true;

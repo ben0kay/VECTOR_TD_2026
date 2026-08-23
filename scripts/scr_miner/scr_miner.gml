@@ -261,7 +261,7 @@ function scr_miner_update(_miner)
 }
 
 
-/// @description Draws one miner and its extraction/hopper status.
+/// @description Draws one miner with compact visual status feedback.
 
 function scr_miner_draw(_miner)
 {
@@ -277,16 +277,42 @@ function scr_miner_draw(_miner)
     var _right = _miner.x + _half;
     var _bottom = _miner.y + _half;
 
-
     var _node = _miner.mining.node;
-
     var _resource_color = c_gray;
+
 
     if (instance_exists(_node))
         _resource_color = _node.visual.color;
 
 
-    // Miner body.
+    // ========================================================================
+    // STATUS
+    // ========================================================================
+
+    var _status_color = c_gray;
+
+
+    if (!instance_exists(_node))
+    {
+        _status_color = c_red;
+    }
+    else if (_node.amount.depleted)
+    {
+        _status_color = c_red;
+    }
+    else if (_miner.hopper.current >= _miner.hopper.capacity)
+    {
+        _status_color = c_yellow;
+    }
+    else if (_miner.mining.extracting)
+    {
+        _status_color = c_lime;
+    }
+
+
+    // ========================================================================
+    // BODY
+    // ========================================================================
 
     draw_set_color(c_dkgray);
 
@@ -296,6 +322,17 @@ function scr_miner_draw(_miner)
         _right - 3,
         _bottom - 3,
         true
+    );
+
+
+    draw_set_color(_status_color);
+
+    draw_rectangle(
+        _left + 2,
+        _top + 2,
+        _right - 2,
+        _bottom - 2,
+        false
     );
 
 
@@ -309,7 +346,9 @@ function scr_miner_draw(_miner)
     );
 
 
-    // Animated drill cross while extracting.
+    // ========================================================================
+    // DRILL
+    // ========================================================================
 
     var _drill_angle = 0;
 
@@ -334,51 +373,44 @@ function scr_miner_draw(_miner)
     );
 
 
-    var _status = "IDLE";
+    // ========================================================================
+    // HOPPER BAR
+    // ========================================================================
 
-    if (!instance_exists(_node))
-        _status = "NO NODE";
-    else if (_node.amount.depleted)
-        _status = "DEPLETED";
-    else if (_miner.hopper.current >= _miner.hopper.capacity)
-        _status = "HOPPER FULL";
-    else if (_miner.mining.extracting)
-        _status = "EXTRACTING";
-
-
-    draw_set_color(c_white);
-
-    draw_text(
-        _left,
-        _bottom + 4,
-        _status
+    var _hopper_percent = clamp(
+        _miner.hopper.current
+        / _miner.hopper.capacity,
+        0,
+        1
     );
 
-    draw_text(
-        _left,
-        _bottom + 18,
-        _miner.mining.resource_key
-    );
+    var _bar_left = _left + 4;
+    var _bar_right = _right - 4;
+    var _bar_top = _bottom - 6;
+    var _bar_bottom = _bottom - 3;
 
-    draw_text(
-        _left,
-        _bottom + 32,
-        "HOPPER "
-        + string(floor(_miner.hopper.current))
-        + " / "
-        + string(_miner.hopper.capacity)
+
+    draw_set_color(c_black);
+
+    draw_rectangle(
+        _bar_left,
+        _bar_top,
+        _bar_right,
+        _bar_bottom,
+        true
     );
 
 
-    if (instance_exists(_node))
-    {
-        draw_text(
-            _left,
-            _bottom + 46,
-            "NODE "
-            + string(floor(_node.amount.current))
-        );
-    }
+    draw_set_color(_resource_color);
+
+    draw_rectangle(
+        _bar_left,
+        _bar_top,
+        _bar_left
+            + ((_bar_right - _bar_left) * _hopper_percent),
+        _bar_bottom,
+        true
+    );
 
 
     draw_set_color(c_white);
