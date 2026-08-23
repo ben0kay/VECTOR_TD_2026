@@ -14,7 +14,14 @@ enum CameraState { FOLLOW_PLAYER, ROAMING }
 
 enum WorldCellType { EMPTY, DEAD, RESOURCE }
 enum WorldGenerationStyle { NONE, CLUSTERS, CAVERNS }
-enum SpawnSide { TOP, RIGHT, BOTTOM, LEFT, RANDOM }
+enum SpawnSide { TOP, RIGHT, BOTTOM, LEFT, RANDOM, INHERIT }
+enum WorldContentType
+{
+    ENEMY,
+    BUILDING,
+    RESOURCE,
+    DEPOSIT
+}
 
 
 // ============================================================================

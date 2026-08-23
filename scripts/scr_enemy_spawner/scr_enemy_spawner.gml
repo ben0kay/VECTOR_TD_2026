@@ -74,6 +74,21 @@ function scr_enemy_spawner_data_valid(_data)
 
     if (!is_array(_data.waves.definitions))
         return false;
+	
+	if (!variable_struct_exists(_data, "modifiers"))
+    return false;
+
+	if (!is_struct(_data.modifiers))
+	    return false;
+
+	if (!is_array(_data.modifiers.definitions))
+	    return false;
+
+	if (!variable_struct_exists(_data.waves, "cycle_start_index"))
+	    return false;
+
+	if (_data.waves.cycle_start_index < 0)
+	    return false;
 
 
     return true;
@@ -284,7 +299,7 @@ function scr_enemy_spawner_edge_position_get(
 }
 
 
-/// @description Adds a staggered group to the unified queue.
+/// @description Adds one weighted staggered group to the unified queue.
 
 function scr_enemy_spawner_group_queue(
     _spawner,
@@ -308,30 +323,25 @@ function scr_enemy_spawner_group_queue(
     if (array_length(_enemy_pool) <= 0)
         return false;
 
-
-    var _queue =
-        _spawner.spawner.queue;
+    var _queue = _spawner.spawner.queue;
 
     var _queue_space =
-        _spawner.spawner.data
-            .maximum_queued_enemies
+        _spawner.spawner.data.maximum_queued_enemies
         - array_length(_queue);
-
 
     if (_queue_space <= 0)
         return false;
 
-
-    var _count = min(
-        irandom_range(
-            max(0, floor(_count_min)),
-            max(0, floor(_count_max))
-        ),
-        _queue_space
-    );
+    var _count =
+        min(
+            irandom_range(
+                max(0, floor(_count_min)),
+                max(0, floor(_count_max))
+            ),
+            _queue_space
+        );
 
     var _running_delay = 0;
-
 
     for (var i = 0; i < _count; ++i)
     {
@@ -341,32 +351,47 @@ function scr_enemy_spawner_group_queue(
                 _spawner.spawner.time.active_seconds
             );
 
-
         if (is_undefined(_enemy_entry))
             continue;
 
+        if (
+            !scr_world_current_content_allowed(
+                WorldContentType.ENEMY,
+                _enemy_entry.enemy_key
+            )
+        )
+        {
+            continue;
+        }
 
-        var _edge_ratio = clamp(
-            _zone_center
-            + random_range(
-                -_zone_width * 0.5,
-                _zone_width * 0.5
-            ),
-            0.02,
-            0.98
-        );
+        var _edge_ratio =
+            clamp(
+                _zone_center
+                + random_range(
+                    -_zone_width * 0.5,
+                    _zone_width * 0.5
+                ),
+                0.02,
+                0.98
+            );
 
-
-        _running_delay += random_range(
-            _stagger_min_seconds,
-            _stagger_max_seconds
-        );
-
+        _running_delay +=
+            random_range(
+                _stagger_min_seconds,
+                _stagger_max_seconds
+            );
 
         array_push(
             _queue,
             {
                 enemy_key: _enemy_entry.enemy_key,
+
+                modifiers:
+                    scr_enemy_spawner_modifiers_get(
+                        _spawner,
+                        _enemy_entry
+                    ),
+
                 delay_seconds: _running_delay,
 
                 side: _side,
@@ -378,10 +403,138 @@ function scr_enemy_spawner_group_queue(
         );
     }
 
-
     _spawner.spawner.queue = _queue;
 
     return true;
+}
+
+/// @description Adds every exact handcrafted wave group to the queue.
+
+function scr_enemy_spawner_wave_groups_queue(
+    _spawner,
+    _wave,
+    _wave_side
+)
+{
+    if (!instance_exists(_spawner))
+        return false;
+
+    if (!is_struct(_wave))
+        return false;
+
+    if (!variable_struct_exists(_wave, "groups"))
+        return false;
+
+    var _queue = _spawner.spawner.queue;
+    var _queued_any = false;
+
+    for (var i = 0; i < array_length(_wave.groups); ++i)
+    {
+        var _group = _wave.groups[i];
+
+        if (
+            !scr_world_current_content_allowed(
+                WorldContentType.ENEMY,
+                _group.enemy_key
+            )
+        )
+        {
+            show_debug_message(
+                "WAVE WARNING - unavailable enemy ignored: "
+                + _group.enemy_key
+            );
+
+            continue;
+        }
+
+        var _group_side = _wave_side;
+
+        if (
+            variable_struct_exists(_group, "side")
+            && _group.side != SpawnSide.INHERIT
+        )
+        {
+            _group_side = _group.side;
+
+            if (_group_side == SpawnSide.RANDOM)
+            {
+                _group_side =
+                    scr_enemy_spawner_side_get();
+            }
+        }
+
+        var _start_delay = 0;
+
+        if (variable_struct_exists(_group, "delay_seconds"))
+            _start_delay = max(0, _group.delay_seconds);
+
+        var _stagger_min =
+            _group.stagger_min_seconds;
+
+        var _stagger_max =
+            _group.stagger_max_seconds;
+
+        var _running_delay = _start_delay;
+
+        var _entry =
+        {
+            enemy_key: _group.enemy_key,
+            modifiers: []
+        };
+
+        if (variable_struct_exists(_group, "modifiers"))
+            _entry.modifiers = _group.modifiers;
+
+        var _modifiers =
+            scr_enemy_spawner_modifiers_get(
+                _spawner,
+                _entry
+            );
+
+        for (var j = 0; j < _group.count; ++j)
+        {
+            if (
+                array_length(_queue)
+                >= _spawner.spawner.data.maximum_queued_enemies
+            )
+            {
+                break;
+            }
+
+            _running_delay +=
+                random_range(
+                    _stagger_min,
+                    _stagger_max
+                );
+
+            array_push(
+                _queue,
+                {
+                    enemy_key: _group.enemy_key,
+
+                    modifiers:
+                        scr_enemy_modifiers_copy(
+                            _modifiers
+                        ),
+
+                    delay_seconds: _running_delay,
+
+                    side: _group_side,
+                    edge_ratio:
+                        random_range(0.05, 0.95),
+
+                    source_name: _wave.name,
+                    failed_attempts: 0
+                }
+            );
+
+            _queued_any = true;
+        }
+    }
+
+    _spawner.spawner.queue = _queue;
+
+    return _queued_any;
 }
 
 /// @description Processes due entries within population budgets.
@@ -391,22 +544,18 @@ function scr_enemy_spawner_queue_update(
     _step_seconds
 )
 {
-    var _queue =
-        _spawner.spawner.queue;
+    var _queue = _spawner.spawner.queue;
 
     var _spawn_budget =
-        _spawner.spawner.data
-            .maximum_spawns_per_step;
+        _spawner.spawner.data.maximum_spawns_per_step;
 
     var _alive_limit =
-        _spawner.spawner.data
-            .maximum_alive_enemies;
+        _spawner.spawner.data.maximum_alive_enemies;
 
     var _alive_count =
         instance_number(o_enemy);
 
     var _spawned_this_step = 0;
-
 
     for (
         var i = array_length(_queue) - 1;
@@ -414,9 +563,7 @@ function scr_enemy_spawner_queue_update(
         --i
     )
     {
-        _queue[i].delay_seconds -=
-            _step_seconds;
-
+        _queue[i].delay_seconds -= _step_seconds;
 
         if (_queue[i].delay_seconds > 0)
             continue;
@@ -427,8 +574,18 @@ function scr_enemy_spawner_queue_update(
         if (_alive_count >= _alive_limit)
             continue;
 
-
         var _entry = _queue[i];
+
+        if (
+            !scr_world_current_content_allowed(
+                WorldContentType.ENEMY,
+                _entry.enemy_key
+            )
+        )
+        {
+            array_delete(_queue, i, 1);
+            continue;
+        }
 
         var _position =
             scr_enemy_spawner_edge_position_get(
@@ -437,20 +594,20 @@ function scr_enemy_spawner_queue_update(
                 _entry.edge_ratio
             );
 
-
         if (is_struct(_position))
         {
-            var _enemy = scr_enemy_spawn(
-                _entry.enemy_key,
-                _position.x,
-                _position.y
-            );
-
+            var _enemy =
+                scr_enemy_spawn(
+                    _entry.enemy_key,
+                    _position.x,
+                    _position.y,
+                    undefined,
+                    _entry.modifiers
+                );
 
             if (instance_exists(_enemy))
             {
-                _spawner.spawner
-                    .statistics.spawned_total++;
+                _spawner.spawner.statistics.spawned_total++;
 
                 _spawned_this_step++;
                 _alive_count++;
@@ -460,15 +617,9 @@ function scr_enemy_spawner_queue_update(
             }
         }
 
-
         _queue[i].failed_attempts++;
-
-        _queue[i].side =
-            scr_enemy_spawner_side_get();
-
-        _queue[i].edge_ratio =
-            random_range(0.05, 0.95);
-
+        _queue[i].side = scr_enemy_spawner_side_get();
+        _queue[i].edge_ratio = random_range(0.05, 0.95);
 
         if (_queue[i].failed_attempts >= 60)
         {
@@ -480,7 +631,6 @@ function scr_enemy_spawner_queue_update(
             array_delete(_queue, i, 1);
         }
     }
-
 
     _spawner.spawner.queue = _queue;
 
@@ -556,22 +706,38 @@ function scr_enemy_spawner_baseline_update(
         );
 
 
-    if (!is_undefined(_entry))
-    {
-        array_push(
-            _spawner.spawner.queue,
-            {
-                enemy_key: _entry.enemy_key,
-                delay_seconds: 0,
+    if (
+    !is_undefined(_entry)
+    && scr_world_current_content_allowed(
+        WorldContentType.ENEMY,
+        _entry.enemy_key
+    )
+	)
+	{
+	    array_push(
+	        _spawner.spawner.queue,
+	        {
+	            enemy_key: _entry.enemy_key,
 
-                side: scr_enemy_spawner_side_get(),
-                edge_ratio: random_range(0.05, 0.95),
+	            modifiers:
+	                scr_enemy_spawner_modifiers_get(
+	                    _spawner,
+	                    _entry
+	                ),
 
-                source_name: "BASELINE",
-                failed_attempts: 0
-            }
-        );
-    }
+	            delay_seconds: 0,
+
+	            side:
+	                scr_enemy_spawner_side_get(),
+
+	            edge_ratio:
+	                random_range(0.05, 0.95),
+
+	            source_name: "BASELINE",
+	            failed_attempts: 0
+	        }
+	    );
+	}
 
 
     _runtime.timer =
@@ -671,16 +837,12 @@ function scr_enemy_spawner_cluster_update(
 }
 
 
-/// @description Begins the warning for the next major wave.
+/// @description Begins the warning for the next sequential major wave.
 
 function scr_enemy_spawner_wave_trigger(_spawner)
 {
-    var _data =
-        _spawner.spawner.data.waves;
-
-    var _runtime =
-        _spawner.spawner.waves;
-
+    var _data = _spawner.spawner.data.waves;
+    var _runtime = _spawner.spawner.waves;
 
     if (!_data.enabled)
         return false;
@@ -692,14 +854,21 @@ function scr_enemy_spawner_wave_trigger(_spawner)
         return false;
 
 
+    // After the final authored wave, return only to the configured
+    // late-game section instead of returning to Wave 1.
+
     if (_runtime.index >= array_length(_data.definitions))
     {
-        if (_data.cycle)
-            _runtime.index = 0;
-        else
+        if (!_data.cycle)
             return false;
-    }
 
+        _runtime.index =
+            clamp(
+                _data.cycle_start_index,
+                0,
+                array_length(_data.definitions) - 1
+            );
+    }
 
     var _wave =
         _data.definitions[_runtime.index];
@@ -707,19 +876,11 @@ function scr_enemy_spawner_wave_trigger(_spawner)
     var _side =
         scr_enemy_spawner_side_get();
 
-
     _runtime.warning.active = true;
     _runtime.warning.remaining = _data.warning_seconds;
-
-    _runtime.warning.wave_index =
-        _runtime.index;
-
-    _runtime.warning.wave_name =
-        _wave.name;
-
-    _runtime.warning.side =
-        _side;
-
+    _runtime.warning.wave_index = _runtime.index;
+    _runtime.warning.wave_name = _wave.name;
+    _runtime.warning.side = _side;
 
     scr_hud_alert_push(
         HudAlertType.DANGER,
@@ -730,24 +891,16 @@ function scr_enemy_spawner_wave_trigger(_spawner)
         _data.warning_seconds
     );
 
-
-    show_debug_message(
-        "MAJOR WAVE WARNING: "
-        + _wave.name
-    );
-
-
     return true;
 }
 
 
-/// @description Releases a warned wave into the spawn queue.
+/// @description Releases one warned handcrafted wave.
 
 function scr_enemy_spawner_wave_release(_spawner)
 {
     if (!instance_exists(_spawner))
         return false;
-
 
     var _data = _spawner.spawner.data.waves;
     var _runtime = _spawner.spawner.waves;
@@ -766,30 +919,15 @@ function scr_enemy_spawner_wave_release(_spawner)
         return false;
     }
 
-
     var _wave =
         _data.definitions[_warning.wave_index];
 
     var _queued =
-        scr_enemy_spawner_group_queue(
+        scr_enemy_spawner_wave_groups_queue(
             _spawner,
-            _wave.enemies,
-
-            _wave.count_min,
-            _wave.count_max,
-
-            _wave.stagger_min_seconds,
-            _wave.stagger_max_seconds,
-
-            _warning.side,
-            0.5,
-            0.9,
-
-            _wave.name
+            _wave,
+            _warning.side
         );
-
-
-    // Keep trying if the queue is temporarily full.
 
     if (!_queued)
     {
@@ -797,30 +935,17 @@ function scr_enemy_spawner_wave_release(_spawner)
         return false;
     }
 
-
     var _side_name =
         scr_enemy_spawner_side_name(
             _warning.side
         );
 
-
     scr_hud_alert_push(
         HudAlertType.DANGER,
         "WAVE ENGAGED",
-        _wave.name
-        + " // "
-        + _side_name,
+        _wave.name + " // " + _side_name,
         3
     );
-
-
-    show_debug_message(
-        "MAJOR WAVE RELEASED: "
-        + _wave.name
-        + " FROM "
-        + _side_name
-    );
-
 
     _runtime.last_name = _wave.name;
     _runtime.index = _warning.wave_index + 1;
@@ -831,10 +956,11 @@ function scr_enemy_spawner_wave_release(_spawner)
     _warning.wave_name = "";
     _warning.side = SpawnSide.RANDOM;
 
-    _runtime.timer = random_range(
-        _data.interval_min_seconds,
-        _data.interval_max_seconds
-    );
+    _runtime.timer =
+        random_range(
+            _data.interval_min_seconds,
+            _data.interval_max_seconds
+        );
 
     return true;
 }
@@ -1229,6 +1355,195 @@ function scr_enemy_spawner_side_name(_side)
 
 
     return "UNKNOWN";
+}
+
+/// @description Returns whether an array already contains a modifier.
+
+function scr_enemy_spawner_modifier_array_has(
+    _modifiers,
+    _modifier
+)
+{
+    if (!is_array(_modifiers))
+        return false;
+
+    for (var i = 0; i < array_length(_modifiers); ++i)
+    {
+        if (_modifiers[i] == _modifier)
+            return true;
+    }
+
+    return false;
+}
+
+
+/// @description Returns whether an enemy can receive one modifier.
+
+function scr_enemy_spawner_modifier_eligible(
+    _enemy_key,
+    _modifier
+)
+{
+    var _data =
+        scr_enemy_data_get(_enemy_key);
+
+    if (!scr_enemy_data_valid(_data))
+        return false;
+
+    switch (_modifier)
+    {
+        case EnemyModifier.SHIELDED:
+        {
+            return (
+                variable_struct_exists(
+                    _data.vitals,
+                    "shield_maximum"
+                )
+                && _data.vitals.shield_maximum > 0
+            );
+        }
+    }
+
+    return true;
+}
+
+
+/// @description Builds one spawn's guaranteed and randomly rolled modifiers.
+
+function scr_enemy_spawner_modifiers_get(
+    _spawner,
+    _enemy_entry
+)
+{
+    var _result = [];
+
+    if (!instance_exists(_spawner))
+        return _result;
+
+    if (!is_struct(_enemy_entry))
+        return _result;
+
+    var _enemy_key =
+        _enemy_entry.enemy_key;
+
+
+    // ========================================================================
+    // GUARANTEED ENTRY MODIFIERS
+    // ========================================================================
+
+    if (
+        variable_struct_exists(_enemy_entry, "modifiers")
+        && is_array(_enemy_entry.modifiers)
+    )
+    {
+        for (
+            var i = 0;
+            i < array_length(_enemy_entry.modifiers);
+            ++i
+        )
+        {
+            var _modifier =
+                _enemy_entry.modifiers[i];
+
+            if (
+                scr_enemy_spawner_modifier_eligible(
+                    _enemy_key,
+                    _modifier
+                )
+                && !scr_enemy_spawner_modifier_array_has(
+                    _result,
+                    _modifier
+                )
+            )
+            {
+                array_push(_result, _modifier);
+            }
+        }
+    }
+
+
+    // ========================================================================
+    // TIMED LEVEL MODIFIERS
+    // ========================================================================
+
+    var _pressure =
+        _spawner.spawner.data;
+
+    if (!variable_struct_exists(_pressure, "modifiers"))
+        return _result;
+
+    var _modifier_data =
+        _pressure.modifiers;
+
+    if (!_modifier_data.enabled)
+        return _result;
+
+    var _elapsed =
+        _spawner.spawner.time.active_seconds;
+
+    for (
+        var i = 0;
+        i < array_length(_modifier_data.definitions);
+        ++i
+    )
+    {
+        var _definition =
+            _modifier_data.definitions[i];
+
+        if (_elapsed < _definition.unlock_seconds)
+            continue;
+
+        if (
+            !scr_enemy_spawner_modifier_eligible(
+                _enemy_key,
+                _definition.modifier
+            )
+        )
+        {
+            continue;
+        }
+
+        if (
+            scr_enemy_spawner_modifier_array_has(
+                _result,
+                _definition.modifier
+            )
+        )
+        {
+            continue;
+        }
+
+        var _progress =
+            clamp(
+                (
+                    _elapsed
+                    - _definition.unlock_seconds
+                )
+                / max(
+                    0.001,
+                    _definition.scaling_seconds
+                ),
+                0,
+                1
+            );
+
+        var _chance =
+            lerp(
+                _definition.chance_start,
+                _definition.chance_maximum,
+                _progress
+            );
+
+        if (random(1) <= _chance)
+        {
+            array_push(
+                _result,
+                _definition.modifier
+            );
+        }
+    }
+
+    return _result;
 }
 
 

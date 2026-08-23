@@ -448,13 +448,12 @@ function scr_hud_build_menu_create()
 }
 
 
-/// @description Rebuilds the card list for the selected category.
+/// @description Rebuilds the card list using current-level availability.
 
 function scr_hud_build_menu_cards_rebuild(_hud)
 {
     if (!instance_exists(_hud))
         return false;
-
 
     var _menu = _hud.hud.build_menu;
     var _buttons = [];
@@ -464,10 +463,19 @@ function scr_hud_build_menu_cards_rebuild(_hud)
             global.vtd.data.buildings
         );
 
-
     for (var i = 0; i < array_length(_building_keys); ++i)
     {
         var _key = _building_keys[i];
+
+        if (
+            !scr_world_current_content_allowed(
+                WorldContentType.BUILDING,
+                _key
+            )
+        )
+        {
+            continue;
+        }
 
         var _data =
             scr_building_data_get(_key);
@@ -483,7 +491,6 @@ function scr_hud_build_menu_cards_rebuild(_hud)
             continue;
         }
 
-
         var _button =
             scr_hud_button_create(
                 _key,
@@ -494,24 +501,17 @@ function scr_hud_build_menu_cards_rebuild(_hud)
         _button.data = _key;
         _button.accent_color = _data.visual.color;
 
-        array_push(
-            _buttons,
-            _button
-        );
+        array_push(_buttons, _button);
     }
-
 
     _menu.building_buttons = _buttons;
 
-    _menu.scroll_index = clamp(
-        _menu.scroll_positions[_menu.category],
-        0,
-        max(
+    _menu.scroll_index =
+        clamp(
+            _menu.scroll_positions[_menu.category],
             0,
-            array_length(_buttons) - 1
-        )
-    );
-
+            max(0, array_length(_buttons) - 1)
+        );
 
     return true;
 }

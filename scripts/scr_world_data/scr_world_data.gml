@@ -15,6 +15,56 @@ function scr_world_data_initialize()
                 name: "Test Cluster World"
             },
 			
+			// ========================================================================
+			// LEVEL CONTENT
+			// ========================================================================
+			//
+			// The test world currently allows the complete global database.
+			// Set allow_all to false when making proper campaign levels.
+
+			content:
+			{
+			    allow_all: true,
+
+			    enemies:
+			    [
+			        "enemy_weak",
+			        "enemy_hunter",
+			        "enemy_phaser",
+			        "enemy_shooter_single",
+			        "enemy_shooter_triple",
+			        "enemy_kamikaze",
+			        "enemy_splitter",
+			        "enemy_splitter_child",
+			        "enemy_flyer"
+			    ],
+
+			    buildings:
+			    [
+			        "wall_basic",
+			        "tower_basic",
+			        "tower_anti_air",
+			        "tower_minigun",
+			        "tower_cannon",
+			        "tower_laser",
+			        "tower_sniper"
+			    ],
+
+			    resources:
+			    [
+			        "resource_credits",
+			        "resource_carbon",
+			        "resource_silicon",
+			        "resource_copper"
+			    ],
+
+			    deposits:
+			    [
+			        // FUTURE:
+			        // Separate deposit definitions can be restricted here.
+			    ]
+			},
+			
 			starting_resources:
 			[
 			    {
@@ -112,6 +162,31 @@ function scr_world_data_initialize()
                 maximum_spawns_per_step: 4,
 				maximum_alive_enemies: 300,
 				maximum_queued_enemies: 600,
+				
+				// ========================================================================
+				// TIMED ENEMY MODIFIERS
+				// ========================================================================
+
+				modifiers:
+				{
+				    enabled: true,
+
+				    definitions:
+				    [
+				        {
+				            modifier: EnemyModifier.SHIELDED,
+
+				            // Testing values. Proper levels can unlock this much later.
+				            unlock_seconds: 120,
+
+				            chance_start: 0.05,
+				            chance_maximum: 0.35,
+
+				            // Time taken to grow from starting to maximum chance.
+				            scaling_seconds: 600
+				        }
+				    ]
+				},
 
 
                 baseline:
@@ -247,111 +322,250 @@ function scr_world_data_initialize()
 
 
                 waves:
+{
+    enabled: true,
+    warning_seconds: 8,
+
+    interval_min_seconds: 90,
+    interval_max_seconds: 120,
+
+    // Run every wave sequentially once. Afterward, repeat only from
+    // ADVANCED ASSAULT onward for the test world's endless pressure.
+
+    cycle: true,
+    cycle_start_index: 2,
+
+    definitions:
+    [
+        {
+            key: "weak_swarm",
+            name: "WEAK SWARM",
+
+            groups:
+            [
                 {
-                    enabled: true,
-					warning_seconds: 8,
+                    enemy_key: "enemy_weak",
+                    count: 24,
+                    modifiers: [],
 
-                    interval_min_seconds: 90,
-                    interval_max_seconds: 120,
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.08,
+                    stagger_max_seconds: 0.16,
 
-                    // After the final definition, return to the first.
-                    cycle: true,
+                    side: SpawnSide.INHERIT
+                }
+            ]
+        },
 
-                    definitions:
-                    [
-                        {
-                            key: "weak_swarm",
-                            name: "WEAK SWARM",
+        {
+            key: "mixed_assault",
+            name: "MIXED ASSAULT",
 
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_weak",
-                                    weight: 100
-                                }
-                            ],
+            groups:
+            [
+                {
+                    enemy_key: "enemy_weak",
+                    count: 24,
+                    modifiers: [],
 
-                            count_min: 20,
-                            count_max: 30,
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.07,
+                    stagger_max_seconds: 0.14,
 
-                            stagger_min_seconds: 0.08,
-                            stagger_max_seconds: 0.18
-                        },
-
-                        {
-                            key: "mixed_assault",
-                            name: "MIXED ASSAULT",
-
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_weak",
-                                    weight: 55
-                                },
-
-                                {
-                                    enemy_key: "enemy_hunter",
-                                    weight: 25
-                                },
-
-                                {
-                                    enemy_key: "enemy_shooter_single",
-                                    weight: 15
-                                },
-
-                                {
-                                    enemy_key: "enemy_phaser",
-                                    weight: 5
-                                }
-                            ],
-
-                            count_min: 24,
-                            count_max: 36,
-
-                            stagger_min_seconds: 0.08,
-                            stagger_max_seconds: 0.2
-                        },
-
-                        {
-                            key: "advanced_assault",
-                            name: "ADVANCED ASSAULT",
-
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_hunter",
-                                    weight: 30
-                                },
-
-                                {
-                                    enemy_key: "enemy_shooter_single",
-                                    weight: 25
-                                },
-
-                                {
-                                    enemy_key: "enemy_shooter_triple",
-                                    weight: 20
-                                },
-
-                                {
-                                    enemy_key: "enemy_kamikaze",
-                                    weight: 15
-                                },
-
-                                {
-                                    enemy_key: "enemy_splitter",
-                                    weight: 10
-                                }
-                            ],
-
-                            count_min: 28,
-                            count_max: 42,
-
-                            stagger_min_seconds: 0.1,
-                            stagger_max_seconds: 0.25
-                        }
-                    ]
+                    side: SpawnSide.INHERIT
                 },
+
+                {
+                    enemy_key: "enemy_hunter",
+                    count: 10,
+                    modifiers: [],
+
+                    delay_seconds: 3,
+                    stagger_min_seconds: 0.12,
+                    stagger_max_seconds: 0.22,
+
+                    side: SpawnSide.INHERIT
+                }
+            ]
+        },
+
+        {
+            key: "advanced_assault",
+            name: "ADVANCED ASSAULT",
+
+            groups:
+            [
+                {
+                    enemy_key: "enemy_hunter",
+                    count: 16,
+                    modifiers: [],
+
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.1,
+                    stagger_max_seconds: 0.18,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_shooter_single",
+                    count: 10,
+                    modifiers: [],
+
+                    delay_seconds: 4,
+                    stagger_min_seconds: 0.15,
+                    stagger_max_seconds: 0.25,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_kamikaze",
+                    count: 6,
+                    modifiers: [],
+
+                    delay_seconds: 8,
+                    stagger_min_seconds: 0.2,
+                    stagger_max_seconds: 0.35,
+
+                    side: SpawnSide.RANDOM
+                }
+            ]
+        },
+
+        {
+            key: "air_assault",
+            name: "AIR ASSAULT",
+
+            groups:
+            [
+                {
+                    enemy_key: "enemy_weak",
+                    count: 20,
+                    modifiers: [],
+
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.08,
+                    stagger_max_seconds: 0.15,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_flyer",
+                    count: 16,
+                    modifiers: [],
+
+                    delay_seconds: 5,
+                    stagger_min_seconds: 0.12,
+                    stagger_max_seconds: 0.24,
+
+                    side: SpawnSide.RANDOM
+                }
+            ]
+        },
+
+        {
+            key: "shield_assault",
+            name: "SHIELD ASSAULT",
+
+            groups:
+            [
+                {
+                    enemy_key: "enemy_weak",
+                    count: 24,
+
+                    modifiers:
+                    [
+                        EnemyModifier.SHIELDED
+                    ],
+
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.08,
+                    stagger_max_seconds: 0.16,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_hunter",
+                    count: 14,
+
+                    modifiers:
+                    [
+                        EnemyModifier.SHIELDED
+                    ],
+
+                    delay_seconds: 5,
+                    stagger_min_seconds: 0.12,
+                    stagger_max_seconds: 0.22,
+
+                    side: SpawnSide.INHERIT
+                }
+            ]
+        },
+
+        {
+            key: "combined_assault",
+            name: "COMBINED ASSAULT",
+
+            groups:
+            [
+                {
+                    enemy_key: "enemy_weak",
+                    count: 30,
+                    modifiers: [],
+
+                    delay_seconds: 0,
+                    stagger_min_seconds: 0.06,
+                    stagger_max_seconds: 0.12,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_shooter_triple",
+                    count: 10,
+                    modifiers: [],
+
+                    delay_seconds: 4,
+                    stagger_min_seconds: 0.15,
+                    stagger_max_seconds: 0.25,
+
+                    side: SpawnSide.INHERIT
+                },
+
+                {
+                    enemy_key: "enemy_flyer",
+                    count: 16,
+                    modifiers: [],
+
+                    delay_seconds: 7,
+                    stagger_min_seconds: 0.1,
+                    stagger_max_seconds: 0.2,
+
+                    side: SpawnSide.RANDOM
+                },
+
+                {
+                    enemy_key: "enemy_splitter",
+                    count: 8,
+
+                    modifiers:
+                    [
+                        EnemyModifier.SHIELDED
+                    ],
+
+                    delay_seconds: 12,
+                    stagger_min_seconds: 0.25,
+                    stagger_max_seconds: 0.4,
+
+                    side: SpawnSide.RANDOM
+                }
+            ]
+        }
+    ]
+}
 
 
                 milestones:
@@ -468,6 +682,119 @@ function scr_world_data_get(_world_key)
     return variable_struct_get(
         global.vtd.data.worlds,
         _world_key
+    );
+}
+
+/// @description Returns the active generated world's definition.
+
+function scr_world_data_current_get()
+{
+    if (!variable_global_exists("vtd_level"))
+        return undefined;
+
+    if (!is_struct(global.vtd_level))
+        return undefined;
+
+    if (!variable_struct_exists(global.vtd_level, "world"))
+        return undefined;
+
+    if (!is_struct(global.vtd_level.world.generation))
+        return undefined;
+
+    return scr_world_data_get(
+        global.vtd_level.world.generation.key
+    );
+}
+
+
+/// @description Returns one content array from a world definition.
+
+function scr_world_content_array_get(_world_data, _content_type)
+{
+    if (!is_struct(_world_data))
+        return [];
+
+    if (!variable_struct_exists(_world_data, "content"))
+        return [];
+
+    var _content = _world_data.content;
+
+    switch (_content_type)
+    {
+        case WorldContentType.ENEMY:
+            return _content.enemies;
+
+        case WorldContentType.BUILDING:
+            return _content.buildings;
+
+        case WorldContentType.RESOURCE:
+            return _content.resources;
+
+        case WorldContentType.DEPOSIT:
+            return _content.deposits;
+    }
+
+    return [];
+}
+
+
+/// @description Returns whether a world permits one content key.
+
+function scr_world_content_allowed(
+    _world_data,
+    _content_type,
+    _content_key
+)
+{
+    if (!is_struct(_world_data))
+        return false;
+
+    if (!variable_struct_exists(_world_data, "content"))
+        return true;
+
+    var _content = _world_data.content;
+
+    if (
+        variable_struct_exists(_content, "allow_all")
+        && _content.allow_all
+    )
+    {
+        return true;
+    }
+
+    var _allowed =
+        scr_world_content_array_get(
+            _world_data,
+            _content_type
+        );
+
+    for (var i = 0; i < array_length(_allowed); ++i)
+    {
+        if (_allowed[i] == _content_key)
+            return true;
+    }
+
+    return false;
+}
+
+
+/// @description Returns whether the current world permits one content key.
+
+function scr_world_current_content_allowed(
+    _content_type,
+    _content_key
+)
+{
+    var _world_data =
+        scr_world_data_current_get();
+
+    if (!is_struct(_world_data))
+        return true;
+
+    return scr_world_content_allowed(
+        _world_data,
+        _content_type,
+        _content_key
     );
 }
 

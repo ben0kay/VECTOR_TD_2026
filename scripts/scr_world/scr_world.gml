@@ -860,41 +860,58 @@ function scr_world_dead_cell_exposed(_cell_x, _cell_y)
 }
 
 
-/// @description Selects one resource key from a weighted world pool.
+/// @description Selects one permitted resource from a weighted world pool.
 
 function scr_world_resource_key_roll(_pool)
 {
     if (!is_array(_pool))
         return "";
 
-    if (array_length(_pool) <= 0)
-        return "";
+    var _world_data =
+        scr_world_data_current_get();
 
-
+    var _available = [];
     var _total_weight = 0;
 
     for (var i = 0; i < array_length(_pool); ++i)
-        _total_weight += max(0, _pool[i].weight);
+    {
+        var _entry = _pool[i];
 
+        if (
+            !scr_world_content_allowed(
+                _world_data,
+                WorldContentType.RESOURCE,
+                _entry.resource_key
+            )
+        )
+        {
+            continue;
+        }
+
+        var _weight = max(0, _entry.weight);
+
+        if (_weight <= 0)
+            continue;
+
+        array_push(_available, _entry);
+        _total_weight += _weight;
+    }
 
     if (_total_weight <= 0)
         return "";
 
-
     var _roll = random(_total_weight);
     var _cumulative = 0;
 
-
-    for (var i = 0; i < array_length(_pool); ++i)
+    for (var i = 0; i < array_length(_available); ++i)
     {
-        _cumulative += max(0, _pool[i].weight);
+        _cumulative += max(0, _available[i].weight);
 
-        if (_roll <= _cumulative)
-            return _pool[i].resource_key;
+        if (_roll < _cumulative)
+            return _available[i].resource_key;
     }
 
-
-    return _pool[array_length(_pool) - 1].resource_key;
+    return _available[array_length(_available) - 1].resource_key;
 }
 
 
@@ -1138,6 +1155,16 @@ function scr_world_resources_guaranteed_generate(
     for (var i = 0; i < array_length(_guaranteed); ++i)
     {
         var _entry = _guaranteed[i];
+		
+		if (
+		    !scr_world_current_content_allowed(
+		        WorldContentType.RESOURCE,
+		        _entry.resource_key
+		    )
+		)
+		{
+		    continue;
+		}
 
         var _cell = scr_world_resource_exposed_cell_find(
             _entry.minimum_distance_cells,
