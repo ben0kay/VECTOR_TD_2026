@@ -199,7 +199,7 @@ function scr_enemy_visual_draw(_enemy)
 }
 
 
-/// @description Draws the shared enemy health bar.
+/// @description Draws an enemy's health bar and optional shield bar.
 
 function scr_enemy_health_bar_draw(_enemy)
 {
@@ -208,29 +208,82 @@ function scr_enemy_health_bar_draw(_enemy)
 
 
     var _radius = _enemy.visual.radius;
-
-    var _hover =
-        scr_enemy_visual_hover_offset_get(_enemy);
-
-    var _hp_percent = clamp(
-        _enemy.vitals.hp.current
-        / max(1, _enemy.vitals.hp.maximum),
-        0,
-        1
-    );
+    var _hover = scr_enemy_visual_hover_offset_get(_enemy);
 
     var _bar_width = _radius * 2;
     var _bar_left = _enemy.x - _radius;
-    var _bar_top = _enemy.y + _hover - _radius - 8;
+    var _hp_bar_top = _enemy.y + _hover - _radius - 8;
+
+
+    // ========================================================================
+    // SHIELD BAR
+    // ========================================================================
+
+    if (variable_struct_exists(_enemy.vitals, "shield"))
+    {
+        var _shield = _enemy.vitals.shield;
+
+        if (
+            is_struct(_shield)
+            && variable_struct_exists(_shield, "enabled")
+            && _shield.enabled
+            && _shield.maximum > 0
+        )
+        {
+            var _shield_percent =
+                clamp(
+                    _shield.current / _shield.maximum,
+                    0,
+                    1
+                );
+
+            var _shield_bar_top = _hp_bar_top - 4;
+
+
+            draw_set_color(c_dkgray);
+
+            draw_rectangle(
+                _bar_left,
+                _shield_bar_top,
+                _bar_left + _bar_width,
+                _shield_bar_top + 2,
+                false
+            );
+
+
+            draw_set_color(_shield.color);
+
+            draw_rectangle(
+                _bar_left,
+                _shield_bar_top,
+                _bar_left + (_bar_width * _shield_percent),
+                _shield_bar_top + 2,
+                false
+            );
+        }
+    }
+
+
+    // ========================================================================
+    // HEALTH BAR
+    // ========================================================================
+
+    var _hp_percent =
+        clamp(
+            _enemy.vitals.hp.current
+            / max(1, _enemy.vitals.hp.maximum),
+            0,
+            1
+        );
 
 
     draw_set_color(c_dkgray);
 
     draw_rectangle(
         _bar_left,
-        _bar_top,
+        _hp_bar_top,
         _bar_left + _bar_width,
-        _bar_top + 3,
+        _hp_bar_top + 3,
         false
     );
 
@@ -239,9 +292,9 @@ function scr_enemy_health_bar_draw(_enemy)
 
     draw_rectangle(
         _bar_left,
-        _bar_top,
+        _hp_bar_top,
         _bar_left + (_bar_width * _hp_percent),
-        _bar_top + 3,
+        _hp_bar_top + 3,
         false
     );
 

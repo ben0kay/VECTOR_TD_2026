@@ -1,6 +1,5 @@
 /// @description Tower projectile creation, collision, impact, and drawing.
 
-
 /// @description Creates one layer-restricted tower projectile.
 
 function scr_projectile_tower_create(
@@ -9,6 +8,7 @@ function scr_projectile_tower_create(
     _world_y,
     _draw_angle,
     _damage,
+    _damage_type,
     _projectile_data,
     _target_layer
 )
@@ -19,7 +19,6 @@ function scr_projectile_tower_create(
     if (!is_struct(_projectile_data))
         return noone;
 
-
     return instance_create_layer(
         _world_x,
         _world_y,
@@ -28,6 +27,7 @@ function scr_projectile_tower_create(
         {
             projectile_owner: _owner,
             projectile_damage: _damage,
+            projectile_damage_type: _damage_type,
             projectile_speed: _projectile_data.speed,
             projectile_lifetime: _projectile_data.lifetime_seconds,
             projectile_radius: _projectile_data.radius,
@@ -47,28 +47,25 @@ function scr_projectile_tower_initialize(_projectile)
     if (!instance_exists(_projectile))
         return false;
 
-
     _projectile.combat =
     {
         owner: _projectile.projectile_owner,
         damage: _projectile.projectile_damage,
+        damage_type: _projectile.projectile_damage_type,
         impact: _projectile.projectile_impact,
         damage_radius: _projectile.projectile_damage_radius,
         target_layer: _projectile.projectile_target_layer
     };
-
 
     _projectile.movement =
     {
         speed: _projectile.projectile_speed
     };
 
-
     _projectile.life =
     {
         remaining: _projectile.projectile_lifetime
     };
-
 
     _projectile.visual =
     {
@@ -76,7 +73,6 @@ function scr_projectile_tower_initialize(_projectile)
         radius: _projectile.projectile_radius,
         color: _projectile.projectile_color
     };
-
 
     return true;
 }
@@ -160,19 +156,14 @@ function scr_projectile_tower_enemy_find(
 }
 
 
-/// @description Applies direct or radius damage at an impact point.
+/// @description Applies direct or circular damage at a projectile impact.
 
-function scr_projectile_tower_impact(
-    _projectile,
-    _direct_target
-)
+function scr_projectile_tower_impact(_projectile, _direct_target)
 {
     if (!instance_exists(_projectile))
         return false;
 
-
-    var _combat =
-        _projectile.combat;
+    var _combat = _projectile.combat;
 
 
     switch (_combat.impact)
@@ -182,97 +173,65 @@ function scr_projectile_tower_impact(
             if (!instance_exists(_direct_target))
                 return false;
 
-
             var _damage =
                 scr_damage_create(
                     _combat.damage,
                     _combat.owner,
-                    DamageSource.TOWER
+                    DamageSource.TOWER,
+                    _combat.damage_type
                 );
 
-
-            scr_enemy_damage(
-                _direct_target,
-                _damage
-            );
+            scr_enemy_damage(_direct_target, _damage);
         }
         break;
 
 
         case ProjectileImpact.EXPLOSIVE:
         {
-            var _damage_radius =
-                max(
-                    0,
-                    _combat.damage_radius
-                );
-
-            var _enemy_count =
-                instance_number(
-                    o_enemy
-                );
-
-
-            for (
-                var i = 0;
-                i < _enemy_count;
-                ++i
-            )
+            var _area =
             {
-                var _enemy =
-                    instance_find(
-                        o_enemy,
-                        i
-                    );
+                shape: AttackAreaShape.CIRCLE,
+                radius: _combat.damage_radius,
 
-
-                if (!instance_exists(_enemy))
-                    continue;
-
-                if (
-                    point_distance(
-                        _projectile.x,
-                        _projectile.y,
-                        _enemy.x,
-                        _enemy.y
-                    )
-                    > _damage_radius
-                        + _enemy.visual.radius
-                )
+                falloff:
                 {
-                    continue;
+                    enabled: true,
+                    minimum_multiplier: 0.35,
+                    exponent: 1
                 }
+            };
 
+            scr_attack_area_apply(
+                _combat.owner,
+                DamageSource.TOWER,
+                _combat.damage_type,
+                _combat.target_layer,
+                _projectile.x,
+                _projectile.y,
+                _projectile.visual.draw_angle,
+                _combat.damage,
+                _area
+            );
 
-                var _damage =
-                    scr_damage_create(
-                        _combat.damage,
-                        _combat.owner,
-                        DamageSource.TOWER
-                    );
-
-
-                scr_enemy_damage(
-                    _enemy,
-                    _damage
-                );
-            }
+            scr_effect_shockwave_create(
+                _projectile.x,
+                _projectile.y,
+                _combat.damage_radius,
+                _projectile.visual.color
+            );
 
 
             // FUTURE:
-            // explosion particle
-            // radius debug circle
-            // damage falloff
-            // explosion sound
+            // explosion particles
+            // debris
+            // sound
             // camera shake
         }
         break;
     }
 
-
     return true;
 }
-
 
 /// @description Updates one tower projectile.
 

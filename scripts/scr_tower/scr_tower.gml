@@ -14,9 +14,8 @@ function scr_tower_initialize(_tower)
     if (!variable_struct_exists(_tower.building_data, "tower"))
         return false;
 
-
-    var _data =
-        _tower.building_data.tower;
+    var _data = _tower.building_data.tower;
+    var _weapon_data = _data.weapon;
 
 
     // ========================================================================
@@ -29,12 +28,8 @@ function scr_tower_initialize(_tower)
     _tower.visual.draw_angle = 0;
     _tower.visual.draw_function = scr_tower_visual_ground;
 
-
     if (variable_struct_exists(_data, "draw_function"))
-    {
-        _tower.visual.draw_function =
-            _data.draw_function;
-    }
+        _tower.visual.draw_function = _data.draw_function;
 
 
     // ========================================================================
@@ -44,77 +39,80 @@ function scr_tower_initialize(_tower)
     var _requires_line_of_sight = true;
 
     if (variable_struct_exists(_data, "requires_line_of_sight"))
-    {
-        _requires_line_of_sight =
-            _data.requires_line_of_sight;
-    }
-
+        _requires_line_of_sight = _data.requires_line_of_sight;
 
     _tower.targeting =
     {
         target: noone,
         mode: _data.target_mode,
         layer: _data.target_layer,
-
-        requires_line_of_sight:
-            _requires_line_of_sight
+        requires_line_of_sight: _requires_line_of_sight
     };
 
 
     // ========================================================================
-    // COMBAT
+    // WEAPON
     // ========================================================================
+
+    var _projectile = undefined;
+    var _beam = undefined;
+    var _hitscan = undefined;
+
+    if (variable_struct_exists(_weapon_data, "projectile"))
+        _projectile = _weapon_data.projectile;
+
+    if (variable_struct_exists(_weapon_data, "beam"))
+        _beam = _weapon_data.beam;
+
+    if (variable_struct_exists(_weapon_data, "hitscan"))
+        _hitscan = _weapon_data.hitscan;
 
     _tower.combat =
     {
         base:
         {
-            range:
-                _data.range,
-
-            damage:
-                _data.weapon.damage,
-
-            cooldown_seconds:
-                _data.weapon.cooldown_seconds
+            range: _data.range,
+            damage: _weapon_data.damage,
+            cooldown_seconds: _weapon_data.cooldown_seconds
         },
 
-        range:
-            _data.range,
+        range: _data.range,
 
         weapon:
         {
-            damage:
-                _data.weapon.damage,
+            type: _weapon_data.type,
+            damage_type: _weapon_data.damage_type,
+            damage: _weapon_data.damage,
 
             cooldown:
             {
-                duration:
-                    _data.weapon.cooldown_seconds,
-
-                remaining:
-                    0
+                duration: _weapon_data.cooldown_seconds,
+                remaining: 0
             },
 
-            projectile:
+            muzzle:
             {
-                speed:
-                    _data.weapon.projectile.speed,
+                mode: _weapon_data.muzzle.mode,
+                distance: _weapon_data.muzzle.distance,
+                spacing: _weapon_data.muzzle.spacing,
+                side: 1
+            },
 
-                lifetime_seconds:
-                    _data.weapon.projectile.lifetime_seconds,
+            projectile: _projectile,
+            beam: _beam,
+            hitscan: _hitscan,
 
-                radius:
-                    _data.weapon.projectile.radius,
-
-                color:
-                    _data.weapon.projectile.color,
-
-                impact:
-                    _data.weapon.projectile.impact,
-
-                damage_radius:
-                    _data.weapon.projectile.damage_radius
+            trace:
+            {
+                active: false,
+                remaining: 0,
+                start_x: _tower.x,
+                start_y: _tower.y,
+                end_x: _tower.x,
+                end_y: _tower.y,
+                color_outer: c_white,
+                color_core: c_white,
+                width: 1
             }
         }
     };
@@ -128,7 +126,6 @@ function scr_tower_initialize(_tower)
     {
         kills: 0,
         experience: 0,
-
         rank: 1,
         maximum_rank: 10,
 
@@ -137,19 +134,88 @@ function scr_tower_initialize(_tower)
 
         bonus:
         {
-            // Small veteran improvements per completed rank.
-
             damage_per_rank: 0.01,
             range_per_rank: 0.005,
             cooldown_per_rank: 0.005
         }
     };
 
+    scr_tower_progression_stats_apply(_tower);
 
-    scr_tower_progression_stats_apply(
-        _tower
-    );
+    return true;
+}
 
+/// @description Returns the active muzzle position for one tower shot.
+
+function scr_tower_muzzle_position_get(_tower)
+{
+    var _weapon = _tower.combat.weapon;
+    var _angle = _tower.visual.draw_angle;
+    var _side_offset = 0;
+
+    if (_weapon.muzzle.mode == TowerMuzzleMode.ALTERNATING)
+    {
+        _side_offset =
+            _weapon.muzzle.spacing
+            * _weapon.muzzle.side;
+    }
+
+    return
+    {
+        x:
+            _tower.x
+            + lengthdir_x(_weapon.muzzle.distance, _angle)
+            + lengthdir_x(_side_offset, _angle + 90),
+
+        y:
+            _tower.y
+            + lengthdir_y(_weapon.muzzle.distance, _angle)
+            + lengthdir_y(_side_offset, _angle + 90)
+    };
+}
+
+
+/// @description Switches an alternating weapon to its other muzzle.
+
+function scr_tower_muzzle_advance(_tower)
+{
+    if (
+        _tower.combat.weapon.muzzle.mode
+        == TowerMuzzleMode.ALTERNATING
+    )
+    {
+        _tower.combat.weapon.muzzle.side *= -1;
+    }
+
+    return true;
+}
+
+
+/// @description Stores a temporary beam or hitscan visual.
+
+function scr_tower_trace_set(
+    _tower,
+    _start_x,
+    _start_y,
+    _end_x,
+    _end_y,
+    _color_outer,
+    _color_core,
+    _width,
+    _duration
+)
+{
+    var _trace = _tower.combat.weapon.trace;
+
+    _trace.active = true;
+    _trace.remaining = max(0.01, _duration);
+    _trace.start_x = _start_x;
+    _trace.start_y = _start_y;
+    _trace.end_x = _end_x;
+    _trace.end_y = _end_y;
+    _trace.color_outer = _color_outer;
+    _trace.color_core = _color_core;
+    _trace.width = max(1, _width);
 
     return true;
 }
@@ -340,130 +406,178 @@ function scr_tower_target_acquire(_tower)
 }
 
 
-/// @description Fires one tower projectile.
+/// @description Fires one tower weapon using its configured weapon type.
 
 function scr_tower_fire(_tower)
 {
     if (!instance_exists(_tower))
         return false;
 
-    if (!instance_exists(_tower.targeting.target))
+    var _target = _tower.targeting.target;
+
+    if (!instance_exists(_target))
         return false;
 
-
-    var _angle = _tower.visual.draw_angle;
-    var _muzzle_distance = 36;
-
-    var _projectile =
-        scr_projectile_tower_create(
-            _tower,
-
-            _tower.x
-            + lengthdir_x(
-                _muzzle_distance,
-                _angle
-            ),
-
-            _tower.y
-            + lengthdir_y(
-                _muzzle_distance,
-                _angle
-            ),
-
-            _angle,
-            _tower.combat.weapon.damage,
-            _tower.combat.weapon.projectile,
-            _tower.targeting.layer
-        );
+    var _weapon = _tower.combat.weapon;
+    var _muzzle = scr_tower_muzzle_position_get(_tower);
+    var _fired = false;
 
 
-    if (!instance_exists(_projectile))
+    switch (_weapon.type)
+    {
+        case TowerWeaponType.PROJECTILE:
+        {
+            var _projectile =
+                scr_projectile_tower_create(
+                    _tower,
+                    _muzzle.x,
+                    _muzzle.y,
+                    _tower.visual.draw_angle,
+                    _weapon.damage,
+                    _weapon.damage_type,
+                    _weapon.projectile,
+                    _tower.targeting.layer
+                );
+
+            _fired = instance_exists(_projectile);
+        }
+        break;
+
+
+        case TowerWeaponType.HITSCAN:
+        {
+            var _damage =
+                scr_damage_create(
+                    _weapon.damage,
+                    _tower,
+                    DamageSource.TOWER,
+                    _weapon.damage_type
+                );
+
+            scr_enemy_damage(_target, _damage);
+
+            scr_tower_trace_set(
+                _tower,
+                _muzzle.x,
+                _muzzle.y,
+                _target.x,
+                _target.y,
+                _weapon.hitscan.color,
+                c_white,
+                _weapon.hitscan.width,
+                _weapon.hitscan.visual_seconds
+            );
+
+            _fired = true;
+        }
+        break;
+
+
+        case TowerWeaponType.BEAM:
+        {
+            var _damage =
+                scr_damage_create(
+                    _weapon.damage,
+                    _tower,
+                    DamageSource.TOWER,
+                    _weapon.damage_type
+                );
+
+            scr_enemy_damage(_target, _damage);
+
+            scr_tower_trace_set(
+                _tower,
+                _muzzle.x,
+                _muzzle.y,
+                _target.x,
+                _target.y,
+                _weapon.beam.color_outer,
+                _weapon.beam.color_core,
+                _weapon.beam.width,
+                _weapon.beam.visual_seconds
+            );
+
+            _fired = true;
+
+
+            // FUTURE PARTICLE HOOK:
+            // Spawn small ember particles along this beam.
+            // Damage remains independent from those particles.
+        }
+        break;
+    }
+
+
+    if (!_fired)
         return false;
 
+    _weapon.cooldown.remaining =
+        _weapon.cooldown.duration;
 
-    _tower.combat.weapon.cooldown.remaining =
-        _tower.combat.weapon.cooldown.duration;
-
+    scr_tower_muzzle_advance(_tower);
 
     // FUTURE:
-    // alternate anti-air barrels
-    // muzzle particles
-    // firing sound
+    // firing sounds
     // recoil
+    // muzzle flashes
     // firing power demand
-
+    // heat generation
 
     return true;
 }
 
-
-/// @description Updates one tower.
+/// @description Updates targeting, firing and temporary weapon visuals.
 
 function scr_tower_update(_tower)
 {
     if (!instance_exists(_tower))
         return false;
 
-    if (
-        _tower.BuildingState
-        != BuildingState.ACTIVE
-    )
-    {
+    if (_tower.BuildingState != BuildingState.ACTIVE)
         return true;
-    }
+
+    var _fps = max(1, game_get_speed(gamespeed_fps));
+    var _weapon = _tower.combat.weapon;
 
 
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
-
-
-    _tower.combat.weapon
-        .cooldown.remaining =
+    _weapon.cooldown.remaining =
         max(
             0,
-            _tower.combat.weapon
-                .cooldown.remaining
-            - (1 / _fps)
+            _weapon.cooldown.remaining - (1 / _fps)
         );
 
 
-    if (
-        !scr_tower_target_valid(
-            _tower,
-            _tower.targeting.target
-        )
-    )
+    if (_weapon.trace.active)
     {
-        _tower.targeting.target =
-            noone;
+        _weapon.trace.remaining =
+            max(
+                0,
+                _weapon.trace.remaining - (1 / _fps)
+            );
+
+        if (_weapon.trace.remaining <= 0)
+            _weapon.trace.active = false;
     }
 
 
-    // Target searches are staggered between tower instances.
+    if (!scr_tower_target_valid(_tower, _tower.targeting.target))
+        _tower.targeting.target = noone;
+
+
+    // Searches remain staggered between tower instances.
 
     if (
-        !instance_exists(
-            _tower.targeting.target
-        )
+        !instance_exists(_tower.targeting.target)
         && IFRAMES_5
     )
     {
         _tower.targeting.target =
-            scr_tower_target_acquire(
-                _tower
-            );
+            scr_tower_target_acquire(_tower);
     }
 
 
-    if (!instance_exists(
-        _tower.targeting.target
-    ))
-    {
+    if (!instance_exists(_tower.targeting.target))
         return true;
-    }
 
 
     _tower.visual.draw_angle =
@@ -475,16 +589,8 @@ function scr_tower_update(_tower)
         );
 
 
-    if (
-        _tower.combat.weapon
-            .cooldown.remaining
-        <= 0
-    )
-    {
-        scr_tower_fire(
-            _tower
-        );
-    }
+    if (_weapon.cooldown.remaining <= 0)
+        scr_tower_fire(_tower);
 
 
     return true;
