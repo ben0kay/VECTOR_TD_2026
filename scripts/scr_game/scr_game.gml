@@ -3,53 +3,35 @@
 
 /// @description Creates the persistent game runtime.
 
-/// @description Creates the persistent game runtime.
-
 function scr_game_initialize()
 {
-    global.GameState =
-        GameState.BOOT;
-
-    global.LevelState =
-        LevelState.EXITING;
-
-    global.CameraState =
-        CameraState.FOLLOW_PLAYER;
-
-    global.BuildState =
-        BuildState.NONE;
+    global.GameState = GameState.BOOT;
+    global.LevelState = LevelState.EXITING;
+    global.CameraState = CameraState.FOLLOW_PLAYER;
+    global.BuildState = BuildState.NONE;
 
 
     global.vtd =
     {
-        tick:
-            0,
+        tick: 0,
 
         settings:
         {
-            view_width:
-                1366,
-
-            view_height:
-                768,
-
-            grid_cell_size:
-                32
+            view_width: 1366,
+            view_height: 768,
+            grid_cell_size: 32
         },
 
         data:
         {
-            enemies:
-                {},
-
-            buildings:
-                {}
+            enemies: {},
+            buildings: {},
+            worlds: {}
         },
 
         debug:
         {
-            enabled:
-                true
+            enabled: true
         }
     };
 
@@ -60,26 +42,20 @@ function scr_game_initialize()
 
     scr_enemy_data_initialize();
     scr_building_data_initialize();
+    scr_world_data_initialize();
 
 
     // FUTURE:
     // scr_upgrade_data_initialize();
     // scr_resource_data_initialize();
-    // scr_level_data_initialize();
 
 
-    global.GameState =
-        GameState.PLAYING;
+    global.GameState = GameState.PLAYING;
 
-
-    show_debug_message(
-        "VECTOR TD 2026 - GAME INITIALIZED"
-    );
-
+    show_debug_message("VECTOR TD 2026 - GAME INITIALIZED");
 
     return true;
 }
-
 
 /// @description Creates the runtime belonging to the current level.
 
@@ -117,14 +93,8 @@ function scr_level_initialize()
         {
             ready: false,
             revision: 0,
-
-            // Terrain and buildings.
             grid_ground: -1,
-
-            // Terrain only. Used by phasing and breach investigation.
             grid_breach: -1,
-
-            // No ordinary obstacles. Used by flying enemies.
             grid_flying: -1
         },
 
@@ -212,10 +182,11 @@ function scr_level_initialize()
     }
 
 
-    // Temporary foundation test. Replace this with the selected level's
-    // generator when CLUSTERS and CAVERNS are implemented.
-
-    scr_world_test_cluster_create();
+    if (!scr_world_generate("world_test"))
+    {
+        show_debug_message("LEVEL ERROR - world generation failed.");
+        return false;
+    }
 
 
     global.LevelState = LevelState.PLAYING;

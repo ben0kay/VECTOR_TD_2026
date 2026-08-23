@@ -59,6 +59,7 @@
     {"id":{"name":"scr_projectile_player","path":"scripts/scr_projectile_player/scr_projectile_player.yy",},},
     {"id":{"name":"scr_projectile_tower","path":"scripts/scr_projectile_tower/scr_projectile_tower.yy",},},
     {"id":{"name":"scr_tower","path":"scripts/scr_tower/scr_tower.yy",},},
+    {"id":{"name":"scr_world_data","path":"scripts/scr_world_data/scr_world_data.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
   ],
   "resourceType":"GMProject",
