@@ -39,11 +39,7 @@ function scr_world_data_initialize()
                 resources:
                 {
                     enabled: true,
-
-                    // Chance for one exposed dead cell to begin a vein.
                     vein_start_chance: 0.035,
-
-                    // Prevents extremely ore-heavy maps.
                     maximum_random_veins: 18,
 
                     pool:
@@ -68,28 +64,356 @@ function scr_world_data_initialize()
                     [
                         {
                             resource_key: "resource_carbon",
-
-                            // Distance is measured from the map centre in cells.
                             minimum_distance_cells: 10,
                             maximum_distance_cells: 30,
-
                             vein_size_min: 5,
                             vein_size_max: 8
                         }
                     ]
                 }
+            },
+
+
+            // ================================================================
+            // ENEMY PRESSURE
+            // ================================================================
+
+            pressure:
+            {
+                enabled: true,
+
+                // Short for testing. Real worlds may use 60–120 seconds.
+                grace_seconds: 20,
+
+                // Prevents one queued attack from creating every enemy at once.
+                maximum_spawns_per_step: 4,
+
+
+                baseline:
+                {
+                    enabled: true,
+
+                    interval_start_seconds: 4,
+                    interval_end_seconds: 1.5,
+                    scaling_seconds: 600,
+
+                    pool:
+                    [
+                        {
+                            enemy_key: "enemy_weak",
+                            weight: 100,
+                            unlock_seconds: 0
+                        },
+
+                        {
+                            enemy_key: "enemy_hunter",
+                            weight: 30,
+                            unlock_seconds: 90
+                        },
+
+                        {
+                            enemy_key: "enemy_shooter_single",
+                            weight: 20,
+                            unlock_seconds: 180
+                        },
+
+                        {
+                            enemy_key: "enemy_phaser",
+                            weight: 12,
+                            unlock_seconds: 240
+                        }
+                    ]
+                },
+
+
+                clusters:
+                {
+                    enabled: true,
+
+                    interval_min_seconds: 30,
+                    interval_max_seconds: 50,
+
+                    scaling_start_seconds: 180,
+                    scaling_seconds: 600,
+                    count_multiplier_maximum: 2.5,
+
+                    zone_width_minimum: 0.08,
+                    zone_width_maximum: 0.22,
+
+                    patterns:
+                    [
+                        {
+                            key: "weak_cluster",
+                            name: "Weak Cluster",
+
+                            weight: 100,
+                            unlock_seconds: 0,
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_weak",
+                                    weight: 100
+                                }
+                            ],
+
+                            count_min: 6,
+                            count_max: 10,
+
+                            stagger_min_seconds: 0.12,
+                            stagger_max_seconds: 0.35
+                        },
+
+                        {
+                            key: "mixed_cluster",
+                            name: "Mixed Cluster",
+
+                            weight: 60,
+                            unlock_seconds: 120,
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_weak",
+                                    weight: 65
+                                },
+
+                                {
+                                    enemy_key: "enemy_hunter",
+                                    weight: 25
+                                },
+
+                                {
+                                    enemy_key: "enemy_shooter_single",
+                                    weight: 10
+                                }
+                            ],
+
+                            count_min: 8,
+                            count_max: 14,
+
+                            stagger_min_seconds: 0.1,
+                            stagger_max_seconds: 0.28
+                        },
+
+                        {
+                            key: "kamikaze_cluster",
+                            name: "Kamikaze Cluster",
+
+                            weight: 20,
+                            unlock_seconds: 240,
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_kamikaze",
+                                    weight: 100
+                                }
+                            ],
+
+                            count_min: 3,
+                            count_max: 6,
+
+                            stagger_min_seconds: 0.25,
+                            stagger_max_seconds: 0.55
+                        }
+                    ]
+                },
+
+
+                waves:
+                {
+                    enabled: true,
+
+                    interval_min_seconds: 90,
+                    interval_max_seconds: 120,
+
+                    // After the final definition, return to the first.
+                    cycle: true,
+
+                    definitions:
+                    [
+                        {
+                            key: "weak_swarm",
+                            name: "WEAK SWARM",
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_weak",
+                                    weight: 100
+                                }
+                            ],
+
+                            count_min: 20,
+                            count_max: 30,
+
+                            stagger_min_seconds: 0.08,
+                            stagger_max_seconds: 0.18
+                        },
+
+                        {
+                            key: "mixed_assault",
+                            name: "MIXED ASSAULT",
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_weak",
+                                    weight: 55
+                                },
+
+                                {
+                                    enemy_key: "enemy_hunter",
+                                    weight: 25
+                                },
+
+                                {
+                                    enemy_key: "enemy_shooter_single",
+                                    weight: 15
+                                },
+
+                                {
+                                    enemy_key: "enemy_phaser",
+                                    weight: 5
+                                }
+                            ],
+
+                            count_min: 24,
+                            count_max: 36,
+
+                            stagger_min_seconds: 0.08,
+                            stagger_max_seconds: 0.2
+                        },
+
+                        {
+                            key: "advanced_assault",
+                            name: "ADVANCED ASSAULT",
+
+                            enemies:
+                            [
+                                {
+                                    enemy_key: "enemy_hunter",
+                                    weight: 30
+                                },
+
+                                {
+                                    enemy_key: "enemy_shooter_single",
+                                    weight: 25
+                                },
+
+                                {
+                                    enemy_key: "enemy_shooter_triple",
+                                    weight: 20
+                                },
+
+                                {
+                                    enemy_key: "enemy_kamikaze",
+                                    weight: 15
+                                },
+
+                                {
+                                    enemy_key: "enemy_splitter",
+                                    weight: 10
+                                }
+                            ],
+
+                            count_min: 28,
+                            count_max: 42,
+
+                            stagger_min_seconds: 0.1,
+                            stagger_max_seconds: 0.25
+                        }
+                    ]
+                },
+
+
+                milestones:
+                [
+                    {
+                        key: "first_blood",
+                        name: "FIRST BLOOD RESPONSE",
+
+                        trigger_kills: 25,
+
+                        enemies:
+                        [
+                            {
+                                enemy_key: "enemy_weak",
+                                weight: 70
+                            },
+
+                            {
+                                enemy_key: "enemy_hunter",
+                                weight: 30
+                            }
+                        ],
+
+                        count_min: 18,
+                        count_max: 24,
+
+                        stagger_min_seconds: 0.08,
+                        stagger_max_seconds: 0.18
+                    },
+
+                    {
+                        key: "century_harvest",
+                        name: "THE CENTURY HARVEST",
+
+                        trigger_kills: 100,
+
+                        enemies:
+                        [
+                            {
+                                enemy_key: "enemy_weak",
+                                weight: 45
+                            },
+
+                            {
+                                enemy_key: "enemy_hunter",
+                                weight: 20
+                            },
+
+                            {
+                                enemy_key: "enemy_shooter_triple",
+                                weight: 15
+                            },
+
+                            {
+                                enemy_key: "enemy_kamikaze",
+                                weight: 10
+                            },
+
+                            {
+                                enemy_key: "enemy_splitter",
+                                weight: 10
+                            }
+                        ],
+
+                        count_min: 40,
+                        count_max: 55,
+
+                        stagger_min_seconds: 0.05,
+                        stagger_max_seconds: 0.14
+                    }
+                ]
             }
 
+
             // FUTURE:
-            // cavern settings
-            // enemy spawning
-            // waves and milestones
+            // starting resources
             // environmental modifiers
+            // fog settings
+            // victory conditions
+            // spawn-zone exclusions
+            // boss encounters
         }
     };
 
 
-    show_debug_message("VECTOR TD 2026 - WORLD DATA INITIALIZED");
+    show_debug_message(
+        "VECTOR TD 2026 - WORLD DATA INITIALIZED"
+    );
 
     return true;
 }

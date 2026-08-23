@@ -1219,7 +1219,7 @@ function scr_enemy_split(_enemy)
     return true;
 }
 
-/// @description Kills an enemy, processes death abilities, and awards attribution.
+/// @description Kills an enemy, processes abilities, and awards attribution.
 
 function scr_enemy_die(_enemy, _damage)
 {
@@ -1231,14 +1231,45 @@ function scr_enemy_die(_enemy, _damage)
 
 
     _enemy.EnemyState = EnemyState.DEAD;
+
     scr_navigation_enemy_stop(_enemy);
 
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.EXPLODE_ON_DEATH
+        )
+    )
+    {
         scr_enemy_explode(_enemy);
+    }
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.SPLIT_ON_DEATH
+        )
+    )
+    {
         scr_enemy_split(_enemy);
+    }
+
+
+    // Every defeated enemy contributes to level milestones.
+
+    if (
+        variable_global_exists("vtd_level")
+        && is_struct(global.vtd_level)
+        && variable_struct_exists(
+            global.vtd_level,
+            "combat"
+        )
+    )
+    {
+        global.vtd_level.combat.kills++;
+    }
 
 
     if (is_struct(_damage))
@@ -1249,9 +1280,13 @@ function scr_enemy_die(_enemy, _damage)
             {
                 var _player = _damage.source;
 
+
                 if (
                     instance_exists(_player)
-                    && variable_instance_exists(_player, "combat")
+                    && variable_instance_exists(
+                        _player,
+                        "combat"
+                    )
                     && is_struct(_player.combat)
                 )
                 {
@@ -1265,9 +1300,13 @@ function scr_enemy_die(_enemy, _damage)
             {
                 var _tower = _damage.source;
 
+
                 if (
                     instance_exists(_tower)
-                    && variable_instance_exists(_tower, "combat")
+                    && variable_instance_exists(
+                        _tower,
+                        "combat"
+                    )
                     && is_struct(_tower.combat)
                 )
                 {
@@ -1287,11 +1326,14 @@ function scr_enemy_die(_enemy, _damage)
     }
 
 
-    show_debug_message("ENEMY DESTROYED: " + _enemy.identity.name);
+    show_debug_message(
+        "ENEMY DESTROYED: "
+        + _enemy.identity.name
+    );
 
 
     // FUTURE:
-    // credits and resource drops
+    // credits and drops
     // experience
     // particles
     // transporter release

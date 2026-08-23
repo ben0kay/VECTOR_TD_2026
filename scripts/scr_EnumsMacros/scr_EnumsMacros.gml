@@ -159,6 +159,16 @@ enum CargoDroneState
     DESTROYED
 }
 
+/// @description Identifies one map edge used for enemy spawning.
+enum SpawnSide
+{
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT,
+    RANDOM
+}
+
 // Staggered update helpers.
 //
 // FUTURE:

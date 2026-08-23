@@ -1101,3 +1101,128 @@ function scr_hud_bottom_bar_draw(_hud)
 
     return true;
 }
+
+/// @description Draws current enemy-pressure information.
+
+function scr_hud_pressure_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    if (!variable_struct_exists(
+        global.vtd_level.entities,
+        "spawner"
+    ))
+    {
+        return true;
+    }
+
+
+    var _spawner =
+        global.vtd_level.entities.spawner;
+
+    if (!instance_exists(_spawner))
+        return true;
+
+
+    var _runtime = _spawner.spawner;
+
+    var _gui_width = display_get_gui_width();
+    var _gui_height = display_get_gui_height();
+
+    var _bottom_top =
+        _gui_height
+        - _hud.hud.bottom.height;
+
+    var _x =
+        _gui_width
+        - _hud.hud.bottom.inspector_width
+        - 280;
+
+    var _y =
+        _bottom_top + 14;
+
+
+    draw_set_color(c_aqua);
+    draw_text(_x, _y, "ENEMY PRESSURE");
+
+
+    if (_runtime.time.grace_remaining > 0)
+    {
+        draw_set_color(c_lime);
+
+        draw_text(
+            _x,
+            _y + 28,
+            "GRACE "
+            + string(ceil(
+                _runtime.time.grace_remaining
+            ))
+            + "s"
+        );
+    }
+    else
+    {
+        draw_set_color(c_red);
+
+        draw_text(
+            _x,
+            _y + 28,
+            "PRESSURE ACTIVE"
+        );
+    }
+
+
+    draw_set_color(c_white);
+
+    draw_text(
+        _x,
+        _y + 52,
+        "ENEMIES  "
+        + string(instance_number(o_enemy))
+    );
+
+    draw_text(
+        _x,
+        _y + 72,
+        "QUEUED   "
+        + string(array_length(_runtime.queue))
+    );
+
+    draw_text(
+        _x,
+        _y + 92,
+        "KILLS    "
+        + string(global.vtd_level.combat.kills)
+    );
+
+
+    draw_set_color(c_gray);
+
+    draw_text(
+        _x,
+        _y + 122,
+        "NEXT CLUSTER  "
+        + string(ceil(_runtime.clusters.timer))
+        + "s"
+    );
+
+    draw_text(
+        _x,
+        _y + 142,
+        "NEXT WAVE     "
+        + string(ceil(_runtime.waves.timer))
+        + "s"
+    );
+
+    draw_text(
+        _x,
+        _y + 172,
+        "G: END GRACE   M: FORCE WAVE"
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}

@@ -33,13 +33,12 @@ if (!scr_level_initialize())
 // CPU
 // ============================================================================
 
-var _cpu =
-    instance_create_layer(
-        room_width * 0.5,
-        room_height * 0.5,
-        "Instances",
-        o_cpu
-    );
+var _cpu = instance_create_layer(
+    room_width * 0.5,
+    room_height * 0.5,
+    "Instances",
+    o_cpu
+);
 
 
 if (!instance_exists(_cpu))
@@ -57,13 +56,12 @@ if (!instance_exists(_cpu))
 // PLAYER
 // ============================================================================
 
-var _player =
-    instance_create_layer(
-        (room_width * 0.5) - 256,
-        room_height * 0.5,
-        "Instances",
-        o_player
-    );
+var _player = instance_create_layer(
+    (room_width * 0.5) - 256,
+    room_height * 0.5,
+    "Instances",
+    o_player
+);
 
 
 if (!instance_exists(_player))
@@ -81,13 +79,12 @@ if (!instance_exists(_player))
 // CAMERA
 // ============================================================================
 
-var _camera =
-    instance_create_layer(
-        0,
-        0,
-        "Instances",
-        o_camera
-    );
+var _camera = instance_create_layer(
+    0,
+    0,
+    "Instances",
+    o_camera
+);
 
 
 if (!instance_exists(_camera))
@@ -105,19 +102,41 @@ if (!instance_exists(_camera))
 // BUILD CONTROLLER
 // ============================================================================
 
-var _build_controller =
-    instance_create_layer(
-        0,
-        0,
-        "Instances",
-        o_controller_build
-    );
+var _build_controller = instance_create_layer(
+    0,
+    0,
+    "Instances",
+    o_controller_build
+);
 
 
 if (!instance_exists(_build_controller))
 {
     show_debug_message(
         "LEVEL ERROR - build controller creation failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
+
+// ============================================================================
+// ENEMY SPAWNER
+// ============================================================================
+
+var _spawner = instance_create_layer(
+    0,
+    0,
+    "Instances",
+    o_enemy_spawner
+);
+
+
+if (!instance_exists(_spawner))
+{
+    show_debug_message(
+        "LEVEL ERROR - enemy spawner creation failed."
     );
 
     instance_destroy();

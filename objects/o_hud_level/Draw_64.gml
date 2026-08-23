@@ -15,14 +15,16 @@ draw_set_valign(fa_top);
 
 scr_hud_top_bar_draw(id);
 scr_hud_bottom_bar_draw(id);
+scr_hud_pressure_draw(id);
 scr_hud_vector_window_draw(id);
 
 
 // FUTURE:
-// scr_hud_notifications_draw(id);
-// scr_hud_wave_information_draw(id);
-// scr_hud_build_menu_draw(id);
-// scr_hud_power_overlay_draw(id);
+// notifications
+// attack-side warnings
+// wave banners
+// power overlay
+// fog information
 
 
 draw_set_alpha(1);
