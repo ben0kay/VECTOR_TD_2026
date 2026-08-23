@@ -105,7 +105,7 @@ var _fog = instance_create_layer(
     0,
     0,
     "Instances",
-    o_fog_controller
+    o_controller_fog
 );
 
 if (!instance_exists(_fog))

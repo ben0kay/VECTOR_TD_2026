@@ -219,17 +219,19 @@ function scr_fog_position_visible(_world_x, _world_y)
     }
 
 
-    return _fog.visible_grid[
-        # _cell_x,
-        _cell_y
-    ] > 0;
+    return _fog.visible_grid[# _cell_x, _cell_y] > 0;
 }
-
 
 /// @description Returns whether a world position was previously explored.
 
 function scr_fog_position_explored(_world_x, _world_y)
 {
+    if (!variable_global_exists("vtd_level"))
+        return true;
+
+    if (!is_struct(global.vtd_level))
+        return true;
+
     if (!variable_struct_exists(global.vtd_level.entities, "fog"))
         return true;
 
@@ -264,10 +266,7 @@ function scr_fog_position_explored(_world_x, _world_y)
     }
 
 
-    return _fog.explored_grid[
-        # _cell_x,
-        _cell_y
-    ] > 0;
+    return _fog.explored_grid[# _cell_x, _cell_y] > 0;
 }
 
 
@@ -380,10 +379,7 @@ function scr_fog_draw(_fog_controller)
 
 
             var _explored =
-                _fog.explored_grid[
-                    # _cell_x,
-                    _cell_y
-                ] > 0;
+                _fog.explored_grid[# _cell_x, _cell_y] > 0;
 
             draw_set_alpha(
                 _explored
@@ -397,6 +393,7 @@ function scr_fog_draw(_fog_controller)
 
             var _top =
                 _cell_y * _fog.cell_size;
+
 
             draw_rectangle(
                 _left,

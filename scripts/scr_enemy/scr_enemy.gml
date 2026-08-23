@@ -1256,6 +1256,60 @@ function scr_enemy_split(_enemy)
     return true;
 }
 
+
+/// @description Updates an enemy's visual angle from its actual movement.
+
+function scr_enemy_visual_direction_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    if (!variable_struct_exists(_enemy.movement, "previous_position"))
+    {
+        _enemy.movement.previous_position =
+        {
+            x: _enemy.x,
+            y: _enemy.y
+        };
+
+        return true;
+    }
+
+
+    var _previous =
+        _enemy.movement.previous_position;
+
+    var _moved_x =
+        _enemy.x - _previous.x;
+
+    var _moved_y =
+        _enemy.y - _previous.y;
+
+
+    // Ignore extremely small movement to prevent visual jitter.
+
+    if (
+        abs(_moved_x) > 0.01
+        || abs(_moved_y) > 0.01
+    )
+    {
+        _enemy.visual.draw_angle =
+            point_direction(
+                _previous.x,
+                _previous.y,
+                _enemy.x,
+                _enemy.y
+            );
+    }
+
+
+    _previous.x = _enemy.x;
+    _previous.y = _enemy.y;
+
+    return true;
+}
+
 /// @description Kills an enemy, processes abilities, and awards attribution.
 
 function scr_enemy_die(_enemy, _damage)
@@ -1380,3 +1434,4 @@ function scr_enemy_die(_enemy, _damage)
 
     return true;
 }
+
