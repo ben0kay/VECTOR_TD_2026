@@ -231,51 +231,6 @@ function scr_enemy_initialize(_enemy)
 	    _enemy.vitals.shield.color =
 	        _data.visual.shield_color;
 	}
-	
-	
-	if (
-    variable_struct_exists(
-        _data.vitals,
-        "shield_maximum"
-    )
-    && _data.vitals.shield_maximum > 0
-	)
-	{
-	    var _shield_color =
-	        make_color_rgb(
-	            255,
-	            110,
-	            120
-	        );
-
-
-	    if (
-	        variable_struct_exists(
-	            _data.visual,
-	            "shield_color"
-	        )
-	    )
-	    {
-	        _shield_color =
-	            _data.visual.shield_color;
-	    }
-
-
-	    _enemy.vitals.shield =
-	    {
-	        current:
-	            _data.vitals.shield_maximum,
-
-	        maximum:
-	            _data.vitals.shield_maximum,
-
-	        color:
-	            _shield_color,
-
-	        hit_flash:
-	            0
-	    };
-	}
 
 
     var _brainless = false;
@@ -1853,6 +1808,39 @@ function scr_enemy_modifier_add(
         break;
     }
 
+
+    return true;
+}
+
+
+/// @description Updates one enemy's temporary shield feedback.
+
+function scr_enemy_shield_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!variable_struct_exists(_enemy.vitals, "shield"))
+        return true;
+
+    var _shield = _enemy.vitals.shield;
+
+    if (!is_struct(_shield))
+        return true;
+
+    if (!variable_struct_exists(_shield, "enabled"))
+        return true;
+
+    if (!_shield.enabled)
+        return true;
+
+    var _fps = max(1, game_get_speed(gamespeed_fps));
+
+    _shield.hit_flash =
+        max(
+            0,
+            _shield.hit_flash - (4 / _fps)
+        );
 
     return true;
 }

@@ -484,55 +484,30 @@ function scr_enemy_visual_flyer(_enemy)
     return true;
 }
 
-
-/// @description Updates one enemy's temporary shield feedback.
-
-function scr_enemy_shield_update(_enemy)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
-
-
-    _enemy.vitals.shield.hit_flash =
-        max(
-            0,
-            _enemy.vitals.shield.hit_flash
-            - (4 / _fps)
-        );
-
-
-    return true;
-}
-
-/// @description Draws an active primitive vector shield.
+/// @description Draws one active primitive vector shield.
 
 function scr_enemy_shield_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-
-    var _shield =
-        _enemy.vitals.shield;
-
-    if (!_shield.enabled)
+    if (!variable_struct_exists(_enemy.vitals, "shield"))
         return true;
 
-    if (_shield.current <= 0)
+    var _shield = _enemy.vitals.shield;
+
+    if (!is_struct(_shield))
         return true;
 
+    if (!variable_struct_exists(_shield, "enabled"))
+        return true;
+
+    if (!_shield.enabled || _shield.current <= 0)
+        return true;
 
     var _ratio =
         clamp(
-            _shield.current
-            / max(1, _shield.maximum),
+            _shield.current / max(1, _shield.maximum),
             0,
             1
         );
@@ -550,13 +525,10 @@ function scr_enemy_shield_draw(_enemy)
         + (_ratio * 0.25)
         + (_shield.hit_flash * 0.35);
 
-
-    draw_set_color(
-        _shield.color
-    );
+    draw_set_color(_shield.color);
 
 
-    // Faint shield interior.
+    // Faint energy inside the shield.
 
     draw_set_alpha(
         0.035
@@ -593,27 +565,17 @@ function scr_enemy_shield_draw(_enemy)
             ceil(_ratio * 8)
         );
 
-
     for (var i = 0; i < _segments; ++i)
     {
-        var _angle =
-            i * 45;
+        var _angle = i * 45;
 
         draw_line(
-            _enemy.x
-                + lengthdir_x(_radius + 3, _angle - 12),
-
-            _enemy.y
-                + lengthdir_y(_radius + 3, _angle - 12),
-
-            _enemy.x
-                + lengthdir_x(_radius + 3, _angle + 12),
-
-            _enemy.y
-                + lengthdir_y(_radius + 3, _angle + 12)
+            _enemy.x + lengthdir_x(_radius + 3, _angle - 12),
+            _enemy.y + lengthdir_y(_radius + 3, _angle - 12),
+            _enemy.x + lengthdir_x(_radius + 3, _angle + 12),
+            _enemy.y + lengthdir_y(_radius + 3, _angle + 12)
         );
     }
-
 
     draw_set_alpha(1);
     draw_set_color(c_white);
