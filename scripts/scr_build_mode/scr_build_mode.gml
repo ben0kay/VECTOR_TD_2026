@@ -272,7 +272,7 @@ function scr_build_mode_place(_controller)
 }
 
 
-/// @description Processes build-mode input.
+/// @description Processes selected-building placement input.
 
 function scr_build_mode_update(_controller)
 {
@@ -284,32 +284,7 @@ function scr_build_mode_update(_controller)
     {
         case BuildState.NONE:
         {
-            if (keyboard_check_pressed(ord("B")))
-                scr_build_mode_begin(_controller, "wall_basic");
-
-            else if (keyboard_check_pressed(ord("T")))
-                scr_build_mode_begin(_controller, "tower_basic");
-
-            else if (keyboard_check_pressed(ord("Y")))
-                scr_build_mode_begin(_controller, "tower_anti_air");
-
-            else if (keyboard_check_pressed(ord("1")))
-                scr_build_mode_begin(_controller, "miner_carbon");
-
-            else if (keyboard_check_pressed(ord("2")))
-                scr_build_mode_begin(_controller, "miner_silicon");
-
-            else if (keyboard_check_pressed(ord("3")))
-                scr_build_mode_begin(_controller, "miner_copper");
-
-            else if (keyboard_check_pressed(ord("4")))
-                scr_build_mode_begin(_controller, "storage_carbon");
-
-            else if (keyboard_check_pressed(ord("5")))
-                scr_build_mode_begin(_controller, "storage_silicon");
-
-            else if (keyboard_check_pressed(ord("6")))
-                scr_build_mode_begin(_controller, "storage_copper");
+            // The level HUD owns building selection.
         }
         break;
 
@@ -326,32 +301,10 @@ function scr_build_mode_update(_controller)
             }
 
 
-            if (keyboard_check_pressed(ord("B")))
-                scr_build_mode_begin(_controller, "wall_basic");
+            // Never place a building through the permanent HUD.
 
-            else if (keyboard_check_pressed(ord("T")))
-                scr_build_mode_begin(_controller, "tower_basic");
-
-            else if (keyboard_check_pressed(ord("Y")))
-                scr_build_mode_begin(_controller, "tower_anti_air");
-
-            else if (keyboard_check_pressed(ord("1")))
-                scr_build_mode_begin(_controller, "miner_carbon");
-
-            else if (keyboard_check_pressed(ord("2")))
-                scr_build_mode_begin(_controller, "miner_silicon");
-
-            else if (keyboard_check_pressed(ord("3")))
-                scr_build_mode_begin(_controller, "miner_copper");
-
-            else if (keyboard_check_pressed(ord("4")))
-                scr_build_mode_begin(_controller, "storage_carbon");
-
-            else if (keyboard_check_pressed(ord("5")))
-                scr_build_mode_begin(_controller, "storage_silicon");
-
-            else if (keyboard_check_pressed(ord("6")))
-                scr_build_mode_begin(_controller, "storage_copper");
+            if (scr_hud_pointer_blocks_world())
+                break;
 
 
             if (mouse_check_button_pressed(mb_left))

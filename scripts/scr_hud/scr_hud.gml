@@ -89,10 +89,10 @@ function scr_hud_selection_update(_hud)
     if (global.LevelState != LevelState.PLAYING)
         return true;
 
-
-    // Build mode owns the mouse while placing something.
-
     if (global.BuildState != BuildState.NONE)
+        return true;
+
+    if (scr_hud_pointer_blocks_world())
         return true;
 
 
@@ -966,7 +966,7 @@ function scr_hud_top_bar_draw(_hud)
 }
 
 
-/// @description Draws the permanent lower HUD and main inspector.
+/// @description Draws the permanent lower HUD and inspector.
 
 function scr_hud_bottom_bar_draw(_hud)
 {
@@ -987,11 +987,10 @@ function scr_hud_bottom_bar_draw(_hud)
         _gui_width - _inspector_width;
 
 
-    // ========================================================================
-    // SHELL
-    // ========================================================================
+    draw_set_alpha(
+        _hud.hud.bottom.background_alpha
+    );
 
-    draw_set_alpha(_hud.hud.bottom.background_alpha);
     draw_set_color(c_black);
 
     draw_rectangle(
@@ -1022,34 +1021,6 @@ function scr_hud_bottom_bar_draw(_hud)
 
 
     // ========================================================================
-    // CURRENT TEST CONTROLS
-    // ========================================================================
-
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_top);
-
-    draw_set_color(c_aqua);
-    draw_text(18, _top + 14, "CONSTRUCTION");
-
-    draw_set_color(c_white);
-    draw_text(18, _top + 42, "B  WALL");
-    draw_text(18, _top + 62, "T  TOWER");
-
-    draw_text(130, _top + 42, "1  CARBON MINER");
-    draw_text(130, _top + 62, "2  SILICON MINER");
-    draw_text(130, _top + 82, "3  COPPER MINER");
-
-    draw_text(310, _top + 42, "4  CARBON STORAGE");
-    draw_text(310, _top + 62, "5  SILICON STORAGE");
-    draw_text(310, _top + 82, "6  COPPER STORAGE");
-
-    draw_set_color(c_gray);
-    draw_text(18, _top + 118, "LEFT CLICK  PLACE / SELECT");
-    draw_text(18, _top + 138, "RIGHT CLICK  CANCEL / DESELECT");
-    draw_text(18, _top + 168, "Future build buttons will replace these test keys.");
-
-
-    // ========================================================================
     // MAIN INSPECTOR
     // ========================================================================
 
@@ -1073,7 +1044,6 @@ function scr_hud_bottom_bar_draw(_hud)
             "STRUCTURE INSPECTOR"
         );
 
-
         draw_set_color(c_dkgray);
 
         draw_line(
@@ -1082,7 +1052,6 @@ function scr_hud_bottom_bar_draw(_hud)
             _gui_width - 18,
             _top + 38
         );
-
 
         draw_set_color(c_gray);
 

@@ -17,6 +17,7 @@ if (
 }
 
 
+scr_hud_build_menu_update(id);
 scr_hud_selection_update(id);
 scr_hud_vector_window_update(id);
 scr_hud_alert_update(id);

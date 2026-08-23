@@ -66,6 +66,7 @@ enum CargoDroneState { WAITING_SOURCE, TO_SOURCE, TO_STORAGE, WAITING_STORAGE, D
 
 enum HudAlertType { INFO, WARNING, DANGER, MILESTONE, SUCCESS }
 enum HudAlertState { OPENING, HOLDING, CLOSING }
+enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
 
 
 // Staggered update helpers.

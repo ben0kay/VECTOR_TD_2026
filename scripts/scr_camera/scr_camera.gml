@@ -197,12 +197,15 @@ function scr_camera_mode_toggle(_camera)
     return true;
 }
 
-/// @description Updates camera zoom input.
+/// @description Updates camera zoom outside HUD-owned areas.
 
 function scr_camera_zoom_update(_camera)
 {
     if (!instance_exists(_camera))
         return false;
+
+    if (scr_hud_pointer_blocks_world())
+        return true;
 
 
     var _zoom =
@@ -210,25 +213,17 @@ function scr_camera_zoom_update(_camera)
 
 
     if (mouse_wheel_up())
-    {
-        _zoom.current -=
-            _zoom.speed;
-    }
-
+        _zoom.current -= _zoom.speed;
 
     if (mouse_wheel_down())
-    {
-        _zoom.current +=
-            _zoom.speed;
-    }
+        _zoom.current += _zoom.speed;
 
 
-    _zoom.current =
-        clamp(
-            _zoom.current,
-            _zoom.minimum,
-            _zoom.maximum
-        );
+    _zoom.current = clamp(
+        _zoom.current,
+        _zoom.minimum,
+        _zoom.maximum
+    );
 
 
     return true;

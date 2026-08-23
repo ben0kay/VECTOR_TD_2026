@@ -17,19 +17,11 @@ scr_hud_top_bar_draw(id);
 scr_hud_bottom_bar_draw(id);
 scr_hud_pressure_draw(id);
 
+scr_hud_build_menu_draw(id);
+
 scr_hud_wave_warning_draw(id);
 scr_hud_alert_draw(id);
 scr_hud_vector_window_draw(id);
-
-
-// FUTURE ALERTS:
-// storage full
-// power failure
-// CPU under attack
-// research completion
-// deposit depleted
-// boss arrival
-// building destroyed
 
 
 draw_set_alpha(1);

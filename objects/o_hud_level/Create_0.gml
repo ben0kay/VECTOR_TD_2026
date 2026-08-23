@@ -58,6 +58,11 @@ hud =
 };
 
 
+hud.build_menu =
+    scr_hud_build_menu_create();
+
+scr_hud_build_menu_cards_rebuild(id);
+
 global.vtd_level.entities.hud = id;
 
 
