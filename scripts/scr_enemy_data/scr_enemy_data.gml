@@ -7,10 +7,6 @@ function scr_enemy_data_initialize()
 {
     global.vtd.data.enemies =
     {
-        // ====================================================================
-        // YELLOW — CPU SEEKER
-        // ====================================================================
-
         enemy_weak:
         {
             identity: { key: "enemy_weak", name: "Weak CPU Seeker" },
@@ -46,10 +42,6 @@ function scr_enemy_data_initialize()
         },
 
 
-        // ====================================================================
-        // RED — BUILDING HUNTER
-        // ====================================================================
-
         enemy_hunter:
         {
             identity: { key: "enemy_hunter", name: "Building Hunter" },
@@ -84,10 +76,6 @@ function scr_enemy_data_initialize()
             abilities: []
         },
 
-
-        // ====================================================================
-        // CYAN — PHASER
-        // ====================================================================
 
         enemy_phaser:
         {
@@ -126,10 +114,6 @@ function scr_enemy_data_initialize()
             ]
         },
 
-
-        // ====================================================================
-        // ORANGE — SINGLE SHOOTER
-        // ====================================================================
 
         enemy_shooter_single:
         {
@@ -176,10 +160,6 @@ function scr_enemy_data_initialize()
         },
 
 
-        // ====================================================================
-        // PURPLE — TRIPLE SHOOTER
-        // ====================================================================
-
         enemy_shooter_triple:
         {
             identity: { key: "enemy_shooter_triple", name: "Triple Shooter" },
@@ -217,8 +197,6 @@ function scr_enemy_data_initialize()
                     radius: 4,
                     color: c_purple,
                     shot_count: 3,
-
-                    // Total spread from the left projectile to the right.
                     spread_degrees: 18
                 }
             },
@@ -226,10 +204,6 @@ function scr_enemy_data_initialize()
             abilities: []
         },
 
-
-        // ====================================================================
-        // LIME — KAMIKAZE EXPLODER
-        // ====================================================================
 
         enemy_kamikaze:
         {
@@ -257,8 +231,6 @@ function scr_enemy_data_initialize()
             attack:
             {
                 type: EnemyAttack.CONTACT,
-
-                // Explosion data provides the actual damage.
                 damage: 0,
                 range: 12,
                 cooldown_seconds: 1
@@ -277,6 +249,105 @@ function scr_enemy_data_initialize()
             [
                 EnemyAbility.EXPLODE_ON_DEATH
             ]
+        },
+
+
+        // ====================================================================
+        // BLUE — SPLITTER
+        // ====================================================================
+
+        enemy_splitter:
+        {
+            identity: { key: "enemy_splitter", name: "Splitter" },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_splitter,
+                radius: 24,
+                color: c_blue
+            },
+
+            vitals: { hp_maximum: 80 },
+
+            movement:
+            {
+                speed: 1.4,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.BREACH },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 10,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            ability_data:
+            {
+                split:
+                {
+                    enemy_key: "enemy_splitter_child",
+                    count: 4,
+                    spawn_distance: 22,
+
+                    // Rotates the complete equal-angle pattern.
+                    angle_offset: 0
+                }
+            },
+
+            abilities:
+            [
+                EnemyAbility.SPLIT_ON_DEATH
+            ]
+        },
+
+
+        // ====================================================================
+        // BLUE — BRAINLESS SPLITTER CHILD
+        // ====================================================================
+
+        enemy_splitter_child:
+        {
+            identity: { key: "enemy_splitter_child", name: "Splitter Shard" },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_splitter_child,
+                radius: 10,
+                color: c_aqua
+            },
+
+            vitals: { hp_maximum: 12 },
+
+            movement:
+            {
+                speed: 5,
+                layer: EnemyMovementLayer.GROUND,
+                brainless: true,
+                destroy_on_impact: true
+            },
+
+            // These fields remain present so every enemy definition has the
+            // same readable structure. Brainless movement ignores targeting.
+
+            targeting: { target_type: EnemyTarget.CPU },
+            navigation: { blocked_action: EnemyBlockedAction.WAIT },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 8,
+                range: 0,
+                cooldown_seconds: 0
+            },
+
+            abilities: []
         }
     };
 

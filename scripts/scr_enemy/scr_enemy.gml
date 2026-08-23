@@ -129,11 +129,33 @@ function scr_enemy_initialize(_enemy)
     };
 
 
+    var _brainless = false;
+    var _destroy_on_impact = false;
+
+    if (variable_struct_exists(_data.movement, "brainless"))
+        _brainless = _data.movement.brainless;
+
+    if (variable_struct_exists(_data.movement, "destroy_on_impact"))
+        _destroy_on_impact = _data.movement.destroy_on_impact;
+
+
+    var _initial_direction = random(360);
+
+    if (variable_instance_exists(_enemy, "spawn_direction"))
+        _initial_direction = _enemy.spawn_direction;
+
+
     _enemy.movement =
     {
         speed: _data.movement.speed,
-        layer: _data.movement.layer
+        layer: _data.movement.layer,
+        brainless: _brainless,
+        direction: _initial_direction,
+        destroy_on_impact: _destroy_on_impact
     };
+
+
+    _enemy.visual.draw_angle = _initial_direction;
 
 
     _enemy.targeting =
@@ -147,13 +169,19 @@ function scr_enemy_initialize(_enemy)
 
     _enemy.navigation =
     {
-        path_id: path_add(),
-        needs_path: true,
+        path_id: -1,
+        needs_path: !_brainless,
         repath_timer: real(_enemy.id) mod 4,
         revision_seen: -1,
         reachable: true,
         blocked_action: _data.navigation.blocked_action
     };
+
+
+    // Brainless enemies never allocate a GameMaker path.
+
+    if (!_brainless)
+        _enemy.navigation.path_id = path_add();
 
 
     _enemy.attack =
@@ -196,7 +224,8 @@ function scr_enemy_initialize(_enemy)
 
     _enemy.ability_runtime =
     {
-        explosion: undefined
+        explosion: undefined,
+        split: undefined
     };
 
 
@@ -213,14 +242,37 @@ function scr_enemy_initialize(_enemy)
     }
 
 
-    _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
-    _enemy.targeting.target = _enemy.targeting.strategic;
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
+    {
+        var _split = _data.ability_data.split;
+
+        _enemy.ability_runtime.split =
+        {
+            enemy_key: _split.enemy_key,
+            count: _split.count,
+            spawn_distance: _split.spawn_distance,
+            angle_offset: _split.angle_offset,
+            triggered: false
+        };
+    }
+
+
+    if (_brainless)
+    {
+        _enemy.EnemyState = EnemyState.MOVING;
+    }
+    else
+    {
+        _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
+        _enemy.targeting.target = _enemy.targeting.strategic;
+    }
 
 
     show_debug_message("ENEMY CREATED: " + _enemy.identity.name);
 
     return true;
 }
+
 /// @description Returns the distance between an enemy and its target edges.
 
 function scr_enemy_target_edge_distance(
@@ -472,189 +524,115 @@ function scr_enemy_update(_enemy)
         return false;
 
 
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
+    // Brainless enemies perform no targeting, pathfinding, or repathing.
+
+    if (_enemy.movement.brainless)
+        return scr_enemy_brainless_update(_enemy);
 
 
-    _enemy.attack.cooldown.remaining =
-        max(
-            0,
-            _enemy.attack.cooldown.remaining
-            - (1 / _fps)
-        );
+    var _fps = max(1, game_get_speed(gamespeed_fps));
+
+    _enemy.attack.cooldown.remaining = max(
+        0,
+        _enemy.attack.cooldown.remaining - (1 / _fps)
+    );
 
 
     // ========================================================================
     // TARGET RECOVERY
     // ========================================================================
 
-    if (!instance_exists(
-        _enemy.targeting.strategic
-    ))
+    if (!instance_exists(_enemy.targeting.strategic))
+        _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
+
+    if (!instance_exists(_enemy.targeting.breach))
+        _enemy.targeting.breach = noone;
+
+
+    if (!instance_exists(_enemy.targeting.target))
     {
-        _enemy.targeting.strategic =
-            scr_enemy_target_acquire(
-                _enemy
-            );
-    }
-
-
-    if (!instance_exists(
-        _enemy.targeting.breach
-    ))
-    {
-        _enemy.targeting.breach =
-            noone;
-    }
-
-
-    if (!instance_exists(
-        _enemy.targeting.target
-    ))
-    {
-        // If the temporary breach target was destroyed, return to the
-        // original strategic objective.
-
-        if (instance_exists(
-            _enemy.targeting.strategic
-        ))
+        if (instance_exists(_enemy.targeting.strategic))
         {
-            _enemy.targeting.target =
-                _enemy.targeting.strategic;
+            _enemy.targeting.target = _enemy.targeting.strategic;
         }
         else
         {
-            _enemy.targeting.target =
-                scr_enemy_target_acquire(
-                    _enemy
-                );
-
-            _enemy.targeting.strategic =
-                _enemy.targeting.target;
+            _enemy.targeting.target = scr_enemy_target_acquire(_enemy);
+            _enemy.targeting.strategic = _enemy.targeting.target;
         }
 
 
-        if (!instance_exists(
-            _enemy.targeting.target
-        ))
+        if (!instance_exists(_enemy.targeting.target))
         {
-            scr_navigation_enemy_stop(
-                _enemy
-            );
-
+            scr_navigation_enemy_stop(_enemy);
             return true;
         }
 
 
-        scr_navigation_enemy_repath_request(
-            _enemy,
-            true
-        );
+        scr_navigation_enemy_repath_request(_enemy, true);
     }
 
 
-    var _target =
-        _enemy.targeting.target;
+    var _target = _enemy.targeting.target;
 
-    var _edge_distance =
-        scr_enemy_target_edge_distance(
-            _enemy,
-            _target
-        );
+    var _edge_distance = scr_enemy_target_edge_distance(
+        _enemy,
+        _target
+    );
 
 
     switch (_enemy.EnemyState)
     {
         case EnemyState.SPAWNING:
         {
-            _enemy.EnemyState =
-                EnemyState.MOVING;
-
-
-            scr_navigation_enemy_repath_request(
-                _enemy,
-                true
-            );
+            _enemy.EnemyState = EnemyState.MOVING;
+            scr_navigation_enemy_repath_request(_enemy, true);
         }
         break;
 
 
         case EnemyState.MOVING:
         {
-            if (
-                _edge_distance
-                <= _enemy.attack.range
-            )
+            if (_edge_distance <= _enemy.attack.range)
             {
-                scr_navigation_enemy_stop(
-                    _enemy
-                );
-
-                _enemy.EnemyState =
-                    EnemyState.ATTACKING;
-
+                scr_navigation_enemy_stop(_enemy);
+                _enemy.EnemyState = EnemyState.ATTACKING;
                 break;
             }
 
 
-            scr_navigation_enemy_update(
-                _enemy
-            );
+            scr_navigation_enemy_update(_enemy);
         }
         break;
 
 
         case EnemyState.ATTACKING:
         {
-            _enemy.visual.draw_angle =
-                point_direction(
-                    _enemy.x,
-                    _enemy.y,
-                    _target.x,
-                    _target.y
-                );
+            _enemy.visual.draw_angle = point_direction(
+                _enemy.x,
+                _enemy.y,
+                _target.x,
+                _target.y
+            );
 
 
-            if (
-                _edge_distance
-                > _enemy.attack.range
-            )
+            if (_edge_distance > _enemy.attack.range)
             {
-                _enemy.EnemyState =
-                    EnemyState.MOVING;
-
-
-                scr_navigation_enemy_repath_request(
-                    _enemy,
-                    true
-                );
-
+                _enemy.EnemyState = EnemyState.MOVING;
+                scr_navigation_enemy_repath_request(_enemy, true);
                 break;
             }
 
 
-            if (
-                _enemy.attack.cooldown.remaining
-                <= 0
-            )
-            {
-                scr_enemy_attack(
-                    _enemy
-                );
-            }
+            if (_enemy.attack.cooldown.remaining <= 0)
+                scr_enemy_attack(_enemy);
         }
         break;
 
 
         case EnemyState.STUNNED:
         {
-            scr_navigation_enemy_stop(
-                _enemy
-            );
-
+            scr_navigation_enemy_stop(_enemy);
 
             // FUTURE:
             // Timed status-effect recovery.
@@ -664,9 +642,7 @@ function scr_enemy_update(_enemy)
 
         case EnemyState.DEAD:
         {
-            scr_navigation_enemy_stop(
-                _enemy
-            );
+            scr_navigation_enemy_stop(_enemy);
         }
         break;
     }
@@ -675,21 +651,35 @@ function scr_enemy_update(_enemy)
     return true;
 }
 
-/// @description Spawns one data-driven enemy.
+/// @description Spawns one data-driven enemy with an optional direction.
 
 function scr_enemy_spawn(
     _enemy_key,
     _world_x,
-    _world_y
+    _world_y,
+    _spawn_direction = undefined
 )
 {
-    var _data =
-        scr_enemy_data_get(
-            _enemy_key
-        );
+    var _data = scr_enemy_data_get(_enemy_key);
 
     if (!scr_enemy_data_valid(_data))
         return noone;
+
+
+    var _creation_variables =
+    {
+        enemy_key: _enemy_key
+    };
+
+
+    if (!is_undefined(_spawn_direction))
+    {
+        variable_struct_set(
+            _creation_variables,
+            "spawn_direction",
+            _spawn_direction
+        );
+    }
 
 
     return instance_create_layer(
@@ -697,10 +687,7 @@ function scr_enemy_spawn(
         _world_y,
         "Instances",
         o_enemy,
-        {
-            enemy_key:
-                _enemy_key
-        }
+        _creation_variables
     );
 }
 
@@ -1077,6 +1064,161 @@ function scr_enemy_explode(_enemy)
     return true;
 }
 
+
+/// @description Moves one brainless enemy straight ahead until impact.
+
+function scr_enemy_brainless_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _start_x = _enemy.x;
+    var _start_y = _enemy.y;
+
+    var _end_x =
+        _start_x
+        + lengthdir_x(
+            _enemy.movement.speed,
+            _enemy.movement.direction
+        );
+
+    var _end_y =
+        _start_y
+        + lengthdir_y(
+            _enemy.movement.speed,
+            _enemy.movement.direction
+        );
+
+
+    _enemy.visual.draw_angle = _enemy.movement.direction;
+
+
+    // Reuse the hostile projectile sweep test. It already finds the first
+    // CPU, player, or building crossed between two positions.
+
+    var _target = scr_projectile_enemy_hit_find(
+        _enemy,
+        _start_x,
+        _start_y,
+        _end_x,
+        _end_y
+    );
+
+
+    if (instance_exists(_target))
+    {
+        _enemy.targeting.target = _target;
+
+        scr_enemy_attack(_enemy);
+
+
+        if (
+            instance_exists(_enemy)
+            && _enemy.movement.destroy_on_impact
+        )
+        {
+            scr_enemy_die(_enemy, undefined);
+        }
+
+
+        return true;
+    }
+
+
+    _enemy.x = _end_x;
+    _enemy.y = _end_y;
+
+
+    var _margin = 128;
+
+    if (
+        _enemy.x < -_margin
+        || _enemy.x > room_width + _margin
+        || _enemy.y < -_margin
+        || _enemy.y > room_height + _margin
+    )
+    {
+        instance_destroy(_enemy);
+    }
+
+
+    return true;
+}
+
+/// @description Releases evenly spaced brainless children from a splitter.
+
+function scr_enemy_split(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
+        return false;
+
+    if (!is_struct(_enemy.ability_runtime.split))
+        return false;
+
+
+    var _split = _enemy.ability_runtime.split;
+
+    if (_split.triggered)
+        return false;
+
+
+    _split.triggered = true;
+
+
+    var _count = max(1, floor(_split.count));
+    var _angle_step = 360 / _count;
+
+    // Randomly rotate the entire pattern while preserving equal spacing.
+
+    var _base_angle =
+        random(360)
+        + _split.angle_offset;
+
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _angle =
+            _base_angle
+            + (i * _angle_step);
+
+        var _spawn_x =
+            _enemy.x
+            + lengthdir_x(
+                _split.spawn_distance,
+                _angle
+            );
+
+        var _spawn_y =
+            _enemy.y
+            + lengthdir_y(
+                _split.spawn_distance,
+                _angle
+            );
+
+
+        scr_enemy_spawn(
+            _split.enemy_key,
+            _spawn_x,
+            _spawn_y,
+            _angle
+        );
+    }
+
+
+    // FUTURE:
+    // split particles
+    // split sound
+    // children inheriting modifiers from the parent
+    // several possible child enemy keys
+
+
+    return true;
+}
+
 /// @description Kills an enemy, processes death abilities, and awards attribution.
 
 function scr_enemy_die(_enemy, _damage)
@@ -1092,11 +1234,11 @@ function scr_enemy_die(_enemy, _damage)
     scr_navigation_enemy_stop(_enemy);
 
 
-    // Death abilities happen before the instance is removed.
-    // The triggered flag prevents a kamikaze attack exploding twice.
-
     if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
         scr_enemy_explode(_enemy);
+
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
+        scr_enemy_split(_enemy);
 
 
     if (is_struct(_damage))
@@ -1150,9 +1292,8 @@ function scr_enemy_die(_enemy, _damage)
 
     // FUTURE:
     // credits and resource drops
-    // tower/player experience
-    // particle effects
-    // splitter release
+    // experience
+    // particles
     // transporter release
 
 

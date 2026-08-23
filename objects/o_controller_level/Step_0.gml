@@ -40,6 +40,9 @@ switch (global.LevelState)
         if (keyboard_check_pressed(ord("O")))
             scr_enemy_spawn_edge("enemy_kamikaze");
 
+        if (keyboard_check_pressed(ord("L")))
+            scr_enemy_spawn_edge("enemy_splitter");
+
 
         // Direct CPU damage test.
 

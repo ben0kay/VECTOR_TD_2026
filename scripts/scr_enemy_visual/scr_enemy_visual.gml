@@ -58,7 +58,7 @@ function scr_enemy_visual_kamikaze(_enemy)
 
     var _radius = _enemy.visual.radius;
 
-    // Offset by instance ID so multiple kamikazes do not rotate in sync.
+    // Instance offset prevents every kamikaze rotating in sync.
 
     var _spin =
         (
@@ -68,7 +68,9 @@ function scr_enemy_visual_kamikaze(_enemy)
         mod 360;
 
 
-    // Outer explosive shell.
+    // ========================================================================
+    // OUTER BODY
+    // ========================================================================
 
     draw_set_color(_enemy.visual.color);
 
@@ -80,72 +82,62 @@ function scr_enemy_visual_kamikaze(_enemy)
     );
 
 
-    // Inner core.
-
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius * 0.4,
-        false
-    );
-
-
-    // Four rotating arms.
+    // ========================================================================
+    // ROTATING ARMS
+    // ========================================================================
 
     for (var i = 0; i < 4; ++i)
     {
         var _arm_angle = _spin + (i * 90);
 
-        var _inner_x =
-            _enemy.x
-            + lengthdir_x(
-                _radius * 0.4,
-                _arm_angle
-            );
-
-        var _inner_y =
-            _enemy.y
-            + lengthdir_y(
-                _radius * 0.4,
-                _arm_angle
-            );
-
-        var _outer_x =
-            _enemy.x
-            + lengthdir_x(
-                _radius,
-                _arm_angle
-            );
-
-        var _outer_y =
-            _enemy.y
-            + lengthdir_y(
-                _radius,
-                _arm_angle
-            );
-
-
         draw_line_width(
-            _inner_x,
-            _inner_y,
-            _outer_x,
-            _outer_y,
+            _enemy.x + lengthdir_x(_radius * 0.55, _arm_angle),
+            _enemy.y + lengthdir_y(_radius * 0.55, _arm_angle),
+            _enemy.x + lengthdir_x(_radius, _arm_angle),
+            _enemy.y + lengthdir_y(_radius, _arm_angle),
             3
         );
     }
 
 
-    // Small bright explosive core.
+    // ========================================================================
+    // ROTATING INNER SQUARE
+    // ========================================================================
+
+    var _square_radius = _radius * 0.52;
+
+    var _x1 = _enemy.x + lengthdir_x(_square_radius, _spin + 45);
+    var _y1 = _enemy.y + lengthdir_y(_square_radius, _spin + 45);
+
+    var _x2 = _enemy.x + lengthdir_x(_square_radius, _spin + 135);
+    var _y2 = _enemy.y + lengthdir_y(_square_radius, _spin + 135);
+
+    var _x3 = _enemy.x + lengthdir_x(_square_radius, _spin + 225);
+    var _y3 = _enemy.y + lengthdir_y(_square_radius, _spin + 225);
+
+    var _x4 = _enemy.x + lengthdir_x(_square_radius, _spin + 315);
+    var _y4 = _enemy.y + lengthdir_y(_square_radius, _spin + 315);
+
 
     draw_set_color(c_white);
 
+    draw_line_width(_x1, _y1, _x2, _y2, 2);
+    draw_line_width(_x2, _y2, _x3, _y3, 2);
+    draw_line_width(_x3, _y3, _x4, _y4, 2);
+    draw_line_width(_x4, _y4, _x1, _y1, 2);
+
+
+    // One bright corner makes the rotation especially obvious.
+
     draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius * 0.18,
+        _x1,
+        _y1,
+        2,
         true
     );
 
+
+    draw_set_color(c_white);
 
     return true;
 }
@@ -252,6 +244,97 @@ function scr_enemy_health_bar_draw(_enemy)
 
 
     draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the larger splitter enemy.
+
+function scr_enemy_visual_splitter(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+
+    var _front_x = _enemy.x + lengthdir_x(_radius, _angle);
+    var _front_y = _enemy.y + lengthdir_y(_radius, _angle);
+
+    var _right_x = _enemy.x + lengthdir_x(_radius, _angle - 90);
+    var _right_y = _enemy.y + lengthdir_y(_radius, _angle - 90);
+
+    var _back_x = _enemy.x + lengthdir_x(_radius, _angle + 180);
+    var _back_y = _enemy.y + lengthdir_y(_radius, _angle + 180);
+
+    var _left_x = _enemy.x + lengthdir_x(_radius, _angle + 90);
+    var _left_y = _enemy.y + lengthdir_y(_radius, _angle + 90);
+
+
+    draw_set_color(_enemy.visual.color);
+
+    draw_line_width(_front_x, _front_y, _right_x, _right_y, 3);
+    draw_line_width(_right_x, _right_y, _back_x, _back_y, 3);
+    draw_line_width(_back_x, _back_y, _left_x, _left_y, 3);
+    draw_line_width(_left_x, _left_y, _front_x, _front_y, 3);
+
+    draw_line_width(_front_x, _front_y, _back_x, _back_y, 2);
+    draw_line_width(_left_x, _left_y, _right_x, _right_y, 2);
+
+
+    return true;
+}
+
+
+/// @description Draws one small brainless splitter shard.
+
+function scr_enemy_visual_splitter_child(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+
+    var _front_x = _enemy.x + lengthdir_x(_radius, _angle);
+    var _front_y = _enemy.y + lengthdir_y(_radius, _angle);
+
+    var _left_x =
+        _enemy.x + lengthdir_x(_radius * 0.8, _angle + 145);
+
+    var _left_y =
+        _enemy.y + lengthdir_y(_radius * 0.8, _angle + 145);
+
+    var _right_x =
+        _enemy.x + lengthdir_x(_radius * 0.8, _angle - 145);
+
+    var _right_y =
+        _enemy.y + lengthdir_y(_radius * 0.8, _angle - 145);
+
+
+    draw_set_color(_enemy.visual.color);
+
+    draw_triangle(
+        _front_x,
+        _front_y,
+        _left_x,
+        _left_y,
+        _right_x,
+        _right_y,
+        false
+    );
+
+
+    draw_line_width(
+        _enemy.x,
+        _enemy.y,
+        _enemy.x + lengthdir_x(_radius * 0.65, _angle),
+        _enemy.y + lengthdir_y(_radius * 0.65, _angle),
+        2
+    );
+
 
     return true;
 }
