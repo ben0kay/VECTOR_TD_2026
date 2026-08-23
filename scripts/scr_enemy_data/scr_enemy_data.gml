@@ -1,5 +1,257 @@
 /// @description Data-driven enemy definitions and lookup.
 
+/// @description Registers every enemy definition.
+
+function scr_enemy_data_initialize()
+{
+    global.vtd.data.enemies = {};
+
+
+    if (!scr_enemy_data_weak())
+        return false;
+
+    if (!scr_enemy_data_hunter())
+        return false;
+
+    if (!scr_enemy_data_phaser())
+        return false;
+
+    if (!scr_enemy_data_shooter_single())
+        return false;
+
+    if (!scr_enemy_data_shooter_triple())
+        return false;
+
+    if (!scr_enemy_data_kamikaze())
+        return false;
+
+    if (!scr_enemy_data_splitter())
+        return false;
+
+    if (!scr_enemy_data_splitter_child())
+        return false;
+
+    if (!scr_enemy_data_flyer())
+        return false;
+
+
+    // FUTURE:
+    // scr_enemy_data_armoured();
+    // scr_enemy_data_transporter();
+    // scr_enemy_data_underground();
+    // scr_enemy_data_siege();
+    // scr_enemy_data_elite();
+    // scr_enemy_data_boss();
+
+
+    show_debug_message(
+        "VECTOR TD 2026 - ENEMY DATA INITIALIZED"
+    );
+
+    return true;
+}
+
+
+/// @description Returns one enemy definition.
+
+function scr_enemy_data_get(_enemy_key)
+{
+    if (!is_string(_enemy_key))
+        return undefined;
+
+    if (_enemy_key == "")
+        return undefined;
+
+
+    if (
+        !variable_struct_exists(
+            global.vtd.data.enemies,
+            _enemy_key
+        )
+    )
+    {
+        show_debug_message(
+            "ENEMY DATA ERROR - unknown key: "
+            + _enemy_key
+        );
+
+        return undefined;
+    }
+
+
+    return variable_struct_get(
+        global.vtd.data.enemies,
+        _enemy_key
+    );
+}
+
+
+/// @description Returns whether an enemy definition has the required data.
+
+function scr_enemy_data_valid(_data)
+{
+    if (!is_struct(_data))
+        return false;
+
+
+    // ========================================================================
+    // REQUIRED STRUCTS
+    // ========================================================================
+
+    if (!variable_struct_exists(_data, "identity"))
+        return false;
+
+    if (!variable_struct_exists(_data, "visual"))
+        return false;
+
+    if (!variable_struct_exists(_data, "vitals"))
+        return false;
+
+    if (!variable_struct_exists(_data, "movement"))
+        return false;
+
+    if (!variable_struct_exists(_data, "targeting"))
+        return false;
+
+    if (!variable_struct_exists(_data, "navigation"))
+        return false;
+
+    if (!variable_struct_exists(_data, "attack"))
+        return false;
+
+    if (!variable_struct_exists(_data, "abilities"))
+        return false;
+
+
+    if (!is_struct(_data.identity))
+        return false;
+
+    if (!is_struct(_data.visual))
+        return false;
+
+    if (!is_struct(_data.vitals))
+        return false;
+
+    if (!is_struct(_data.movement))
+        return false;
+
+    if (!is_struct(_data.targeting))
+        return false;
+
+    if (!is_struct(_data.navigation))
+        return false;
+
+    if (!is_struct(_data.attack))
+        return false;
+
+    if (!is_array(_data.abilities))
+        return false;
+
+
+    // ========================================================================
+    // CORE VALUES
+    // ========================================================================
+
+    if (!variable_struct_exists(_data.identity, "key"))
+        return false;
+
+    if (!is_string(_data.identity.key))
+        return false;
+
+    if (_data.identity.key == "")
+        return false;
+
+    if (!variable_struct_exists(_data.visual, "radius"))
+        return false;
+
+    if (_data.visual.radius <= 0)
+        return false;
+
+    if (!variable_struct_exists(_data.vitals, "hp_maximum"))
+        return false;
+
+    if (_data.vitals.hp_maximum <= 0)
+        return false;
+
+    if (!variable_struct_exists(_data.movement, "speed"))
+        return false;
+
+    if (_data.movement.speed < 0)
+        return false;
+
+
+    // ========================================================================
+    // PROJECTILE ATTACK
+    // ========================================================================
+
+    if (_data.attack.type == EnemyAttack.PROJECTILE)
+    {
+        if (!variable_struct_exists(_data.attack, "projectile"))
+            return false;
+
+        if (!is_struct(_data.attack.projectile))
+            return false;
+
+        var _projectile = _data.attack.projectile;
+
+        if (_projectile.speed <= 0)
+            return false;
+
+        if (_projectile.lifetime_seconds <= 0)
+            return false;
+
+        if (_projectile.radius <= 0)
+            return false;
+
+        if (_projectile.shot_count <= 0)
+            return false;
+
+        if (_projectile.spread_degrees < 0)
+            return false;
+    }
+
+
+    // ========================================================================
+    // EXPLOSION ABILITY
+    // ========================================================================
+
+    var _has_explosion = false;
+
+    for (var i = 0; i < array_length(_data.abilities); ++i)
+    {
+        if (_data.abilities[i] == EnemyAbility.EXPLODE_ON_DEATH)
+        {
+            _has_explosion = true;
+            break;
+        }
+    }
+
+
+    if (_has_explosion)
+    {
+        if (!variable_struct_exists(_data, "ability_data"))
+            return false;
+
+        if (!is_struct(_data.ability_data))
+            return false;
+
+        if (!variable_struct_exists(_data.ability_data, "explosion"))
+            return false;
+
+        if (!is_struct(_data.ability_data.explosion))
+            return false;
+
+        if (_data.ability_data.explosion.damage <= 0)
+            return false;
+
+        if (_data.ability_data.explosion.radius <= 0)
+            return false;
+    }
+
+
+    return true;
+}
+
 
 /// @description Registers the weak CPU-seeking enemy.
 
@@ -588,255 +840,3 @@ function scr_enemy_data_flyer()
     return true;
 }
 
-
-/// @description Registers every enemy definition.
-
-function scr_enemy_data_initialize()
-{
-    global.vtd.data.enemies = {};
-
-
-    if (!scr_enemy_data_weak())
-        return false;
-
-    if (!scr_enemy_data_hunter())
-        return false;
-
-    if (!scr_enemy_data_phaser())
-        return false;
-
-    if (!scr_enemy_data_shooter_single())
-        return false;
-
-    if (!scr_enemy_data_shooter_triple())
-        return false;
-
-    if (!scr_enemy_data_kamikaze())
-        return false;
-
-    if (!scr_enemy_data_splitter())
-        return false;
-
-    if (!scr_enemy_data_splitter_child())
-        return false;
-
-    if (!scr_enemy_data_flyer())
-        return false;
-
-
-    // FUTURE:
-    // scr_enemy_data_armoured();
-    // scr_enemy_data_transporter();
-    // scr_enemy_data_underground();
-    // scr_enemy_data_siege();
-    // scr_enemy_data_elite();
-    // scr_enemy_data_boss();
-
-
-    show_debug_message(
-        "VECTOR TD 2026 - ENEMY DATA INITIALIZED"
-    );
-
-    return true;
-}
-
-
-/// @description Returns one enemy definition.
-
-function scr_enemy_data_get(_enemy_key)
-{
-    if (!is_string(_enemy_key))
-        return undefined;
-
-    if (_enemy_key == "")
-        return undefined;
-
-
-    if (
-        !variable_struct_exists(
-            global.vtd.data.enemies,
-            _enemy_key
-        )
-    )
-    {
-        show_debug_message(
-            "ENEMY DATA ERROR - unknown key: "
-            + _enemy_key
-        );
-
-        return undefined;
-    }
-
-
-    return variable_struct_get(
-        global.vtd.data.enemies,
-        _enemy_key
-    );
-}
-
-
-/// @description Returns whether an enemy definition has the required data.
-
-function scr_enemy_data_valid(_data)
-{
-    if (!is_struct(_data))
-        return false;
-
-
-    // ========================================================================
-    // REQUIRED STRUCTS
-    // ========================================================================
-
-    if (!variable_struct_exists(_data, "identity"))
-        return false;
-
-    if (!variable_struct_exists(_data, "visual"))
-        return false;
-
-    if (!variable_struct_exists(_data, "vitals"))
-        return false;
-
-    if (!variable_struct_exists(_data, "movement"))
-        return false;
-
-    if (!variable_struct_exists(_data, "targeting"))
-        return false;
-
-    if (!variable_struct_exists(_data, "navigation"))
-        return false;
-
-    if (!variable_struct_exists(_data, "attack"))
-        return false;
-
-    if (!variable_struct_exists(_data, "abilities"))
-        return false;
-
-
-    if (!is_struct(_data.identity))
-        return false;
-
-    if (!is_struct(_data.visual))
-        return false;
-
-    if (!is_struct(_data.vitals))
-        return false;
-
-    if (!is_struct(_data.movement))
-        return false;
-
-    if (!is_struct(_data.targeting))
-        return false;
-
-    if (!is_struct(_data.navigation))
-        return false;
-
-    if (!is_struct(_data.attack))
-        return false;
-
-    if (!is_array(_data.abilities))
-        return false;
-
-
-    // ========================================================================
-    // CORE VALUES
-    // ========================================================================
-
-    if (!variable_struct_exists(_data.identity, "key"))
-        return false;
-
-    if (!is_string(_data.identity.key))
-        return false;
-
-    if (_data.identity.key == "")
-        return false;
-
-    if (!variable_struct_exists(_data.visual, "radius"))
-        return false;
-
-    if (_data.visual.radius <= 0)
-        return false;
-
-    if (!variable_struct_exists(_data.vitals, "hp_maximum"))
-        return false;
-
-    if (_data.vitals.hp_maximum <= 0)
-        return false;
-
-    if (!variable_struct_exists(_data.movement, "speed"))
-        return false;
-
-    if (_data.movement.speed < 0)
-        return false;
-
-
-    // ========================================================================
-    // PROJECTILE ATTACK
-    // ========================================================================
-
-    if (_data.attack.type == EnemyAttack.PROJECTILE)
-    {
-        if (!variable_struct_exists(_data.attack, "projectile"))
-            return false;
-
-        if (!is_struct(_data.attack.projectile))
-            return false;
-
-        var _projectile = _data.attack.projectile;
-
-        if (_projectile.speed <= 0)
-            return false;
-
-        if (_projectile.lifetime_seconds <= 0)
-            return false;
-
-        if (_projectile.radius <= 0)
-            return false;
-
-        if (_projectile.shot_count <= 0)
-            return false;
-
-        if (_projectile.spread_degrees < 0)
-            return false;
-    }
-
-
-    // ========================================================================
-    // EXPLOSION ABILITY
-    // ========================================================================
-
-    var _has_explosion = false;
-
-    for (var i = 0; i < array_length(_data.abilities); ++i)
-    {
-        if (_data.abilities[i] == EnemyAbility.EXPLODE_ON_DEATH)
-        {
-            _has_explosion = true;
-            break;
-        }
-    }
-
-
-    if (_has_explosion)
-    {
-        if (!variable_struct_exists(_data, "ability_data"))
-            return false;
-
-        if (!is_struct(_data.ability_data))
-            return false;
-
-        if (!variable_struct_exists(_data.ability_data, "explosion"))
-            return false;
-
-        if (!is_struct(_data.ability_data.explosion))
-            return false;
-
-        if (_data.ability_data.explosion.damage <= 0)
-            return false;
-
-        if (_data.ability_data.explosion.radius <= 0)
-            return false;
-    }
-
-
-    return true;
-}

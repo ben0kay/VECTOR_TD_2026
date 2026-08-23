@@ -118,7 +118,7 @@ function scr_tower_data_anti_air()
                 range: 360,
                 target_mode: TowerTargetMode.CLOSEST,
                 target_layer: EnemyMovementLayer.FLYING,
-                requires_line_of_sight: true,
+                requires_line_of_sight: false,
                 draw_function: scr_tower_visual_anti_air,
 
                 weapon:

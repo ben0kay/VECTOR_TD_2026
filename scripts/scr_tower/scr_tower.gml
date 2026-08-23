@@ -90,10 +90,7 @@ function scr_tower_initialize(_tower)
 
 /// @description Returns whether an enemy is visible and targetable.
 
-function scr_tower_target_valid(
-    _tower,
-    _enemy
-)
+function scr_tower_target_valid(_tower, _enemy)
 {
     if (!instance_exists(_tower))
         return false;
@@ -111,6 +108,9 @@ function scr_tower_target_valid(
     {
         return false;
     }
+
+    if (!scr_fog_position_visible(_enemy.x, _enemy.y))
+        return false;
 
 
     if (

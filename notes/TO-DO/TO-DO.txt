@@ -6,36 +6,46 @@ Repository:
 
 `https://github.com/ben0kay/VECTOR_TD_2026`
 
-Last confirmed commit before the newest HUD work:
+Last public commit inspected before the current modular data refactor:
 
-`78484e3`
+`c075eaa`
+
+Always inspect the newest push rather than assuming this hash is current.
+
+Original reference project:
+
+`VECTOR RTS TD.zip`
 
 At the beginning of a new chat:
 
 1. Inspect the latest GitHub push before providing code.
-2. Compare it against this handover—do not assume every pasted step was implemented correctly.
-3. Ask Ben for the original `VECTOR RTS TD.zip`.
-4. Inspect the original project whenever recreating an older mechanic such as navigation, enemy targeting, world generation, mining, waves, HUD layout, build menus or resource handling.
-5. Use the original ZIP as a gameplay and structural reference—not as code that must be copied unchanged.
-6. Continue in reasonably complete batches instead of repeatedly replacing the same function across several tiny steps.
+2. Ask Ben for the original Vector TD ZIP if it is not available.
+3. Inspect the original project when recreating navigation, targeting, enemies, waves, world generation, mining, resources, HUDs or build controls.
+4. Use the original as the gameplay and familiarity target, not as code that must be copied unchanged.
+5. Continue in complete batches that look slightly ahead and avoid repeatedly replacing the same functions.
+6. Confirm what Ben wants before introducing a large abstraction.
 
-The original Vector TD is the target for gameplay familiarity. The new project should feel like an evolved, cleaner version of that game—not an unrelated architecture.
+The new game should feel like a cleaner, evolved version of the original Vector TD—not an unrelated framework.
 
 ---
 
-# Project direction
+# Current direction
 
-Rebuild the original Vector TD with:
+The immediate priority is the tower-defense combat loop:
 
-- Familiar gameplay and code flow.
-- Native GameMaker systems where practical.
-- Data-driven variations without making the architecture difficult to understand.
-- Separate objects for meaningful building categories.
-- One generic enemy object for most enemy variations.
-- Improved local power networks.
-- Expandable world generation, resources, enemies and effects.
+1. Enemy variety.
+2. Tower variety.
+3. Ground, flying and eventually underground combat.
+4. Clear tower-target restrictions.
+5. Continuous enemy pressure.
+6. Major waves and milestones.
+7. Combat rewards.
+8. Tower ranks and upgrades.
+9. More advanced enemy abilities.
 
-Ben must be able to read, understand and modify the project.
+Mining, cargo logistics and world generation already have foundations, but their expansion is paused while combat becomes more complete.
+
+Local power networks remain planned and should retain the improved network concept from the abandoned rebuild.
 
 ---
 
@@ -43,25 +53,27 @@ Ben must be able to read, understand and modify the project.
 
 Ben prefers:
 
-- Complete replacement functions and complete object events.
-- A short explanation before every supplied function.
-- Compact vertical formatting where it remains readable.
+- Complete replacement functions and object events.
+- A short explanation before supplied code.
+- Compact vertical formatting where readable.
 - Enums and switch statements.
-- Related variables grouped into small structs.
-- Direct instructions such as “create this object” and “replace this event.”
-- Comments marking sensible future extension points.
-- Familiar GameMaker naming and execution flow.
-- Larger, complete implementation batches when the final shape is already known.
+- Related variables grouped in structs.
+- Direct instructions.
+- Comments for sensible future extensions.
+- Familiar GameMaker execution flow.
+- Complete batches rather than repeated incremental rewrites.
+- Custom `visual.draw_angle` instead of gameplay relying on `image_angle`.
 
 Avoid:
 
-- Replacing the same event several times across consecutive steps.
-- Deep abstraction without an immediate gameplay benefit.
-- Huge generic managers that hide how gameplay works.
-- Introducing systems without explaining their purpose and test procedure.
-- Supplying partial function fragments unless specifically requested.
+- Deep abstractions without an immediate benefit.
+- Large managers that hide gameplay flow.
+- Definitions scattered across unrelated scripts.
+- One object per ordinary enemy or tower variation.
+- Replacing the same function several times in consecutive steps.
+- Partial code fragments when a complete function can reasonably be supplied.
 
-State naming should remain familiar:
+Preferred state names:
 
 ```gml
 global.GameState
@@ -74,33 +86,20 @@ EnemyState
 BuildingState
 ```
 
-Use custom visual angles instead of rotating instances directly:
-
-```gml
-visual.draw_angle
-```
-
-Do not rely on `image_angle` as the main gameplay-facing rotation variable.
-
 ---
 
-# Architecture
+# Runtime architecture
 
-## Persistent runtime
+## Persistent controller
 
 Owned by:
 
 ```text
 o_controller_main
-```
-
-Main structure:
-
-```gml
 global.vtd
 ```
 
-Expected responsibilities:
+Important groups:
 
 ```gml
 global.vtd.tick
@@ -109,7 +108,7 @@ global.vtd.data
 global.vtd.debug
 ```
 
-Possible future persistent data:
+Possible future persistent groups:
 
 ```gml
 global.vtd.profile
@@ -117,21 +116,16 @@ global.vtd.upgrades
 global.vtd.statistics
 ```
 
-## Level runtime
+## Level controller
 
 Owned by:
 
 ```text
 o_controller_level
-```
-
-Main structure:
-
-```gml
 global.vtd_level
 ```
 
-Expected groups:
+Important groups:
 
 ```gml
 global.vtd_level.time
@@ -139,11 +133,11 @@ global.vtd_level.map
 global.vtd_level.navigation
 global.vtd_level.entities
 global.vtd_level.resources
-global.vtd_level.waves
+global.vtd_level.combat
 global.vtd_level.power
 ```
 
-This runtime is created for a gameplay level and safely destroyed when leaving it.
+The level runtime must be created for gameplay rooms and safely cleaned when leaving them.
 
 ## HUD
 
@@ -153,41 +147,34 @@ The level interface object is:
 o_hud_level
 ```
 
-It should eventually own:
+It currently owns:
 
-- Permanent top and bottom bars.
 - Resource display.
 - CPU health.
-- Wave and threat information.
-- Notifications.
-- Build-menu interface.
-- Selection information.
-- Placement messages.
+- Pressure information.
+- Selection.
+- Bottom inspector.
+- Contextual building window.
+- Alert queue.
+- Major-wave warning display.
+- Threatened-edge pulse.
+
+Future HUD work includes:
+
+- Proper build menu.
+- Tower targeting controls.
+- Upgrade controls.
+- Main selected-object information.
 - Power-grid interface.
-- Animated contextual windows.
+- More polished permanent top and bottom bars.
 
-Reusable HUD visuals should remain in scripts so other interfaces can share them later:
-
-```text
-scr_hud_vector_window
-scr_hud_selection
-```
-
-Future interface contexts may use:
-
-```text
-o_hud_level
-o_hud_lobby
-o_hud_menu
-```
-
-Do not add `o_controller_ui` unless a future need clearly justifies it.
+Do not create `o_controller_ui` unless a clear future requirement justifies it.
 
 ---
 
-# Object strategy
+# Data organization
 
-## Enemies
+## Enemy data
 
 Most enemies use:
 
@@ -195,69 +182,202 @@ Most enemies use:
 o_enemy
 ```
 
-Definitions control:
-
-- Identity.
-- Health and movement.
-- Movement layer.
-- Targeting policy.
-- Attacks.
-- Navigation response.
-- Abilities.
-- Spawn and death behaviour.
-- Primitive vector appearance or sprite.
-
-A sprite may be used when supplied. Otherwise, the enemy uses its registered primitive drawing function.
-
-Unique bosses may eventually justify:
+Enemy definitions live in:
 
 ```text
-o_enemy_boss
+scr_enemy_data
 ```
 
-Do not create one object per ordinary enemy.
+Each enemy now receives its own definition function:
 
-## Buildings
+```gml
+scr_enemy_data_weak()
+scr_enemy_data_hunter()
+scr_enemy_data_phaser()
+scr_enemy_data_shooter_single()
+scr_enemy_data_shooter_triple()
+scr_enemy_data_kamikaze()
+scr_enemy_data_splitter()
+scr_enemy_data_splitter_child()
+scr_enemy_data_flyer()
+```
 
-Use a shared building parent:
+The initializer should remain a simple readable registration list:
+
+```gml
+function scr_enemy_data_initialize()
+{
+    global.vtd.data.enemies = {};
+
+    scr_enemy_data_weak();
+    scr_enemy_data_hunter();
+    scr_enemy_data_phaser();
+    scr_enemy_data_shooter_single();
+    scr_enemy_data_shooter_triple();
+    scr_enemy_data_kamikaze();
+    scr_enemy_data_splitter();
+    scr_enemy_data_splitter_child();
+    scr_enemy_data_flyer();
+
+    return true;
+}
+```
+
+Future enemies should require only:
+
+1. One new enemy definition function.
+2. One new initializer call.
+
+Enemy primitive drawing functions belong in:
+
+```text
+scr_enemy_visual
+```
+
+Sprites remain optional. Primitive visuals remain the fallback.
+
+## Building data
+
+Non-tower building definitions live in:
+
+```text
+scr_building_data
+```
+
+This currently includes:
+
+- Walls.
+- Miners.
+- Storage buildings.
+- Future utility, research and power buildings.
+
+All definitions still register into:
+
+```gml
+global.vtd.data.buildings
+```
+
+## Tower data
+
+Every tower definition lives in:
+
+```text
+scr_tower_data
+```
+
+Each tower receives a separate function:
+
+```gml
+scr_tower_data_basic_ground()
+scr_tower_data_anti_air()
+```
+
+The initializer is a readable registration list:
+
+```gml
+function scr_tower_data_initialize()
+{
+    scr_tower_data_basic_ground();
+    scr_tower_data_anti_air();
+
+    return true;
+}
+```
+
+Future towers should require only:
+
+1. One new tower definition function.
+2. One new initializer call.
+
+Tower runtime behaviour belongs in:
+
+```text
+scr_tower
+```
+
+Primitive tower drawing functions belong in:
+
+```text
+scr_tower_visual
+```
+
+Do not recreate or use:
+
+```text
+scr_combat_expansion_data
+```
+
+That temporary script mixed enemy and tower definitions based on implementation timing rather than gameplay category. Its contents have been moved into the proper data scripts.
+
+Initialization order:
+
+```gml
+scr_enemy_data_initialize();
+scr_building_data_initialize();
+scr_tower_data_initialize();
+scr_resource_data_initialize();
+scr_world_data_initialize();
+```
+
+`scr_building_data_initialize()` creates the shared building database first. `scr_tower_data_initialize()` then adds tower definitions using `variable_struct_set()`.
+
+---
+
+# Object strategy
+
+Shared parent:
 
 ```text
 o_building_par
 ```
 
-Use separate child objects for meaningful categories:
+Meaningful building-category children:
 
 ```text
 o_cpu
 o_wall
 o_tower
 o_miner
-o_refinery
 o_storage
+```
+
+Future category objects may include:
+
+```text
+o_refinery
 o_power_generator
 o_power_node
 o_support_building
 ```
 
-Variations inside each category remain data-driven:
+Variations remain data-driven:
 
 ```text
 tower_basic
-tower_laser
-tower_triple
+tower_anti_air
 
 miner_carbon
-miner_copper
 miner_silicon
+miner_copper
+
+storage_carbon
+storage_silicon
+storage_copper
 ```
 
-This gives each category readable category-specific events without requiring an object for every individual building.
+Do not create one object for every individual tower or ordinary enemy.
+
+A genuinely unique boss may later justify:
+
+```text
+o_enemy_boss
+```
 
 ---
 
-# Current implemented foundation
+# Implemented foundation
 
-Verify all items against the latest push before changing them.
+Verify against the newest push.
 
 ## Core
 
@@ -265,66 +385,65 @@ Verify all items against the latest push before changing them.
 - [x] Per-level controller.
 - [x] `global.vtd`.
 - [x] `global.vtd_level`.
-- [x] Direct global state variables.
+- [x] Familiar direct global state variables.
 - [x] Core enums.
-- [x] Staggered `IFRAMES`-style update macros.
-- [x] Safe navigation-grid cleanup.
-- [x] Large test gameplay room.
+- [x] `IFRAMES` staggered-update macros.
+- [x] Large gameplay test room.
+- [x] Safe level and navigation cleanup.
 - [x] Room-restart test control.
 
 ## Player and camera
 
-- [x] Grouped player runtime data.
+- [x] Grouped player runtime.
 - [x] Switch-based player state.
-- [x] Normalized WASD movement.
+- [x] Normalized movement.
 - [x] Mouse aiming.
-- [x] Custom `visual.draw_angle`.
-- [x] Player sprite support with primitive fallback.
-- [x] Player firing.
-- [x] Player projectiles.
-- [x] Projectiles can travel over walls.
-- [x] Camera follow mode.
-- [x] Camera roam mode.
-- [x] Mouse-wheel zoom.
-- [x] Room clamping.
+- [x] Custom visual angle.
+- [x] Sprite support and primitive fallback.
+- [x] Player firing and projectiles.
+- [x] Player projectiles travel over walls.
+- [x] Camera follow and roaming.
+- [x] Zoom and room clamping.
 - [x] Camera-shake foundation.
-- [x] Projectile Outside Room cleanup is acceptable as additional safety.
 
-## Buildings and placement
+## Buildings
 
-- [x] Shared `o_building_par`.
+- [x] Shared building parent.
 - [x] Data-driven building definitions.
-- [x] CPU building.
-- [x] Wall building.
-- [x] Tower building.
-- [x] Miner building.
+- [x] CPU.
+- [x] Walls.
+- [x] Towers.
+- [x] Miners.
+- [x] Storage.
 - [x] Grid-snapped placement.
 - [x] Placement validation.
 - [x] Building health and destruction.
-- [x] Building navigation registration.
-- [x] Navigation cells released safely during cleanup.
-- [x] Basic build controls and placement preview.
-- [x] Wall placement and enclosed-CPU testing.
+- [x] Navigation registration and cleanup.
+- [x] Placement preview and cancellation.
 
 ## Navigation and breaching
 
-- [x] Native `mp_grid` navigation, resembling the original Vector TD.
-- [x] Ground navigation grid.
-- [x] Breach navigation grid.
+- [x] Native `mp_grid`, similar to the original Vector TD.
+- [x] Ground grid.
+- [x] Breach grid.
 - [x] Flying-grid foundation.
 - [x] Enemy-owned path cleanup.
-- [x] Ordinary routing around buildings.
-- [x] Breach routing when the strategic destination is blocked.
+- [x] Routing around buildings.
+- [x] Breach routing when destinations are blocked.
 - [x] Temporary blocker targeting.
 - [x] Return to strategic target after breaching.
-- [x] Building-placement navigation updates.
-- [x] Previous flow-field experiment was abandoned because placement caused unacceptable stalls.
+- [x] Navigation updates after building changes.
+- [x] Brainless enemies die when impacting solid terrain or buildings.
+- [x] Dead cells block ground-tower vision.
+- [x] Flow-field experiment abandoned because placement caused unacceptable stalls.
 
-Continue profiling with the intended scale of roughly 100–300 enemies. Keep native `mp_grid` unless profiling proves that a specific part needs improvement.
+Keep native `mp_grid` unless profiling gives a specific reason to change it.
 
-## Enemy foundation
+---
 
-Implemented data-driven test enemies include:
+# Enemy foundation
+
+Implemented enemy types:
 
 - [x] Weak CPU seeker.
 - [x] Building hunter.
@@ -334,33 +453,31 @@ Implemented data-driven test enemies include:
 - [x] Kamikaze.
 - [x] Splitter.
 - [x] Brainless splitter children.
+- [x] First flying drone foundation.
 
-Current enemy features include:
+Implemented enemy systems:
 
 - [x] Generic `o_enemy`.
+- [x] Data-driven definitions.
+- [x] One definition function per enemy.
 - [x] Movement layers.
-- [x] Targeting policies.
-- [x] CPU targeting.
-- [x] Closest-building targeting.
-- [x] Player-targeting support.
+- [x] CPU, building and player target support.
 - [x] Weighted targeting variation.
-- [x] Contact attacks.
-- [x] Ranged attacks.
+- [x] Contact and projectile attacks.
 - [x] Generic damage and death handling.
 - [x] Enemy projectiles.
-- [x] Breach behaviour.
+- [x] Breaching.
+- [x] Optional abilities.
 - [x] Primitive vector drawing.
 - [x] Optional sprite fallback.
-- [x] Per-enemy visual drawing functions.
-- [x] Kamikaze spinning visual.
-- [x] Split-on-death behaviour.
+- [x] Split-on-death.
 - [x] Brainless straight-line movement.
-- [x] Edge spawning and debug spawn controls.
-- [x] Enemy kill tracking.
+- [x] Kill tracking.
+- [x] Edge spawning.
 
 Phasing is an ability/effect, not a movement layer.
 
-Movement layers remain conceptually separate:
+Movement layers:
 
 ```gml
 EnemyMovementLayer.GROUND
@@ -368,238 +485,299 @@ EnemyMovementLayer.FLYING
 EnemyMovementLayer.UNDERGROUND
 ```
 
-This distinction will later help towers determine valid targets.
+The flying drone should:
 
-## Towers and projectiles
+- Visibly hover.
+- Have a subtle ground shadow.
+- Ignore buildings and dead cells while navigating.
+- Remain inside the map.
+- Be ignored by ground-only towers.
+- Be targetable by anti-air towers.
+
+---
+
+# Tower and projectile foundation
+
+Implemented or currently being tested:
 
 - [x] Generic `o_tower`.
-- [x] Tower targeting foundation.
+- [x] Data-driven tower definitions.
+- [x] One definition function per tower.
+- [x] Tower visual functions separated from runtime logic.
+- [x] Basic ground tower.
+- [x] Dedicated anti-air tower.
+- [x] Target acquisition.
+- [x] Ground/flying target restrictions.
 - [x] Custom turret draw angle.
 - [x] Generic tower projectile.
-- [x] Projectile damage.
+- [x] Layer-restricted projectile collisions.
+- [x] Direct damage.
+- [x] Damage-radius foundation.
 - [x] Tower kill tracking.
-- [x] Damage-radius/AOE foundation or planned support.
+- [x] Dead-cell line-of-sight blocking for ground towers.
 
-Future projectile definitions must be able to specify direct damage and optional radius damage.
+The anti-air tower should use:
 
-## World generation
+```gml
+target_layer: EnemyMovementLayer.FLYING
+requires_line_of_sight: false
+```
 
-- [x] Centralized world data.
+Dead cells represent tall ground obstructions, but flyers and anti-air fire exist above them.
+
+Current tower visuals:
+
+- Basic tower: directional vector ground cannon.
+- Anti-air tower: cyan twin rails, circular tracking mount and radar-like motion.
+
+Planned tower types:
+
+- Rapid-fire.
+- Splash/explosive.
+- Long-range artillery.
+- Laser.
+- Anti-armour.
+- Ground-and-air hybrid.
+- Slowing.
+- Shield disruption.
+- Support tower.
+
+---
+
+# Enemy pressure and waves
+
+Implemented:
+
+- [x] `o_enemy_spawner`.
+- [x] Central pressure configuration in world data.
+- [x] Grace period.
+- [x] Baseline enemies.
+- [x] Periodic clusters.
+- [x] Major waves.
+- [x] Kill milestones.
+- [x] Weighted enemy pools.
+- [x] Time-based enemy unlocks.
+- [x] Spawn staggering.
+- [x] Unified spawn queue.
+- [x] Per-Step spawn budget.
+- [x] Maximum alive-enemy limit.
+- [x] Maximum queued-enemy limit.
+- [x] Terrain-safe edge spawning.
+- [x] Cardinal wave direction.
+- [x] Wave-warning countdown.
+- [x] Reusable alert queue.
+- [x] Threatened map-edge pulse.
+- [x] Wave-engaged alert.
+- [x] CPU-health threshold alerts.
+
+Pressure test controls:
+
+```text
+G — End grace period
+M — Force next major wave
+A — Test generic HUD alert
+K — Damage CPU
+```
+
+Future pressure work:
+
+- [ ] Add flyers to suitable timed pools and waves.
+- [ ] Create more world-specific pressure definitions.
+- [ ] Improve long-session scaling.
+- [ ] Add elite and boss events.
+- [ ] Add victory conditions.
+- [ ] Add additional milestone types.
+- [ ] Balance for 100–300 enemies.
+
+---
+
+# World generation
+
+Implemented:
+
+- [x] Central world definitions.
 - [x] World-cell grid.
-- [x] Empty, dead-terrain and resource cell types.
-- [x] `o_dead_cell`.
-- [x] Cluster-style generation inspired by the original World 001.
+- [x] Empty, dead and resource cell types.
+- [x] Dead-cell terrain.
+- [x] Cluster generation.
 - [x] Rock clusters.
 - [x] Resource veins.
 - [x] Weighted resource selection.
 - [x] Guaranteed test vein.
 - [x] Resource vein identifiers.
-- [x] Terrain applied to navigation.
-- [x] Flyers intended to ignore dead terrain, although full flying-enemy gameplay still needs testing.
+- [x] Terrain registration with navigation.
+- [x] Safe resource-node cleanup.
 
-Current terrain is deliberately simple like the original game:
+Current terrain deliberately resembles the original:
 
+- Open terrain.
 - Dead cells/rocks.
 - Resource deposits.
-- Open buildable terrain.
 
-The system should remain extendable for future terrain without redesigning the complete world runtime.
+Future additions must remain easy to plug into world definitions.
 
-## Resources and mining
+---
 
-Current resources include:
-
-- [x] Carbon.
-- [x] Silicon.
-- [x] Copper.
+# Mining and cargo status
 
 Implemented:
 
-- [x] Generic `o_resource_node`.
-- [x] Resource definitions.
-- [x] Exposed resource nodes generated from rock formations.
-- [x] Resource amount and vein data.
-- [x] Generic `o_miner`.
-- [x] Resource-specific miner definitions.
-- [x] Miners placed directly over matching deposits.
-- [x] Resource-node claiming.
-- [x] Extraction into a local hopper.
-- [x] Full-hopper state.
-- [x] Depleted-node state.
-- [x] Compact world-space miner status visualization.
-- [x] Removed unreadable world-space diagnostic text.
+- [x] Carbon, silicon and copper.
+- [x] Resource nodes.
+- [x] Resource-specific miners.
+- [x] Miner placement over matching resources.
+- [x] Node claiming.
+- [x] Miner hopper.
+- [x] Full and depleted states.
+- [x] Resource-specific storage.
+- [x] Cargo drone transport.
+- [x] Visible collection and delivery.
+- [x] Incoming cargo reservations.
+- [x] Protection against common over-delivery cases.
+- [x] Miner and storage inspector information.
 
-Mining currently stops when the hopper is full. The next economy layer should visibly transport resources rather than teleporting everything invisibly.
+Expansion is paused while combat is prioritized.
 
-Future miners or underground activity may attract underground enemies. This can later be implemented through miner-targeting policies or a reusable noise/threat value.
+Future logistics work:
 
----
-
-# Immediate next milestone
-
-## Reusable level HUD and animated selection window
-
-`o_hud_level` has been created, but its complete implementation still needs to be supplied and verified.
-
-Create a reusable vector-style contextual window with this animation:
-
-1. A vertical line appears.
-2. The line expands vertically.
-3. The panel opens horizontally from the center.
-4. Object information fades or appears inside.
-5. The animation reverses when selection closes or changes.
-
-Required work:
-
-- [ ] Complete `o_hud_level` Create event.
-- [ ] Complete `o_hud_level` Step event.
-- [ ] Complete `o_hud_level` Draw GUI event.
-- [ ] Add reusable vector-window runtime structure.
-- [ ] Add reusable window update function.
-- [ ] Add reusable window draw function.
-- [ ] Add selection detection.
-- [ ] Select miners with the left mouse button.
-- [ ] Deselect with right click or clicking empty space.
-- [ ] Convert world coordinates to GUI coordinates where necessary.
-- [ ] Draw miner name.
-- [ ] Draw extracted resource type.
-- [ ] Draw node amount.
-- [ ] Draw hopper amount and capacity.
-- [ ] Draw miner state.
-- [ ] Keep object-specific content separate from the generic window animation.
-- [ ] Leave clear extension points for towers, storage, power buildings and enemies.
-
-Do not overload individual miners with permanent text. World-space drawing should provide compact state indicators; detailed information belongs in `o_hud_level`.
+- [ ] Stronger destruction recovery.
+- [ ] Multiple carrier types.
+- [ ] Faster/larger transport upgrades.
+- [ ] Additional visual cargo effects.
+- [ ] More advanced distribution rules.
 
 ---
 
-# Following gameplay milestones
+# Immediate next combat milestones
 
-## 1. Resource transport and storage
+## 1. Verify flying and anti-air combat
 
-Recommended next economy batch:
+- [ ] `F` spawns a flying drone.
+- [ ] Flyer visibly hovers.
+- [ ] Flyer crosses dead cells and buildings.
+- [ ] Basic ground tower ignores flyer.
+- [ ] Anti-air tower tracks flyer.
+- [ ] Anti-air tower shoots across dead cells.
+- [ ] Anti-air tower ignores ground enemies.
+- [ ] Projectiles ignore enemies on the wrong movement layer.
+- [ ] Mixed ground/flying test passes.
 
-- [ ] Create generic storage category.
-- [ ] Add resource-specific storage capacity.
-- [ ] Add visible cargo packet or cargo drone foundation.
-- [ ] Miner requests collection when its hopper contains resources.
-- [ ] Carrier travels to the miner.
-- [ ] Carrier loads a visible amount.
-- [ ] Carrier travels to compatible storage.
-- [ ] Resource is credited only when delivered.
-- [ ] Handle missing or full storage.
-- [ ] Prevent cargo loss or duplication when objects are destroyed.
-- [ ] Keep transport definitions expandable for faster and larger carriers.
+Current controls:
 
-Start simply. A full logistics simulation is not required immediately.
+```text
+T — Build basic ground tower
+Y — Build anti-air tower
+F — Spawn flying drone
+N — Spawn weak ground enemy
+```
 
-## 2. Local power networks
+## 2. Combat rewards
 
-Retain the improved network idea from the abandoned rebuild:
+Add:
 
-- [ ] Power generators.
-- [ ] Power nodes.
-- [ ] Connection range.
-- [ ] Connected local networks.
-- [ ] Generator and consumer registration.
-- [ ] Idle demand.
-- [ ] Increased demand while firing, mining or researching.
-- [ ] Solar generation.
-- [ ] Wind generation.
-- [ ] Batteries.
-- [ ] Isolated backup networks.
-- [ ] Powered/unpowered building states.
-- [ ] Power-grid overlay.
-- [ ] Rebuild only affected networks.
+- Enemy resource rewards.
+- Reward definitions inside enemy data.
+- Credit only when death is valid.
+- Optional reward modifiers.
+- HUD feedback for earned resources.
 
-Keep the initial version understandable. Do not begin with electrical simulation complexity.
+## 3. Tower targeting controls
 
-## 3. Level definitions, waves and pressure
+Add modes such as:
 
-Level/world settings must live in one easy-to-edit definition rather than being scattered across many scripts.
+```gml
+TowerTargetMode.CLOSEST
+TowerTargetMode.FURTHEST
+TowerTargetMode.LOWEST_HP
+TowerTargetMode.HIGHEST_HP
+```
 
-Each level should eventually define:
+Possible future modes:
 
-- Starting and maximum resources.
-- World-generation settings.
-- Grace period.
-- Baseline spawning.
-- Enemy pools.
-- Spawn-speed scaling.
-- Clusters.
-- Major waves.
-- Milestones.
-- Map modifiers.
-- Fog-of-war settings.
-- Victory and defeat conditions.
+```text
+FIRST
+LAST
+STRONGEST
+CPU_THREAT
+```
 
-Recreate the original Vector TD pressure model:
+Expose targeting mode in the selected-tower inspector later.
 
-- [ ] Baseline enemies.
-- [ ] Periodic clusters.
-- [ ] Major waves.
-- [ ] Milestone attacks.
-- [ ] Weighted enemy pools.
-- [ ] Enemy unlock milestones.
-- [ ] Spawn staggering.
-- [ ] Endless-pressure support.
+## 4. Tower ranks
 
-## 4. Enemy expansion
+- Tower kills grant experience.
+- Experience produces ranks.
+- Veteran towers receive small improvements.
+- Rank data remains grouped in the tower runtime.
+- Decide later whether veteran status persists between levels.
 
-Planned possibilities:
+## 5. New combat content
 
-- [ ] Flying enemy.
-- [ ] Underground enemy.
-- [ ] Armoured enemy.
-- [ ] Transporter carrying smaller enemies.
-- [ ] Regenerating enemy.
-- [ ] Siege enemy.
-- [ ] Larger kamikaze.
-- [ ] Elite tier.
-- [ ] Boss foundation.
+Recommended order:
 
-Enemy expansion must remain definition-driven. New unusual behaviours should use modular abilities or small focused scripts instead of continuously enlarging `o_enemy` events.
+1. Rapid-fire ground tower.
+2. Splash tower.
+3. Armoured enemy.
+4. Damage types or armour handling.
+5. Transporter enemy.
+6. Siege enemy.
+7. Underground enemy and detection.
+8. Elite/boss foundation.
 
-Large enemies do not immediately require full multi-cell corridor navigation:
+Only add new enums when multiple definitions genuinely share the concept.
 
-- Large siege enemies may attack from range.
-- Large kamikazes may strike the first building encountered.
-- Flyers ignore buildings and dead terrain as appropriate.
-- Ground enemies that genuinely require footprint-aware routing can be added later when one is designed.
+---
 
-## 5. Upgrades
+# Later systems
 
-Use three distinct progression layers.
+## Local power networks
+
+Retain the understandable local-network concept:
+
+- Generators.
+- Power nodes.
+- Connection range.
+- Network membership.
+- Idle demand.
+- Increased demand while firing, mining or researching.
+- Solar and wind generation.
+- Batteries.
+- Isolated backup networks.
+- Powered and unpowered building states.
+- Grid overlay.
+- Rebuild only affected networks.
+
+## Upgrades
+
+Keep three progression layers:
 
 ### Tower ranks
 
-- Kills grant experience/ranks.
-- Veteran towers receive small improvements.
-- Decide later whether veteran status survives the level.
+Kills and experience create small veteran bonuses.
 
 ### Overclocking
 
-- Temporary or manually controlled tower performance increase.
-- Increased power consumption.
-- Possible heat, damage or failure risk.
+Temporary performance increase with additional power demand and possible heat or risk.
 
-### Local level research
+### Local research
 
-- Larger specialized bonuses.
-- Requires an upgrade/research building.
-- Lasts only for the current level.
-- Examples: shield damage, mining speed and battery capacity.
+Larger specialized level-only bonuses from research buildings.
+
+Examples:
+
+- Increased shield damage.
+- Faster mining.
+- Increased battery capacity.
 
 ### Persistent progression
 
-- Small account-wide bonuses.
-- Purchased in a lobby or menu.
-- Examples: approximately `1.03×` tower damage or small production bonuses.
-- Must remain weaker than specialized local research.
+Small account-wide bonuses researched or purchased outside levels.
 
-## 6. Effects and presentation
+Persistent bonuses should remain weaker than specialized local research.
 
-Create later:
+## Effects
+
+Later create:
 
 ```text
 scr_particle
@@ -607,7 +785,7 @@ scr_effects
 o_effect
 ```
 
-Ben will provide example particle/effect sprites when this phase begins.
+Ben will provide example effect sprites.
 
 Planned uses:
 
@@ -615,15 +793,12 @@ Planned uses:
 - Projectile trails.
 - Impacts.
 - Explosions.
-- Construction effects.
+- Construction.
 - Building destruction.
 - Power arcs.
-- Resource collection.
-- Cargo transfer.
+- Resource transfer.
 - Damage flashes.
 - Screen shake.
-
-Primitive vector enemies currently look good and should remain supported even if sprites are added later.
 
 ---
 
@@ -634,45 +809,50 @@ The intended game may contain hundreds of enemies and large maps.
 Continue to:
 
 - Use native `mp_grid`.
-- Stagger expensive enemy checks.
-- Avoid recalculating every enemy on the same frame.
+- Stagger expensive checks.
+- Avoid simultaneous mass repathing.
 - Avoid full navigation-grid reconstruction after one building changes.
-- Avoid full-map instance scans every Step when caching or lower-frequency checks are sufficient.
-- Use `IFRAMES` for non-critical periodic work.
+- Avoid full-map instance scans every Step where caching is practical.
+- Use `IFRAMES` for non-critical work.
 - Cull drawing and effects outside the camera.
 - Profile before introducing pooling or spatial indexing.
-- Test building placement while enemies are actively pathing.
+- Test placement while enemies are actively pathing.
 - Test 100, 250 and eventually 500 enemies.
-- Test 8192×8192 maps before committing to larger sizes.
+- Test 8192×8192 worlds before considering larger maps.
 
-Do not reintroduce the abandoned flow-field navigation unless there is a very specific, profiled reason.
+Do not reintroduce the abandoned flow-field navigation without a specific profiled reason.
 
 ---
 
 # Testing expectations
 
-Every implementation batch should include a clear test:
+Every implementation batch should clearly state:
 
-- What object or script to create.
-- What room object must be placed in.
-- What key or mouse action triggers the test.
-- What should appear visually.
-- What debug message is expected.
-- What failure conditions to report.
+- Which scripts or objects must be created.
+- Which complete functions or events must be replaced.
+- Which controls trigger the test.
+- What should happen visually.
+- Which debug messages should appear.
+- Which failures Ben should report.
 
-When an error occurs, request the latest complete pushed code and return complete corrected functions/events.
+When an error occurs:
+
+1. Inspect the latest push.
+2. Identify the actual current function.
+3. Return a complete corrected function or event.
+4. Avoid guessing from an older pasted version.
 
 ---
 
 # Scope guard
 
-Before introducing a new abstraction, ask:
+Before adding a major abstraction, ask:
 
 1. How did the original Vector TD handle this?
-2. Can the original approach be cleaned up instead of replaced?
+2. Can that approach be cleaned up instead of replaced?
 3. Will Ben understand where the behaviour lives?
 4. Does the flexibility support gameplay that is actually planned?
-5. Can the system be tested immediately?
-6. Will implementing the complete near-term version now prevent repeated rewrites?
+5. Can it be tested immediately?
+6. Will completing the near-term version prevent repeated rewrites?
 
-If uncertain, begin with the simpler original-style implementation and leave a clear future extension point.
+When uncertain, use the simpler original-style approach and leave a clear extension point.

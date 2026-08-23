@@ -97,6 +97,27 @@ if (!instance_exists(_camera))
     exit;
 }
 
+// ============================================================================
+// FOG OF WAR
+// ============================================================================
+
+var _fog = instance_create_layer(
+    0,
+    0,
+    "Instances",
+    o_fog_controller
+);
+
+if (!instance_exists(_fog))
+{
+    show_debug_message(
+        "LEVEL ERROR - fog controller creation failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
 
 // ============================================================================
 // BUILD CONTROLLER

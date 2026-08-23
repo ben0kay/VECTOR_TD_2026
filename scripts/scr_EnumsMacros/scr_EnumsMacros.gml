@@ -89,3 +89,12 @@ enum HudAlertState { OPENING, HOLDING, CLOSING }
 
 #macro IFRAMES_60 \
     (((VTD_TICK + real(id)) mod 60) == 0)
+	
+#macro OUTSIDE_VIEW_64 \
+    (!scr_culling_check_instance(id, 64))
+
+#macro OUTSIDE_VIEW_128 \
+    (!scr_culling_check_instance(id, 128))
+
+#macro OUTSIDE_VIEW_256 \
+    (!scr_culling_check_instance(id, 256))
