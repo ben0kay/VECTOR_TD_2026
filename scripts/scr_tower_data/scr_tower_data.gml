@@ -39,7 +39,10 @@ function scr_tower_data_basic_ground()
 
             economy:
             {
-                cost: []
+                cost: [{
+                        resource_key: "resource_credits",
+                        amount: 100
+                    }]
             },
 
             tower:
@@ -117,7 +120,12 @@ description_long:
 
             economy:
             {
-                cost: []
+                cost: [
+				{
+                        resource_key: "resource_credits",
+                        amount: 100
+                    }
+					]
             },
 
             tower:

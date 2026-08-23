@@ -432,18 +432,18 @@ function scr_hud_build_menu_create()
             ),
 
         layout:
-        {
-            card_width: 150,
-            card_height: 112,
-            card_gap: 8,
+{
+    card_width: 142,
+    card_height: 136,
+    card_gap: 8,
 
-            strip_left: 0,
-            strip_top: 0,
-            strip_width: 0,
-            strip_height: 0,
+    strip_left: 0,
+    strip_top: 0,
+    strip_width: 0,
+    strip_height: 0,
 
-            visible_count: 1
-        }
+    visible_count: 1
+}
     };
 }
 
@@ -578,27 +578,35 @@ function scr_hud_pointer_blocks_world()
     if (!variable_struct_exists(global.vtd_level.entities, "hud"))
         return false;
 
-
-    var _hud =
-        global.vtd_level.entities.hud;
+    var _hud = global.vtd_level.entities.hud;
 
     if (!instance_exists(_hud))
         return false;
 
+    var _mouse_x = device_mouse_x_to_gui(0);
+    var _mouse_y = device_mouse_y_to_gui(0);
 
-    var _mouse_y =
-        device_mouse_y_to_gui(0);
+    var _gui_width = display_get_gui_width();
+    var _gui_height = display_get_gui_height();
 
-    var _gui_height =
-        display_get_gui_height();
-
-
-    // The complete permanent bottom HUD owns pointer input.
-
-    return _mouse_y >=
+    var _tray_top =
         _gui_height - _hud.hud.bottom.height;
-}
 
+    var _inspector_left =
+        _gui_width - _hud.hud.bottom.inspector_width;
+
+    var _inspector_top =
+        _gui_height - _hud.hud.bottom.inspector_height;
+
+    var _inside_tray =
+        _mouse_y >= _tray_top;
+
+    var _inside_inspector =
+        _mouse_x >= _inspector_left
+        && _mouse_y >= _inspector_top;
+
+    return _inside_tray || _inside_inspector;
+}
 
 /// @description Changes the selected build category.
 
@@ -925,20 +933,14 @@ function scr_hud_build_menu_draw(_hud)
     if (!instance_exists(_hud))
         return false;
 
-
     var _menu = _hud.hud.build_menu;
-
 
     // BUILD remains visible while the tray is closed.
 
-    scr_hud_button_draw(
-        _menu.build_button
-    );
-
+    scr_hud_button_draw(_menu.build_button);
 
     if (_menu.progress < 0.05)
         return true;
-
 
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
@@ -949,7 +951,6 @@ function scr_hud_build_menu_draw(_hud)
     var _inspector_left =
         _gui_width - _hud.hud.bottom.inspector_width;
 
-
     // Animated separator.
 
     draw_set_alpha(_menu.progress);
@@ -958,30 +959,21 @@ function scr_hud_build_menu_draw(_hud)
     draw_line(
         118,
         _bottom_top + 58,
-        lerp(
-            118,
-            _inspector_left - 18,
-            _menu.progress
-        ),
+        lerp(118, _inspector_left - 18, _menu.progress),
         _bottom_top + 58
     );
 
+    // Category buttons.
 
-    for (
-        var i = 0;
-        i < array_length(_menu.category_buttons);
-        ++i
-    )
-    {
-        scr_hud_button_draw(
-            _menu.category_buttons[i]
-        );
-    }
+    for (var i = 0; i < array_length(_menu.category_buttons); ++i)
+        scr_hud_button_draw(_menu.category_buttons[i]);
 
+    // Scroll arrows.
 
     scr_hud_button_draw(_menu.left_button);
     scr_hud_button_draw(_menu.right_button);
 
+    // Visible building cards.
 
     var _start = _menu.scroll_index;
 
@@ -990,14 +982,8 @@ function scr_hud_build_menu_draw(_hud)
         _start + _menu.layout.visible_count
     );
 
-
     for (var i = _start; i < _end; ++i)
-    {
-        scr_hud_button_draw(
-            _menu.building_buttons[i]
-        );
-    }
-
+        scr_hud_build_card_draw(_menu.building_buttons[i]);
 
     if (array_length(_menu.building_buttons) <= 0)
     {
@@ -1005,19 +991,14 @@ function scr_hud_build_menu_draw(_hud)
         draw_set_halign(fa_center);
 
         draw_text(
-            (
-                _menu.layout.strip_left
-                + _menu.layout.strip_left
-                + _menu.layout.strip_width
-            )
-            * 0.5,
-            _menu.layout.strip_top + 48,
+            _menu.layout.strip_left
+                + (_menu.layout.strip_width * 0.5),
+            _menu.layout.strip_top + 54,
             "NO BUILDINGS REGISTERED"
         );
 
         draw_set_halign(fa_left);
     }
-
 
     draw_set_alpha(1);
     draw_set_color(c_white);
@@ -1289,7 +1270,7 @@ function scr_hud_building_preview_draw(
     return true;
 }
 
-/// @description Draws information for a hovered build-menu card.
+/// @description Draws the hovered building inside the tall build inspector.
 
 function scr_hud_build_preview_inspector_draw(
     _hud,
@@ -1302,100 +1283,93 @@ function scr_hud_build_preview_inspector_draw(
     if (!instance_exists(_hud))
         return false;
 
-
-    var _menu =
-        _hud.hud.build_menu;
-
-    var _building_key =
-        _menu.hovered_key;
-
+    var _menu = _hud.hud.build_menu;
+    var _building_key = _menu.hovered_key;
 
     draw_set_color(c_aqua);
-
-    draw_text(
-        _left + 18,
-        _top + 14,
-        "STRUCTURE DATABASE"
-    );
+    draw_text(_left + 16, _top + 12, "STRUCTURE DATABASE");
 
     draw_set_color(c_dkgray);
 
     draw_line(
-        _left + 18,
-        _top + 38,
-        _right - 18,
-        _top + 38
+        _left + 16,
+        _top + 36,
+        _right - 16,
+        _top + 36
     );
-
 
     if (_building_key == "")
     {
         draw_set_color(c_gray);
 
         draw_text(
-            _left + 18,
-            _top + 58,
+            _left + 16,
+            _top + 54,
             "Hover over a building card for information."
         );
 
+        draw_set_color(c_white);
         return true;
     }
 
-
-    var _data =
-        scr_building_data_get(
-            _building_key
-        );
+    var _data = scr_building_data_get(_building_key);
 
     if (!scr_building_data_valid(_data))
         return false;
 
+    // ========================================================================
+    // BUILDING NAME
+    // ========================================================================
 
-    var _preview_size = 124;
+    draw_set_color(_data.visual.color);
 
-    var _preview_center_x =
-        _left + 82;
+    draw_text(
+        _left + 16,
+        _top + 48,
+        string_upper(_data.identity.name)
+    );
 
-    var _preview_center_y =
-        _top + 116;
+    draw_set_color(c_gray);
 
+    draw_text(
+        _left + 16,
+        _top + 68,
+        scr_hud_building_role_text(_data)
+    );
+
+    // ========================================================================
+    // PREVIEW
+    // ========================================================================
+
+    var _preview_left = _left + 16;
+    var _preview_top = _top + 94;
+    var _preview_size = 112;
 
     scr_hud_building_preview_draw(
         _data,
-        _preview_center_x,
-        _preview_center_y,
+        _preview_left + (_preview_size * 0.5),
+        _preview_top + (_preview_size * 0.5),
         _preview_size
     );
 
+    // ========================================================================
+    // DESCRIPTION
+    // ========================================================================
 
-    var _text_left =
-        _left + 164;
+    var _description_left =
+        _preview_left + _preview_size + 18;
 
-    var _text_width =
-        max(
-            100,
-            _right - _text_left - 18
-        );
+    var _description_width =
+        max(100, _right - _description_left - 16);
 
-
-    draw_set_color(
-        _data.visual.color
-    );
-
-    draw_text(
-        _text_left,
-        _top + 54,
-        string_upper(
-            _data.identity.name
-        )
-    );
-
+    draw_set_color(c_aqua);
+    draw_text(_description_left, _preview_top, "DESCRIPTION");
 
     draw_set_color(c_white);
 
     draw_text(
-        _text_left,
-        _top + 78,
+        _description_left,
+        _preview_top + 20,
         scr_hud_building_description_get(
             _data,
             "description_short",
@@ -1403,113 +1377,346 @@ function scr_hud_build_preview_inspector_draw(
         )
     );
 
-
     draw_set_color(c_gray);
 
     draw_text_ext(
-        _text_left,
-        _top + 104,
+        _description_left,
+        _preview_top + 42,
         scr_hud_building_description_get(
             _data,
             "description_long",
             "No detailed description has been supplied."
         ),
-        17,
-        _text_width
+        16,
+        _description_width
     );
 
+    // ========================================================================
+    // STATISTICS
+    // ========================================================================
 
-    // ========================================================================
-    // IMPORTANT STATISTICS
-    // ========================================================================
+    var _section_y = _top + 220;
 
     draw_set_color(c_aqua);
+    draw_text(_left + 16, _section_y, "STATS");
+
+    draw_set_color(c_white);
 
     draw_text(
-        _left + 18,
-        _bottom - 52,
-        "HP  "
-        + string(
-            _data.vitals.hp_maximum
-        )
+        _left + 16,
+        _section_y + 20,
+        "HEALTH  " + string(_data.vitals.hp_maximum)
     );
 
+    var _stat_x = _left + 132;
 
     switch (_data.identity.type)
     {
         case BuildingType.TOWER:
         {
             draw_text(
-                _left + 132,
-                _bottom - 52,
-                "RANGE  "
-                + string(_data.tower.range)
+                _stat_x,
+                _section_y + 20,
+                "RANGE  " + string(_data.tower.range)
             );
 
             draw_text(
-                _left + 270,
-                _bottom - 52,
-                "DAMAGE  "
-                + string(
-                    _data.tower.weapon.damage
-                )
+                _stat_x + 116,
+                _section_y + 20,
+                "DAMAGE  " + string(_data.tower.weapon.damage)
             );
 
             draw_text(
-                _left + 414,
-                _bottom - 52,
+                _stat_x + 244,
+                _section_y + 20,
                 "RATE  "
-                + string(
-                    _data.tower.weapon
-                        .cooldown_seconds
-                )
+                + string(_data.tower.weapon.cooldown_seconds)
                 + "s"
             );
         }
         break;
 
-
         case BuildingType.MINER:
         {
             draw_text(
-                _left + 132,
-                _bottom - 52,
+                _stat_x,
+                _section_y + 20,
                 "RATE  "
-                + string(
-                    _data.miner
-                        .extraction_rate_per_second
-                )
+                + string(_data.miner.extraction_rate_per_second)
                 + "/s"
             );
 
             draw_text(
-                _left + 286,
-                _bottom - 52,
-                "HOPPER  "
-                + string(
-                    _data.miner.hopper_capacity
-                )
+                _stat_x + 150,
+                _section_y + 20,
+                "HOPPER  " + string(_data.miner.hopper_capacity)
             );
         }
         break;
 
-
         case BuildingType.STORAGE:
         {
             draw_text(
-                _left + 132,
-                _bottom - 52,
-                "CAPACITY  "
-                + string(
-                    _data.storage.capacity
-                )
+                _stat_x,
+                _section_y + 20,
+                "CAPACITY  " + string(_data.storage.capacity)
             );
         }
         break;
     }
 
+    // ========================================================================
+    // COST
+    // ========================================================================
+
+    var _cost_y = _bottom - 34;
+
+    draw_set_color(c_aqua);
+    draw_text(_left + 16, _cost_y, "COST");
+
+    scr_hud_building_cost_draw(
+        _data,
+        _left + 72,
+        _cost_y,
+        _right - (_left + 88),
+        false
+    );
 
     draw_set_color(c_white);
+    return true;
+}
+
+/// @description Returns the configured resource cost for one building.
+
+function scr_hud_building_cost_get(_data)
+{
+    if (!is_struct(_data))
+        return [];
+
+    if (!variable_struct_exists(_data, "economy"))
+        return [];
+
+    if (!is_struct(_data.economy))
+        return [];
+
+    if (!variable_struct_exists(_data.economy, "cost"))
+        return [];
+
+    if (!is_array(_data.economy.cost))
+        return [];
+
+    return _data.economy.cost;
+}
+
+/// @description Draws a reusable horizontal multi-resource cost list.
+
+function scr_hud_building_cost_draw(
+    _data,
+    _x,
+    _y,
+    _maximum_width,
+    _compact = false
+)
+{
+    var _cost = scr_hud_building_cost_get(_data);
+
+    if (array_length(_cost) <= 0)
+    {
+        draw_set_color(c_lime);
+        draw_text(_x, _y, "FREE");
+        draw_set_color(c_white);
+        return true;
+    }
+
+    var _draw_x = _x;
+    var _right = _x + _maximum_width;
+
+    for (var i = 0; i < array_length(_cost); ++i)
+    {
+        var _entry = _cost[i];
+
+        if (!is_struct(_entry))
+            continue;
+
+        if (!variable_struct_exists(_entry, "resource_key"))
+            continue;
+
+        if (!variable_struct_exists(_entry, "amount"))
+            continue;
+
+        var _resource_data =
+            scr_resource_data_get(_entry.resource_key);
+
+        var _resource_name = "?";
+        var _resource_color = c_white;
+
+        if (scr_resource_data_valid(_resource_data))
+        {
+            _resource_name = _resource_data.identity.name;
+            _resource_color = _resource_data.visual.color;
+        }
+
+        var _text =
+            _compact
+            ? string(_entry.amount)
+            : _resource_name + "  " + string(_entry.amount);
+
+        var _entry_width =
+            14 + string_width(_text) + 18;
+
+        if (_draw_x + _entry_width > _right)
+            break;
+
+        // Small vector resource diamond.
+
+        draw_set_color(_resource_color);
+
+        draw_line(
+            _draw_x,
+            _y + 6,
+            _draw_x + 5,
+            _y + 1
+        );
+
+        draw_line(
+            _draw_x + 5,
+            _y + 1,
+            _draw_x + 10,
+            _y + 6
+        );
+
+        draw_line(
+            _draw_x + 10,
+            _y + 6,
+            _draw_x + 5,
+            _y + 11
+        );
+
+        draw_line(
+            _draw_x + 5,
+            _y + 11,
+            _draw_x,
+            _y + 6
+        );
+
+        draw_text(_draw_x + 14, _y, _text);
+
+        _draw_x += _entry_width;
+    }
+
+    draw_set_color(c_white);
+    return true;
+}
+
+/// @description Draws one building card inside the horizontal build tray.
+
+function scr_hud_build_card_draw(_button)
+{
+    if (!is_struct(_button))
+        return false;
+
+    var _data = scr_building_data_get(_button.data);
+
+    if (!scr_building_data_valid(_data))
+        return false;
+
+    var _bounds = _button.bounds;
+
+    var _left = _bounds.x;
+    var _top = _bounds.y;
+    var _right = _left + _bounds.width;
+    var _bottom = _top + _bounds.height;
+
+    var _color =
+        _button.enabled
+        ? _button.accent_color
+        : c_dkgray;
+
+    var _background_alpha =
+        _button.hovered ? 0.94 : 0.78;
+
+    // Card background.
+
+    draw_set_alpha(_background_alpha);
+    draw_set_color(c_black);
+    draw_rectangle(_left, _top, _right, _bottom, false);
+
+    // Angled vector border.
+
+    draw_set_alpha(_button.enabled ? 1 : 0.45);
+    draw_set_color(_color);
+
+    var _corner = 7;
+
+    draw_line(_left + _corner, _top, _right - _corner, _top);
+    draw_line(_right - _corner, _top, _right, _top + _corner);
+    draw_line(_right, _top + _corner, _right, _bottom - _corner);
+    draw_line(_right, _bottom - _corner, _right - _corner, _bottom);
+
+    draw_line(_right - _corner, _bottom, _left + _corner, _bottom);
+    draw_line(_left + _corner, _bottom, _left, _bottom - _corner);
+    draw_line(_left, _bottom - _corner, _left, _top + _corner);
+    draw_line(_left, _top + _corner, _left + _corner, _top);
+
+    // Name at the top.
+
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+
+    draw_text(
+        (_left + _right) * 0.5,
+        _top + 8,
+        string_upper(_data.identity.name)
+    );
+
+    // Compact vector preview.
+
+    scr_hud_building_preview_draw(
+        _data,
+        (_left + _right) * 0.5,
+        _top + 60,
+        58
+    );
+
+    // Building role.
+
+    draw_set_color(_color);
+
+    draw_text(
+        (_left + _right) * 0.5,
+        _top + 93,
+        scr_hud_building_role_text(_data)
+    );
+
+    // Cost line.
+
+    draw_set_halign(fa_left);
+
+    scr_hud_building_cost_draw(
+        _data,
+        _left + 10,
+        _bottom - 21,
+        _bounds.width - 20,
+        true
+    );
+
+    if (_button.hovered)
+    {
+        draw_set_color(c_white);
+
+        draw_line(
+            _left + 12,
+            _bottom - 3,
+            _right - 12,
+            _bottom - 3
+        );
+    }
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 
     return true;
 }

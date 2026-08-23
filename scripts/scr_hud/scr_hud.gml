@@ -966,133 +966,120 @@ function scr_hud_top_bar_draw(_hud)
 }
 
 
-/// @description Draws the permanent lower HUD and contextual inspector.
+/// @description Draws the permanent lower HUD and taller contextual inspector.
 
 function scr_hud_bottom_bar_draw(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
-
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
 
-    var _height =
-        _hud.hud.bottom.height;
-
-    var _top =
-        _gui_height - _height;
+    var _tray_height = _hud.hud.bottom.height;
+    var _tray_top = _gui_height - _tray_height;
 
     var _inspector_width =
         _hud.hud.bottom.inspector_width;
 
+    var _inspector_height =
+        _hud.hud.bottom.inspector_height;
+
     var _inspector_left =
         _gui_width - _inspector_width;
 
+    var _inspector_top =
+        _gui_height - _inspector_height;
 
-    // ========================================================================
-    // SHELL
-    // ========================================================================
+    // Horizontal bottom tray.
 
-    draw_set_alpha(
-        _hud.hud.bottom.background_alpha
-    );
-
+    draw_set_alpha(_hud.hud.bottom.background_alpha);
     draw_set_color(c_black);
 
     draw_rectangle(
         0,
-        _top,
+        _tray_top,
+        _inspector_left,
+        _gui_height,
+        false
+    );
+
+    // Taller permanent inspector.
+
+    draw_rectangle(
+        _inspector_left,
+        _inspector_top,
         _gui_width,
         _gui_height,
         false
     );
 
-
     draw_set_alpha(1);
     draw_set_color(_hud.hud.bottom.color);
 
+    draw_line(0, _tray_top, _inspector_left, _tray_top);
+
     draw_line(
-        0,
-        _top,
+        _inspector_left,
+        _inspector_top,
         _gui_width,
-        _top
+        _inspector_top
     );
 
     draw_line(
         _inspector_left,
-        _top,
+        _inspector_top,
         _inspector_left,
         _gui_height
     );
-
-
-    // ========================================================================
-    // BUILD DATABASE INSPECTOR
-    // ========================================================================
 
     if (_hud.hud.build_menu.open)
     {
         scr_hud_build_preview_inspector_draw(
             _hud,
             _inspector_left,
-            _top,
+            _inspector_top,
             _gui_width,
             _gui_height
         );
     }
-
-    // ========================================================================
-    // SELECTED WORLD STRUCTURE
-    // ========================================================================
-
-    else if (
-        instance_exists(
-            _hud.hud.selection.target
-        )
-    )
+    else if (instance_exists(_hud.hud.selection.target))
     {
         scr_hud_selection_content_draw(
             _hud,
             _inspector_left,
-            _top,
+            _inspector_top,
             _gui_width,
             _gui_height
         );
     }
-
-    // ========================================================================
-    // EMPTY INSPECTOR
-    // ========================================================================
-
     else
     {
         draw_set_color(c_aqua);
 
         draw_text(
-            _inspector_left + 18,
-            _top + 14,
+            _inspector_left + 16,
+            _inspector_top + 12,
             "STRUCTURE INSPECTOR"
         );
 
         draw_set_color(c_dkgray);
 
         draw_line(
-            _inspector_left + 18,
-            _top + 38,
-            _gui_width - 18,
-            _top + 38
+            _inspector_left + 16,
+            _inspector_top + 36,
+            _gui_width - 16,
+            _inspector_top + 36
         );
 
         draw_set_color(c_gray);
 
         draw_text(
-            _inspector_left + 18,
-            _top + 56,
+            _inspector_left + 16,
+            _inspector_top + 54,
             "Select a structure for information."
         );
     }
-
 
     draw_set_alpha(1);
     draw_set_color(c_white);
