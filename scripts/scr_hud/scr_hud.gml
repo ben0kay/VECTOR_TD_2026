@@ -1226,3 +1226,108 @@ function scr_hud_pressure_draw(_hud)
 
     return true;
 }
+
+/// @description Returns the display color belonging to an alert type.
+
+/// @description Draws the threatened map edge during a wave warning.
+
+function scr_hud_wave_warning_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    if (!variable_struct_exists(
+        global.vtd_level.entities,
+        "spawner"
+    ))
+    {
+        return true;
+    }
+
+
+    var _spawner =
+        global.vtd_level.entities.spawner;
+
+    if (!instance_exists(_spawner))
+        return true;
+
+
+    var _warning =
+        _spawner.spawner.waves.warning;
+
+    if (!_warning.active)
+        return true;
+
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
+
+    var _world_top =
+        _hud.hud.top.height;
+
+    var _world_bottom =
+        _gui_height
+        - _hud.hud.bottom.height;
+
+    var _pulse =
+        0.5
+        + (sin(global.vtd.tick * 8) * 0.35);
+
+
+    draw_set_alpha(_pulse);
+    draw_set_color(c_red);
+
+
+    switch (_warning.side)
+    {
+        case SpawnSide.TOP:
+            draw_line_width(
+                0,
+                _world_top + 5,
+                _gui_width,
+                _world_top + 5,
+                5
+            );
+        break;
+
+        case SpawnSide.RIGHT:
+            draw_line_width(
+                _gui_width - 5,
+                _world_top,
+                _gui_width - 5,
+                _world_bottom,
+                5
+            );
+        break;
+
+        case SpawnSide.BOTTOM:
+            draw_line_width(
+                0,
+                _world_bottom - 5,
+                _gui_width,
+                _world_bottom - 5,
+                5
+            );
+        break;
+
+        case SpawnSide.LEFT:
+            draw_line_width(
+                5,
+                _world_top,
+                5,
+                _world_bottom,
+                5
+            );
+        break;
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+

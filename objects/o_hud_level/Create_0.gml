@@ -42,8 +42,23 @@ hud =
 
         line_speed: 0.14,
         panel_speed: 0.12
+    },
+
+    alerts:
+    {
+        queue: [],
+        active: undefined,
+
+        width: 580,
+        height: 78,
+
+        opening_speed: 0.09,
+        closing_speed: 0.11
     }
 };
+
+
+global.vtd_level.entities.hud = id;
 
 
 show_debug_message(

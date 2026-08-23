@@ -47,7 +47,24 @@ function scr_enemy_spawner_data_valid(_data)
 
     if (_data.maximum_spawns_per_step <= 0)
         return false;
+	
+	if (!variable_struct_exists(_data, "maximum_alive_enemies"))
+    return false;
 
+	if (!variable_struct_exists(_data, "maximum_queued_enemies"))
+    return false;
+	
+	if (_data.maximum_alive_enemies <= 0)
+    return false;
+
+	if (_data.maximum_queued_enemies <= 0)
+    return false;
+	
+	if (!variable_struct_exists(_data.waves, "warning_seconds"))
+    return false;
+
+	if (_data.waves.warning_seconds < 0)
+    return false;
 
     if (!is_array(_data.baseline.pool))
         return false;
@@ -267,7 +284,7 @@ function scr_enemy_spawner_edge_position_get(
 }
 
 
-/// @description Adds a staggered enemy group to the unified spawn queue.
+/// @description Adds a staggered group to the unified queue.
 
 function scr_enemy_spawner_group_queue(
     _spawner,
@@ -292,9 +309,25 @@ function scr_enemy_spawner_group_queue(
         return false;
 
 
-    var _count = irandom_range(
-        max(0, floor(_count_min)),
-        max(0, floor(_count_max))
+    var _queue =
+        _spawner.spawner.queue;
+
+    var _queue_space =
+        _spawner.spawner.data
+            .maximum_queued_enemies
+        - array_length(_queue);
+
+
+    if (_queue_space <= 0)
+        return false;
+
+
+    var _count = min(
+        irandom_range(
+            max(0, floor(_count_min)),
+            max(0, floor(_count_max))
+        ),
+        _queue_space
     );
 
     var _running_delay = 0;
@@ -331,7 +364,7 @@ function scr_enemy_spawner_group_queue(
 
 
         array_push(
-            _spawner.spawner.queue,
+            _queue,
             {
                 enemy_key: _enemy_entry.enemy_key,
                 delay_seconds: _running_delay,
@@ -346,20 +379,31 @@ function scr_enemy_spawner_group_queue(
     }
 
 
+    _spawner.spawner.queue = _queue;
+
     return true;
 }
 
-
-/// @description Processes due entries using a per-frame spawn budget.
+/// @description Processes due entries within population budgets.
 
 function scr_enemy_spawner_queue_update(
     _spawner,
     _step_seconds
 )
 {
-    var _queue = _spawner.spawner.queue;
-    var _budget =
-        _spawner.spawner.data.maximum_spawns_per_step;
+    var _queue =
+        _spawner.spawner.queue;
+
+    var _spawn_budget =
+        _spawner.spawner.data
+            .maximum_spawns_per_step;
+
+    var _alive_limit =
+        _spawner.spawner.data
+            .maximum_alive_enemies;
+
+    var _alive_count =
+        instance_number(o_enemy);
 
     var _spawned_this_step = 0;
 
@@ -370,13 +414,17 @@ function scr_enemy_spawner_queue_update(
         --i
     )
     {
-        _queue[i].delay_seconds -= _step_seconds;
+        _queue[i].delay_seconds -=
+            _step_seconds;
 
 
         if (_queue[i].delay_seconds > 0)
             continue;
 
-        if (_spawned_this_step >= _budget)
+        if (_spawned_this_step >= _spawn_budget)
+            continue;
+
+        if (_alive_count >= _alive_limit)
             continue;
 
 
@@ -401,8 +449,11 @@ function scr_enemy_spawner_queue_update(
 
             if (instance_exists(_enemy))
             {
-                _spawner.spawner.statistics.spawned_total++;
+                _spawner.spawner
+                    .statistics.spawned_total++;
+
                 _spawned_this_step++;
+                _alive_count++;
 
                 array_delete(_queue, i, 1);
                 continue;
@@ -411,9 +462,6 @@ function scr_enemy_spawner_queue_update(
 
 
         _queue[i].failed_attempts++;
-
-
-        // Try another side on the next frame.
 
         _queue[i].side =
             scr_enemy_spawner_side_get();
@@ -434,6 +482,8 @@ function scr_enemy_spawner_queue_update(
     }
 
 
+    _spawner.spawner.queue = _queue;
+
     return true;
 }
 
@@ -445,8 +495,12 @@ function scr_enemy_spawner_baseline_update(
     _step_seconds
 )
 {
-    var _data = _spawner.spawner.data.baseline;
-    var _runtime = _spawner.spawner.baseline;
+    var _data =
+        _spawner.spawner.data.baseline;
+
+    var _runtime =
+        _spawner.spawner.baseline;
+
 
     if (!_data.enabled)
         return true;
@@ -456,6 +510,28 @@ function scr_enemy_spawner_baseline_update(
 
     if (_runtime.timer > 0)
         return true;
+
+
+    var _pressure_data =
+        _spawner.spawner.data;
+
+    var _alive_count =
+        instance_number(o_enemy);
+
+    var _queue_count =
+        array_length(_spawner.spawner.queue);
+
+
+    if (
+        _alive_count
+            >= _pressure_data.maximum_alive_enemies
+        || _queue_count
+            >= _pressure_data.maximum_queued_enemies
+    )
+    {
+        _runtime.timer = 0.5;
+        return true;
+    }
 
 
     var _progress = clamp(
@@ -498,11 +574,12 @@ function scr_enemy_spawner_baseline_update(
     }
 
 
-    _runtime.timer = _runtime.current_interval;
+    _runtime.timer =
+        _runtime.current_interval;
+
 
     return true;
 }
-
 
 /// @description Updates random localized enemy clusters.
 
@@ -594,15 +671,22 @@ function scr_enemy_spawner_cluster_update(
 }
 
 
-/// @description Queues the next sequential major wave.
+/// @description Begins the warning for the next major wave.
 
 function scr_enemy_spawner_wave_trigger(_spawner)
 {
-    var _data = _spawner.spawner.data.waves;
-    var _runtime = _spawner.spawner.waves;
+    var _data =
+        _spawner.spawner.data.waves;
+
+    var _runtime =
+        _spawner.spawner.waves;
+
 
     if (!_data.enabled)
         return false;
+
+    if (_runtime.warning.active)
+        return true;
 
     if (array_length(_data.definitions) <= 0)
         return false;
@@ -617,32 +701,105 @@ function scr_enemy_spawner_wave_trigger(_spawner)
     }
 
 
-    var _wave = _data.definitions[_runtime.index];
+    var _wave =
+        _data.definitions[_runtime.index];
 
     var _side =
         scr_enemy_spawner_side_get();
 
 
-    scr_enemy_spawner_group_queue(
-        _spawner,
-        _wave.enemies,
+    _runtime.warning.active = true;
+    _runtime.warning.remaining = _data.warning_seconds;
 
-        _wave.count_min,
-        _wave.count_max,
+    _runtime.warning.wave_index =
+        _runtime.index;
 
-        _wave.stagger_min_seconds,
-        _wave.stagger_max_seconds,
+    _runtime.warning.wave_name =
+        _wave.name;
 
-        _side,
-        0.5,
-        0.9,
+    _runtime.warning.side =
+        _side;
 
+
+    scr_hud_alert_push(
+        HudAlertType.DANGER,
+        "THREAT DETECTED",
         _wave.name
+        + " // INBOUND FROM "
+        + scr_enemy_spawner_side_name(_side),
+        _data.warning_seconds
     );
 
 
+    show_debug_message(
+        "MAJOR WAVE WARNING: "
+        + _wave.name
+    );
+
+
+    return true;
+}
+
+
+/// @description Releases a warned wave into the queue.
+
+function scr_enemy_spawner_wave_release(_spawner)
+{
+    var _data =
+        _spawner.spawner.data.waves;
+
+    var _runtime =
+        _spawner.spawner.waves;
+
+    var _warning =
+        _runtime.warning;
+
+
+    if (!_warning.active)
+        return false;
+
+
+    var _wave =
+        _data.definitions[
+            _warning.wave_index
+        ];
+
+
+    var _queued =
+        scr_enemy_spawner_group_queue(
+            _spawner,
+            _wave.enemies,
+
+            _wave.count_min,
+            _wave.count_max,
+
+            _wave.stagger_min_seconds,
+            _wave.stagger_max_seconds,
+
+            _warning.side,
+            0.5,
+            0.9,
+
+            _wave.name
+        );
+
+
+    if (!_queued)
+    {
+        _warning.remaining = 1;
+        return false;
+    }
+
+
     _runtime.last_name = _wave.name;
-    _runtime.index++;
+    _runtime.index = _warning.wave_index + 1;
+
+
+    _warning.active = false;
+    _warning.remaining = 0;
+    _warning.wave_index = -1;
+    _warning.wave_name = "";
+    _warning.side = SpawnSide.RANDOM;
 
 
     _runtime.timer = random_range(
@@ -651,17 +808,50 @@ function scr_enemy_spawner_wave_trigger(_spawner)
     );
 
 
-    show_debug_message(
-        "MAJOR WAVE QUEUED: "
-        + _wave.name
-    );
+    return true;
+}
 
 
-    // FUTURE:
-    // animated threat notification
-    // warning sound
-    // camera shake
-    // preview the chosen attack side
+/// @description Updates wave timing and warning phases.
+
+function scr_enemy_spawner_wave_update(
+    _spawner,
+    _step_seconds
+)
+{
+    var _data =
+        _spawner.spawner.data.waves;
+
+    var _runtime =
+        _spawner.spawner.waves;
+
+
+    if (!_data.enabled)
+        return true;
+
+
+    if (_runtime.warning.active)
+    {
+        _runtime.warning.remaining = max(
+            0,
+            _runtime.warning.remaining
+            - _step_seconds
+        );
+
+
+        if (_runtime.warning.remaining <= 0)
+            scr_enemy_spawner_wave_release(_spawner);
+
+
+        return true;
+    }
+
+
+    _runtime.timer -= _step_seconds;
+
+
+    if (_runtime.timer <= 0)
+        scr_enemy_spawner_wave_trigger(_spawner);
 
 
     return true;
@@ -714,7 +904,7 @@ function scr_enemy_spawner_milestone_reached(
 }
 
 
-/// @description Queues newly reached kill-count milestones.
+/// @description Queues newly reached kill milestones.
 
 function scr_enemy_spawner_milestone_update(_spawner)
 {
@@ -727,7 +917,8 @@ function scr_enemy_spawner_milestone_update(_spawner)
 
     for (var i = 0; i < array_length(_milestones); ++i)
     {
-        var _milestone = _milestones[i];
+        var _milestone =
+            _milestones[i];
 
 
         if (_kills < _milestone.trigger_kills)
@@ -746,9 +937,14 @@ function scr_enemy_spawner_milestone_update(_spawner)
 
 
         array_push(
-            _spawner.spawner.milestones.reached,
+            _spawner.spawner
+                .milestones.reached,
             _milestone.key
         );
+
+
+        var _side =
+            scr_enemy_spawner_side_get();
 
 
         scr_enemy_spawner_group_queue(
@@ -761,7 +957,7 @@ function scr_enemy_spawner_milestone_update(_spawner)
             _milestone.stagger_min_seconds,
             _milestone.stagger_max_seconds,
 
-            scr_enemy_spawner_side_get(),
+            _side,
             0.5,
             0.9,
 
@@ -769,20 +965,25 @@ function scr_enemy_spawner_milestone_update(_spawner)
         );
 
 
-        _spawner.spawner.milestones.last_name =
+        _spawner.spawner
+            .milestones.last_name =
             _milestone.name;
+
+
+        scr_hud_alert_push(
+            HudAlertType.MILESTONE,
+            "MILESTONE THREAT",
+            _milestone.name
+            + " // "
+            + scr_enemy_spawner_side_name(_side),
+            5
+        );
 
 
         show_debug_message(
             "MILESTONE ATTACK QUEUED: "
             + _milestone.name
         );
-
-
-        // FUTURE:
-        // full-screen vector warning
-        // milestone music sting
-        // milestone rewards
     }
 
 
@@ -864,16 +1065,27 @@ function scr_enemy_spawner_initialize(_spawner)
         },
 
         waves:
-        {
-            timer:
-                random_range(
-                    _data.waves.interval_min_seconds,
-                    _data.waves.interval_max_seconds
-                ),
+		{
+		    timer:
+		        random_range(
+		            _data.waves.interval_min_seconds,
+		            _data.waves.interval_max_seconds
+		        ),
 
-            index: 0,
-            last_name: ""
-        },
+		    index: 0,
+		    last_name: "",
+
+		    warning:
+		    {
+		        active: false,
+		        remaining: 0,
+
+		        wave_index: -1,
+		        wave_name: "",
+
+		        side: SpawnSide.RANDOM
+		    }
+		},
 
         milestones:
         {
@@ -990,6 +1202,29 @@ function scr_enemy_spawner_update(_spawner)
 
 
     return true;
+}
+
+/// @description Returns readable text for one spawn side.
+
+function scr_enemy_spawner_side_name(_side)
+{
+    switch (_side)
+    {
+        case SpawnSide.TOP:
+            return "NORTH";
+
+        case SpawnSide.RIGHT:
+            return "EAST";
+
+        case SpawnSide.BOTTOM:
+            return "SOUTH";
+
+        case SpawnSide.LEFT:
+            return "WEST";
+    }
+
+
+    return "UNKNOWN";
 }
 
 

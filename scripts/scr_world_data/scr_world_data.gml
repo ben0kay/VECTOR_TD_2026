@@ -87,6 +87,8 @@ function scr_world_data_initialize()
 
                 // Prevents one queued attack from creating every enemy at once.
                 maximum_spawns_per_step: 4,
+				maximum_alive_enemies: 300,
+				maximum_queued_enemies: 600,
 
 
                 baseline:
@@ -224,6 +226,7 @@ function scr_world_data_initialize()
                 waves:
                 {
                     enabled: true,
+					warning_seconds: 8,
 
                     interval_min_seconds: 90,
                     interval_max_seconds: 120,

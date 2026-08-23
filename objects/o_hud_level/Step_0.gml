@@ -9,7 +9,8 @@ if (!is_struct(global.vtd_level))
 
 if (
     instance_exists(hud.selection.target)
-    && hud.selection.target.BuildingState == BuildingState.DESTROYED
+    && hud.selection.target.BuildingState
+        == BuildingState.DESTROYED
 )
 {
     hud.selection.target = noone;
@@ -18,3 +19,4 @@ if (
 
 scr_hud_selection_update(id);
 scr_hud_vector_window_update(id);
+scr_hud_alert_update(id);

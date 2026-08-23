@@ -62,6 +62,7 @@
     {"id":{"name":"scr_enemy","path":"scripts/scr_enemy/scr_enemy.yy",},},
     {"id":{"name":"scr_EnumsMacros","path":"scripts/scr_EnumsMacros/scr_EnumsMacros.yy",},},
     {"id":{"name":"scr_game","path":"scripts/scr_game/scr_game.yy",},},
+    {"id":{"name":"scr_hud_alert","path":"scripts/scr_hud_alert/scr_hud_alert.yy",},},
     {"id":{"name":"scr_hud","path":"scripts/scr_hud/scr_hud.yy",},},
     {"id":{"name":"scr_logistics","path":"scripts/scr_logistics/scr_logistics.yy",},},
     {"id":{"name":"scr_miner","path":"scripts/scr_miner/scr_miner.yy",},},
