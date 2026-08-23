@@ -10,8 +10,8 @@
   "name":"o_player",
   "overriddenProperties":[],
   "parent":{
-    "name":"VECTOR_TD_2026",
-    "path":"VECTOR_TD_2026.yyp",
+    "name":"entities",
+    "path":"folders/entities.yy",
   },
   "parentObjectId":null,
   "persistent":false,

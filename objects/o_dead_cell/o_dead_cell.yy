@@ -9,8 +9,8 @@
   "name":"o_dead_cell",
   "overriddenProperties":[],
   "parent":{
-    "name":"VECTOR_TD_2026",
-    "path":"VECTOR_TD_2026.yyp",
+    "name":"world",
+    "path":"folders/objects/world.yy",
   },
   "parentObjectId":null,
   "persistent":false,

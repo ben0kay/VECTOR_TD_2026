@@ -1,18 +1,15 @@
 {
   "$GMObject":"",
-  "%Name":"o_wall",
+  "%Name":"o_hud_level",
   "eventList":[],
   "managed":true,
-  "name":"o_wall",
+  "name":"o_hud_level",
   "overriddenProperties":[],
   "parent":{
-    "name":"buildings",
-    "path":"folders/objects/buildings.yy",
+    "name":"controllers",
+    "path":"folders/controllers.yy",
   },
-  "parentObjectId":{
-    "name":"o_building_par",
-    "path":"objects/o_building_par/o_building_par.yy",
-  },
+  "parentObjectId":null,
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

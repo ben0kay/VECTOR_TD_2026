@@ -10,8 +10,8 @@
   "name":"o_controller_build",
   "overriddenProperties":[],
   "parent":{
-    "name":"VECTOR_TD_2026",
-    "path":"VECTOR_TD_2026.yyp",
+    "name":"controllers",
+    "path":"folders/controllers.yy",
   },
   "parentObjectId":null,
   "persistent":false,

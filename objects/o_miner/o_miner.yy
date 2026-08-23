@@ -11,8 +11,8 @@
   "name":"o_miner",
   "overriddenProperties":[],
   "parent":{
-    "name":"VECTOR_TD_2026",
-    "path":"VECTOR_TD_2026.yyp",
+    "name":"buildings",
+    "path":"folders/objects/buildings.yy",
   },
   "parentObjectId":{
     "name":"o_building_par",
