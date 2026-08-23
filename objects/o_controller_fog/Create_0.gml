@@ -47,7 +47,7 @@ fog =
     alpha:
     {
         explored: 0.55,
-        unexplored: 0.96
+        unexplored: 1.0
     }
 };
 
