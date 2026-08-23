@@ -181,22 +181,17 @@ function scr_build_mode_place(_controller)
     var _build = _controller.build;
     var _preview = _build.preview;
 
-
     if (!_preview.valid)
         return noone;
 
 
-    var _data = scr_building_data_get(
-        _build.selected_key
-    );
-
+    var _data = scr_building_data_get(_build.selected_key);
 
     if (!scr_building_data_valid(_data))
         return noone;
 
 
     var _object = noone;
-
 
     switch (_data.identity.type)
     {
@@ -212,17 +207,14 @@ function scr_build_mode_place(_controller)
             _object = o_miner;
         break;
 
+        case BuildingType.STORAGE:
+            _object = o_storage;
+        break;
+
         case BuildingType.REFINERY:
         {
             // FUTURE:
             // _object = o_refinery;
-        }
-        break;
-
-        case BuildingType.STORAGE:
-        {
-            // FUTURE:
-            // _object = o_storage;
         }
         break;
 
@@ -271,7 +263,8 @@ function scr_build_mode_place(_controller)
 
 
     show_debug_message(
-        "BUILD PLACED: " + _data.identity.name
+        "BUILD PLACED: "
+        + _data.identity.name
     );
 
 
@@ -305,6 +298,15 @@ function scr_build_mode_update(_controller)
 
             else if (keyboard_check_pressed(ord("3")))
                 scr_build_mode_begin(_controller, "miner_copper");
+
+            else if (keyboard_check_pressed(ord("4")))
+                scr_build_mode_begin(_controller, "storage_carbon");
+
+            else if (keyboard_check_pressed(ord("5")))
+                scr_build_mode_begin(_controller, "storage_silicon");
+
+            else if (keyboard_check_pressed(ord("6")))
+                scr_build_mode_begin(_controller, "storage_copper");
         }
         break;
 
@@ -322,38 +324,28 @@ function scr_build_mode_update(_controller)
 
 
             if (keyboard_check_pressed(ord("B")))
-            {
                 scr_build_mode_begin(_controller, "wall_basic");
-                break;
-            }
 
-
-            if (keyboard_check_pressed(ord("T")))
-            {
+            else if (keyboard_check_pressed(ord("T")))
                 scr_build_mode_begin(_controller, "tower_basic");
-                break;
-            }
 
-
-            if (keyboard_check_pressed(ord("1")))
-            {
+            else if (keyboard_check_pressed(ord("1")))
                 scr_build_mode_begin(_controller, "miner_carbon");
-                break;
-            }
 
-
-            if (keyboard_check_pressed(ord("2")))
-            {
+            else if (keyboard_check_pressed(ord("2")))
                 scr_build_mode_begin(_controller, "miner_silicon");
-                break;
-            }
 
-
-            if (keyboard_check_pressed(ord("3")))
-            {
+            else if (keyboard_check_pressed(ord("3")))
                 scr_build_mode_begin(_controller, "miner_copper");
-                break;
-            }
+
+            else if (keyboard_check_pressed(ord("4")))
+                scr_build_mode_begin(_controller, "storage_carbon");
+
+            else if (keyboard_check_pressed(ord("5")))
+                scr_build_mode_begin(_controller, "storage_silicon");
+
+            else if (keyboard_check_pressed(ord("6")))
+                scr_build_mode_begin(_controller, "storage_copper");
 
 
             if (mouse_check_button_pressed(mb_left))

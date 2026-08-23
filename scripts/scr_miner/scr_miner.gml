@@ -169,8 +169,7 @@ function scr_miner_initialize(_miner)
     return true;
 }
 
-
-/// @description Extracts resource from the claimed node into the hopper.
+/// @description Extracts material and requests visible cargo collection.
 
 function scr_miner_update(_miner)
 {
@@ -181,81 +180,87 @@ function scr_miner_update(_miner)
     _miner.mining.extracting = false;
 
 
-    if (_miner.BuildingState != BuildingState.ACTIVE)
-        return true;
-
-
-    var _node = _miner.mining.node;
-
-    if (!instance_exists(_node))
-        return true;
-
-    if (_node.amount.depleted)
-        return true;
-
-    if (_miner.hopper.current >= _miner.hopper.capacity)
-        return true;
-
-
-    // FUTURE:
-    // Stop when the miner lacks active power.
-    // Apply extraction upgrades and overclocking here.
-    // Increase underground noise while extracting.
-
-
-    var _fps = max(1, game_get_speed(gamespeed_fps));
-
-    var _requested =
-        _miner.mining.rate_per_second
-        / _fps;
-
-    var _hopper_space =
-        _miner.hopper.capacity
-        - _miner.hopper.current;
-
-    var _extracted = min(
-        _requested,
-        _hopper_space,
-        _node.amount.current
-    );
-
-
-    if (_extracted <= 0)
-        return true;
-
-
-    _node.amount.current = max(
-        0,
-        _node.amount.current - _extracted
-    );
-
-    _miner.hopper.current = min(
-        _miner.hopper.capacity,
-        _miner.hopper.current + _extracted
-    );
-
-    _miner.mining.total_extracted += _extracted;
-    _miner.mining.extracting = true;
-
-
-    if (_node.amount.current <= 0)
+    if (_miner.BuildingState == BuildingState.ACTIVE)
     {
-        _node.amount.current = 0;
-        _node.amount.depleted = true;
+        var _node = _miner.mining.node;
 
-        show_debug_message(
-            "RESOURCE DEPLETED: "
-            + _node.identity.name
-            + " | VEIN "
-            + string(_node.identity.vein_id)
-        );
+        var _can_extract =
+            instance_exists(_node)
+            && !_node.amount.depleted
+            && _miner.hopper.current < _miner.hopper.capacity;
 
 
-        // FUTURE:
-        // Convert the depleted cell back into dead terrain.
-        // Allow an advanced miner to continue through the complete vein.
+        if (_can_extract)
+        {
+            // FUTURE:
+            // Require active power.
+            // Apply extraction upgrades.
+            // Apply overclock modifiers.
+            // Generate underground noise.
+
+            var _fps = max(
+                1,
+                game_get_speed(gamespeed_fps)
+            );
+
+            var _requested =
+                _miner.mining.rate_per_second
+                / _fps;
+
+            var _hopper_space =
+                _miner.hopper.capacity
+                - _miner.hopper.current;
+
+            var _extracted = min(
+                _requested,
+                _hopper_space,
+                _node.amount.current
+            );
+
+
+            if (_extracted > 0)
+            {
+                _node.amount.current = max(
+                    0,
+                    _node.amount.current
+                    - _extracted
+                );
+
+                _miner.hopper.current = min(
+                    _miner.hopper.capacity,
+                    _miner.hopper.current
+                    + _extracted
+                );
+
+                _miner.mining.total_extracted += _extracted;
+                _miner.mining.extracting = true;
+            }
+
+
+            if (_node.amount.current <= 0)
+            {
+                _node.amount.current = 0;
+                _node.amount.depleted = true;
+
+                show_debug_message(
+                    "RESOURCE DEPLETED: "
+                    + _node.identity.name
+                    + " | VEIN "
+                    + string(_node.identity.vein_id)
+                );
+
+
+                // FUTURE:
+                // Convert the cell back into dead terrain.
+                // Let advanced miners continue through a vein.
+            }
+        }
     }
 
+
+    // Collection can continue even if extraction has temporarily stopped.
+
+    scr_logistics_miner_update(_miner);
 
     return true;
 }
@@ -419,12 +424,27 @@ function scr_miner_draw(_miner)
 }
 
 
-/// @description Releases the node and logistics reservations owned by a miner.
+/// @description Releases miner, node, and logistics reservations.
 
 function scr_miner_cleanup(_miner)
 {
     if (!instance_exists(_miner))
         return false;
+
+
+    if (
+        variable_instance_exists(_miner, "logistics")
+        && is_struct(_miner.logistics)
+        && instance_exists(_miner.logistics.assigned_drone)
+    )
+    {
+        instance_destroy(
+            _miner.logistics.assigned_drone
+        );
+
+        _miner.logistics.assigned_drone = noone;
+        _miner.logistics.collection_reserved = false;
+    }
 
 
     if (
@@ -434,6 +454,7 @@ function scr_miner_cleanup(_miner)
     {
         var _node = _miner.mining.node;
 
+
         if (
             instance_exists(_node)
             && _node.claim.miner == _miner
@@ -441,17 +462,6 @@ function scr_miner_cleanup(_miner)
         {
             _node.claim.miner = noone;
         }
-    }
-
-
-    if (
-        variable_instance_exists(_miner, "logistics")
-        && is_struct(_miner.logistics)
-        && instance_exists(_miner.logistics.assigned_drone)
-    )
-    {
-        // FUTURE:
-        // Cancel the assigned drone's collection job.
     }
 
 

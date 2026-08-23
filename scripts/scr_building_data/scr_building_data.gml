@@ -104,10 +104,6 @@ function scr_building_data_initialize()
         },
 
 
-        // ====================================================================
-        // CARBON MINER
-        // ====================================================================
-
         miner_carbon:
         {
             identity:
@@ -151,10 +147,6 @@ function scr_building_data_initialize()
             }
         },
 
-
-        // ====================================================================
-        // SILICON MINER
-        // ====================================================================
 
         miner_silicon:
         {
@@ -200,10 +192,6 @@ function scr_building_data_initialize()
         },
 
 
-        // ====================================================================
-        // COPPER MINER
-        // ====================================================================
-
         miner_copper:
         {
             identity:
@@ -245,6 +233,135 @@ function scr_building_data_initialize()
                 extraction_rate_per_second: 4.5,
                 hopper_capacity: 100
             }
+        },
+
+
+        storage_carbon:
+        {
+            identity:
+            {
+                key: "storage_carbon",
+                name: "Carbon Storage",
+                type: BuildingType.STORAGE
+            },
+
+            visual:
+            {
+                color: make_color_rgb(90, 210, 120)
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 350
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            storage:
+            {
+                resource_key: "resource_carbon",
+                capacity: 1000
+            }
+        },
+
+
+        storage_silicon:
+        {
+            identity:
+            {
+                key: "storage_silicon",
+                name: "Silicon Storage",
+                type: BuildingType.STORAGE
+            },
+
+            visual:
+            {
+                color: make_color_rgb(80, 190, 255)
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 350
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            storage:
+            {
+                resource_key: "resource_silicon",
+                capacity: 750
+            }
+        },
+
+
+        storage_copper:
+        {
+            identity:
+            {
+                key: "storage_copper",
+                name: "Copper Storage",
+                type: BuildingType.STORAGE
+            },
+
+            visual:
+            {
+                color: make_color_rgb(230, 125, 65)
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 350
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost: []
+            },
+
+            storage:
+            {
+                resource_key: "resource_copper",
+                capacity: 750
+            }
         }
     };
 
@@ -252,7 +369,6 @@ function scr_building_data_initialize()
     show_debug_message(
         "VECTOR TD 2026 - BUILDING DATA INITIALIZED"
     );
-
 
     return true;
 }

@@ -394,7 +394,7 @@ function scr_hud_selection_content_draw(
 }
 
 
-/// @description Draws the reusable animated vector information window.
+/// @description Draws an animated vector window beside the selected object.
 
 function scr_hud_vector_window_draw(_hud)
 {
@@ -403,6 +403,7 @@ function scr_hud_vector_window_draw(_hud)
 
 
     var _window = _hud.hud.window;
+    var _selected = _hud.hud.selection.target;
 
     if (_window.line_progress <= 0)
         return true;
@@ -411,26 +412,147 @@ function scr_hud_vector_window_draw(_hud)
     var _gui_width = display_get_gui_width();
     var _gui_height = display_get_gui_height();
 
-    var _center_x =
-        _gui_width
-        - _window.margin_right
-        - (_window.width * 0.5);
+    var _anchor_x = _gui_width * 0.5;
+    var _anchor_y = _gui_height * 0.5;
 
-    var _center_y =
-        _gui_height * 0.5;
+
+    // ========================================================================
+    // WORLD POSITION TO GUI POSITION
+    // ========================================================================
+
+    if (instance_exists(_selected))
+    {
+        var _camera = global.vtd_level.entities.camera;
+
+        if (instance_exists(_camera))
+        {
+            var _camera_id = _camera.camera_runtime.id;
+
+            var _view_x = camera_get_view_x(_camera_id);
+            var _view_y = camera_get_view_y(_camera_id);
+            var _view_width = camera_get_view_width(_camera_id);
+            var _view_height = camera_get_view_height(_camera_id);
+
+
+            _anchor_x =
+                (_selected.x - _view_x)
+                * (_gui_width / _view_width);
+
+            _anchor_y =
+                (_selected.y - _view_y)
+                * (_gui_height / _view_height);
+        }
+    }
+
+
+    // ========================================================================
+    // WINDOW POSITION
+    // ========================================================================
+
+    var _screen_margin = 16;
+    var _object_gap = 48;
+
+    var _full_half_width = _window.width * 0.5;
+    var _full_half_height = _window.height * 0.5;
+
+
+    // Prefer the right side of the selected object.
+
+    var _room_on_right =
+        _anchor_x
+        + _object_gap
+        + _window.width
+        <= _gui_width - _screen_margin;
+
+    var _center_x;
+
+
+    if (_room_on_right)
+    {
+        _center_x =
+            _anchor_x
+            + _object_gap
+            + _full_half_width;
+    }
+    else
+    {
+        _center_x =
+            _anchor_x
+            - _object_gap
+            - _full_half_width;
+    }
+
+
+    var _center_y = clamp(
+        _anchor_y,
+        _screen_margin + _full_half_height,
+        _gui_height - _screen_margin - _full_half_height
+    );
+
+
+    _center_x = clamp(
+        _center_x,
+        _screen_margin + _full_half_width,
+        _gui_width - _screen_margin - _full_half_width
+    );
+
+
+    // ========================================================================
+    // ANIMATED BOUNDS
+    // ========================================================================
 
     var _half_height =
-        (_window.height * 0.5)
+        _full_half_height
         * _window.line_progress;
 
     var _half_width =
-        (_window.width * 0.5)
+        _full_half_width
         * _window.panel_progress;
 
     var _left = _center_x - _half_width;
     var _right = _center_x + _half_width;
     var _top = _center_y - _half_height;
     var _bottom = _center_y + _half_height;
+
+
+    // ========================================================================
+    // OBJECT CONNECTION LINE
+    // ========================================================================
+
+    if (
+        instance_exists(_selected)
+        && _window.panel_progress > 0
+    )
+    {
+        var _connection_x;
+
+
+        if (_room_on_right)
+            _connection_x = _left;
+        else
+            _connection_x = _right;
+
+
+        draw_set_alpha(_window.panel_progress);
+        draw_set_color(_window.color);
+
+        draw_line(
+            _anchor_x,
+            _anchor_y,
+            _connection_x,
+            _center_y
+        );
+
+
+        // Small selection point.
+
+        draw_circle(
+            _anchor_x,
+            _anchor_y,
+            3,
+            false
+        );
+    }
 
 
     // ========================================================================
@@ -471,21 +593,35 @@ function scr_hud_vector_window_draw(_hud)
     draw_rectangle(_left, _top, _right, _bottom, true);
 
 
-    // Small vector corner accents.
+    // Vector corner accents.
 
     var _corner = 12;
 
     draw_line(_left, _top + _corner, _left + _corner, _top);
     draw_line(_right - _corner, _top, _right, _top + _corner);
-    draw_line(_left, _bottom - _corner, _left + _corner, _bottom);
-    draw_line(_right - _corner, _bottom, _right, _bottom - _corner);
+
+    draw_line(
+        _left,
+        _bottom - _corner,
+        _left + _corner,
+        _bottom
+    );
+
+    draw_line(
+        _right - _corner,
+        _bottom,
+        _right,
+        _bottom - _corner
+    );
 
 
-    // Content appears only after the shell has nearly finished opening.
+    // ========================================================================
+    // CONTENT
+    // ========================================================================
 
     if (
         _window.panel_progress >= 0.9
-        && instance_exists(_hud.hud.selection.target)
+        && instance_exists(_selected)
     )
     {
         var _content_alpha = clamp(
@@ -494,14 +630,15 @@ function scr_hud_vector_window_draw(_hud)
             1
         );
 
+
         draw_set_alpha(_content_alpha);
 
         scr_hud_selection_content_draw(
             _hud,
-            _center_x - (_window.width * 0.5),
-            _center_y - (_window.height * 0.5),
-            _center_x + (_window.width * 0.5),
-            _center_y + (_window.height * 0.5)
+            _center_x - _full_half_width,
+            _center_y - _full_half_height,
+            _center_x + _full_half_width,
+            _center_y + _full_half_height
         );
     }
 

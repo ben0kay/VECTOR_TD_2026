@@ -149,6 +149,15 @@ enum WorldGenerationStyle
     CAVERNS
 }
 
+/// @description Defines the current job stage of a cargo drone.
+enum CargoDroneState
+{
+    WAITING_SOURCE,
+    TO_SOURCE,
+    TO_STORAGE,
+    WAITING_STORAGE,
+    DESTROYED
+}
 
 // Staggered update helpers.
 //
