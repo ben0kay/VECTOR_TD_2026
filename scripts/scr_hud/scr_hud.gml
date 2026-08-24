@@ -2027,6 +2027,8 @@ function scr_hud_selection_panel_create()
 
     _burst.enabled = false;
 
+	var _energy_controls =
+    scr_hud_energy_controls_create();
 
     return
     {
@@ -2051,6 +2053,9 @@ function scr_hud_selection_panel_create()
             _continuous,
             _burst
         ],
+		
+		energy_controls:
+		_energy_controls,
 
         sell:
         {
@@ -2466,12 +2471,47 @@ function scr_hud_selection_panel_update(_hud)
         _action_width,
         _action_height
     );
+	
+	scr_hud_energy_controls_update(
+    _hud,
+    _selected,
+    _inspector_left,
+    _tray_top
+);
 
 
     _sell.enabled =
         _selected.identity.type
         != BuildingType.CPU;
 
+	// ========================================================================
+	// ENABLE / DISABLE
+	// ========================================================================
+
+	var _can_toggle =
+	    _selected.identity.type != BuildingType.CPU
+	    && (
+	        _selected.BuildingState == BuildingState.ACTIVE
+	        || _selected.BuildingState == BuildingState.DISABLED
+	    );
+
+
+	_disable.enabled =
+	    _can_toggle;
+
+
+	if (_selected.BuildingState == BuildingState.DISABLED)
+	{
+	    _disable.label = "ENABLE";
+	    _disable.subtitle = "RESTORE";
+	    _disable.accent_color = c_lime;
+	}
+	else
+	{
+	    _disable.label = "DISABLE";
+	    _disable.subtitle = "HALT";
+	    _disable.accent_color = c_red;
+	}
 
     if (
         _panel.sell.armed
@@ -2530,6 +2570,64 @@ function scr_hud_selection_panel_update(_hud)
         _panel.sell.remaining =
             _panel.sell.confirmation_seconds;
     }
+	
+	if (
+    _can_toggle
+    && scr_hud_button_update(_disable)
+	)
+	{
+	    switch (_selected.BuildingState)
+	    {
+	        case BuildingState.ACTIVE:
+	        {
+	            _selected.BuildingState =
+	                BuildingState.DISABLED;
+
+	            if (
+	                variable_instance_exists(_selected, "energy")
+	                && is_struct(_selected.energy)
+	            )
+	            {
+	                _selected.energy.supplied = false;
+
+	                _selected.energy.demand.activity_spent = 0;
+
+	                _selected.energy.demand
+	                    .activity_recent_per_second = 0;
+	            }
+
+
+	            scr_energy_topology_dirty();
+
+
+	            scr_hud_alert_push(
+	                HudAlertType.INFO,
+	                "STRUCTURE DISABLED",
+	                string_upper(_selected.identity.name),
+	                1.5
+	            );
+	        }
+	        break;
+
+
+	        case BuildingState.DISABLED:
+	        {
+	            _selected.BuildingState =
+	                BuildingState.ACTIVE;
+
+	            scr_energy_topology_dirty();
+
+
+	            scr_hud_alert_push(
+	                HudAlertType.SUCCESS,
+	                "STRUCTURE ENABLED",
+	                string_upper(_selected.identity.name),
+	                1.5
+	            );
+	        }
+	        break;
+	    }
+	}
 
 
     // Right-clicking while the contextual panel is open deselects.
@@ -2604,6 +2702,7 @@ function scr_hud_selection_panel_draw(_hud)
         _inspector_left,
         _tray_top
     );
+
 
     draw_set_color(c_dkgray);
 
@@ -2702,7 +2801,7 @@ function scr_hud_selection_panel_draw(_hud)
 
 
     // ========================================================================
-    // TOWER-SPECIFIC CONTROLS
+    // CATEGORY-SPECIFIC CONTROLS
     // ========================================================================
 
     if (_selected.object_index == o_tower)
@@ -2755,25 +2854,11 @@ function scr_hud_selection_panel_draw(_hud)
         );
 
 
-        draw_set_color(c_aqua);
-
-        draw_text(
-            _inspector_left - 190,
-            _tray_top + 12,
-            "ATTACK BEHAVIOR"
-        );
-
-
-        for (
-            var i = 0;
-            i < array_length(_panel.attack_buttons);
-            ++i
-        )
-        {
-            scr_hud_button_draw(
-                _panel.attack_buttons[i]
-            );
-        }
+        // FUTURE:
+        // attack behavior
+        // overclock controls
+        // ammunition selection
+        // manual targeting
     }
     else
     {
@@ -2798,7 +2883,27 @@ function scr_hud_selection_panel_draw(_hud)
                 _inspector_left - 440
             )
         );
+
+
+        // FUTURE:
+        // miner controls
+        // storage filters
+        // refinery recipes
+        // generator output controls
+        // battery reserve controls
     }
+
+
+    // ========================================================================
+    // ENERGY PRIORITY
+    // ========================================================================
+
+    scr_hud_energy_controls_draw(
+        _hud,
+        _selected,
+        _inspector_left,
+        _tray_top
+    );
 
 
     // ========================================================================
@@ -3149,4 +3254,220 @@ function scr_hud_energy_selection_draw(
     draw_set_color(c_white);
 
     return true;
+}
+
+/// @description Creates reusable energy-priority controls.
+
+function scr_hud_energy_controls_create()
+{
+    var _critical =
+        scr_hud_button_create(
+            "energy_critical",
+            "CRITICAL",
+            "FIRST"
+        );
+
+    _critical.data = EnergyPriority.CRITICAL;
+    _critical.accent_color = c_red;
+
+
+    var _high =
+        scr_hud_button_create(
+            "energy_high",
+            "HIGH",
+            "SECOND"
+        );
+
+    _high.data = EnergyPriority.HIGH;
+    _high.accent_color = make_color_rgb(255, 150, 40);
+
+
+    var _normal =
+        scr_hud_button_create(
+            "energy_normal",
+            "NORMAL",
+            "THIRD"
+        );
+
+    _normal.data = EnergyPriority.NORMAL;
+    _normal.accent_color = c_aqua;
+
+
+    var _low =
+        scr_hud_button_create(
+            "energy_low",
+            "LOW",
+            "LAST"
+        );
+
+    _low.data = EnergyPriority.LOW;
+    _low.accent_color = c_gray;
+
+
+    return
+    {
+        buttons:
+        [
+            _critical,
+            _high,
+            _normal,
+            _low
+        ]
+    };
+}
+
+
+/// @description Updates energy-priority buttons for the selected consumer.
+
+function scr_hud_energy_controls_update(
+    _hud,
+    _selected,
+    _inspector_left,
+    _tray_top
+)
+{
+    if (!instance_exists(_selected))
+        return false;
+
+
+    var _controls =
+        _hud.hud.selection_panel.energy_controls;
+
+    var _is_consumer =
+        variable_instance_exists(_selected, "energy")
+        && is_struct(_selected.energy)
+        && _selected.energy.participates
+        && _selected.energy.role == EnergyRole.CONSUMER;
+
+
+    var _button_x =
+        _inspector_left - 190;
+
+    var _button_y =
+        _tray_top + 40;
+
+    var _button_width = 174;
+    var _button_height = 34;
+    var _button_gap = 5;
+
+
+    for (var i = 0; i < array_length(_controls.buttons); ++i)
+    {
+        var _button =
+            _controls.buttons[i];
+
+        scr_hud_button_bounds_set(
+            _button,
+            _button_x,
+            _button_y
+                + (i * (_button_height + _button_gap)),
+            _button_width,
+            _button_height
+        );
+
+
+        _button.enabled =
+            _is_consumer;
+
+        _button.selected =
+            _is_consumer
+            && _selected.energy.priority
+                == _button.data;
+
+
+        if (
+            _is_consumer
+            && scr_hud_button_update(_button)
+        )
+        {
+            _selected.energy.priority =
+                _button.data;
+
+            show_debug_message(
+                "ENERGY PRIORITY CHANGED: "
+                + _selected.identity.name
+                + " | "
+                + scr_hud_energy_priority_text(
+                    _selected.energy.priority
+                )
+            );
+        }
+    }
+
+
+    return true;
+}
+
+
+/// @description Draws energy-priority controls.
+
+function scr_hud_energy_controls_draw(
+    _hud,
+    _selected,
+    _inspector_left,
+    _tray_top
+)
+{
+    if (!instance_exists(_selected))
+        return false;
+
+
+    var _is_consumer =
+        variable_instance_exists(_selected, "energy")
+        && is_struct(_selected.energy)
+        && _selected.energy.participates
+        && _selected.energy.role == EnergyRole.CONSUMER;
+
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        _inspector_left - 190,
+        _tray_top + 12,
+        "ENERGY PRIORITY"
+    );
+
+
+    if (!_is_consumer)
+    {
+        draw_set_color(c_gray);
+
+        draw_text_ext(
+            _inspector_left - 190,
+            _tray_top + 44,
+            "THIS STRUCTURE DOES NOT USE CONSUMER PRIORITY.",
+            18,
+            174
+        );
+
+        return true;
+    }
+
+
+    var _buttons =
+        _hud.hud.selection_panel
+            .energy_controls.buttons;
+
+
+    for (var i = 0; i < array_length(_buttons); ++i)
+        scr_hud_button_draw(_buttons[i]);
+
+
+    return true;
+}
+
+
+/// @description Returns readable energy-priority text.
+
+function scr_hud_energy_priority_text(_priority)
+{
+    switch (_priority)
+    {
+        case EnergyPriority.CRITICAL: return "CRITICAL";
+        case EnergyPriority.HIGH:     return "HIGH";
+        case EnergyPriority.NORMAL:   return "NORMAL";
+        case EnergyPriority.LOW:      return "LOW";
+    }
+
+    return "UNKNOWN";
 }
