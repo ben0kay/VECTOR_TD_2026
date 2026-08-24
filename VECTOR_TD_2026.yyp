@@ -77,6 +77,7 @@
     {"id":{"name":"scr_culling","path":"scripts/scr_culling/scr_culling.yy",},},
     {"id":{"name":"scr_damage","path":"scripts/scr_damage/scr_damage.yy",},},
     {"id":{"name":"scr_debug","path":"scripts/scr_debug/scr_debug.yy",},},
+    {"id":{"name":"scr_draw","path":"scripts/scr_draw/scr_draw.yy",},},
     {"id":{"name":"scr_effect","path":"scripts/scr_effect/scr_effect.yy",},},
     {"id":{"name":"scr_enemy_abilities","path":"scripts/scr_enemy_abilities/scr_enemy_abilities.yy",},},
     {"id":{"name":"scr_enemy_advanced","path":"scripts/scr_enemy_advanced/scr_enemy_advanced.yy",},},

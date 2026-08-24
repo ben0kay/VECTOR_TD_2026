@@ -455,23 +455,21 @@ function scr_utility_credit_magnet_draw(_utility)
         false
     );
 
-    draw_arc(
-        _utility.x - 9,
-        _utility.y,
-        9,
-        90,
-        270,
-        false
-    );
+    scr_draw_arc(
+    _utility.x - 9,
+    _utility.y,
+    9,
+    90,
+    270
+	);
 
-    draw_arc(
-        _utility.x + 9,
-        _utility.y,
-        9,
-        270,
-        90,
-        false
-    );
+	scr_draw_arc(
+	    _utility.x + 9,
+	    _utility.y,
+	    9,
+	    270,
+	    90
+	);
 
 
     draw_line_width(
