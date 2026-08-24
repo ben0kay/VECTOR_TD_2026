@@ -16,6 +16,27 @@ function scr_world_data_initialize()
             },
 			
 			// ========================================================================
+			// LEVEL COMPLETION
+			// ========================================================================
+
+			victory:
+			{
+			    // Set to NONE when testing endless pressure.
+			    type: LevelVictoryType.COMPLETE_WAVES,
+
+			    required_waves: 4,
+			    survival_seconds: 0
+			},
+
+			progression:
+			{
+			    // Prepared for the future campaign/level loader.
+			    next_world_key: "",
+			    menu_room: noone
+			},
+			
+			
+			// ========================================================================
 			// LEVEL CONTENT
 			// ========================================================================
 			//

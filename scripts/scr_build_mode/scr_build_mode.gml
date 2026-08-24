@@ -236,7 +236,7 @@ function scr_build_mode_begin(
     return true;
 }
 
-/// @description Pays for and creates the selected building.
+/// @description Pays for and places the current valid building preview.
 
 function scr_build_mode_place(_controller)
 {
@@ -244,12 +244,8 @@ function scr_build_mode_place(_controller)
         return noone;
 
 
-    var _build =
-        _controller.build;
-
-    var _preview =
-        _build.preview;
-
+    var _build = _controller.build;
+    var _preview = _build.preview;
 
     if (!_preview.valid)
         return noone;
@@ -260,23 +256,18 @@ function scr_build_mode_place(_controller)
             _build.selected_key
         );
 
-
     if (!scr_building_data_valid(_data))
         return noone;
 
 
     if (!scr_build_limit_can_place(_data))
     {
-        scr_build_limit_alert_push(
-            _data
-        );
-
+        scr_build_limit_alert_push(_data);
         return noone;
     }
 
 
-    var _object =
-        noone;
+    var _object = noone;
 
 
     switch (_data.identity.type)
@@ -285,21 +276,17 @@ function scr_build_mode_place(_controller)
             _object = o_wall;
         break;
 
-
         case BuildingType.TOWER:
             _object = o_tower;
         break;
-
 
         case BuildingType.MINER:
             _object = o_miner;
         break;
 
-
         case BuildingType.STORAGE:
             _object = o_storage;
         break;
-
 
         case BuildingType.REFINERY:
         {
@@ -308,26 +295,21 @@ function scr_build_mode_place(_controller)
         }
         break;
 
-
         case BuildingType.POWER_GENERATOR:
             _object = o_energy_generator;
         break;
-
 
         case BuildingType.POWER_NODE:
             _object = o_energy_node;
         break;
 
-
         case BuildingType.POWER_BATTERY:
             _object = o_energy_battery;
         break;
 
-
         case BuildingType.SUPPORT:
             _object = o_building_par;
         break;
-
 
         case BuildingType.FOUNDATION:
             _object = o_foundation;
@@ -339,11 +321,7 @@ function scr_build_mode_place(_controller)
         return noone;
 
 
-    if (
-        !scr_resource_cost_pay(
-            _data.economy.cost
-        )
-    )
+    if (!scr_resource_cost_pay(_data.economy.cost))
     {
         scr_hud_alert_push(
             HudAlertType.WARNING,
@@ -357,17 +335,9 @@ function scr_build_mode_place(_controller)
 
 
     var _placement_layer =
-        "Buildings";
-
-
-    if (
-        _data.identity.type
-        == BuildingType.FOUNDATION
-    )
-    {
-        _placement_layer =
-            "Foundations";
-    }
+        _data.identity.type == BuildingType.FOUNDATION
+        ? "Foundations"
+        : "Buildings";
 
 
     var _building =
@@ -377,14 +347,9 @@ function scr_build_mode_place(_controller)
             _placement_layer,
             _object,
             {
-                building_key:
-                    _build.selected_key,
-
-                placement_cell_x:
-                    _preview.cell_x,
-
-                placement_cell_y:
-                    _preview.cell_y
+                building_key: _build.selected_key,
+                placement_cell_x: _preview.cell_x,
+                placement_cell_y: _preview.cell_y
             }
         );
 
@@ -395,15 +360,18 @@ function scr_build_mode_place(_controller)
             _data.economy.cost
         );
 
-
         show_debug_message(
             "BUILD ERROR - creation failed and cost was refunded: "
             + _data.identity.name
         );
 
-
         return noone;
     }
+
+
+    scr_level_result_building_placed(
+        _building
+    );
 
 
     show_debug_message(

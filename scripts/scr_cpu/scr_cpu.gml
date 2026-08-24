@@ -45,8 +45,7 @@ function scr_cpu_initialize(_cpu)
     return true;
 }
 
-
-/// @description Applies damage and health warnings to the CPU.
+/// @description Damages the CPU and resolves level failure at zero integrity.
 
 function scr_cpu_damage(_cpu, _damage)
 {
@@ -62,27 +61,28 @@ function scr_cpu_damage(_cpu, _damage)
 
     var _hp = _cpu.vitals.hp;
 
-    var _previous_percent = clamp(
-        _hp.current / max(1, _hp.maximum),
-        0,
-        1
-    );
+    var _previous_percent =
+        clamp(
+            _hp.current / max(1, _hp.maximum),
+            0,
+            1
+        );
 
-    _hp.current = max(
-        0,
-        _hp.current - _damage
-    );
+    _hp.current =
+        max(
+            0,
+            _hp.current - _damage
+        );
 
-    var _current_percent = clamp(
-        _hp.current / max(1, _hp.maximum),
-        0,
-        1
-    );
+    var _current_percent =
+        clamp(
+            _hp.current / max(1, _hp.maximum),
+            0,
+            1
+        );
 
 
-    // ========================================================================
-    // HEALTH WARNINGS
-    // ========================================================================
+    // CPU thresholds remain major centre alerts.
 
     for (var i = 0; i < array_length(_cpu.alerts.thresholds); ++i)
     {
@@ -98,44 +98,32 @@ function scr_cpu_damage(_cpu, _damage)
         {
             _warning.triggered = true;
 
-            var _percent_text =
-                string(round(_warning.percent * 100))
-                + "% INTEGRITY REMAINING";
+            var _type =
+                _warning.percent <= 0.25
+                ? HudAlertType.DANGER
+                : HudAlertType.WARNING;
 
-            var _alert_type = HudAlertType.WARNING;
 
-            if (_warning.percent <= 0.25)
-                _alert_type = HudAlertType.DANGER;
-
-            scr_hud_alert_push(
-                _alert_type,
+            scr_hud_major_alert_push(
+                _type,
                 "CPU UNDER ATTACK",
-                _percent_text,
+
+                string(round(_warning.percent * 100))
+                + "% INTEGRITY REMAINING",
+
                 4
             );
         }
     }
 
 
-    // ========================================================================
-    // DESTRUCTION
-    // ========================================================================
-
     if (_hp.current <= 0 && !_cpu.alerts.destroyed)
     {
         _cpu.alerts.destroyed = true;
 
-        scr_hud_alert_push(
-            HudAlertType.DANGER,
-            "CPU DESTROYED",
-            "LEVEL FAILURE",
-            6
-        );
-
-        global.LevelState = LevelState.FAILED;
-
-        show_debug_message(
-            "VECTOR TD 2026 - CPU DESTROYED"
+        scr_level_result_resolve(
+            false,
+            "CPU CORE DESTROYED"
         );
     }
 

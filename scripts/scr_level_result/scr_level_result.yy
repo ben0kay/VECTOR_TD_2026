@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_hud_notification",
+  "%Name":"scr_level_result",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_hud_notification",
+  "name":"scr_level_result",
   "parent":{
-    "name":"hud",
-    "path":"folders/scripts/hud.yy",
+    "name":"scripts",
+    "path":"folders/scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

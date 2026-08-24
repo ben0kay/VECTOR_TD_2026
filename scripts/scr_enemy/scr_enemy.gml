@@ -2186,8 +2186,6 @@ function scr_enemy_shield_update(_enemy)
     return true;
 }
 
-
-
 /// @description Kills an enemy, processes abilities and awards valid kills.
 
 function scr_enemy_die(_enemy, _damage)
@@ -2202,80 +2200,50 @@ function scr_enemy_die(_enemy, _damage)
     _enemy.EnemyState =
         EnemyState.DEAD;
 
-    scr_navigation_enemy_stop(
-        _enemy
-    );
+    scr_navigation_enemy_stop(_enemy);
 
 
     // ========================================================================
     // DEATH ABILITIES
     // ========================================================================
 
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.EXPLODE_ON_DEATH
-        )
-    )
-    {
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
         scr_enemy_explode(_enemy);
-    }
 
-
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.SPLIT_ON_DEATH
-        )
-    )
-    {
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
         scr_enemy_split(_enemy);
-    }
 
-
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.TRANSPORT_ENEMIES
-        )
-    )
-    {
+    if (scr_enemy_has_ability(_enemy, EnemyAbility.TRANSPORT_ENEMIES))
         scr_enemy_transport_release(_enemy);
-    }
 
 
     // ========================================================================
-    // LEVEL KILL COUNT
+    // LEVEL STATISTICS
     // ========================================================================
 
     if (
         variable_global_exists("vtd_level")
         && is_struct(global.vtd_level)
-        && variable_struct_exists(
-            global.vtd_level,
-            "combat"
-        )
+        && variable_struct_exists(global.vtd_level, "combat")
     )
     {
         global.vtd_level.combat.kills++;
     }
 
 
-    // ========================================================================
-    // REWARDS AND KILL ATTRIBUTION
-    // ========================================================================
-
     if (is_struct(_damage))
     {
+        scr_level_result_enemy_kill_record(_damage);
+
         scr_enemy_rewards_grant(
             _enemy,
             _damage
         );
-		
-		scr_enemy_pickup_drop_try(
-	    _enemy,
-	    _damage
-	);
+
+        scr_enemy_pickup_drop_try(
+            _enemy,
+            _damage
+        );
     }
 
 

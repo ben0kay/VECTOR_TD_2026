@@ -1,4 +1,4 @@
-/// @description Updates the current gameplay level.
+/// @description Updates gameplay time, victory checks and mission resolution.
 
 switch (global.LevelState)
 {
@@ -20,34 +20,18 @@ switch (global.LevelState)
                 game_get_speed(gamespeed_fps)
             );
 
-
-        // Enemy spawning, CPU damage and room-reset testing now belong
-        // to the F1 debug interface.
-        //
-        // FUTURE:
-        // victory-condition checks
-        // objective updates
-        // scripted level events
+        scr_level_result_update();
     }
     break;
 
 
     case LevelState.COMPLETE:
-    {
-        // FUTURE:
-        // victory handling
-        // rewards
-        // return to level selection
-    }
-    break;
-
-
     case LevelState.FAILED:
     {
-        // FUTURE:
-        // defeat handling
-        // retry
-        // return to level selection
+        // Gameplay systems stop through GAMEPLAY_ACTIVE, while the result
+        // animation and interface continue updating.
+
+        scr_level_result_update();
     }
     break;
 

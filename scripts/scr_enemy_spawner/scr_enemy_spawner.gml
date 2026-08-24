@@ -882,32 +882,39 @@ function scr_enemy_spawner_wave_trigger(_spawner)
     _runtime.warning.wave_name = _wave.name;
     _runtime.warning.side = _side;
 
-    scr_hud_alert_push(
-        HudAlertType.DANGER,
-        "THREAT DETECTED",
-        _wave.name
-        + " // INBOUND FROM "
-        + scr_enemy_spawner_side_name(_side),
-        _data.warning_seconds
-    );
+    scr_hud_major_alert_push(
+    HudAlertType.DANGER,
+    "THREAT DETECTED",
+    _wave.name
+    + " // INBOUND FROM "
+    + scr_enemy_spawner_side_name(_side),
+    _data.warning_seconds
+);
 
     return true;
 }
 
-
-/// @description Releases one warned handcrafted wave.
+/// @description Releases the currently warned major wave.
 
 function scr_enemy_spawner_wave_release(_spawner)
 {
     if (!instance_exists(_spawner))
         return false;
 
-    var _data = _spawner.spawner.data.waves;
-    var _runtime = _spawner.spawner.waves;
-    var _warning = _runtime.warning;
+
+    var _data =
+        _spawner.spawner.data.waves;
+
+    var _runtime =
+        _spawner.spawner.waves;
+
+    var _warning =
+        _runtime.warning;
+
 
     if (!_warning.active)
         return false;
+
 
     if (
         _warning.wave_index < 0
@@ -919,8 +926,12 @@ function scr_enemy_spawner_wave_release(_spawner)
         return false;
     }
 
+
     var _wave =
-        _data.definitions[_warning.wave_index];
+        _data.definitions[
+            _warning.wave_index
+        ];
+
 
     var _queued =
         scr_enemy_spawner_wave_groups_queue(
@@ -929,26 +940,37 @@ function scr_enemy_spawner_wave_release(_spawner)
             _warning.side
         );
 
+
     if (!_queued)
     {
         _warning.remaining = 1;
         return false;
     }
 
+
     var _side_name =
         scr_enemy_spawner_side_name(
             _warning.side
         );
 
-    scr_hud_alert_push(
+
+    scr_level_result_wave_reached();
+
+
+    scr_hud_major_alert_push(
         HudAlertType.DANGER,
         "WAVE ENGAGED",
         _wave.name + " // " + _side_name,
         3
     );
 
-    _runtime.last_name = _wave.name;
-    _runtime.index = _warning.wave_index + 1;
+
+    _runtime.last_name =
+        _wave.name;
+
+    _runtime.index =
+        _warning.wave_index + 1;
+
 
     _warning.active = false;
     _warning.remaining = 0;
@@ -956,11 +978,13 @@ function scr_enemy_spawner_wave_release(_spawner)
     _warning.wave_name = "";
     _warning.side = SpawnSide.RANDOM;
 
+
     _runtime.timer =
         random_range(
             _data.interval_min_seconds,
             _data.interval_max_seconds
         );
+
 
     return true;
 }
@@ -1100,14 +1124,14 @@ function scr_enemy_spawner_milestone_update(_spawner)
             _milestone.name;
 
 
-        scr_hud_alert_push(
-            HudAlertType.MILESTONE,
-            "MILESTONE THREAT",
-            _milestone.name
-            + " // "
-            + scr_enemy_spawner_side_name(_side),
-            5
-        );
+        scr_hud_major_alert_push(
+    HudAlertType.MILESTONE,
+    "MILESTONE THREAT",
+    _milestone.name
+    + " // "
+    + scr_enemy_spawner_side_name(_side),
+    5
+);
 
 
         show_debug_message(

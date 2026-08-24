@@ -61,6 +61,27 @@ hud =
         closing_speed: 0.11
     },
 
+    notifications:
+    {
+        active: [],
+
+        start_x: -420,
+        target_x: 24,
+        start_y: 118,
+
+        width: 390,
+        height: 44,
+        spacing: 50,
+
+        maximum_visible: 5,
+
+        opening_speed: 0.14,
+        closing_speed: 0.16,
+        vertical_speed: 0.14,
+
+        background_alpha: 0.82
+    },
+
     resource_feedback:
     {
         resource_key: "",
@@ -75,25 +96,24 @@ hud =
 hud.build_menu =
     scr_hud_build_menu_create();
 
-hud.build_menu.hovered_key =
-    "";
+hud.build_menu.hovered_key = "";
 
 
 hud.selection_panel =
     scr_hud_selection_panel_create();
 
-
 hud.debug_menu =
     scr_debug_menu_create();
 
-
-scr_hud_build_menu_cards_rebuild(
-    id
-);
+hud.result_buttons =
+    scr_level_result_hud_create();
 
 
-global.vtd_level.entities.hud =
-    id;
+scr_hud_build_menu_cards_rebuild(id);
+scr_level_result_initialize();
+
+
+global.vtd_level.entities.hud = id;
 
 
 show_debug_message(

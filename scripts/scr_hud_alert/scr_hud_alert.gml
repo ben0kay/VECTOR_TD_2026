@@ -1,31 +1,23 @@
+/// @description Returns the shared HUD color for an alert type.
+
 function scr_hud_alert_color_get(_type)
 {
     switch (_type)
     {
-        case HudAlertType.INFO:
-            return c_aqua;
-
-        case HudAlertType.WARNING:
-            return c_yellow;
-
-        case HudAlertType.DANGER:
-            return c_red;
-
-        case HudAlertType.MILESTONE:
-            return c_fuchsia;
-
-        case HudAlertType.SUCCESS:
-            return c_lime;
+        case HudAlertType.INFO:      return c_aqua;
+        case HudAlertType.WARNING:   return c_yellow;
+        case HudAlertType.DANGER:    return c_red;
+        case HudAlertType.MILESTONE: return c_fuchsia;
+        case HudAlertType.SUCCESS:   return c_lime;
     }
-
 
     return c_white;
 }
 
 
-/// @description Queues one reusable level HUD alert.
+/// @description Queues one major centre-screen level alert.
 
-function scr_hud_alert_push(
+function scr_hud_major_alert_push(
     _type,
     _title,
     _message,
@@ -38,17 +30,7 @@ function scr_hud_alert_push(
     if (!is_struct(global.vtd_level))
         return false;
 
-    if (!variable_struct_exists(
-        global.vtd_level.entities,
-        "hud"
-    ))
-    {
-        return false;
-    }
-
-
-    var _hud =
-        global.vtd_level.entities.hud;
+    var _hud = global.vtd_level.entities.hud;
 
     if (!instance_exists(_hud))
         return false;
@@ -70,9 +52,7 @@ function scr_hud_alert_push(
             hold_remaining:
                 max(0.5, _duration_seconds),
 
-            state:
-                HudAlertState.OPENING,
-
+            state: HudAlertState.OPENING,
             progress: 0
         }
     );
@@ -82,16 +62,38 @@ function scr_hud_alert_push(
 }
 
 
-/// @description Processes the active alert and advances the queue.
+/// @description Routes legacy routine alerts into the side notification feed.
+
+function scr_hud_alert_push(
+    _type,
+    _title,
+    _message,
+    _duration_seconds = 4
+)
+{
+    return scr_hud_notification_push(
+        "legacy:"
+        + string(_title)
+        + ":"
+        + string(_message),
+
+        _title,
+        _message,
+
+        scr_hud_alert_color_get(_type),
+        _duration_seconds
+    );
+}
+
+
+/// @description Processes the active major alert and advances its queue.
 
 function scr_hud_alert_update(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
-
-    var _alerts =
-        _hud.hud.alerts;
+    var _alerts = _hud.hud.alerts;
 
 
     if (
@@ -99,13 +101,8 @@ function scr_hud_alert_update(_hud)
         && array_length(_alerts.queue) > 0
     )
     {
-        var _queue = _alerts.queue;
-
-        _alerts.active = _queue[0];
-
-        array_delete(_queue, 0, 1);
-
-        _alerts.queue = _queue;
+        _alerts.active = _alerts.queue[0];
+        array_delete(_alerts.queue, 0, 1);
     }
 
 
@@ -113,10 +110,9 @@ function scr_hud_alert_update(_hud)
         return true;
 
 
-    var _alert =
-        _alerts.active;
+    var _alert = _alerts.active;
 
-    var _step_seconds =
+    var _delta =
         1 / max(
             1,
             game_get_speed(gamespeed_fps)
@@ -127,12 +123,12 @@ function scr_hud_alert_update(_hud)
     {
         case HudAlertState.OPENING:
         {
-            _alert.progress = min(
-                1,
-                _alert.progress
-                + _alerts.opening_speed
-            );
-
+            _alert.progress =
+                min(
+                    1,
+                    _alert.progress
+                    + _alerts.opening_speed
+                );
 
             if (_alert.progress >= 1)
                 _alert.state = HudAlertState.HOLDING;
@@ -142,12 +138,11 @@ function scr_hud_alert_update(_hud)
 
         case HudAlertState.HOLDING:
         {
-            _alert.hold_remaining = max(
-                0,
-                _alert.hold_remaining
-                - _step_seconds
-            );
-
+            _alert.hold_remaining =
+                max(
+                    0,
+                    _alert.hold_remaining - _delta
+                );
 
             if (_alert.hold_remaining <= 0)
                 _alert.state = HudAlertState.CLOSING;
@@ -157,12 +152,12 @@ function scr_hud_alert_update(_hud)
 
         case HudAlertState.CLOSING:
         {
-            _alert.progress = max(
-                0,
-                _alert.progress
-                - _alerts.closing_speed
-            );
-
+            _alert.progress =
+                max(
+                    0,
+                    _alert.progress
+                    - _alerts.closing_speed
+                );
 
             if (_alert.progress <= 0)
                 _alerts.active = undefined;
@@ -175,45 +170,38 @@ function scr_hud_alert_update(_hud)
 }
 
 
-/// @description Draws the active animated vector alert.
+/// @description Draws the active animated major alert.
 
 function scr_hud_alert_draw(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
-
-    var _alerts =
-        _hud.hud.alerts;
+    var _alerts = _hud.hud.alerts;
 
     if (is_undefined(_alerts.active))
         return true;
 
 
-    var _alert =
-        _alerts.active;
-
-    var _gui_width =
-        display_get_gui_width();
+    var _alert = _alerts.active;
 
     var _center_x =
-        _gui_width * 0.5;
+        display_get_gui_width()
+        * 0.5;
 
     var _center_y =
-        _hud.hud.top.height + 58;
+        _hud.hud.top.height
+        + 58;
 
 
-    // The horizontal line opens first, then the panel gains height.
+    var _line_progress = _alert.progress;
 
-    var _line_progress =
-        _alert.progress;
-
-    var _panel_progress = clamp(
-        (_alert.progress - 0.25) / 0.75,
-        0,
-        1
-    );
-
+    var _panel_progress =
+        clamp(
+            (_alert.progress - 0.25) / 0.75,
+            0,
+            1
+        );
 
     var _half_width =
         (_alerts.width * 0.5)
@@ -228,7 +216,6 @@ function scr_hud_alert_draw(_hud)
     var _top = _center_y - _half_height;
     var _bottom = _center_y + _half_height;
 
-
     var _pulse = 1;
 
 
@@ -242,10 +229,6 @@ function scr_hud_alert_draw(_hud)
             + (sin(global.vtd.tick * 9) * 0.2);
     }
 
-
-    // ========================================================================
-    // OPENING VECTOR LINE
-    // ========================================================================
 
     draw_set_alpha(_pulse);
     draw_set_color(_alert.color);
@@ -262,13 +245,10 @@ function scr_hud_alert_draw(_hud)
     if (_panel_progress <= 0)
     {
         draw_set_alpha(1);
+        draw_set_color(c_white);
         return true;
     }
 
-
-    // ========================================================================
-    // PANEL SHELL
-    // ========================================================================
 
     draw_set_alpha(
         0.88
@@ -305,45 +285,24 @@ function scr_hud_alert_draw(_hud)
         2
     );
 
-
-    // Angled vector corners.
-
     draw_line(_left, _center_y, _left + 16, _top);
     draw_line(_left, _center_y, _left + 16, _bottom);
 
     draw_line(_right - 16, _top, _right, _center_y);
     draw_line(_right - 16, _bottom, _right, _center_y);
 
+    draw_line(_center_x, _top - 5, _center_x, _top + 5);
+    draw_line(_center_x, _bottom - 5, _center_x, _bottom + 5);
 
-    // Centre ticks.
-
-    draw_line(
-        _center_x,
-        _top - 5,
-        _center_x,
-        _top + 5
-    );
-
-    draw_line(
-        _center_x,
-        _bottom - 5,
-        _center_x,
-        _bottom + 5
-    );
-
-
-    // ========================================================================
-    // TEXT
-    // ========================================================================
 
     if (_panel_progress >= 0.7)
     {
-        var _text_alpha = clamp(
-            (_panel_progress - 0.7) / 0.3,
-            0,
-            1
-        );
-
+        var _text_alpha =
+            clamp(
+                (_panel_progress - 0.7) / 0.3,
+                0,
+                1
+            );
 
         draw_set_alpha(_text_alpha);
         draw_set_halign(fa_center);
@@ -356,7 +315,6 @@ function scr_hud_alert_draw(_hud)
             _center_y - 13,
             string_upper(_alert.title)
         );
-
 
         draw_set_color(c_white);
 

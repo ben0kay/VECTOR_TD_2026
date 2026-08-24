@@ -7,6 +7,12 @@
 
 enum GameState { BOOT, MENU, PLAYING, PAUSED, GAME_OVER }
 enum LevelState { INITIALIZING, PLAYING, COMPLETE, FAILED, EXITING }
+enum LevelVictoryType
+{
+    NONE,
+    SURVIVE_TIME,
+    COMPLETE_WAVES
+}
 enum CameraState { FOLLOW_PLAYER, ROAMING }
 
 
