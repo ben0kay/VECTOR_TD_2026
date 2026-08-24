@@ -24,10 +24,13 @@ function scr_energy_runtime_create(_data)
         input_rate: 0,
 
         demand:
-        {
-            idle_per_second: 0,
-            activity_cost: 0
-        },
+		{
+		    idle_per_second: 0,
+		    activity_cost: 0,
+
+		    activity_spent: 0,
+		    activity_recent_per_second: 0
+		},
 
         buffer:
         {
@@ -514,7 +517,15 @@ function scr_energy_network_update(_network, _delta)
             _idle_rate
             * _delta;
 
-        _demand_rate += _idle_rate;
+        var _activity_rate =
+	    scr_energy_activity_rate_update(
+	        _consumer,
+	        _delta
+	    );
+
+	_demand_rate +=
+	    _idle_rate
+	    + _activity_rate;
 
 
         if (_consumer.energy.buffer.current >= _idle_cost)
@@ -738,7 +749,7 @@ function scr_energy_update()
 }
 
 
-/// @description Attempts to pay an activity cost from one building's buffer.
+/// @description Pays an activity cost from a building's private buffer.
 
 function scr_energy_activity_consume(_building, _cost = undefined)
 {
@@ -762,7 +773,12 @@ function scr_energy_activity_consume(_building, _cost = undefined)
     if (_building.energy.buffer.current < _cost)
         return false;
 
+
     _building.energy.buffer.current -= _cost;
+
+    _building.energy.demand.activity_spent +=
+        _cost;
+
 
     return true;
 }
@@ -795,6 +811,24 @@ function scr_energy_consumer_data_defaults_apply()
         {
             case BuildingType.TOWER:
             {
+				
+				var _activity_cost = 2;
+
+				if (
+				    variable_struct_exists(_data, "tower")
+				    && variable_struct_exists(_data.tower, "weapon")
+				    && variable_struct_exists(
+				        _data.tower.weapon,
+				        "energy_cost"
+				    )
+				)
+				{
+				    _activity_cost =
+				        max(
+				            0,
+				            _data.tower.weapon.energy_cost
+				        );
+				}
                 _data.energy =
                 {
                     role: EnergyRole.CONSUMER,
@@ -805,7 +839,7 @@ function scr_energy_consumer_data_defaults_apply()
 
                     input_rate: 8,
                     idle_demand: 0.25,
-                    activity_cost: 2,
+                    activity_cost: _activity_cost,
 
                     buffer:
                     {
@@ -1266,4 +1300,49 @@ function scr_energy_buffers_draw(_detailed = false)
 
 
     return true;
+}
+
+/// @description Updates one consumer's recent activity-demand rate.
+
+function scr_energy_activity_rate_update(_consumer, _delta)
+{
+    if (!instance_exists(_consumer))
+        return 0;
+
+
+    var _demand =
+        _consumer.energy.demand;
+
+    var _instant_rate =
+        _demand.activity_spent
+        / max(0.0001, _delta);
+
+
+    // Smooth short spikes so cannon and sniper shots remain readable
+    // in the HUD instead of appearing for only one frame.
+
+    var _smoothing =
+        clamp(
+            _delta * 4,
+            0,
+            1
+        );
+
+
+    _demand.activity_recent_per_second =
+        lerp(
+            _demand.activity_recent_per_second,
+            _instant_rate,
+            _smoothing
+        );
+
+
+    _demand.activity_spent = 0;
+
+
+    if (_demand.activity_recent_per_second < 0.01)
+        _demand.activity_recent_per_second = 0;
+
+
+    return _demand.activity_recent_per_second;
 }

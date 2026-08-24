@@ -3007,12 +3007,12 @@ function scr_hud_energy_selection_draw(
             draw_text(
                 _second_x,
                 _section_top + 68,
-                "ACTIVITY "
-                + string_format(
-                    _energy.demand.activity_cost,
-                    0,
-                    2
-                )
+                "SHOT/USE "
+				+ string_format(
+				    _energy.demand.activity_cost,
+				    0,
+				    2
+				)
             );
 
             draw_text(
