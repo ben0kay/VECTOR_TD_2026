@@ -45,6 +45,9 @@ function scr_enemy_data_initialize()
 
     if (!scr_enemy_data_gunship())
         return false;
+	
+	if (!scr_enemy_data_shield_generator())
+    return false;
 
 
     // FUTURE:
@@ -358,7 +361,7 @@ function scr_enemy_data_weak()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_triangle,
-                radius: 16,
+                radius: 12,
                 color: c_yellow
             },
 
@@ -420,7 +423,7 @@ function scr_enemy_data_hunter()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_triangle,
-                radius: 18,
+                radius: 12,
                 color: c_red
             },
 
@@ -547,7 +550,7 @@ function scr_enemy_data_shooter_single()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_triangle,
-                radius: 18,
+                radius: 15.5,
                 color: c_orange
             },
 
@@ -619,7 +622,7 @@ function scr_enemy_data_shooter_triple()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_triangle,
-                radius: 22,
+                radius: 16,
                 color: c_purple
             },
 
@@ -1194,6 +1197,95 @@ function scr_enemy_data_gunship()
 
                     // Prevents constant switching between approach and orbit.
                     entry_tolerance: 24
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the long-range enemy Shield Generator.
+
+function scr_enemy_data_shield_generator()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_shield_generator",
+        {
+            identity:
+            {
+                key: "enemy_shield_generator",
+                name: "Shield Generator"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_shield_generator,
+                radius: 34,
+                color: make_color_rgb(255, 190, 40)
+            },
+
+            vitals:
+            {
+                hp_maximum: 700,
+                shield_maximum: 120
+            },
+
+            movement:
+            {
+                speed: 0.7,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            // The generator does not use its ordinary attack while operating
+            // as a support unit. These values remain valid fallback data.
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 5,
+                range: 8,
+                cooldown_seconds: 1
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    65,
+                    14
+                ),
+
+            abilities:
+            [
+                EnemyAbility.SHIELD_ALLIES
+            ],
+
+            ability_data:
+            {
+                support_shield:
+                {
+                    standoff_range: 500,
+                    field_radius: 340,
+
+                    shield_capacity: 60,
+                    recharge_per_pulse: 15,
+
+                    pulse_seconds: 1,
+                    linger_seconds: 2.5,
+
+                    maximum_target_radius: 28,
+                    color: c_yellow
                 }
             }
         }

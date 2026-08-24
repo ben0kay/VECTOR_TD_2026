@@ -629,6 +629,51 @@ function scr_enemy_shield_draw(_enemy)
             _enemy.y + lengthdir_y(_radius + 3, _angle + 12)
         );
     }
+	
+	// ========================================================================
+	// TEMPORARY SUPPORT SHIELD
+	// ========================================================================
+
+	if (
+	    is_struct(_shield.support)
+	    && _shield.support.enabled
+	    && _shield.support.current > 0
+	)
+	{
+	    var _support =
+	        _shield.support;
+
+	    var _support_ratio =
+	        clamp(
+	            _support.current
+	            / max(1, _support.maximum),
+	            0,
+	            1
+	        );
+
+	    var _support_radius =
+	        _enemy.visual.radius
+	        + 12
+	        + dsin(
+	            (global.vtd.tick * 5)
+	            + real(_enemy.id)
+	        );
+
+	    draw_set_color(_support.color);
+
+	    draw_set_alpha(
+	        0.3
+	        + (_support_ratio * 0.25)
+	        + (_support.hit_flash * 0.35)
+	    );
+
+	    draw_circle(
+	        _enemy.x,
+	        _enemy.y,
+	        _support_radius,
+	        true
+	    );
+	}
 
     draw_set_alpha(1);
     draw_set_color(c_white);
@@ -872,6 +917,86 @@ function scr_enemy_visual_gunship(_enemy)
     draw_circle(_x, _y, 2, true);
 
     draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the enemy Shield Generator support unit.
+
+function scr_enemy_visual_shield_generator(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+    var _pulse =
+        0.65
+        + dsin(
+            (global.vtd.tick * 4)
+            + real(_enemy.id)
+        ) * 0.25;
+
+
+    draw_set_color(_color);
+
+
+    // Rotating outer support frame.
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _a1 =
+            _angle
+            + 30
+            + (i * 60);
+
+        var _a2 =
+            _angle
+            + 30
+            + (((i + 1) mod 6) * 60);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius, _a1),
+            _y + lengthdir_y(_radius, _a1),
+            _x + lengthdir_x(_radius, _a2),
+            _y + lengthdir_y(_radius, _a2),
+            3
+        );
+    }
+
+
+    // Energy spokes.
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _spoke_angle =
+            _angle
+            + (i * 120);
+
+        draw_line_width(
+            _x,
+            _y,
+            _x + lengthdir_x(_radius * 0.75, _spoke_angle),
+            _y + lengthdir_y(_radius * 0.75, _spoke_angle),
+            2
+        );
+    }
+
+
+    // Pulsing shield core.
+
+    draw_set_alpha(_pulse);
+    draw_circle(_x, _y, _radius * 0.4, false);
+
+    draw_set_alpha(1);
+    draw_circle(_x, _y, _radius * 0.18, true);
+
     draw_set_color(c_white);
 
     return true;

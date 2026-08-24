@@ -560,3 +560,287 @@ function scr_enemy_explode(_enemy)
 
     return true;
 }
+
+/// @description Applies a temporary support shield to one enemy.
+
+function scr_enemy_support_shield_apply(
+    _enemy,
+    _source,
+    _capacity,
+    _recharge,
+    _duration,
+    _color
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (_enemy.EnemyState == EnemyState.DEAD)
+        return false;
+
+    if (!variable_struct_exists(_enemy.vitals, "shield"))
+        return false;
+
+    var _shield = _enemy.vitals.shield;
+
+    if (!is_struct(_shield.support))
+        return false;
+
+    var _support = _shield.support;
+    var _new_capacity = max(1, _capacity);
+
+
+    // A stronger generator may replace the existing support shield source.
+
+    if (
+        !_support.enabled
+        || !instance_exists(_support.source)
+        || _new_capacity > _support.maximum
+        || _support.source == _source
+    )
+    {
+        _support.source = _source;
+        _support.maximum = _new_capacity;
+        _support.color = _color;
+    }
+
+
+    _support.enabled = true;
+
+    _support.current =
+        min(
+            _support.maximum,
+            _support.current
+            + max(0, _recharge)
+        );
+
+    _support.remaining_seconds =
+        max(
+            _support.remaining_seconds,
+            _duration
+        );
+
+
+    return true;
+}
+
+/// @description Pulses temporary shields to nearby allied enemies.
+
+function scr_enemy_shield_generator_pulse(_generator)
+{
+    if (!instance_exists(_generator))
+        return false;
+
+    var _support =
+        _generator.ability_runtime.support_shield;
+
+    if (!is_struct(_support))
+        return false;
+
+
+    var _enemy_count =
+        instance_number(o_enemy);
+
+    for (var i = 0; i < _enemy_count; ++i)
+    {
+        var _target =
+            instance_find(
+                o_enemy,
+                i
+            );
+
+        if (!instance_exists(_target))
+            continue;
+
+        if (_target == _generator)
+            continue;
+
+        if (_target.EnemyState == EnemyState.DEAD)
+            continue;
+
+
+        // The support generator is intended to protect ordinary assault
+        // enemies rather than equally large support or siege units.
+
+        if (
+            _target.visual.radius
+            > _support.maximum_target_radius
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            point_distance(
+                _generator.x,
+                _generator.y,
+                _target.x,
+                _target.y
+            )
+            > _support.field_radius
+        )
+        {
+            continue;
+        }
+
+
+        scr_enemy_support_shield_apply(
+            _target,
+            _generator,
+            _support.shield_capacity,
+            _support.recharge_per_pulse,
+            _support.linger_seconds,
+            _support.color
+        );
+    }
+
+
+    scr_effect_shockwave_create(
+        _generator.x,
+        _generator.y,
+        _support.field_radius,
+        _support.color
+    );
+
+
+    // FUTURE:
+    // pulse particles
+    // shield-transfer beams
+    // sound effects
+    // support strength modifiers
+    // several shield generator tiers
+
+
+    return true;
+}
+
+/// @description Moves a Shield Generator into support range of the closest building.
+
+function scr_enemy_shield_generator_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _support =
+        _enemy.ability_runtime.support_shield;
+
+    if (!is_struct(_support))
+        return false;
+
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    _support.pulse_remaining =
+        max(
+            0,
+            _support.pulse_remaining
+            - (1 / _fps)
+        );
+
+
+    // Always use the closest living building. If none remain, the CPU
+    // becomes the final objective.
+
+    if (
+        !instance_exists(
+            _enemy.targeting.strategic
+        )
+    )
+    {
+        _enemy.targeting.strategic =
+            scr_enemy_closest_building_get(
+                _enemy
+            );
+
+        if (
+            !instance_exists(
+                _enemy.targeting.strategic
+            )
+        )
+        {
+            _enemy.targeting.strategic =
+                global.vtd_level.entities.cpu;
+        }
+
+        _enemy.targeting.target =
+            _enemy.targeting.strategic;
+
+        scr_navigation_enemy_repath_request(
+            _enemy,
+            true
+        );
+    }
+
+
+    var _target =
+        _enemy.targeting.strategic;
+
+    if (!instance_exists(_target))
+    {
+        scr_navigation_enemy_stop(_enemy);
+        return true;
+    }
+
+
+    var _edge_distance =
+        scr_enemy_target_edge_distance(
+            _enemy,
+            _target
+        );
+
+
+    // Move until the generator reaches its long support distance.
+
+    if (_edge_distance > _support.standoff_range)
+    {
+        _enemy.EnemyState =
+            EnemyState.MOVING;
+
+        _enemy.targeting.target =
+            _target;
+
+        scr_navigation_enemy_update(
+            _enemy
+        );
+
+        return true;
+    }
+
+
+    // Hold position and protect nearby assault enemies.
+
+    scr_navigation_enemy_stop(
+        _enemy
+    );
+
+    _enemy.EnemyState =
+        EnemyState.ATTACKING;
+
+    _enemy.visual.draw_angle =
+        point_direction(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+
+    if (_support.pulse_remaining <= 0)
+    {
+        scr_enemy_shield_generator_pulse(
+            _enemy
+        );
+
+        _support.pulse_remaining =
+            _support.pulse_seconds;
+    }
+
+
+    return true;
+}

@@ -172,23 +172,34 @@ function scr_enemy_initialize(_enemy)
     };
 	
 	_enemy.vitals.shield =
-	{
-	    enabled: false,
+{
+    enabled: false,
+    current: 0,
+    maximum: _data.vitals.shield_maximum,
 
-	    current: 0,
+    color:
+        make_color_rgb(
+            255,
+            110,
+            120
+        ),
 
-	    maximum:
-	        _data.vitals.shield_maximum,
+    hit_flash: 0,
 
-	    color:
-	        make_color_rgb(
-	            255,
-	            110,
-	            120
-	        ),
+    // Temporary shields granted by support enemies.
+    // This remains separate from the enemy's natural shield.
 
-	    hit_flash: 0
-	};
+    support:
+    {
+        enabled: false,
+        current: 0,
+        maximum: 0,
+        source: noone,
+        remaining_seconds: 0,
+        color: c_yellow,
+        hit_flash: 0
+    }
+};
 
 	_enemy.modifiers = [];
 
@@ -359,7 +370,8 @@ function scr_enemy_initialize(_enemy)
 	    explosion: undefined,
 	    split: undefined,
 	    transport: undefined,
-	    orbit: undefined
+	    orbit: undefined,
+	    support_shield: undefined
 	};
 
 
@@ -454,6 +466,30 @@ function scr_enemy_initialize(_enemy)
 	            );
 	    }
 	}
+	
+	if (
+    scr_enemy_has_ability(
+        _enemy,
+        EnemyAbility.SHIELD_ALLIES
+    )
+)
+{
+    var _support =
+        _data.ability_data.support_shield;
+
+    _enemy.ability_runtime.support_shield =
+    {
+        standoff_range: _support.standoff_range,
+        field_radius: _support.field_radius,
+        shield_capacity: _support.shield_capacity,
+        recharge_per_pulse: _support.recharge_per_pulse,
+        pulse_seconds: _support.pulse_seconds,
+        linger_seconds: _support.linger_seconds,
+        maximum_target_radius: _support.maximum_target_radius,
+        color: _support.color,
+        pulse_remaining: 0
+    };
+}
 
 
     if (_brainless)
@@ -788,10 +824,23 @@ function scr_enemy_update(_enemy)
     }
 
 
+
     // ========================================================================
     // SPECIAL MOVEMENT
     // ========================================================================
 
+	if (
+    scr_enemy_has_ability(
+        _enemy,
+        EnemyAbility.SHIELD_ALLIES
+	    )
+	)
+	{
+	    return scr_enemy_shield_generator_update(
+	        _enemy
+	    );
+	}
+		
     if (
         scr_enemy_has_ability(
             _enemy,
@@ -971,12 +1020,9 @@ function scr_enemy_draw(_enemy)
     return true;
 }
 
-/// @description Applies shield-aware damage to one enemy.
+/// @description Applies support-shield, natural-shield and health damage.
 
-function scr_enemy_damage(
-    _enemy,
-    _damage
-)
+function scr_enemy_damage(_enemy, _damage)
 {
     if (!instance_exists(_enemy))
         return false;
@@ -991,90 +1037,106 @@ function scr_enemy_damage(
         return false;
 
 
-    var _damage_type =
-        DamageType.KINETIC;
+    var _damage_type = DamageType.KINETIC;
+
+    if (variable_struct_exists(_damage, "damage_type"))
+        _damage_type = _damage.damage_type;
 
 
-    if (
-        variable_struct_exists(
-            _damage,
-            "damage_type"
-        )
-    )
-    {
-        _damage_type =
-            _damage.damage_type;
-    }
+    var _remaining_damage = _damage.amount;
 
+    var _shield = _enemy.vitals.shield;
 
-    var _remaining_damage =
-        _damage.amount;
-
-    var _shield =
-        _enemy.vitals.shield;
+    var _shield_multiplier =
+        max(
+            0.01,
+            scr_damage_shield_multiplier(
+                _damage_type
+            )
+        );
 
 
     // ========================================================================
-    // SHIELD DAMAGE
+    // TEMPORARY SUPPORT SHIELD
     // ========================================================================
 
     if (
-        _shield.enabled
-        && _shield.current > 0
+        is_struct(_shield.support)
+        && _shield.support.enabled
+        && _shield.support.current > 0
     )
     {
-        var _shield_multiplier =
-            max(
-                0.01,
-                scr_damage_shield_multiplier(
-                    _damage_type
-                )
-            );
+        var _support = _shield.support;
 
-        var _potential_shield_damage =
-            _remaining_damage
-            * _shield_multiplier;
-
-        var _shield_before =
-            _shield.current;
-
-        var _shield_damage =
+        var _support_damage =
             min(
-                _shield_before,
-                _potential_shield_damage
+                _support.current,
+                _remaining_damage
+                * _shield_multiplier
             );
 
+        _support.current -=
+            _support_damage;
 
-        _shield.current -=
-            _shield_damage;
-
-        _shield.hit_flash =
-            1;
-
-
-        // Convert absorbed shield damage back into raw packet damage.
-        // Any unconsumed packet damage can overflow into health.
-
-        var _raw_damage_absorbed =
-            _shield_damage
-            / _shield_multiplier;
+        _support.hit_flash = 1;
 
         _remaining_damage =
             max(
                 0,
                 _remaining_damage
-                - _raw_damage_absorbed
+                - (_support_damage / _shield_multiplier)
             );
 
 
-        if (
-            _shield_before > 0
-            && _shield.current <= 0
-        )
+        if (_support.current <= 0)
+        {
+            _support.current = 0;
+            _support.enabled = false;
+
+            scr_effect_shockwave_create(
+                _enemy.x,
+                _enemy.y,
+                _enemy.visual.radius + 20,
+                _support.color
+            );
+        }
+    }
+
+
+    // ========================================================================
+    // NATURAL SHIELD
+    // ========================================================================
+
+    if (
+        _remaining_damage > 0
+        && _shield.enabled
+        && _shield.current > 0
+    )
+    {
+        var _natural_damage =
+            min(
+                _shield.current,
+                _remaining_damage
+                * _shield_multiplier
+            );
+
+        _shield.current -=
+            _natural_damage;
+
+        _shield.hit_flash = 1;
+
+        _remaining_damage =
+            max(
+                0,
+                _remaining_damage
+                - (_natural_damage / _shield_multiplier)
+            );
+
+
+        if (_shield.current <= 0)
         {
             _shield.current = 0;
             _shield.enabled = false;
-
 
             scr_effect_shockwave_create(
                 _enemy.x,
@@ -1082,17 +1144,12 @@ function scr_enemy_damage(
                 _enemy.visual.radius + 16,
                 _shield.color
             );
-
-
-            // FUTURE:
-            // shield-break particles
-            // shield-break sound
         }
     }
 
 
     // ========================================================================
-    // EXPOSED HEALTH DAMAGE
+    // HEALTH
     // ========================================================================
 
     if (_remaining_damage > 0)
@@ -1102,7 +1159,6 @@ function scr_enemy_damage(
             * scr_damage_health_multiplier(
                 _damage_type
             );
-
 
         _enemy.vitals.hp.current =
             max(
@@ -1788,8 +1844,7 @@ function scr_enemy_modifier_add(
     return true;
 }
 
-
-/// @description Updates one enemy's temporary shield feedback.
+/// @description Updates one enemy's natural and temporary support shields.
 
 function scr_enemy_shield_update(_enemy)
 {
@@ -1799,24 +1854,68 @@ function scr_enemy_shield_update(_enemy)
     if (!variable_struct_exists(_enemy.vitals, "shield"))
         return true;
 
-    var _shield = _enemy.vitals.shield;
+
+    var _shield =
+        _enemy.vitals.shield;
 
     if (!is_struct(_shield))
         return true;
 
-    if (!variable_struct_exists(_shield, "enabled"))
-        return true;
 
-    if (!_shield.enabled)
-        return true;
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
-    var _fps = max(1, game_get_speed(gamespeed_fps));
 
     _shield.hit_flash =
         max(
             0,
-            _shield.hit_flash - (4 / _fps)
+            _shield.hit_flash
+            - (4 / _fps)
         );
+
+
+    if (!is_struct(_shield.support))
+        return true;
+
+
+    var _support =
+        _shield.support;
+
+    _support.hit_flash =
+        max(
+            0,
+            _support.hit_flash
+            - (4 / _fps)
+        );
+
+
+    if (!_support.enabled)
+        return true;
+
+
+    _support.remaining_seconds =
+        max(
+            0,
+            _support.remaining_seconds
+            - (1 / _fps)
+        );
+
+
+    if (
+        _support.remaining_seconds <= 0
+        || _support.current <= 0
+    )
+    {
+        _support.enabled = false;
+        _support.current = 0;
+        _support.maximum = 0;
+        _support.source = noone;
+        _support.remaining_seconds = 0;
+    }
+
 
     return true;
 }
