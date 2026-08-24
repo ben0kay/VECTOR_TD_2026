@@ -42,8 +42,22 @@ enum EnemyCombatMovement
 }
 
 enum EnemyBlockedAction { WAIT, RETARGET, BREACH }
-enum EnemyAttack { CONTACT, PROJECTILE }
-enum EnemyAbility { PHASING, EXPLODE_ON_DEATH, SPLIT_ON_DEATH, TRANSPORT_ENEMIES, REGENERATE, ORBIT_TARGET, SHIELD_ALLIES, CONTINUOUS_BEAM }
+enum EnemyAttack
+{
+    CONTACT,
+    PROJECTILE,
+    CONTINUOUS_BEAM
+}
+
+enum EnemyAbility
+{
+    PHASING,
+    EXPLODE_ON_DEATH,
+    SPLIT_ON_DEATH,
+    TRANSPORT_ENEMIES,
+    REGENERATE,
+    SHIELD_ALLIES
+}
 enum EnemyModifier { SHIELDED }
 enum EnemyBehavior
 {

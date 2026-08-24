@@ -1241,7 +1241,7 @@ function scr_enemy_data_gunship()
 
             abilities:
             [
-                EnemyAbility.ORBIT_TARGET
+               
             ],
 
             ability_data:
@@ -1421,12 +1421,21 @@ function scr_enemy_data_siege_beam()
             // Damage is measured per second.
 
             attack:
-            {
-                type: EnemyAttack.CONTACT,
-                damage: 24,
-                range: 620,
-                cooldown_seconds: 0
-            },
+{
+    // Continuous-beam damage is measured per second.
+
+    type:
+        EnemyAttack.CONTINUOUS_BEAM,
+
+    damage:
+        24,
+
+    range:
+        620,
+
+    cooldown_seconds:
+        0
+},
 
             combat_movement:
             {
@@ -1470,7 +1479,7 @@ function scr_enemy_data_siege_beam()
 
             abilities:
             [
-                EnemyAbility.CONTINUOUS_BEAM
+			
             ],
 
             ability_data:

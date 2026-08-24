@@ -520,38 +520,61 @@ _enemy.visual.draw_angle =
 	}
 
 
-	if (
-	    scr_enemy_has_ability(
-	        _enemy,
-	        EnemyAbility.ORBIT_TARGET
-	    )
-	)
-	{
-	    var _orbit =
-	        _data.ability_data.orbit;
+// ========================================================================
+// ORBIT BEHAVIOR RUNTIME
+// ========================================================================
 
-	    _enemy.ability_runtime.orbit =
-	    {
-	        radius: _orbit.radius,
-	        angular_speed: _orbit.angular_speed,
-	        entry_tolerance: _orbit.entry_tolerance,
+if (_enemy.EnemyBehavior == EnemyBehavior.ORBIT)
+{
+    if (
+        !variable_struct_exists(_data, "ability_data")
+        || !is_struct(_data.ability_data)
+        || !variable_struct_exists(_data.ability_data, "orbit")
+        || !is_struct(_data.ability_data.orbit)
+    )
+    {
+        show_debug_message(
+            "ENEMY ERROR - orbit behavior data missing: "
+            + _enemy.identity.key
+        );
 
-	        angle: random(360),
-	        active: false
-	    };
+        return false;
+    }
 
 
-	    if (instance_exists(_enemy.targeting.target))
-	    {
-	        _enemy.ability_runtime.orbit.angle =
-	            point_direction(
-	                _enemy.targeting.target.x,
-	                _enemy.targeting.target.y,
-	                _enemy.x,
-	                _enemy.y
-	            );
-	    }
-	}
+    var _orbit =
+        _data.ability_data.orbit;
+
+    _enemy.ability_runtime.orbit =
+    {
+        radius:
+            _orbit.radius,
+
+        angular_speed:
+            _orbit.angular_speed,
+
+        entry_tolerance:
+            _orbit.entry_tolerance,
+
+        angle:
+            random(360),
+
+        active:
+            false
+    };
+
+
+    if (instance_exists(_enemy.targeting.target))
+    {
+        _enemy.ability_runtime.orbit.angle =
+            point_direction(
+                _enemy.targeting.target.x,
+                _enemy.targeting.target.y,
+                _enemy.x,
+                _enemy.y
+            );
+    }
+}
 	
 	if (
     scr_enemy_has_ability(
@@ -910,6 +933,13 @@ function scr_enemy_attack(_enemy)
             }
         }
         break;
+		
+		case EnemyAttack.CONTINUOUS_BEAM:
+		{
+		    // Continuous damage is processed by the configured beam behavior.
+		    // Keeping it out of this function prevents double damage.
+		}
+		break;
     }
 
 
