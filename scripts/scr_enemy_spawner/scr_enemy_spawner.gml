@@ -1033,7 +1033,7 @@ function scr_enemy_spawner_wave_release(_spawner)
         );
 
 
-    scr_level_result_wave_reached();
+    scr_level_result_wave_reached(_wave_number);
 
 
     scr_hud_major_alert_push(
