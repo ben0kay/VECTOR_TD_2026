@@ -62,12 +62,14 @@ switch (global.LevelState)
 		if (keyboard_check_pressed(ord("V")))
 	    scr_enemy_spawn_edge("enemy_brute");
 
-	if (keyboard_check_pressed(ord("R")))
-	    scr_enemy_spawn_edge("enemy_transporter");
+		if (keyboard_check_pressed(ord("R")))
+		    scr_enemy_spawn_edge("enemy_transporter");
 
-	if (keyboard_check_pressed(ord("Z")))
-	    scr_enemy_spawn_edge("enemy_gunship");
+		if (keyboard_check_pressed(ord("Z")))
+		    scr_enemy_spawn_edge("enemy_gunship");
 			
+		if (keyboard_check_pressed(ord("4")))
+		scr_enemy_spawn_edge("enemy_shield_generator");
 	
 
         // Direct CPU damage test.
