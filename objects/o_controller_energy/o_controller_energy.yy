@@ -1,9 +1,9 @@
 {
   "$GMObject":"",
-  "%Name":"o_controller_power",
+  "%Name":"o_controller_energy",
   "eventList":[],
   "managed":true,
-  "name":"o_controller_power",
+  "name":"o_controller_energy",
   "overriddenProperties":[],
   "parent":{
     "name":"controllers",

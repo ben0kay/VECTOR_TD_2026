@@ -130,6 +130,41 @@ enum HudAlertState { OPENING, HOLDING, CLOSING }
 enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
 
 
+///  
+enum EnergyRole
+{
+    NONE,
+    GENERATOR,
+    NODE,
+    BATTERY,
+    CONSUMER
+}
+
+enum EnergyPriority
+{
+    CRITICAL,
+    HIGH,
+    NORMAL,
+    LOW
+}
+
+enum EnergyNetworkState
+{
+    OFFLINE,
+    DEFICIT,
+    BATTERY,
+    BALANCED,
+    SURPLUS
+}
+
+enum EnergyOverlayMode
+{
+    OFF,
+    NETWORKS,
+    DETAILED
+}
+
+
 // Staggered update helpers.
 //
 // FUTURE:
@@ -165,6 +200,9 @@ enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPOR
     (global.GameState == GameState.PLAYING \
     && global.LevelState == LevelState.PLAYING)
 	
+/// Whether the current building may perform its unique activity.
+
 #macro BUILDING_CAN_OPERATE \
     (GAMEPLAY_ACTIVE \
-    && BuildingState == BuildingState.ACTIVE)
+    && BuildingState == BuildingState.ACTIVE \
+    && (!energy.participates || energy.supplied))
