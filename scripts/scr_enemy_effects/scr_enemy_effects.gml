@@ -28,7 +28,6 @@ function scr_enemy_effect_active(_enemy, _effect)
     return false;
 }
 
-
 /// @description Applies or refreshes one data-driven enemy effect.
 
 function scr_enemy_effect_apply(_enemy, _effect_data, _source = noone)
@@ -50,62 +49,27 @@ function scr_enemy_effect_apply(_enemy, _effect_data, _source = noone)
     {
         case EnemyEffect.SLOW:
         {
-            var _slow =
-                _enemy.effects.slow;
+            var _slow = _enemy.effects.slow;
+            var _multiplier = clamp(_effect_data.multiplier, 0.05, 1);
+            var _duration = _effect_data.duration_seconds;
 
-            var _multiplier =
-                clamp(
-                    _effect_data.multiplier,
-                    0.05,
-                    1
-                );
-
-            var _duration =
-                _effect_data.duration_seconds;
-
-
-            // The strongest slow wins. Repeated weaker shots cannot make
-            // the enemy progressively slower.
-
-            if (
-                !_slow.active
-                || _multiplier < _slow.multiplier
-            )
-            {
-                _slow.multiplier =
-                    _multiplier;
-            }
-
+            if (!_slow.active || _multiplier < _slow.multiplier)
+                _slow.multiplier = _multiplier;
 
             _slow.active = true;
             _slow.source = _source;
 
-
-            if (
-                _slow.remaining_seconds < 0
-                || _duration < 0
-            )
-            {
-                // Negative duration means the effect lasts permanently.
-
+            if (_slow.remaining_seconds < 0 || _duration < 0)
                 _slow.remaining_seconds = -1;
-            }
             else
-            {
-                _slow.remaining_seconds =
-                    max(
-                        _slow.remaining_seconds,
-                        _duration
-                    );
-            }
+                _slow.remaining_seconds = max(_slow.remaining_seconds, _duration);
         }
         break;
 
 
         case EnemyEffect.STASIS:
         {
-            var _stasis =
-                _enemy.effects.stasis;
+            var _stasis = _enemy.effects.stasis;
 
             _stasis.active = true;
             _stasis.source = _source;
@@ -121,13 +85,22 @@ function scr_enemy_effect_apply(_enemy, _effect_data, _source = noone)
 
         case EnemyEffect.DAMAGE_OVER_TIME:
         {
-            var _dot =
-                _enemy.effects.damage_over_time;
+            var _dot = _enemy.effects.damage_over_time;
+
+            // Existing equal or stronger disruption remains in control.
+
+            if (
+                _dot.active
+                && _dot.damage >= _effect_data.damage
+            )
+            {
+                return false;
+            }
 
             _dot.active = true;
             _dot.damage = _effect_data.damage;
-            _dot.interval_seconds = _effect_data.interval_seconds;
-            _dot.interval_remaining = 0;
+            _dot.interval_seconds = max(0.05, _effect_data.interval_seconds);
+            _dot.interval_remaining = _dot.interval_seconds;
             _dot.remaining_seconds = _effect_data.duration_seconds;
             _dot.damage_type = _effect_data.damage_type;
             _dot.source = _source;
@@ -200,8 +173,7 @@ function scr_enemy_effect_area_apply(
     return true;
 }
 
-
-/// @description Updates one enemy's active effects and effective speed.
+/// @description Updates active effects and calculates effective movement speed.
 
 function scr_enemy_effects_update(_enemy)
 {
@@ -226,13 +198,9 @@ function scr_enemy_effects_update(_enemy)
     // SLOW
     // ========================================================================
 
-    var _slow =
-        _enemy.effects.slow;
+    var _slow = _enemy.effects.slow;
 
-    if (
-        _slow.active
-        && _slow.remaining_seconds >= 0
-    )
+    if (_slow.active && _slow.remaining_seconds >= 0)
     {
         _slow.remaining_seconds =
             max(
@@ -253,8 +221,7 @@ function scr_enemy_effects_update(_enemy)
     // STASIS
     // ========================================================================
 
-    var _stasis =
-        _enemy.effects.stasis;
+    var _stasis = _enemy.effects.stasis;
 
     if (_stasis.active)
     {
@@ -276,16 +243,21 @@ function scr_enemy_effects_update(_enemy)
     // DAMAGE OVER TIME
     // ========================================================================
 
-    var _dot =
-        _enemy.effects.damage_over_time;
+    var _dot = _enemy.effects.damage_over_time;
 
     if (_dot.active)
     {
-        _dot.remaining_seconds =
-            max(
-                0,
-                _dot.remaining_seconds - _delta
-            );
+        // Only count down non-permanent effects.
+
+        if (_dot.remaining_seconds >= 0)
+        {
+            _dot.remaining_seconds =
+                max(
+                    0,
+                    _dot.remaining_seconds - _delta
+                );
+        }
+
 
         _dot.interval_remaining -=
             _delta;
@@ -311,7 +283,9 @@ function scr_enemy_effects_update(_enemy)
         }
 
 
-        if (_dot.remaining_seconds <= 0)
+        if (
+            _dot.remaining_seconds == 0
+        )
         {
             _dot.active = false;
             _dot.source = noone;
@@ -562,6 +536,67 @@ function scr_enemy_effects_draw(_enemy)
             _enemy.y - (_radius * 0.55)
         );
     }
+	
+	// ========================================================================
+	// DISRUPTION / DAMAGE OVER TIME
+	// ========================================================================
+
+	if (_enemy.effects.damage_over_time.active)
+	{
+	    var _dot_radius =
+	        _radius + 5;
+
+	    var _dot_spin =
+	        (
+	            global.vtd.tick * -3
+	            + real(_enemy.id)
+	        )
+	        mod 360;
+
+	    var _dot_pulse =
+	        0.55
+	        + dsin(
+	            global.vtd.tick * 7
+	            + real(_enemy.id)
+	        ) * 0.25;
+
+
+	    draw_set_alpha(_dot_pulse);
+	    draw_set_color(make_color_rgb(190, 70, 255));
+
+
+	    // Rotating electrical disruption marks.
+
+	    for (var i = 0; i < 3; ++i)
+	    {
+	        var _angle =
+	            _dot_spin
+	            + (i * 120);
+
+	        var _middle_angle =
+	            _angle + 18;
+
+	        var _end_angle =
+	            _angle + 34;
+
+
+	        draw_line(
+	            _enemy.x + lengthdir_x(_dot_radius - 3, _angle),
+	            _enemy.y + lengthdir_y(_dot_radius - 3, _angle),
+
+	            _enemy.x + lengthdir_x(_dot_radius + 3, _middle_angle),
+	            _enemy.y + lengthdir_y(_dot_radius + 3, _middle_angle)
+	        );
+
+	        draw_line(
+	            _enemy.x + lengthdir_x(_dot_radius + 3, _middle_angle),
+	            _enemy.y + lengthdir_y(_dot_radius + 3, _middle_angle),
+
+	            _enemy.x + lengthdir_x(_dot_radius - 2, _end_angle),
+	            _enemy.y + lengthdir_y(_dot_radius - 2, _end_angle)
+	        );
+	    }
+	}
 
 
     // ========================================================================

@@ -1,6 +1,6 @@
 /// @description Tower projectile creation, collision, impact, and drawing.
 
-/// @description Creates one layer-restricted tower projectile.
+/// @description Creates one configured tower projectile.
 
 function scr_projectile_tower_create(
     _owner,
@@ -10,7 +10,8 @@ function scr_projectile_tower_create(
     _damage,
     _damage_type,
     _projectile_data,
-    _target_layer
+    _target_layer,
+    _target = noone
 )
 {
     if (!instance_exists(_owner))
@@ -21,9 +22,38 @@ function scr_projectile_tower_create(
 
 
     var _effect = undefined;
+    var _movement = ProjectileMovement.STRAIGHT;
+    var _turn_speed = 0;
 
     if (variable_struct_exists(_projectile_data, "effect"))
         _effect = _projectile_data.effect;
+
+    if (variable_struct_exists(_projectile_data, "movement"))
+        _movement = _projectile_data.movement;
+
+    if (variable_struct_exists(_projectile_data, "turn_speed"))
+        _turn_speed = _projectile_data.turn_speed;
+
+
+    var _target_x =
+        _world_x
+        + lengthdir_x(
+            256,
+            _draw_angle
+        );
+
+    var _target_y =
+        _world_y
+        + lengthdir_y(
+            256,
+            _draw_angle
+        );
+
+    if (instance_exists(_target))
+    {
+        _target_x = _target.x;
+        _target_y = _target.y;
+    }
 
 
     return instance_create_layer(
@@ -33,13 +63,21 @@ function scr_projectile_tower_create(
         o_projectile_tower,
         {
             projectile_owner: _owner,
+            projectile_target: _target,
+            projectile_target_x: _target_x,
+            projectile_target_y: _target_y,
+
             projectile_damage: _damage,
             projectile_damage_type: _damage_type,
             projectile_speed: _projectile_data.speed,
+            projectile_turn_speed: _turn_speed,
+            projectile_movement: _movement,
+
             projectile_lifetime: _projectile_data.lifetime_seconds,
             projectile_radius: _projectile_data.radius,
             projectile_color: _projectile_data.color,
             projectile_angle: _draw_angle,
+
             projectile_impact: _projectile_data.impact,
             projectile_damage_radius: _projectile_data.damage_radius,
             projectile_target_layer: _target_layer,
@@ -59,6 +97,8 @@ function scr_projectile_tower_initialize(_projectile)
     _projectile.combat =
     {
         owner: _projectile.projectile_owner,
+        target: _projectile.projectile_target,
+
         damage: _projectile.projectile_damage,
         damage_type: _projectile.projectile_damage_type,
         impact: _projectile.projectile_impact,
@@ -70,7 +110,15 @@ function scr_projectile_tower_initialize(_projectile)
 
     _projectile.movement =
     {
-        speed: _projectile.projectile_speed
+        type: _projectile.projectile_movement,
+        speed: _projectile.projectile_speed,
+        turn_speed: _projectile.projectile_turn_speed,
+
+        destination:
+        {
+            x: _projectile.projectile_target_x,
+            y: _projectile.projectile_target_y
+        }
     };
 
 
@@ -287,11 +335,9 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
     return true;
 }
 
-/// @description Updates one tower projectile.
+/// @description Moves one tower projectile and resolves its impact.
 
-function scr_projectile_tower_update(
-    _projectile
-)
+function scr_projectile_tower_update(_projectile)
 {
     if (!instance_exists(_projectile))
         return false;
@@ -314,12 +360,17 @@ function scr_projectile_tower_update(
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(
-            _projectile
-        );
-
+        instance_destroy(_projectile);
         return true;
     }
+
+
+    // Homing projectiles turn toward their target.
+    // Target-position projectiles aim at their stored destination.
+
+    scr_projectile_tower_direction_update(
+        _projectile
+    );
 
 
     var _start_x =
@@ -327,6 +378,81 @@ function scr_projectile_tower_update(
 
     var _start_y =
         _projectile.y;
+
+
+    // ========================================================================
+    // FIXED TARGET-POSITION PROJECTILE
+    // ========================================================================
+    //
+    // Used by Mortar shells. These travel toward their original destination
+    // and do not collide with unrelated enemies along the way.
+
+    if (
+        _projectile.movement.type
+        == ProjectileMovement.TARGET_POSITION
+    )
+    {
+        var _destination_x =
+            _projectile.movement.destination.x;
+
+        var _destination_y =
+            _projectile.movement.destination.y;
+
+        var _destination_distance =
+            point_distance(
+                _start_x,
+                _start_y,
+                _destination_x,
+                _destination_y
+            );
+
+
+        if (
+            _destination_distance
+            <= _projectile.movement.speed
+        )
+        {
+            _projectile.x =
+                _destination_x;
+
+            _projectile.y =
+                _destination_y;
+
+
+            scr_projectile_tower_impact(
+                _projectile,
+                noone
+            );
+
+
+            instance_destroy(
+                _projectile
+            );
+
+            return true;
+        }
+
+
+        _projectile.x +=
+            lengthdir_x(
+                _projectile.movement.speed,
+                _projectile.visual.draw_angle
+            );
+
+        _projectile.y +=
+            lengthdir_y(
+                _projectile.movement.speed,
+                _projectile.visual.draw_angle
+            );
+
+
+        return true;
+    }
+
+
+    // ========================================================================
+    // STRAIGHT / HOMING PROJECTILE
+    // ========================================================================
 
     var _end_x =
         _start_x
@@ -355,8 +481,6 @@ function scr_projectile_tower_update(
 
     if (instance_exists(_enemy))
     {
-        // Move to the impact point before applying radius damage.
-
         _projectile.x =
             _enemy.x;
 
@@ -438,6 +562,89 @@ function scr_projectile_tower_draw(
     draw_set_color(
         c_white
     );
+
+
+    return true;
+}
+
+/// @description Updates one tower projectile's direction and destination.
+
+function scr_projectile_tower_direction_update(_projectile)
+{
+    if (!instance_exists(_projectile))
+        return false;
+
+
+    var _movement =
+        _projectile.movement;
+
+
+    switch (_movement.type)
+    {
+        case ProjectileMovement.STRAIGHT:
+        {
+            // Existing direction remains unchanged.
+        }
+        break;
+
+
+        case ProjectileMovement.TARGET_POSITION:
+        {
+            _projectile.visual.draw_angle =
+                point_direction(
+                    _projectile.x,
+                    _projectile.y,
+                    _movement.destination.x,
+                    _movement.destination.y
+                );
+        }
+        break;
+
+
+        case ProjectileMovement.HOMING:
+        {
+            var _target =
+                _projectile.combat.target;
+
+            if (!instance_exists(_target))
+            {
+                // If the target dies, continue along the last direction.
+
+                return true;
+            }
+
+
+            _movement.destination.x =
+                _target.x;
+
+            _movement.destination.y =
+                _target.y;
+
+
+            var _desired_angle =
+                point_direction(
+                    _projectile.x,
+                    _projectile.y,
+                    _target.x,
+                    _target.y
+                );
+
+            var _angle_difference =
+                angle_difference(
+                    _desired_angle,
+                    _projectile.visual.draw_angle
+                );
+
+
+            _projectile.visual.draw_angle +=
+                clamp(
+                    _angle_difference,
+                    -_movement.turn_speed,
+                    _movement.turn_speed
+                );
+        }
+        break;
+    }
 
 
     return true;

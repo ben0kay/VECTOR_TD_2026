@@ -306,6 +306,20 @@ function scr_tower_target_valid(_tower, _enemy)
             }
         }
         break;
+		
+		case TowerTargetFilter.NOT_DISRUPTED:
+		{
+		    if (
+		        scr_enemy_effect_active(
+		            _enemy,
+		            EnemyEffect.DAMAGE_OVER_TIME
+		        )
+		    )
+		    {
+		        return false;
+		    }
+		}
+break;
     }
 
 
@@ -469,16 +483,17 @@ function scr_tower_fire(_tower)
         case TowerWeaponType.PROJECTILE:
         {
             var _projectile =
-                scr_projectile_tower_create(
-                    _tower,
-                    _muzzle.x,
-                    _muzzle.y,
-                    _tower.visual.draw_angle,
-                    _weapon.damage,
-                    _weapon.damage_type,
-                    _weapon.projectile,
-                    _tower.targeting.layer
-                );
+		    scr_projectile_tower_create(
+		        _tower,
+		        _muzzle.x,
+		        _muzzle.y,
+		        _tower.visual.draw_angle,
+		        _weapon.damage,
+		        _weapon.damage_type,
+		        _weapon.projectile,
+		        _tower.targeting.layer,
+		        _target
+		    );
 
             _fired =
                 instance_exists(_projectile);

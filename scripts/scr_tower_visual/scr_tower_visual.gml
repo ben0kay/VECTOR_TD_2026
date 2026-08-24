@@ -689,3 +689,121 @@ function scr_tower_visual_stasis(_tower)
 
     return true;
 }
+
+/// @description Draws the Disruptor Tower.
+
+function scr_tower_visual_disruptor(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+    var _spin = global.vtd.tick * -3 + real(_tower.id);
+
+    draw_set_color(_color);
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _a = _spin + (i * 120);
+
+        draw_line_width(
+            _x + lengthdir_x(7, _a),
+            _y + lengthdir_y(7, _a),
+            _x + lengthdir_x(18, _a + 25),
+            _y + lengthdir_y(18, _a + 25),
+            2
+        );
+    }
+
+    draw_circle(_x, _y, 7, false);
+
+    draw_line_width(
+        _x,
+        _y,
+        _x + lengthdir_x(34, _angle),
+        _y + lengthdir_y(34, _angle),
+        3
+    );
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the Mortar Tower.
+
+function scr_tower_visual_mortar(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+
+    draw_set_color(_color);
+
+    draw_circle(_x, _y, 17, false);
+    draw_circle(_x, _y, 10, false);
+
+    draw_line_width(
+        _x + lengthdir_x(4, _angle),
+        _y + lengthdir_y(4, _angle),
+        _x + lengthdir_x(29, _angle),
+        _y + lengthdir_y(29, _angle),
+        8
+    );
+
+    draw_circle(
+        _x + lengthdir_x(30, _angle),
+        _y + lengthdir_y(30, _angle),
+        6,
+        false
+    );
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the twin-launcher AA Rocket Tower.
+
+function scr_tower_visual_aa_rocket(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+
+    var _side_x = lengthdir_x(7, _angle + 90);
+    var _side_y = lengthdir_y(7, _angle + 90);
+
+    draw_set_color(_color);
+
+    draw_circle(_x, _y, 15, true);
+
+    for (var side = -1; side <= 1; side += 2)
+    {
+        var _sx = _x + (_side_x * side);
+        var _sy = _y + (_side_y * side);
+
+        var _ex = _sx + lengthdir_x(34, _angle);
+        var _ey = _sy + lengthdir_y(34, _angle);
+
+        draw_line_width(_sx, _sy, _ex, _ey, 5);
+
+        draw_triangle(
+            _ex + lengthdir_x(5, _angle),
+            _ey + lengthdir_y(5, _angle),
+
+            _ex + lengthdir_x(5, _angle + 135),
+            _ey + lengthdir_y(5, _angle + 135),
+
+            _ex + lengthdir_x(5, _angle - 135),
+            _ey + lengthdir_y(5, _angle - 135),
+            true
+        );
+    }
+
+    draw_set_color(c_white);
+
+    return true;
+}

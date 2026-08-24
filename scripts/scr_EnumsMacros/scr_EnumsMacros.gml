@@ -129,7 +129,15 @@ enum TowerTargetFilter
 {
     ANY,
     NOT_SLOWED,
-    NOT_STASIS
+    NOT_STASIS,
+    NOT_DISRUPTED
+}
+
+enum ProjectileMovement
+{
+    STRAIGHT,
+    TARGET_POSITION,
+    HOMING
 }
 
 

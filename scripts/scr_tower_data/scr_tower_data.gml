@@ -621,6 +621,252 @@ function scr_tower_data_stasis()
     return true;
 }
 
+/// @description Registers the permanent damage-over-time Disruptor Tower.
+
+function scr_tower_data_disruptor()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_disruptor",
+        {
+            identity:
+            {
+                key: "tower_disruptor",
+                name: "Disruptor Tower",
+                type: BuildingType.TOWER,
+                description_short: "Permanently destabilizes enemy systems.",
+                description_long: "Applies recurring damage that continues indefinitely until the affected enemy is destroyed. It prioritizes enemies that are not already disrupted."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(65, 20, 85),
+                turret_color: make_color_rgb(200, 70, 255)
+            },
+
+            footprint: { width_cells: 2, height_cells: 2 },
+            vitals: { hp_maximum: 280 },
+            construction: { time_seconds: 0 },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 340
+                }]
+            },
+
+            tower:
+            {
+                range: 300,
+                target_mode: TowerTargetMode.HIGHEST_HP,
+                target_layer: EnemyMovementLayer.GROUND,
+                target_filter: TowerTargetFilter.NOT_DISRUPTED,
+                requires_line_of_sight: true,
+                draw_function: scr_tower_visual_disruptor,
+
+                weapon:
+                {
+                    type: TowerWeaponType.PROJECTILE,
+                    damage_type: DamageType.LASER,
+                    damage: 2,
+                    cooldown_seconds: 2.5,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 34,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        movement: ProjectileMovement.HOMING,
+                        turn_speed: 8,
+
+                        speed: 11,
+                        lifetime_seconds: 4,
+                        radius: 5,
+                        color: make_color_rgb(200, 70, 255),
+                        impact: ProjectileImpact.DIRECT,
+                        damage_radius: 0,
+
+                        effect:
+                        {
+                            type: EnemyEffect.DAMAGE_OVER_TIME,
+                            damage: 4,
+                            interval_seconds: 1,
+                            duration_seconds: -1,
+                            damage_type: DamageType.LASER,
+                            radius: 0
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the long-range ground Mortar Tower.
+
+function scr_tower_data_mortar()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_mortar",
+        {
+            identity:
+            {
+                key: "tower_mortar",
+                name: "Mortar Tower",
+                type: BuildingType.TOWER,
+                description_short: "Long-range ground bombardment.",
+                description_long: "Launches heavy shells toward a fixed target position. The shell explodes even if its original target moves or is destroyed."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(45, 60, 35),
+                turret_color: make_color_rgb(150, 220, 90)
+            },
+
+            footprint: { width_cells: 2, height_cells: 2 },
+            vitals: { hp_maximum: 340 },
+            construction: { time_seconds: 0 },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 420
+                }]
+            },
+
+            tower:
+            {
+                range: 560,
+                target_mode: TowerTargetMode.FURTHEST,
+                target_layer: EnemyMovementLayer.GROUND,
+                target_filter: TowerTargetFilter.ANY,
+                requires_line_of_sight: false,
+                draw_function: scr_tower_visual_mortar,
+
+                weapon:
+                {
+                    type: TowerWeaponType.PROJECTILE,
+                    damage_type: DamageType.EXPLOSIVE,
+                    damage: 85,
+                    cooldown_seconds: 4,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 32,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        movement: ProjectileMovement.TARGET_POSITION,
+                        turn_speed: 0,
+
+                        speed: 8,
+                        lifetime_seconds: 8,
+                        radius: 8,
+                        color: make_color_rgb(150, 220, 90),
+                        impact: ProjectileImpact.EXPLOSIVE,
+                        damage_radius: 128
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the explosive anti-air Rocket Tower.
+
+function scr_tower_data_aa_rocket()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_aa_rocket",
+        {
+            identity:
+            {
+                key: "tower_aa_rocket",
+                name: "AA Rocket Tower",
+                type: BuildingType.TOWER,
+                description_short: "Homing anti-air area damage.",
+                description_long: "Launches guided rockets at flying enemies. Each impact damages other nearby flying units, making it effective against airborne groups."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(30, 55, 70),
+                turret_color: make_color_rgb(90, 220, 255)
+            },
+
+            footprint: { width_cells: 2, height_cells: 2 },
+            vitals: { hp_maximum: 320 },
+            construction: { time_seconds: 0 },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 450
+                }]
+            },
+
+            tower:
+            {
+                range: 480,
+                target_mode: TowerTargetMode.CLOSEST,
+                target_layer: EnemyMovementLayer.FLYING,
+                target_filter: TowerTargetFilter.ANY,
+                requires_line_of_sight: false,
+                draw_function: scr_tower_visual_aa_rocket,
+
+                weapon:
+                {
+                    type: TowerWeaponType.PROJECTILE,
+                    damage_type: DamageType.EXPLOSIVE,
+                    damage: 55,
+                    cooldown_seconds: 2.2,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.ALTERNATING,
+                        distance: 36,
+                        spacing: 8
+                    },
+
+                    projectile:
+                    {
+                        movement: ProjectileMovement.HOMING,
+                        turn_speed: 6,
+
+                        speed: 10,
+                        lifetime_seconds: 7,
+                        radius: 6,
+                        color: make_color_rgb(90, 220, 255),
+                        impact: ProjectileImpact.EXPLOSIVE,
+                        damage_radius: 96
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
 
 /// @description Registers every tower definition.
 
@@ -634,6 +880,9 @@ function scr_tower_data_initialize()
     if (!scr_tower_data_sniper()) return false;
 	if (!scr_tower_data_cryo()) return false;
 	if (!scr_tower_data_stasis()) return false;
+	if (!scr_tower_data_disruptor()) return false;
+	if (!scr_tower_data_mortar()) return false;
+	if (!scr_tower_data_aa_rocket()) return false;
 
     // FUTURE TOWERS:
     // artillery
