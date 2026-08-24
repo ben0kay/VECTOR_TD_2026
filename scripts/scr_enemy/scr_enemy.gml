@@ -2362,7 +2362,7 @@ function scr_enemy_damage_target(
     return false;
 }
 
-/// @description Updates one mobile continuous-beam siege platform.
+/// @description Processes the mobile continuous-beam siege platform.
 
 function scr_enemy_siege_beam_update(_enemy)
 {
@@ -2386,6 +2386,14 @@ function scr_enemy_siege_beam_update(_enemy)
     var _combat_data =
         _enemy.combat_movement.data;
 
+    var _line_clear =
+        !scr_world_line_blocked_by_dead(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
 
     switch (_enemy.EnemyState)
     {
@@ -2404,9 +2412,13 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.MOVING:
         {
+            // The platform only establishes its firing anchor when it has
+            // both the correct range and an unobstructed beam path.
+
             if (
                 _edge_distance
                 <= _combat_data.preferred_range
+                && _line_clear
             )
             {
                 scr_navigation_enemy_stop(
@@ -2425,6 +2437,10 @@ function scr_enemy_siege_beam_update(_enemy)
             }
 
 
+            // Continue following the normal MP-grid route. This naturally
+            // lets the platform travel around dead terrain while searching
+            // for a visible firing position.
+
             scr_navigation_enemy_update(
                 _enemy
             );
@@ -2434,9 +2450,13 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
+            // Abandon the firing anchor if the target leaves maximum range
+            // or dead terrain interrupts the beam.
+
             if (
                 _edge_distance
                 > _combat_data.maximum_range
+                || !_line_clear
             )
             {
                 _enemy.combat_movement
@@ -2459,8 +2479,8 @@ function scr_enemy_siege_beam_update(_enemy)
             }
 
 
-            // The turret remains locked on the target independently
-            // from the hull's movement direction.
+            // The turret tracks independently while the hull performs
+            // optional movement inside its combat anchor.
 
             var _target_angle =
                 point_direction(
@@ -2478,12 +2498,44 @@ function scr_enemy_siege_beam_update(_enemy)
                 );
 
 
-            // Local movement does not interrupt the beam.
+            // Valid local movement does not interrupt the continuous beam.
 
             scr_enemy_combat_movement_update(
                 _enemy,
                 _target
             );
+
+
+            // Movement may have changed LOS this frame. Recheck before damage.
+
+            _line_clear =
+                !scr_world_line_blocked_by_dead(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
+
+            if (!_line_clear)
+            {
+                _enemy.combat_movement
+                    .anchor.valid =
+                    false;
+
+                _enemy.combat_movement
+                    .destination.active =
+                    false;
+
+                _enemy.EnemyState =
+                    EnemyState.MOVING;
+
+                scr_navigation_enemy_repath_request(
+                    _enemy,
+                    true
+                );
+
+                break;
+            }
 
 
             var _fps =
@@ -2512,7 +2564,7 @@ function scr_enemy_siege_beam_update(_enemy)
 
             _enemy.combat_movement
                 .destination.active =
-                false;
+                    false;
         }
         break;
     }

@@ -1428,7 +1428,7 @@ function scr_enemy_data_siege_beam()
                 minimum_range: 360,
                 maximum_range: 620,
 
-                anchor_radius: 72,
+                anchor_radius: 128,
 
                 speed_multiplier: 0.8,
 
@@ -1443,10 +1443,10 @@ function scr_enemy_data_siege_beam()
                     interval_minimum: 2.5,
                     interval_maximum: 4,
 
-                    distance_minimum: 32,
-                    distance_maximum: 64,
+                    distance_minimum: 48,
+                    distance_maximum: 112,
 
-                    candidate_attempts: 6,
+                    candidate_attempts: 9,
                     arrival_tolerance: 5,
 
                     require_line_of_sight: true
