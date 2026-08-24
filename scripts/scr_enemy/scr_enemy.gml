@@ -1,87 +1,6 @@
 /// @description Generic data-driven enemy behaviour.
 
 
-/// @description Returns whether an enemy currently has an ability.
-
-function scr_enemy_has_ability(
-    _enemy,
-    _ability
-)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-    if (
-        !variable_instance_exists(
-            _enemy,
-            "abilities"
-        )
-    )
-    {
-        return false;
-    }
-
-    if (!is_array(_enemy.abilities))
-        return false;
-
-
-    for (
-        var i = 0;
-        i < array_length(_enemy.abilities);
-        ++i
-    )
-    {
-        if (_enemy.abilities[i] == _ability)
-            return true;
-    }
-
-
-    return false;
-}
-
-
-/// @description Acquires an enemy's intended strategic target.
-
-function scr_enemy_target_acquire(_enemy)
-{
-    if (!instance_exists(_enemy))
-        return noone;
-
-
-    switch (_enemy.targeting.target_type)
-    {
-        case EnemyTarget.CPU:
-        {
-            return global.vtd_level.entities.cpu;
-        }
-
-
-        case EnemyTarget.BUILDING:
-        {
-            var _building = scr_enemy_closest_building_get(_enemy);
-
-            // If no ordinary building exists, attack the CPU instead.
-            // This prevents building hunters having no objective at the
-            // beginning of a level.
-
-            if (!instance_exists(_building))
-                return global.vtd_level.entities.cpu;
-
-            return _building;
-        }
-
-
-        case EnemyTarget.PLAYER:
-        {
-            return global.vtd_level.entities.player;
-        }
-    }
-
-
-    return noone;
-}
-
-
 /// @description Initializes one generic enemy from its data definition.
 
 function scr_enemy_initialize(_enemy)
@@ -406,19 +325,55 @@ function scr_enemy_initialize(_enemy)
 
 
     if (_enemy.attack.type == EnemyAttack.PROJECTILE)
-    {
-        var _projectile = _data.attack.projectile;
+	{
+	    var _projectile =
+	        _data.attack.projectile;
 
-        _enemy.attack.projectile =
-        {
-            speed: _projectile.speed,
-            lifetime_seconds: _projectile.lifetime_seconds,
-            radius: _projectile.radius,
-            color: _projectile.color,
-            shot_count: _projectile.shot_count,
-            spread_degrees: _projectile.spread_degrees
-        };
-    }
+	    _enemy.attack.projectile =
+	    {
+	        speed:
+	            _projectile.speed,
+
+	        lifetime_seconds:
+	            _projectile.lifetime_seconds,
+
+	        radius:
+	            _projectile.radius,
+
+	        color:
+	            _projectile.color,
+
+	        shot_count:
+	            _projectile.shot_count,
+
+	        spread_degrees:
+	            _projectile.spread_degrees,
+
+	        impact:
+	            variable_struct_exists(
+	                _projectile,
+	                "impact"
+	            )
+	            ? _projectile.impact
+	            : ProjectileImpact.DIRECT,
+
+	        damage_radius:
+	            variable_struct_exists(
+	                _projectile,
+	                "damage_radius"
+	            )
+	            ? _projectile.damage_radius
+	            : 0,
+
+	        rocket:
+	            variable_struct_exists(
+	                _projectile,
+	                "rocket"
+	            )
+	            ? _projectile.rocket
+	            : false
+	    };
+	}
 	
 	// ========================================================================
 	// ABILITIES
@@ -587,6 +542,88 @@ function scr_enemy_initialize(_enemy)
 
     return true;
 }
+
+/// @description Returns whether an enemy currently has an ability.
+
+function scr_enemy_has_ability(
+    _enemy,
+    _ability
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (
+        !variable_instance_exists(
+            _enemy,
+            "abilities"
+        )
+    )
+    {
+        return false;
+    }
+
+    if (!is_array(_enemy.abilities))
+        return false;
+
+
+    for (
+        var i = 0;
+        i < array_length(_enemy.abilities);
+        ++i
+    )
+    {
+        if (_enemy.abilities[i] == _ability)
+            return true;
+    }
+
+
+    return false;
+}
+
+
+/// @description Acquires an enemy's intended strategic target.
+
+function scr_enemy_target_acquire(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return noone;
+
+
+    switch (_enemy.targeting.target_type)
+    {
+        case EnemyTarget.CPU:
+        {
+            return global.vtd_level.entities.cpu;
+        }
+
+
+        case EnemyTarget.BUILDING:
+        {
+            var _building = scr_enemy_closest_building_get(_enemy);
+
+            // If no ordinary building exists, attack the CPU instead.
+            // This prevents building hunters having no objective at the
+            // beginning of a level.
+
+            if (!instance_exists(_building))
+                return global.vtd_level.entities.cpu;
+
+            return _building;
+        }
+
+
+        case EnemyTarget.PLAYER:
+        {
+            return global.vtd_level.entities.player;
+        }
+    }
+
+
+    return noone;
+}
+
+
 
 /// @description Returns the distance between an enemy and its target edges.
 
@@ -930,6 +967,18 @@ function scr_enemy_update(_enemy)
             _enemy
         );
     }
+	
+	if (
+    scr_enemy_has_ability(
+        _enemy,
+        EnemyAbility.STANDOFF_ATTACK
+	    )
+	)
+	{
+	    return scr_enemy_standoff_update(
+	        _enemy
+	    );
+	}
 
 
     if (

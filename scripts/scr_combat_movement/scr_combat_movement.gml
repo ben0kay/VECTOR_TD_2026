@@ -743,7 +743,6 @@ function scr_enemy_strategic_target_set(_enemy, _target)
 }
 
 
-
 /// @description Updates an enemy's cached strategic building target.
 
 function scr_enemy_strategic_retarget_update(
@@ -882,6 +881,148 @@ function scr_enemy_strategic_retarget_update(
         _enemy,
         true
     );
+
+
+    return true;
+}
+
+/// @description Processes a ranged enemy seeking a clear standoff position.
+
+function scr_enemy_standoff_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _target =
+        _enemy.targeting.target;
+
+    if (!instance_exists(_target))
+        return true;
+
+
+    var _data =
+        _enemy.combat_movement.data;
+
+    var _edge_distance =
+        scr_enemy_target_edge_distance(
+            _enemy,
+            _target
+        );
+
+    var _line_clear =
+        !_data.requires_line_of_sight
+        || !scr_world_line_blocked_by_dead(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+
+    switch (_enemy.EnemyState)
+    {
+        case EnemyState.SPAWNING:
+        {
+            _enemy.EnemyState =
+                EnemyState.MOVING;
+
+            scr_navigation_enemy_repath_request(
+                _enemy,
+                true
+            );
+        }
+        break;
+
+
+        case EnemyState.MOVING:
+        {
+            if (
+                _edge_distance
+                <= _data.preferred_range
+                && _edge_distance
+                >= _data.minimum_range
+                && _line_clear
+            )
+            {
+                scr_navigation_enemy_stop(
+                    _enemy
+                );
+
+                _enemy.EnemyState =
+                    EnemyState.ATTACKING;
+
+                break;
+            }
+
+
+            // Continue around dead terrain until a valid firing lane appears.
+
+            scr_navigation_enemy_update(
+                _enemy
+            );
+        }
+        break;
+
+
+        case EnemyState.ATTACKING:
+        {
+            _enemy.visual.draw_angle =
+                point_direction(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
+
+
+            _line_clear =
+                !_data.requires_line_of_sight
+                || !scr_world_line_blocked_by_dead(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
+
+
+            if (
+                _edge_distance
+                > _data.maximum_range
+                || !_line_clear
+            )
+            {
+                _enemy.EnemyState =
+                    EnemyState.MOVING;
+
+                scr_navigation_enemy_repath_request(
+                    _enemy,
+                    true
+                );
+
+                break;
+            }
+
+
+            if (_enemy.attack.cooldown.remaining <= 0)
+            {
+                scr_enemy_attack(
+                    _enemy
+                );
+            }
+        }
+        break;
+
+
+        case EnemyState.STUNNED:
+        case EnemyState.DEAD:
+        {
+            scr_navigation_enemy_stop(
+                _enemy
+            );
+        }
+        break;
+    }
 
 
     return true;

@@ -1523,7 +1523,12 @@ function scr_enemy_data_siege_rocket()
 
             targeting:
             {
-                target_type: EnemyTarget.BUILDING
+                target_type: EnemyTarget.BUILDING,
+
+                player:
+                {
+                    enabled: false
+                }
             },
 
             navigation:
@@ -1542,8 +1547,10 @@ function scr_enemy_data_siege_rocket()
                 {
                     speed: 3.5,
                     lifetime_seconds: 12,
+
                     radius: 9,
                     color: make_color_rgb(255, 120, 30),
+
                     shot_count: 1,
                     spread_degrees: 0,
 
@@ -1553,13 +1560,27 @@ function scr_enemy_data_siege_rocket()
                 }
             },
 
+            combat_movement:
+            {
+                type: EnemyCombatMovement.STATIONARY,
+
+                preferred_range: 620,
+                minimum_range: 400,
+                maximum_range: 720,
+
+                requires_line_of_sight: true
+            },
+
             rewards:
                 scr_enemy_rewards_create(
                     150,
                     30
                 ),
 
-            abilities: []
+            abilities:
+            [
+                EnemyAbility.STANDOFF_ATTACK
+            ]
         }
     );
 

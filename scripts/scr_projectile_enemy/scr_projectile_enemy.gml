@@ -296,52 +296,114 @@ function scr_projectile_enemy_update(_projectile)
         return false;
 
 
-    var _fps = max(
-        1,
-        game_get_speed(gamespeed_fps)
-    );
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
-
-    _projectile.life.remaining = max(
-        0,
-        _projectile.life.remaining - (1 / _fps)
-    );
+    _projectile.life.remaining =
+        max(
+            0,
+            _projectile.life.remaining
+            - (1 / _fps)
+        );
 
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(_projectile);
+        instance_destroy(
+            _projectile
+        );
+
         return true;
     }
 
 
-    var _start_x = _projectile.x;
-    var _start_y = _projectile.y;
+    var _start_x =
+        _projectile.x;
 
-    var _end_x = _start_x + lengthdir_x(
-        _projectile.movement.speed,
-        _projectile.visual.draw_angle
-    );
+    var _start_y =
+        _projectile.y;
 
-    var _end_y = _start_y + lengthdir_y(
-        _projectile.movement.speed,
-        _projectile.visual.draw_angle
-    );
+    var _end_x =
+        _start_x
+        + lengthdir_x(
+            _projectile.movement.speed,
+            _projectile.visual.draw_angle
+        );
+
+    var _end_y =
+        _start_y
+        + lengthdir_y(
+            _projectile.movement.speed,
+            _projectile.visual.draw_angle
+        );
 
 
-    var _target = scr_projectile_enemy_hit_find(
-        _projectile,
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y
-    );
+    // ========================================================================
+    // PERMANENT TERRAIN
+    // ========================================================================
+
+    var _terrain_hit =
+        scr_projectile_enemy_terrain_hit_get(
+            _projectile,
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y
+        );
+
+
+    if (_terrain_hit.hit)
+    {
+        _projectile.x =
+            _terrain_hit.x;
+
+        _projectile.y =
+            _terrain_hit.y;
+
+
+        if (
+            _projectile.combat.impact
+            == ProjectileImpact.EXPLOSIVE
+        )
+        {
+            scr_projectile_enemy_explosion_apply(
+                _projectile
+            );
+        }
+
+
+        instance_destroy(
+            _projectile
+        );
+
+        return true;
+    }
+
+
+    // ========================================================================
+    // PLAYER STRUCTURES
+    // ========================================================================
+
+    var _target =
+        scr_projectile_enemy_hit_find(
+            _projectile,
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y
+        );
 
 
     if (instance_exists(_target))
     {
-        _projectile.x = _end_x;
-        _projectile.y = _end_y;
+        _projectile.x =
+            _end_x;
+
+        _projectile.y =
+            _end_y;
 
 
         switch (_projectile.combat.impact)
@@ -366,13 +428,20 @@ function scr_projectile_enemy_update(_projectile)
         }
 
 
-        instance_destroy(_projectile);
+        instance_destroy(
+            _projectile
+        );
+
         return true;
     }
 
 
-    _projectile.x = _end_x;
-    _projectile.y = _end_y;
+    _projectile.x =
+        _end_x;
+
+    _projectile.y =
+        _end_y;
+
 
     return true;
 }
@@ -631,4 +700,98 @@ function scr_projectile_enemy_explosion_apply(_projectile)
 
 
     return true;
+}
+
+/// @description Finds the first permanent terrain collision along a projectile segment.
+
+function scr_projectile_enemy_terrain_hit_get(
+    _projectile,
+    _start_x,
+    _start_y,
+    _end_x,
+    _end_y
+)
+{
+    var _distance =
+        point_distance(
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y
+        );
+
+    var _spacing =
+        max(
+            2,
+            _projectile.visual.radius * 0.5
+        );
+
+    var _steps =
+        max(
+            1,
+            ceil(_distance / _spacing)
+        );
+
+
+    for (var i = 1; i <= _steps; ++i)
+    {
+        var _amount =
+            i / _steps;
+
+        var _check_x =
+            lerp(
+                _start_x,
+                _end_x,
+                _amount
+            );
+
+        var _check_y =
+            lerp(
+                _start_y,
+                _end_y,
+                _amount
+            );
+
+        var _cell =
+            scr_building_position_to_cell(
+                _check_x,
+                _check_y
+            );
+
+
+        if (!scr_world_cell_inside(_cell.x, _cell.y))
+        {
+            return
+            {
+                hit: true,
+                x: _check_x,
+                y: _check_y
+            };
+        }
+
+
+        if (
+            scr_world_cell_type_get(
+                _cell.x,
+                _cell.y
+            )
+            == WorldCellType.DEAD
+        )
+        {
+            return
+            {
+                hit: true,
+                x: _check_x,
+                y: _check_y
+            };
+        }
+    }
+
+
+    return
+    {
+        hit: false,
+        x: _end_x,
+        y: _end_y
+    };
 }

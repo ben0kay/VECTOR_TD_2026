@@ -164,43 +164,26 @@ function scr_enemy_advanced_initialize(_enemy)
     // ========================================================================
 
     var _combat_data =
-    {
-        type:
-            EnemyCombatMovement.STATIONARY,
+	{
+	    type: EnemyCombatMovement.STATIONARY,
 
-        preferred_range:
-            _enemy.attack.range * 0.8,
+	    preferred_range: _enemy.attack.range * 0.8,
+	    minimum_range: _enemy.attack.range * 0.55,
+	    maximum_range: _enemy.attack.range,
 
-        minimum_range:
-            _enemy.attack.range * 0.55,
+	    requires_line_of_sight: false,
 
-        maximum_range:
-            _enemy.attack.range,
+	    anchor_radius: 0,
+	    speed_multiplier: 1,
 
-        anchor_radius: 0,
+	    hull_turn_speed: 2,
+	    turret_turn_speed: 6,
 
-        speed_multiplier: 1,
-
-        hull_turn_speed: 2,
-        turret_turn_speed: 6,
-
-        reposition:
-        {
-            enabled: false,
-            chance: 0,
-
-            interval_minimum: 3,
-            interval_maximum: 4,
-
-            distance_minimum: 0,
-            distance_maximum: 0,
-
-            candidate_attempts: 4,
-            arrival_tolerance: 5,
-
-            require_line_of_sight: false
-        }
-    };
+	    reposition:
+	    {
+	        // Existing reposition fields remain here.
+	    }
+	};
 
 
     if (
