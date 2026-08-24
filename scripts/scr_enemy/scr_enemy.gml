@@ -320,45 +320,110 @@ function scr_enemy_initialize(_enemy)
     }
 
 
-    _enemy.abilities = [];
+    // ========================================================================
+	// ABILITY RUNTIME
+	// ========================================================================
 
-    for (var i = 0; i < array_length(_data.abilities); ++i)
-        array_push(_enemy.abilities, _data.abilities[i]);
-
-
-    _enemy.ability_runtime =
-    {
-        explosion: undefined,
-        split: undefined
-    };
-
-
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
-    {
-        var _explosion = _data.ability_data.explosion;
-
-        _enemy.ability_runtime.explosion =
-        {
-            damage: _explosion.damage,
-            radius: _explosion.radius,
-            triggered: false
-        };
-    }
+	_enemy.ability_runtime =
+	{
+	    explosion: undefined,
+	    split: undefined,
+	    transport: undefined,
+	    orbit: undefined
+	};
 
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
-    {
-        var _split = _data.ability_data.split;
+	if (
+	    scr_enemy_has_ability(
+	        _enemy,
+	        EnemyAbility.EXPLODE_ON_DEATH
+	    )
+	)
+	{
+	    var _explosion =
+	        _data.ability_data.explosion;
 
-        _enemy.ability_runtime.split =
-        {
-            enemy_key: _split.enemy_key,
-            count: _split.count,
-            spawn_distance: _split.spawn_distance,
-            angle_offset: _split.angle_offset,
-            triggered: false
-        };
-    }
+	    _enemy.ability_runtime.explosion =
+	    {
+	        damage: _explosion.damage,
+	        radius: _explosion.radius,
+	        triggered: false
+	    };
+	}
+
+
+	if (
+	    scr_enemy_has_ability(
+	        _enemy,
+	        EnemyAbility.SPLIT_ON_DEATH
+	    )
+	)
+	{
+	    var _split =
+	        _data.ability_data.split;
+
+	    _enemy.ability_runtime.split =
+	    {
+	        enemy_key: _split.enemy_key,
+	        count: _split.count,
+	        spawn_distance: _split.spawn_distance,
+	        angle_offset: _split.angle_offset,
+	        triggered: false
+	    };
+	}
+
+
+	if (
+	    scr_enemy_has_ability(
+	        _enemy,
+	        EnemyAbility.TRANSPORT_ENEMIES
+	    )
+	)
+	{
+	    var _transport =
+	        _data.ability_data.transport;
+
+	    _enemy.ability_runtime.transport =
+	    {
+	        cargo: _transport.cargo,
+	        spawn_radius: _transport.spawn_radius,
+	        triggered: false
+	    };
+	}
+
+
+	if (
+	    scr_enemy_has_ability(
+	        _enemy,
+	        EnemyAbility.ORBIT_TARGET
+	    )
+	)
+	{
+	    var _orbit =
+	        _data.ability_data.orbit;
+
+	    _enemy.ability_runtime.orbit =
+	    {
+	        radius: _orbit.radius,
+	        angular_speed: _orbit.angular_speed,
+	        entry_tolerance: _orbit.entry_tolerance,
+
+	        angle: random(360),
+	        active: false
+	    };
+
+
+	    if (instance_exists(_enemy.targeting.target))
+	    {
+	        _enemy.ability_runtime.orbit.angle =
+	            point_direction(
+	                _enemy.targeting.target.x,
+	                _enemy.targeting.target.y,
+	                _enemy.x,
+	                _enemy.y
+	            );
+	    }
+	}
 
 
     if (_brainless)
@@ -619,7 +684,6 @@ function scr_enemy_attack(_enemy)
     return true;
 }
 
-
 /// @description Updates one generic enemy.
 
 function scr_enemy_update(_enemy)
@@ -628,18 +692,25 @@ function scr_enemy_update(_enemy)
         return false;
 
 
-    // Brainless enemies perform no targeting, pathfinding, or repathing.
+    // Brainless enemies perform no targeting or pathfinding.
 
     if (_enemy.movement.brainless)
         return scr_enemy_brainless_update(_enemy);
 
 
-    var _fps = max(1, game_get_speed(gamespeed_fps));
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
-    _enemy.attack.cooldown.remaining = max(
-        0,
-        _enemy.attack.cooldown.remaining - (1 / _fps)
-    );
+
+    _enemy.attack.cooldown.remaining =
+        max(
+            0,
+            _enemy.attack.cooldown.remaining
+            - (1 / _fps)
+        );
 
 
     // ========================================================================
@@ -647,7 +718,10 @@ function scr_enemy_update(_enemy)
     // ========================================================================
 
     if (!instance_exists(_enemy.targeting.strategic))
-        _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
+    {
+        _enemy.targeting.strategic =
+            scr_enemy_target_acquire(_enemy);
+    }
 
     if (!instance_exists(_enemy.targeting.breach))
         _enemy.targeting.breach = noone;
@@ -657,12 +731,16 @@ function scr_enemy_update(_enemy)
     {
         if (instance_exists(_enemy.targeting.strategic))
         {
-            _enemy.targeting.target = _enemy.targeting.strategic;
+            _enemy.targeting.target =
+                _enemy.targeting.strategic;
         }
         else
         {
-            _enemy.targeting.target = scr_enemy_target_acquire(_enemy);
-            _enemy.targeting.strategic = _enemy.targeting.target;
+            _enemy.targeting.target =
+                scr_enemy_target_acquire(_enemy);
+
+            _enemy.targeting.strategic =
+                _enemy.targeting.target;
         }
 
 
@@ -673,24 +751,53 @@ function scr_enemy_update(_enemy)
         }
 
 
-        scr_navigation_enemy_repath_request(_enemy, true);
+        scr_navigation_enemy_repath_request(
+            _enemy,
+            true
+        );
     }
 
 
-    var _target = _enemy.targeting.target;
+    // ========================================================================
+    // SPECIAL MOVEMENT
+    // ========================================================================
 
-    var _edge_distance = scr_enemy_target_edge_distance(
-        _enemy,
-        _target
-    );
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.ORBIT_TARGET
+        )
+    )
+    {
+        return scr_enemy_orbit_update(_enemy);
+    }
+
+
+    // ========================================================================
+    // STANDARD MOVEMENT / COMBAT
+    // ========================================================================
+
+    var _target =
+        _enemy.targeting.target;
+
+    var _edge_distance =
+        scr_enemy_target_edge_distance(
+            _enemy,
+            _target
+        );
 
 
     switch (_enemy.EnemyState)
     {
         case EnemyState.SPAWNING:
         {
-            _enemy.EnemyState = EnemyState.MOVING;
-            scr_navigation_enemy_repath_request(_enemy, true);
+            _enemy.EnemyState =
+                EnemyState.MOVING;
+
+            scr_navigation_enemy_repath_request(
+                _enemy,
+                true
+            );
         }
         break;
 
@@ -700,10 +807,12 @@ function scr_enemy_update(_enemy)
             if (_edge_distance <= _enemy.attack.range)
             {
                 scr_navigation_enemy_stop(_enemy);
-                _enemy.EnemyState = EnemyState.ATTACKING;
+
+                _enemy.EnemyState =
+                    EnemyState.ATTACKING;
+
                 break;
             }
-
 
             scr_navigation_enemy_update(_enemy);
         }
@@ -712,21 +821,26 @@ function scr_enemy_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
-            _enemy.visual.draw_angle = point_direction(
-                _enemy.x,
-                _enemy.y,
-                _target.x,
-                _target.y
-            );
-
+            _enemy.visual.draw_angle =
+                point_direction(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
 
             if (_edge_distance > _enemy.attack.range)
             {
-                _enemy.EnemyState = EnemyState.MOVING;
-                scr_navigation_enemy_repath_request(_enemy, true);
+                _enemy.EnemyState =
+                    EnemyState.MOVING;
+
+                scr_navigation_enemy_repath_request(
+                    _enemy,
+                    true
+                );
+
                 break;
             }
-
 
             if (_enemy.attack.cooldown.remaining <= 0)
                 scr_enemy_attack(_enemy);
@@ -739,7 +853,7 @@ function scr_enemy_update(_enemy)
             scr_navigation_enemy_stop(_enemy);
 
             // FUTURE:
-            // Timed status-effect recovery.
+            // timed status-effect recovery
         }
         break;
 
@@ -1882,7 +1996,364 @@ function scr_enemy_shield_update(_enemy)
     return true;
 }
 
-/// @description Kills an enemy, processes abilities, and awards valid kills.
+/// @description Releases one Transporter's configured enemy cargo.
+
+function scr_enemy_transport_release(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (
+        !scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.TRANSPORT_ENEMIES
+        )
+    )
+    {
+        return false;
+    }
+
+    var _transport =
+        _enemy.ability_runtime.transport;
+
+    if (!is_struct(_transport))
+        return false;
+
+    if (_transport.triggered)
+        return false;
+
+    _transport.triggered = true;
+
+
+    // ========================================================================
+    // COUNT COMPLETE CARGO
+    // ========================================================================
+
+    var _total_cargo = 0;
+
+    for (var i = 0; i < array_length(_transport.cargo); ++i)
+    {
+        var _cargo = _transport.cargo[i];
+
+        _total_cargo +=
+            irandom_range(
+                max(0, floor(_cargo.count_min)),
+                max(0, floor(_cargo.count_max))
+            );
+    }
+
+    if (_total_cargo <= 0)
+        return true;
+
+
+    // ========================================================================
+    // RELEASE CARGO
+    // ========================================================================
+
+    var _released = 0;
+
+    for (var i = 0; i < array_length(_transport.cargo); ++i)
+    {
+        var _cargo = _transport.cargo[i];
+
+        var _count =
+            irandom_range(
+                max(0, floor(_cargo.count_min)),
+                max(0, floor(_cargo.count_max))
+            );
+
+        var _child_modifiers = [];
+
+        if (_cargo.inherit_modifiers)
+        {
+            _child_modifiers =
+                scr_enemy_modifiers_copy(
+                    _enemy.modifiers
+                );
+        }
+
+
+        for (var j = 0; j < _count; ++j)
+        {
+            var _angle =
+                (_released / max(1, _total_cargo)) * 360;
+
+            var _distance =
+                random_range(
+                    _transport.spawn_radius * 0.45,
+                    _transport.spawn_radius
+                );
+
+            var _spawn_x =
+                clamp(
+                    _enemy.x
+                    + lengthdir_x(_distance, _angle),
+                    32,
+                    room_width - 32
+                );
+
+            var _spawn_y =
+                clamp(
+                    _enemy.y
+                    + lengthdir_y(_distance, _angle),
+                    32,
+                    room_height - 32
+                );
+
+
+            // If the surrounding position is obstructed, release the child
+            // at the Transporter's valid current position instead.
+
+            if (
+                scr_world_moving_circle_solid(
+                    _enemy.x,
+                    _enemy.y,
+                    _spawn_x,
+                    _spawn_y,
+                    8
+                )
+            )
+            {
+                _spawn_x = _enemy.x;
+                _spawn_y = _enemy.y;
+            }
+
+
+            scr_enemy_spawn(
+                _cargo.enemy_key,
+                _spawn_x,
+                _spawn_y,
+                _angle,
+                _child_modifiers
+            );
+
+            _released++;
+        }
+    }
+
+
+    scr_effect_shockwave_create(
+        _enemy.x,
+        _enemy.y,
+        _transport.spawn_radius + 20,
+        _enemy.visual.color
+    );
+
+
+    // FUTURE:
+    // opening transport panels
+    // cargo launch particles
+    // configurable release-on-arrival
+    // mixed cargo formations
+    // cargo capacity affected by modifiers
+
+
+    return true;
+}
+
+/// @description Approaches and then orbits an enemy's strategic target.
+
+function scr_enemy_orbit_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _target =
+        _enemy.targeting.target;
+
+    if (!instance_exists(_target))
+        return false;
+
+    var _orbit =
+        _enemy.ability_runtime.orbit;
+
+    if (!is_struct(_orbit))
+        return false;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    var _distance =
+        point_distance(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+    var _entry_distance =
+        _orbit.radius
+        + _orbit.entry_tolerance;
+
+
+    // ========================================================================
+    // APPROACH
+    // ========================================================================
+
+    if (
+        !_orbit.active
+        && _distance > _entry_distance
+    )
+    {
+        _enemy.EnemyState =
+            EnemyState.MOVING;
+
+        var _direction =
+            point_direction(
+                _enemy.x,
+                _enemy.y,
+                _target.x,
+                _target.y
+            );
+
+        _enemy.x +=
+            lengthdir_x(
+                _enemy.movement.speed,
+                _direction
+            );
+
+        _enemy.y +=
+            lengthdir_y(
+                _enemy.movement.speed,
+                _direction
+            );
+
+        _enemy.x =
+            clamp(
+                _enemy.x,
+                _enemy.visual.radius,
+                room_width - _enemy.visual.radius
+            );
+
+        _enemy.y =
+            clamp(
+                _enemy.y,
+                _enemy.visual.radius,
+                room_height - _enemy.visual.radius
+            );
+
+        return true;
+    }
+
+
+    // ========================================================================
+    // ENTER ORBIT
+    // ========================================================================
+
+    if (!_orbit.active)
+    {
+        _orbit.active = true;
+
+        _orbit.angle =
+            point_direction(
+                _target.x,
+                _target.y,
+                _enemy.x,
+                _enemy.y
+            );
+    }
+
+
+    // ========================================================================
+    // ORBIT
+    // ========================================================================
+
+    _enemy.EnemyState =
+        EnemyState.ATTACKING;
+
+    _orbit.angle +=
+        _orbit.angular_speed
+        / _fps;
+
+    _orbit.angle =
+        _orbit.angle mod 360;
+
+
+    var _orbit_x =
+        _target.x
+        + lengthdir_x(
+            _orbit.radius,
+            _orbit.angle
+        );
+
+    var _orbit_y =
+        _target.y
+        + lengthdir_y(
+            _orbit.radius,
+            _orbit.angle
+        );
+
+
+    var _move_direction =
+        point_direction(
+            _enemy.x,
+            _enemy.y,
+            _orbit_x,
+            _orbit_y
+        );
+
+    var _move_distance =
+        min(
+            _enemy.movement.speed,
+            point_distance(
+                _enemy.x,
+                _enemy.y,
+                _orbit_x,
+                _orbit_y
+            )
+        );
+
+
+    _enemy.x +=
+        lengthdir_x(
+            _move_distance,
+            _move_direction
+        );
+
+    _enemy.y +=
+        lengthdir_y(
+            _move_distance,
+            _move_direction
+        );
+
+
+    _enemy.x =
+        clamp(
+            _enemy.x,
+            _enemy.visual.radius,
+            room_width - _enemy.visual.radius
+        );
+
+    _enemy.y =
+        clamp(
+            _enemy.y,
+            _enemy.visual.radius,
+            room_height - _enemy.visual.radius
+        );
+
+
+    // Gunships face inward while firing, similar to the original enemy.
+
+    _enemy.visual.draw_angle =
+        point_direction(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+
+    if (_enemy.attack.cooldown.remaining <= 0)
+        scr_enemy_attack(_enemy);
+
+
+    return true;
+}
+
+/// @description Kills an enemy, processes abilities and awards valid kills.
 
 function scr_enemy_die(_enemy, _damage)
 {
@@ -1912,9 +2383,7 @@ function scr_enemy_die(_enemy, _damage)
         )
     )
     {
-        scr_enemy_explode(
-            _enemy
-        );
+        scr_enemy_explode(_enemy);
     }
 
 
@@ -1925,9 +2394,18 @@ function scr_enemy_die(_enemy, _damage)
         )
     )
     {
-        scr_enemy_split(
-            _enemy
-        );
+        scr_enemy_split(_enemy);
+    }
+
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.TRANSPORT_ENEMIES
+        )
+    )
+    {
+        scr_enemy_transport_release(_enemy);
     }
 
 
@@ -1938,7 +2416,10 @@ function scr_enemy_die(_enemy, _damage)
     if (
         variable_global_exists("vtd_level")
         && is_struct(global.vtd_level)
-        && variable_struct_exists(global.vtd_level, "combat")
+        && variable_struct_exists(
+            global.vtd_level,
+            "combat"
+        )
     )
     {
         global.vtd_level.combat.kills++;
@@ -1946,7 +2427,7 @@ function scr_enemy_die(_enemy, _damage)
 
 
     // ========================================================================
-    // VALID REWARD AND KILL ATTRIBUTION
+    // REWARDS AND KILL ATTRIBUTION
     // ========================================================================
 
     if (is_struct(_damage))
@@ -1967,13 +2448,11 @@ function scr_enemy_die(_enemy, _damage)
     // FUTURE:
     // particles
     // physical item drops
-    // transporter release
     // elite reward modifiers
+    // death sounds
 
 
-    instance_destroy(
-        _enemy
-    );
+    instance_destroy(_enemy);
 
     return true;
 }

@@ -635,3 +635,244 @@ function scr_enemy_shield_draw(_enemy)
 
     return true;
 }
+
+/// @description Draws the large armoured-looking Heavy Brute.
+
+function scr_enemy_visual_brute(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+    draw_set_color(_color);
+
+
+    // Heavy hexagonal chassis.
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _a1 = _angle + (i * 60);
+        var _a2 = _angle + (((i + 1) mod 6) * 60);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius, _a1),
+            _y + lengthdir_y(_radius, _a1),
+            _x + lengthdir_x(_radius, _a2),
+            _y + lengthdir_y(_radius, _a2),
+            3
+        );
+    }
+
+
+    // Forward crushing wedge.
+
+    draw_line_width(
+        _x + lengthdir_x(_radius * 0.4, _angle + 90),
+        _y + lengthdir_y(_radius * 0.4, _angle + 90),
+        _x + lengthdir_x(_radius * 1.15, _angle),
+        _y + lengthdir_y(_radius * 1.15, _angle),
+        3
+    );
+
+    draw_line_width(
+        _x + lengthdir_x(_radius * 0.4, _angle - 90),
+        _y + lengthdir_y(_radius * 0.4, _angle - 90),
+        _x + lengthdir_x(_radius * 1.15, _angle),
+        _y + lengthdir_y(_radius * 1.15, _angle),
+        3
+    );
+
+
+    // Dense central core.
+
+    draw_circle(_x, _y, _radius * 0.4, false);
+    draw_circle(_x, _y, 4, true);
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the large cargo-carrying Transporter.
+
+function scr_enemy_visual_transporter(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+    draw_set_color(_color);
+
+
+    // Rotating outer cargo frame.
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _a1 = _angle + 45 + (i * 90);
+        var _a2 = _angle + 45 + (((i + 1) mod 4) * 90);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius, _a1),
+            _y + lengthdir_y(_radius, _a1),
+            _x + lengthdir_x(_radius, _a2),
+            _y + lengthdir_y(_radius, _a2),
+            3
+        );
+    }
+
+
+    // Internal cargo pods.
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _pod_angle =
+            _angle + 45 + (i * 90);
+
+        var _pod_x =
+            _x + lengthdir_x(
+                _radius * 0.55,
+                _pod_angle
+            );
+
+        var _pod_y =
+            _y + lengthdir_y(
+                _radius * 0.55,
+                _pod_angle
+            );
+
+        draw_circle(
+            _pod_x,
+            _pod_y,
+            5,
+            false
+        );
+    }
+
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.35,
+        false
+    );
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the hovering orbiting Gunship.
+
+function scr_enemy_visual_gunship(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _hover =
+        scr_enemy_visual_hover_offset_get(_enemy);
+
+    var _x = _enemy.x;
+    var _y = _enemy.y + _hover;
+
+
+    // Ground shadow.
+
+    draw_set_alpha(0.2);
+    draw_set_color(c_black);
+
+    draw_ellipse(
+        _enemy.x - (_radius * 0.85),
+        _enemy.y + 3,
+        _enemy.x + (_radius * 0.85),
+        _enemy.y + 11,
+        false
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(_enemy.visual.color);
+
+
+    // Swept-wing airframe.
+
+    var _front_x =
+        _x + lengthdir_x(_radius, _angle);
+
+    var _front_y =
+        _y + lengthdir_y(_radius, _angle);
+
+    var _back_x =
+        _x + lengthdir_x(
+            _radius * 0.8,
+            _angle + 180
+        );
+
+    var _back_y =
+        _y + lengthdir_y(
+            _radius * 0.8,
+            _angle + 180
+        );
+
+    var _left_x =
+        _x + lengthdir_x(
+            _radius * 1.25,
+            _angle + 115
+        );
+
+    var _left_y =
+        _y + lengthdir_y(
+            _radius * 1.25,
+            _angle + 115
+        );
+
+    var _right_x =
+        _x + lengthdir_x(
+            _radius * 1.25,
+            _angle - 115
+        );
+
+    var _right_y =
+        _y + lengthdir_y(
+            _radius * 1.25,
+            _angle - 115
+        );
+
+
+    draw_line_width(_front_x, _front_y, _left_x, _left_y, 2);
+    draw_line_width(_left_x, _left_y, _back_x, _back_y, 2);
+    draw_line_width(_back_x, _back_y, _right_x, _right_y, 2);
+    draw_line_width(_right_x, _right_y, _front_x, _front_y, 2);
+
+
+    // Forward weapon and engine core.
+
+    draw_line_width(
+        _x,
+        _y,
+        _front_x,
+        _front_y,
+        3
+    );
+
+    draw_circle(_x, _y, 7, false);
+
+    draw_set_color(c_white);
+    draw_circle(_x, _y, 2, true);
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}

@@ -33,14 +33,25 @@ function scr_enemy_data_initialize()
 
     if (!scr_enemy_data_flyer())
         return false;
-	
-	if (!scr_enemy_data_shielded())
-    return false;
+
+
+    // Modernized original Vector enemies.
+
+    if (!scr_enemy_data_brute())
+        return false;
+
+    if (!scr_enemy_data_transporter())
+        return false;
+
+    if (!scr_enemy_data_gunship())
+        return false;
 
 
     // FUTURE:
-    // scr_enemy_data_armoured();
-    // scr_enemy_data_transporter();
+    // scr_enemy_data_shield_generator();
+    // scr_enemy_data_centipede_head();
+    // scr_enemy_data_centipede_segment();
+    // scr_enemy_data_stealth();
     // scr_enemy_data_underground();
     // scr_enemy_data_siege();
     // scr_enemy_data_elite();
@@ -881,7 +892,6 @@ function scr_enemy_data_splitter_child()
     return true;
 }
 
-
 /// @description Registers the first flying enemy.
 
 function scr_enemy_data_flyer()
@@ -945,51 +955,102 @@ function scr_enemy_data_flyer()
     return true;
 }
 
-/// @description Registers the first naturally shielded ground enemy.
+/// @description Registers the heavy building-hunting Brute.
 
-function scr_enemy_data_shielded()
+function scr_enemy_data_brute()
 {
     variable_struct_set(
         global.vtd.data.enemies,
-        "enemy_shielded",
+        "enemy_brute",
         {
             identity:
             {
-                key: "enemy_shielded",
-                name: "Shielded Drone"
+                key: "enemy_brute",
+                name: "Heavy Brute"
             },
 
             visual:
             {
                 sprite: -1,
-                draw_function: scr_enemy_visual_triangle,
-
-                radius: 20,
-
-                color:
-                    make_color_rgb(
-                        210,
-                        70,
-                        90
-                    ),
-
-                shield_color:
-                    make_color_rgb(
-                        255,
-                        125,
-                        145
-                    )
+                draw_function: scr_enemy_visual_brute,
+                radius: 28,
+                color: make_color_rgb(210, 70, 35)
             },
 
             vitals:
             {
-                hp_maximum: 75,
+                hp_maximum: 350,
                 shield_maximum: 80
             },
 
             movement:
             {
-                speed: 1.65,
+                speed: 0.95,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 40,
+                range: 7,
+                cooldown_seconds: 1.2
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    35,
+                    7
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the ground enemy Transporter.
+
+function scr_enemy_data_transporter()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_transporter",
+        {
+            identity:
+            {
+                key: "enemy_transporter",
+                name: "Ground Transporter"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_transporter,
+                radius: 32,
+                color: make_color_rgb(190, 45, 210)
+            },
+
+            vitals:
+            {
+                hp_maximum: 500,
+                shield_maximum: 100
+            },
+
+            movement:
+            {
+                speed: 0.8,
                 layer: EnemyMovementLayer.GROUND
             },
 
@@ -1006,21 +1067,138 @@ function scr_enemy_data_shielded()
             attack:
             {
                 type: EnemyAttack.CONTACT,
-                damage: 10,
-                range: 5,
-                cooldown_seconds: 1
+                damage: 25,
+                range: 8,
+                cooldown_seconds: 1.2
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    50,
+                    10
+                ),
+
+            abilities:
+            [
+                EnemyAbility.TRANSPORT_ENEMIES
+            ],
+
+            ability_data:
+            {
+                transport:
+                {
+                    spawn_radius: 38,
+
+                    cargo:
+                    [
+                        {
+                            enemy_key: "enemy_weak",
+                            count_min: 5,
+                            count_max: 8,
+
+                            // A shielded transporter may release
+                            // shielded children too.
+                            inherit_modifiers: true
+                        }
+                    ]
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the orbiting ranged Gunship.
+
+function scr_enemy_data_gunship()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_gunship",
+        {
+            identity:
+            {
+                key: "enemy_gunship",
+                name: "Orbiting Gunship"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_gunship,
+                radius: 22,
+                color: make_color_rgb(80, 210, 255)
+            },
+
+            vitals:
+            {
+                hp_maximum: 120,
+                shield_maximum: 60
+            },
+
+            movement:
+            {
+                speed: 2.4,
+                layer: EnemyMovementLayer.FLYING
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                // The gunship performs direct flying movement.
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+                damage: 8,
+                range: 340,
+                cooldown_seconds: 0.7,
+
+                projectile:
+                {
+                    speed: 14,
+                    lifetime_seconds: 4,
+                    radius: 4,
+                    color: c_aqua,
+                    shot_count: 1,
+                    spread_degrees: 0
+                }
             },
 
             rewards:
                 scr_enemy_rewards_create(
                     25,
-                    4
+                    5
                 ),
 
-            abilities: []
+            abilities:
+            [
+                EnemyAbility.ORBIT_TARGET
+            ],
+
+            ability_data:
+            {
+                orbit:
+                {
+                    radius: 285,
+
+                    // Degrees travelled around the target each second.
+                    angular_speed: 18,
+
+                    // Prevents constant switching between approach and orbit.
+                    entry_tolerance: 24
+                }
+            }
         }
     );
 
-
     return true;
 }
+

@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_enemy",
+  "%Name":"scr_enemy_abilities",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_enemy",
+  "name":"scr_enemy_abilities",
   "parent":{
     "name":"enemy",
     "path":"folders/scripts/enemy.yy",
