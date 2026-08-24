@@ -11,6 +11,16 @@ function scr_enemy_has_ability(
     if (!instance_exists(_enemy))
         return false;
 
+    if (
+        !variable_instance_exists(
+            _enemy,
+            "abilities"
+        )
+    )
+    {
+        return false;
+    }
+
     if (!is_array(_enemy.abilities))
         return false;
 
@@ -318,6 +328,26 @@ function scr_enemy_initialize(_enemy)
             spread_degrees: _projectile.spread_degrees
         };
     }
+	
+	// ========================================================================
+	// ABILITIES
+	// ========================================================================
+
+	// Copy the definition array into an independent runtime array.
+
+	_enemy.abilities = [];
+
+	for (
+	    var i = 0;
+	    i < array_length(_data.abilities);
+	    ++i
+	)
+	{
+	    array_push(
+	        _enemy.abilities,
+	        _data.abilities[i]
+	    );
+	}
 
 
     // ========================================================================
