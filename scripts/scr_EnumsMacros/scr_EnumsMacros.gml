@@ -130,39 +130,13 @@ enum HudAlertState { OPENING, HOLDING, CLOSING }
 enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
 
 
-///  
-enum EnergyRole
-{
-    NONE,
-    GENERATOR,
-    NODE,
-    BATTERY,
-    CONSUMER
-}
-
-enum EnergyPriority
-{
-    CRITICAL,
-    HIGH,
-    NORMAL,
-    LOW
-}
-
-enum EnergyNetworkState
-{
-    OFFLINE,
-    DEFICIT,
-    BATTERY,
-    BALANCED,
-    SURPLUS
-}
-
-enum EnergyOverlayMode
-{
-    OFF,
-    NETWORKS,
-    DETAILED
-}
+// ============================================================================
+// ENERGY
+// ============================================================================
+enum EnergyRole { NONE, GENERATOR, NODE, BATTERY, CONSUMER }
+enum EnergyPriority { CRITICAL, HIGH, NORMAL, LOW }
+enum EnergyNetworkState { OFFLINE, DEFICIT, BATTERY, BALANCED, SURPLUS }
+enum EnergyOverlayMode { OFF, NETWORKS, DETAILED }
 
 
 // Staggered update helpers.
