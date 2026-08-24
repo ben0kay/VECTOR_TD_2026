@@ -57,6 +57,7 @@ function scr_game_initialize()
 
     scr_resource_data_initialize();
     scr_world_data_initialize();
+	scr_particles_initialize();
 
 
     // FUTURE:

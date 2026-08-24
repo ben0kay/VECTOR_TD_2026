@@ -256,10 +256,14 @@ function scr_utility_credit_magnet_update(_utility)
 }
 
 
-/// @description Repairs the most damaged nearby structure.
+/// @description Repairs the most damaged nearby structure, including the CPU.
 
 function scr_utility_repairer_update(_utility)
 {
+    if (!instance_exists(_utility))
+        return false;
+
+
     var _runtime =
         _utility.utility;
 
@@ -269,6 +273,11 @@ function scr_utility_repairer_update(_utility)
     var _lowest_integrity =
         1;
 
+
+    // ========================================================================
+    // BUILDING TARGETS
+    // ========================================================================
+
     var _building_count =
         instance_number(o_building_par);
 
@@ -276,7 +285,10 @@ function scr_utility_repairer_update(_utility)
     for (var i = 0; i < _building_count; ++i)
     {
         var _building =
-            instance_find(o_building_par, i);
+            instance_find(
+                o_building_par,
+                i
+            );
 
         if (!instance_exists(_building))
             continue;
@@ -296,7 +308,6 @@ function scr_utility_repairer_update(_utility)
 
         if (_hp.current >= _hp.maximum)
             continue;
-
 
         if (
             point_distance(
@@ -328,9 +339,61 @@ function scr_utility_repairer_update(_utility)
     }
 
 
+    // ========================================================================
+    // CPU TARGET
+    // ========================================================================
+
+    var _cpu =
+        global.vtd_level.entities.cpu;
+
+
+    if (instance_exists(_cpu))
+    {
+        var _cpu_hp =
+            _cpu.vitals.hp;
+
+        var _cpu_in_range =
+            point_distance(
+                _utility.x,
+                _utility.y,
+                _cpu.x,
+                _cpu.y
+            )
+            <= _runtime.range;
+
+
+        if (
+            _cpu_in_range
+            && _cpu_hp.current > 0
+            && _cpu_hp.current < _cpu_hp.maximum
+        )
+        {
+            var _cpu_integrity =
+                _cpu_hp.current
+                / max(1, _cpu_hp.maximum);
+
+
+            if (_cpu_integrity < _lowest_integrity)
+            {
+                _target =
+                    _cpu;
+
+                _lowest_integrity =
+                    _cpu_integrity;
+            }
+        }
+    }
+
+
+    // ========================================================================
+    // REPAIR
+    // ========================================================================
+
     if (!instance_exists(_target))
     {
-        _runtime.target = noone;
+        _runtime.target =
+            noone;
+
         return false;
     }
 
@@ -347,11 +410,23 @@ function scr_utility_repairer_update(_utility)
         );
 
 
+    // Cache the target for the temporary repair beam.
+
     _runtime.target =
         _target;
 
     _runtime.feedback.remaining =
         _runtime.feedback.duration;
+
+
+    // Subtle repair particles appear only on a successful repair pulse.
+
+    scr_particles_repair(
+        _utility.x,
+        _utility.y,
+        _target.x,
+        _target.y
+    );
 
 
     return true;
