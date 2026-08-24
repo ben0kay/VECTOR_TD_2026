@@ -236,6 +236,192 @@ function scr_build_mode_begin(
     return true;
 }
 
+/// @description Pays for and creates the selected building.
+
+function scr_build_mode_place(_controller)
+{
+    if (!instance_exists(_controller))
+        return noone;
+
+
+    var _build =
+        _controller.build;
+
+    var _preview =
+        _build.preview;
+
+
+    if (!_preview.valid)
+        return noone;
+
+
+    var _data =
+        scr_building_data_get(
+            _build.selected_key
+        );
+
+
+    if (!scr_building_data_valid(_data))
+        return noone;
+
+
+    // Confirm capacity immediately before payment.
+
+    if (!scr_build_limit_can_place(_data))
+    {
+        scr_build_limit_alert_push(
+            _data
+        );
+
+        return noone;
+    }
+
+
+    var _object =
+        noone;
+
+
+    switch (_data.identity.type)
+    {
+        case BuildingType.WALL:
+            _object = o_wall;
+        break;
+
+
+        case BuildingType.TOWER:
+            _object = o_tower;
+        break;
+
+
+        case BuildingType.MINER:
+            _object = o_miner;
+        break;
+
+
+        case BuildingType.STORAGE:
+            _object = o_storage;
+        break;
+
+
+        case BuildingType.REFINERY:
+        {
+            // FUTURE:
+            // _object = o_refinery;
+        }
+        break;
+
+
+        case BuildingType.POWER_GENERATOR:
+            _object = o_energy_generator;
+        break;
+
+
+        case BuildingType.POWER_NODE:
+            _object = o_energy_node;
+        break;
+
+
+        case BuildingType.POWER_BATTERY:
+            _object = o_energy_battery;
+        break;
+
+
+        case BuildingType.SUPPORT:
+        {
+            // FUTURE:
+            // _object = o_support_building;
+        }
+        break;
+
+
+        case BuildingType.FOUNDATION:
+            _object = o_foundation;
+        break;
+    }
+
+
+    if (_object == noone)
+        return noone;
+
+
+    // Confirm affordability immediately before payment.
+
+    if (
+        !scr_resource_cost_pay(
+            _data.economy.cost
+        )
+    )
+    {
+        scr_hud_alert_push(
+            HudAlertType.WARNING,
+            "INSUFFICIENT RESOURCES",
+            "CONSTRUCTION COST CANNOT BE PAID",
+            2
+        );
+
+        return noone;
+    }
+
+
+    var _placement_layer =
+        "Buildings";
+
+
+    if (
+        _data.identity.type
+        == BuildingType.FOUNDATION
+    )
+    {
+        _placement_layer =
+            "Foundations";
+    }
+
+
+    var _building =
+        instance_create_layer(
+            _preview.world_x,
+            _preview.world_y,
+            _placement_layer,
+            _object,
+            {
+                building_key:
+                    _build.selected_key,
+
+                placement_cell_x:
+                    _preview.cell_x,
+
+                placement_cell_y:
+                    _preview.cell_y
+            }
+        );
+
+
+    if (!instance_exists(_building))
+    {
+        scr_resource_cost_refund(
+            _data.economy.cost
+        );
+
+
+        show_debug_message(
+            "BUILD ERROR - creation failed and cost was refunded: "
+            + _data.identity.name
+        );
+
+
+        return noone;
+    }
+
+
+    show_debug_message(
+        "BUILD PLACED: "
+        + _data.identity.name
+    );
+
+
+    return _building;
+}
+
 
 /// @description Processes selected-building placement input.
 
