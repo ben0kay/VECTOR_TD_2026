@@ -844,19 +844,16 @@ function scr_enemy_update(_enemy)
         return scr_enemy_brainless_update(_enemy);
 
 
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
+    var _fps = max(
+        1,
+        game_get_speed(gamespeed_fps)
+    );
 
 
-    _enemy.attack.cooldown.remaining =
-        max(
-            0,
-            _enemy.attack.cooldown.remaining
-            - (1 / _fps)
-        );
+    _enemy.attack.cooldown.remaining = max(
+        0,
+        _enemy.attack.cooldown.remaining - (1 / _fps)
+    );
 
 
     // ========================================================================
@@ -868,6 +865,7 @@ function scr_enemy_update(_enemy)
         _enemy.targeting.strategic =
             scr_enemy_target_acquire(_enemy);
     }
+
 
     if (!instance_exists(_enemy.targeting.breach))
         _enemy.targeting.breach = noone;
@@ -904,23 +902,36 @@ function scr_enemy_update(_enemy)
     }
 
 
-
     // ========================================================================
-    // SPECIAL MOVEMENT
+    // SPECIAL BEHAVIOURS
     // ========================================================================
 
-	if (
-    scr_enemy_has_ability(
-        _enemy,
-        EnemyAbility.SHIELD_ALLIES
-	    )
-	)
-	{
-	    return scr_enemy_shield_generator_update(
-	        _enemy
-	    );
-	}
-		
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.SHIELD_ALLIES
+        )
+    )
+    {
+        return scr_enemy_shield_generator_update(
+            _enemy
+        );
+    }
+
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.CONTINUOUS_BEAM
+        )
+    )
+    {
+        return scr_enemy_siege_beam_update(
+            _enemy
+        );
+    }
+
+
     if (
         scr_enemy_has_ability(
             _enemy,
@@ -936,22 +947,19 @@ function scr_enemy_update(_enemy)
     // STANDARD MOVEMENT / COMBAT
     // ========================================================================
 
-    var _target =
-        _enemy.targeting.target;
+    var _target = _enemy.targeting.target;
 
-    var _edge_distance =
-        scr_enemy_target_edge_distance(
-            _enemy,
-            _target
-        );
+    var _edge_distance = scr_enemy_target_edge_distance(
+        _enemy,
+        _target
+    );
 
 
     switch (_enemy.EnemyState)
     {
         case EnemyState.SPAWNING:
         {
-            _enemy.EnemyState =
-                EnemyState.MOVING;
+            _enemy.EnemyState = EnemyState.MOVING;
 
             scr_navigation_enemy_repath_request(
                 _enemy,
@@ -966,10 +974,7 @@ function scr_enemy_update(_enemy)
             if (_edge_distance <= _enemy.attack.range)
             {
                 scr_navigation_enemy_stop(_enemy);
-
-                _enemy.EnemyState =
-                    EnemyState.ATTACKING;
-
+                _enemy.EnemyState = EnemyState.ATTACKING;
                 break;
             }
 
@@ -980,18 +985,17 @@ function scr_enemy_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
-            _enemy.visual.draw_angle =
-                point_direction(
-                    _enemy.x,
-                    _enemy.y,
-                    _target.x,
-                    _target.y
-                );
+            _enemy.visual.draw_angle = point_direction(
+                _enemy.x,
+                _enemy.y,
+                _target.x,
+                _target.y
+            );
+
 
             if (_edge_distance > _enemy.attack.range)
             {
-                _enemy.EnemyState =
-                    EnemyState.MOVING;
+                _enemy.EnemyState = EnemyState.MOVING;
 
                 scr_navigation_enemy_repath_request(
                     _enemy,
@@ -1000,6 +1004,7 @@ function scr_enemy_update(_enemy)
 
                 break;
             }
+
 
             if (_enemy.attack.cooldown.remaining <= 0)
                 scr_enemy_attack(_enemy);
@@ -2153,4 +2158,158 @@ function scr_enemy_pickup_drop_try(_enemy, _damage)
             _drop.amount
         )
     );
+}
+
+/// @description Applies enemy damage to one valid player-side target.
+
+function scr_enemy_damage_target(
+    _enemy,
+    _target,
+    _amount,
+    _damage_type = DamageType.KINETIC
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_target))
+        return false;
+
+    if (_amount <= 0)
+        return false;
+
+
+    var _damage = scr_damage_create(
+        _amount,
+        _enemy,
+        DamageSource.ENEMY,
+        _damage_type
+    );
+
+
+    if (_target.object_index == o_cpu)
+        return scr_cpu_damage(_target, _damage.amount);
+
+
+    if (_target.object_index == o_player)
+        return scr_player_damage(_target, _damage);
+
+
+    if (
+        _target.object_index == o_building_par
+        || object_is_ancestor(
+            _target.object_index,
+            o_building_par
+        )
+    )
+    {
+        return scr_building_damage(
+            _target,
+            _damage
+        );
+    }
+
+
+    return false;
+}
+
+/// @description Updates one continuous-beam siege enemy.
+
+function scr_enemy_siege_beam_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _target = _enemy.targeting.target;
+
+    if (!instance_exists(_target))
+        return true;
+
+
+    var _edge_distance = scr_enemy_target_edge_distance(
+        _enemy,
+        _target
+    );
+
+
+    switch (_enemy.EnemyState)
+    {
+        case EnemyState.SPAWNING:
+        {
+            _enemy.EnemyState = EnemyState.MOVING;
+
+            scr_navigation_enemy_repath_request(
+                _enemy,
+                true
+            );
+        }
+        break;
+
+
+        case EnemyState.MOVING:
+        {
+            if (_edge_distance <= _enemy.attack.range)
+            {
+                scr_navigation_enemy_stop(_enemy);
+                _enemy.EnemyState = EnemyState.ATTACKING;
+                break;
+            }
+
+            scr_navigation_enemy_update(_enemy);
+        }
+        break;
+
+
+        case EnemyState.ATTACKING:
+        {
+            _enemy.visual.draw_angle = point_direction(
+                _enemy.x,
+                _enemy.y,
+                _target.x,
+                _target.y
+            );
+
+
+            if (_edge_distance > _enemy.attack.range)
+            {
+                _enemy.EnemyState = EnemyState.MOVING;
+
+                scr_navigation_enemy_repath_request(
+                    _enemy,
+                    true
+                );
+
+                break;
+            }
+
+
+            // Continuous damage is converted from damage-per-second
+            // into the correct amount for this frame.
+
+            var _fps = max(
+                1,
+                game_get_speed(gamespeed_fps)
+            );
+
+            scr_enemy_damage_target(
+                _enemy,
+                _target,
+                _enemy.attack.damage / _fps,
+                DamageType.LASER
+            );
+        }
+        break;
+
+
+        case EnemyState.STUNNED:
+        case EnemyState.DEAD:
+        {
+            scr_navigation_enemy_stop(_enemy);
+        }
+        break;
+    }
+
+
+    return true;
 }

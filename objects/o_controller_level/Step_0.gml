@@ -70,6 +70,12 @@ switch (global.LevelState)
 			
 		if (keyboard_check_pressed(ord("4")))
 		scr_enemy_spawn_edge("enemy_shield_generator");
+		
+		if (keyboard_check_pressed(ord("5")))
+		scr_enemy_spawn_edge("enemy_siege_beam");
+		
+		if (keyboard_check_pressed(ord("6")))
+		scr_enemy_spawn_edge("enemy_siege_rocket");
 	
 
         // Direct CPU damage test.

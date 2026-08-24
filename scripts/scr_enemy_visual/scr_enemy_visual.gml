@@ -1068,3 +1068,273 @@ function scr_enemy_visual_shield_generator(_enemy)
 
     return true;
 }
+
+/// @description Draws the heavy continuous-beam siege platform.
+
+function scr_enemy_visual_siege_beam(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+
+    draw_set_color(_color);
+
+
+    // Heavy hexagonal chassis.
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _a1 = _angle + 30 + (i * 60);
+        var _a2 = _angle + 30 + (((i + 1) mod 6) * 60);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius, _a1),
+            _y + lengthdir_y(_radius, _a1),
+            _x + lengthdir_x(_radius, _a2),
+            _y + lengthdir_y(_radius, _a2),
+            3
+        );
+    }
+
+
+    // Four siege stabilizers.
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _leg_angle = _angle + 45 + (i * 90);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius * 0.45, _leg_angle),
+            _y + lengthdir_y(_radius * 0.45, _leg_angle),
+            _x + lengthdir_x(_radius * 1.15, _leg_angle),
+            _y + lengthdir_y(_radius * 1.15, _leg_angle),
+            4
+        );
+
+        draw_circle(
+            _x + lengthdir_x(_radius * 1.15, _leg_angle),
+            _y + lengthdir_y(_radius * 1.15, _leg_angle),
+            4,
+            false
+        );
+    }
+
+
+    // Forward beam emitter.
+
+    draw_circle(_x, _y, _radius * 0.42, false);
+    draw_circle(_x, _y, _radius * 0.18, true);
+
+    draw_line_width(
+        _x,
+        _y,
+        _x + lengthdir_x(_radius * 1.2, _angle),
+        _y + lengthdir_y(_radius * 1.2, _angle),
+        8
+    );
+
+
+    // Draw the continuous beam only while actively firing.
+
+    if (
+        _enemy.EnemyState == EnemyState.ATTACKING
+        && instance_exists(_enemy.targeting.target)
+    )
+    {
+        var _target = _enemy.targeting.target;
+
+        var _beam_color = _color;
+        var _inner_color = c_white;
+        var _beam_width = 5;
+
+
+        if (
+            variable_struct_exists(
+                _enemy.enemy_data,
+                "ability_data"
+            )
+            && variable_struct_exists(
+                _enemy.enemy_data.ability_data,
+                "beam"
+            )
+        )
+        {
+            var _beam =
+                _enemy.enemy_data.ability_data.beam;
+
+            _beam_color = _beam.color;
+            _inner_color = _beam.inner_color;
+            _beam_width = _beam.width;
+        }
+
+
+        var _muzzle_x =
+            _x + lengthdir_x(_radius * 1.2, _angle);
+
+        var _muzzle_y =
+            _y + lengthdir_y(_radius * 1.2, _angle);
+
+        var _flicker =
+            dsin(
+                (global.vtd.tick * 28)
+                + real(_enemy.id)
+            ) * 2;
+
+
+        draw_set_alpha(0.35);
+        draw_set_color(_beam_color);
+
+        draw_line_width(
+            _muzzle_x,
+            _muzzle_y,
+            _target.x,
+            _target.y,
+            _beam_width + 6
+        );
+
+
+        draw_set_alpha(0.9);
+        draw_set_color(_beam_color);
+
+        draw_line_width(
+            _muzzle_x,
+            _muzzle_y,
+            _target.x + _flicker,
+            _target.y - _flicker,
+            _beam_width
+        );
+
+
+        draw_set_alpha(1);
+        draw_set_color(_inner_color);
+
+        draw_line_width(
+            _muzzle_x,
+            _muzzle_y,
+            _target.x,
+            _target.y,
+            1
+        );
+
+
+        // FUTURE:
+        // heat embers
+        // beam impact particles
+        // target scorch marks
+        // charging sound
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the heavy explosive-rocket siege platform.
+
+function scr_enemy_visual_siege_rocket(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+
+    draw_set_color(_color);
+
+
+    // Broad octagonal siege chassis.
+
+    for (var i = 0; i < 8; ++i)
+    {
+        var _a1 = _angle + 22.5 + (i * 45);
+        var _a2 = _angle + 22.5 + (((i + 1) mod 8) * 45);
+
+        draw_line_width(
+            _x + lengthdir_x(_radius, _a1),
+            _y + lengthdir_y(_radius, _a1),
+            _x + lengthdir_x(_radius, _a2),
+            _y + lengthdir_y(_radius, _a2),
+            3
+        );
+    }
+
+
+    // Armoured inner ring.
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.58,
+        false
+    );
+
+
+    // Large forward launch tube.
+
+    var _side_x = lengthdir_x(10, _angle + 90);
+    var _side_y = lengthdir_y(10, _angle + 90);
+
+    var _back_x = _x + lengthdir_x(12, _angle + 180);
+    var _back_y = _y + lengthdir_y(12, _angle + 180);
+
+    var _front_x = _x + lengthdir_x(_radius * 1.25, _angle);
+    var _front_y = _y + lengthdir_y(_radius * 1.25, _angle);
+
+
+    draw_line_width(
+        _back_x + _side_x,
+        _back_y + _side_y,
+        _front_x + _side_x,
+        _front_y + _side_y,
+        4
+    );
+
+    draw_line_width(
+        _back_x - _side_x,
+        _back_y - _side_y,
+        _front_x - _side_x,
+        _front_y - _side_y,
+        4
+    );
+
+    draw_line_width(
+        _front_x + _side_x,
+        _front_y + _side_y,
+        _front_x - _side_x,
+        _front_y - _side_y,
+        4
+    );
+
+
+    // Volatile warhead indicator.
+
+    var _pulse =
+        0.6
+        + dsin(
+            (global.vtd.tick * 6)
+            + real(_enemy.id)
+        ) * 0.3;
+
+    draw_set_alpha(_pulse);
+    draw_circle(_x, _y, 8, true);
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}

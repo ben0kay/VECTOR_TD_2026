@@ -257,10 +257,10 @@ Future possibilities:
 Current intended layer structure:
 
 - `Controller`
-- `Instances`
 - `Effects_Flyer`
 - `Projectiles_Flyer`
 - `Enemies_Flyer`
+- `Instances`
 - `Effects_Ground`
 - `Projectiles_Ground`
 - `Player`

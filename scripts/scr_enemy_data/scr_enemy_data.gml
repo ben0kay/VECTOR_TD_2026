@@ -45,18 +45,25 @@ function scr_enemy_data_initialize()
 
     if (!scr_enemy_data_gunship())
         return false;
-	
-	if (!scr_enemy_data_shield_generator())
-    return false;
+
+    if (!scr_enemy_data_shield_generator())
+        return false;
+
+
+    // Heavy siege enemies.
+
+    if (!scr_enemy_data_siege_beam())
+        return false;
+
+    if (!scr_enemy_data_siege_rocket())
+        return false;
 
 
     // FUTURE:
-    // scr_enemy_data_shield_generator();
     // scr_enemy_data_centipede_head();
     // scr_enemy_data_centipede_segment();
     // scr_enemy_data_stealth();
     // scr_enemy_data_underground();
-    // scr_enemy_data_siege();
     // scr_enemy_data_elite();
     // scr_enemy_data_boss();
 
@@ -1317,3 +1324,161 @@ function scr_enemy_data_shield_generator()
     return true;
 }
 
+/// @description Registers the continuous-beam siege enemy.
+
+function scr_enemy_data_siege_beam()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_siege_beam",
+        {
+            identity:
+            {
+                key: "enemy_siege_beam",
+                name: "Siege Beam Platform"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_siege_beam,
+                radius: 44,
+                color: make_color_rgb(220, 70, 255)
+            },
+
+            vitals:
+            {
+                hp_maximum: 1400,
+                shield_maximum: 180
+            },
+
+            movement:
+            {
+                speed: 0.45,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            // Damage is measured per second for continuous beams.
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 24,
+                range: 620,
+                cooldown_seconds: 0
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    120,
+                    24
+                ),
+
+            abilities:
+            [
+                EnemyAbility.CONTINUOUS_BEAM
+            ],
+
+            ability_data:
+            {
+                beam:
+                {
+                    color: make_color_rgb(255, 70, 240),
+                    inner_color: c_white,
+                    width: 5
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the explosive-rocket siege enemy.
+
+function scr_enemy_data_siege_rocket()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_siege_rocket",
+        {
+            identity:
+            {
+                key: "enemy_siege_rocket",
+                name: "Siege Rocket Platform"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_siege_rocket,
+                radius: 48,
+                color: make_color_rgb(255, 110, 40)
+            },
+
+            vitals:
+            {
+                hp_maximum: 1800,
+                shield_maximum: 120
+            },
+
+            movement:
+            {
+                speed: 0.38,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+                damage: 135,
+                range: 720,
+                cooldown_seconds: 5,
+
+                projectile:
+                {
+                    speed: 3.5,
+                    lifetime_seconds: 12,
+                    radius: 9,
+                    color: make_color_rgb(255, 120, 30),
+                    shot_count: 1,
+                    spread_degrees: 0,
+
+                    impact: ProjectileImpact.EXPLOSIVE,
+                    damage_radius: 150,
+                    rocket: true
+                }
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    150,
+                    30
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}

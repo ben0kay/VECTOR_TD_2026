@@ -19,6 +19,21 @@ function scr_projectile_enemy_create(
         return noone;
 
 
+    var _impact = ProjectileImpact.DIRECT;
+    var _damage_radius = 0;
+    var _rocket = false;
+
+
+    if (variable_struct_exists(_projectile_data, "impact"))
+        _impact = _projectile_data.impact;
+
+    if (variable_struct_exists(_projectile_data, "damage_radius"))
+        _damage_radius = _projectile_data.damage_radius;
+
+    if (variable_struct_exists(_projectile_data, "rocket"))
+        _rocket = _projectile_data.rocket;
+
+
     return instance_create_layer(
         _world_x,
         _world_y,
@@ -35,11 +50,14 @@ function scr_projectile_enemy_create(
             projectile_lifetime: _projectile_data.lifetime_seconds,
             projectile_radius: _projectile_data.radius,
             projectile_color: _projectile_data.color,
-            projectile_angle: _draw_angle
+            projectile_angle: _draw_angle,
+
+            projectile_impact: _impact,
+            projectile_damage_radius: _damage_radius,
+            projectile_rocket: _rocket
         }
     );
 }
-
 
 /// @description Initializes one hostile projectile runtime.
 
@@ -52,7 +70,9 @@ function scr_projectile_enemy_initialize(_projectile)
     _projectile.combat =
     {
         owner: _projectile.projectile_owner,
-        damage: _projectile.projectile_damage
+        damage: _projectile.projectile_damage,
+        impact: _projectile.projectile_impact,
+        damage_radius: max(0, _projectile.projectile_damage_radius)
     };
 
 
@@ -72,7 +92,8 @@ function scr_projectile_enemy_initialize(_projectile)
     {
         draw_angle: _projectile.projectile_angle,
         radius: _projectile.projectile_radius,
-        color: _projectile.projectile_color
+        color: _projectile.projectile_color,
+        rocket: _projectile.projectile_rocket
     };
 
 
@@ -267,7 +288,6 @@ function scr_projectile_enemy_damage_target(_projectile, _target)
     return false;
 }
 
-
 /// @description Moves one hostile projectile and resolves its first impact.
 
 function scr_projectile_enemy_update(_projectile)
@@ -276,7 +296,11 @@ function scr_projectile_enemy_update(_projectile)
         return false;
 
 
-    var _fps = max(1, game_get_speed(gamespeed_fps));
+    var _fps = max(
+        1,
+        game_get_speed(gamespeed_fps)
+    );
+
 
     _projectile.life.remaining = max(
         0,
@@ -316,12 +340,31 @@ function scr_projectile_enemy_update(_projectile)
 
     if (instance_exists(_target))
     {
-        scr_projectile_enemy_damage_target(_projectile, _target);
+        _projectile.x = _end_x;
+        _projectile.y = _end_y;
 
-        // FUTURE:
-        // impact particles
-        // shield effects
-        // projectile sounds
+
+        switch (_projectile.combat.impact)
+        {
+            case ProjectileImpact.DIRECT:
+            {
+                scr_projectile_enemy_damage_target(
+                    _projectile,
+                    _target
+                );
+            }
+            break;
+
+
+            case ProjectileImpact.EXPLOSIVE:
+            {
+                scr_projectile_enemy_explosion_apply(
+                    _projectile
+                );
+            }
+            break;
+        }
+
 
         instance_destroy(_projectile);
         return true;
@@ -334,7 +377,6 @@ function scr_projectile_enemy_update(_projectile)
     return true;
 }
 
-
 /// @description Draws one hostile vector projectile.
 
 function scr_projectile_enemy_draw(_projectile)
@@ -344,15 +386,248 @@ function scr_projectile_enemy_draw(_projectile)
 
 
     var _visual = _projectile.visual;
+    var _angle = _visual.draw_angle;
 
-    var _trail_x = _projectile.x - lengthdir_x(12, _visual.draw_angle);
-    var _trail_y = _projectile.y - lengthdir_y(12, _visual.draw_angle);
+
+    if (_visual.rocket)
+    {
+        var _pulse =
+            0.6
+            + dsin(
+                (global.vtd.tick * 12)
+                + real(_projectile.id)
+            ) * 0.25;
+
+
+        // Long exhaust trail.
+
+        draw_set_alpha(_pulse);
+        draw_set_color(c_yellow);
+
+        draw_line_width(
+            _projectile.x + lengthdir_x(10, _angle + 180),
+            _projectile.y + lengthdir_y(10, _angle + 180),
+            _projectile.x + lengthdir_x(28, _angle + 180),
+            _projectile.y + lengthdir_y(28, _angle + 180),
+            5
+        );
+
+
+        // Rotating diamond-shaped warhead.
+
+        draw_set_alpha(1);
+        draw_set_color(_visual.color);
+
+        var _front_x =
+            _projectile.x + lengthdir_x(13, _angle);
+
+        var _front_y =
+            _projectile.y + lengthdir_y(13, _angle);
+
+        var _back_x =
+            _projectile.x + lengthdir_x(10, _angle + 180);
+
+        var _back_y =
+            _projectile.y + lengthdir_y(10, _angle + 180);
+
+        var _left_x =
+            _projectile.x + lengthdir_x(7, _angle + 90);
+
+        var _left_y =
+            _projectile.y + lengthdir_y(7, _angle + 90);
+
+        var _right_x =
+            _projectile.x + lengthdir_x(7, _angle - 90);
+
+        var _right_y =
+            _projectile.y + lengthdir_y(7, _angle - 90);
+
+
+        draw_line_width(_front_x, _front_y, _left_x, _left_y, 2);
+        draw_line_width(_left_x, _left_y, _back_x, _back_y, 2);
+        draw_line_width(_back_x, _back_y, _right_x, _right_y, 2);
+        draw_line_width(_right_x, _right_y, _front_x, _front_y, 2);
+
+        draw_circle(
+            _projectile.x,
+            _projectile.y,
+            3,
+            true
+        );
+
+
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+
+        return true;
+    }
+
+
+    // Normal hostile projectile.
+
+    var _trail_x =
+        _projectile.x - lengthdir_x(12, _angle);
+
+    var _trail_y =
+        _projectile.y - lengthdir_y(12, _angle);
 
 
     draw_set_color(_visual.color);
-    draw_line_width(_trail_x, _trail_y, _projectile.x, _projectile.y, 3);
-    draw_circle(_projectile.x, _projectile.y, _visual.radius, false);
+
+    draw_line_width(
+        _trail_x,
+        _trail_y,
+        _projectile.x,
+        _projectile.y,
+        3
+    );
+
+    draw_circle(
+        _projectile.x,
+        _projectile.y,
+        _visual.radius,
+        false
+    );
+
     draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Applies an enemy explosion to one possible target.
+
+function scr_projectile_enemy_explosion_target(
+    _projectile,
+    _target,
+    _world_x,
+    _world_y,
+    _radius
+)
+{
+    if (!instance_exists(_target))
+        return false;
+
+
+    var _target_radius =
+        scr_projectile_enemy_target_radius(_target);
+
+    var _distance = point_distance(
+        _world_x,
+        _world_y,
+        _target.x,
+        _target.y
+    );
+
+
+    if (_distance > _radius + _target_radius)
+        return false;
+
+
+    var _damage = scr_damage_create(
+        _projectile.combat.damage,
+        _projectile.combat.owner,
+        DamageSource.ENEMY,
+        DamageType.EXPLOSIVE
+    );
+
+
+    if (_target.object_index == o_cpu)
+        return scr_cpu_damage(_target, _damage.amount);
+
+
+    if (_target.object_index == o_player)
+        return scr_player_damage(_target, _damage);
+
+
+    if (
+        _target.object_index == o_building_par
+        || object_is_ancestor(
+            _target.object_index,
+            o_building_par
+        )
+    )
+    {
+        return scr_building_damage(
+            _target,
+            _damage
+        );
+    }
+
+
+    return false;
+}
+
+/// @description Applies one hostile explosive projectile blast.
+
+function scr_projectile_enemy_explosion_apply(_projectile)
+{
+    if (!instance_exists(_projectile))
+        return false;
+
+
+    var _radius =
+        _projectile.combat.damage_radius;
+
+    if (_radius <= 0)
+        return false;
+
+
+    scr_projectile_enemy_explosion_target(
+        _projectile,
+        global.vtd_level.entities.cpu,
+        _projectile.x,
+        _projectile.y,
+        _radius
+    );
+
+
+    scr_projectile_enemy_explosion_target(
+        _projectile,
+        global.vtd_level.entities.player,
+        _projectile.x,
+        _projectile.y,
+        _radius
+    );
+
+
+    var _building_count =
+        instance_number(o_building_par);
+
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building =
+            instance_find(o_building_par, i);
+
+        if (!scr_enemy_building_target_valid(_building))
+            continue;
+
+
+        scr_projectile_enemy_explosion_target(
+            _projectile,
+            _building,
+            _projectile.x,
+            _projectile.y,
+            _radius
+        );
+    }
+
+
+    scr_effect_shockwave_create(
+        _projectile.x,
+        _projectile.y,
+        _radius,
+        _projectile.visual.color,
+        EnemyMovementLayer.GROUND
+    );
+
+
+    // FUTURE:
+    // explosion particles
+    // debris sparks
+    // smoke trail termination
+    // camera shake
+    // explosion sound
 
 
     return true;
