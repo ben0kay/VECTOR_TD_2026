@@ -688,15 +688,20 @@ function scr_energy_network_update(_network, _delta)
     return true;
 }
 
-
-/// @description Updates every local network and aggregate HUD totals.
+/// @description Updates every local network, HUD totals and grid alerts.
 
 function scr_energy_update()
 {
     if (!GAMEPLAY_ACTIVE)
         return false;
 
-    var _system = global.vtd_level.energy;
+
+    var _system =
+        global.vtd_level.energy;
+
+
+    scr_energy_alert_runtime_ensure();
+
 
     if (_system.dirty)
         scr_energy_networks_rebuild();
@@ -709,6 +714,14 @@ function scr_energy_update()
         );
 
 
+    _system.alerts.cooldown_remaining =
+        max(
+            0,
+            _system.alerts.cooldown_remaining
+            - _delta
+        );
+
+
     _system.totals.generation = 0;
     _system.totals.demand = 0;
     _system.totals.stored = 0;
@@ -716,19 +729,34 @@ function scr_energy_update()
     _system.totals.deficient_networks = 0;
 
 
-    for (var i = 0; i < array_length(_system.networks); ++i)
+    for (
+        var network_index = 0;
+        network_index < array_length(_system.networks);
+        ++network_index
+    )
     {
-        var _network = _system.networks[i];
+        var _network =
+            _system.networks[network_index];
+
 
         scr_energy_network_update(
             _network,
             _delta
         );
 
-        _system.totals.generation += _network.generation;
-        _system.totals.demand += _network.demand;
-        _system.totals.stored += _network.stored;
-        _system.totals.storage_maximum += _network.storage_maximum;
+
+        _system.totals.generation +=
+            _network.generation;
+
+        _system.totals.demand +=
+            _network.demand;
+
+        _system.totals.stored +=
+            _network.stored;
+
+        _system.totals.storage_maximum +=
+            _network.storage_maximum;
+
 
         if (
             _network.state == EnergyNetworkState.DEFICIT
@@ -737,6 +765,11 @@ function scr_energy_update()
         {
             ++_system.totals.deficient_networks;
         }
+
+
+        scr_energy_network_alert_update(
+            _network
+        );
     }
 
 
@@ -747,7 +780,6 @@ function scr_energy_update()
 
     return true;
 }
-
 
 /// @description Pays an activity cost from a building's private buffer.
 
@@ -1345,4 +1377,290 @@ function scr_energy_activity_rate_update(_consumer, _delta)
 
 
     return _demand.activity_recent_per_second;
+}
+
+/// @description Ensures the energy-alert runtime exists.
+
+function scr_energy_alert_runtime_ensure()
+{
+    var _system =
+        global.vtd_level.energy;
+
+    if (variable_struct_exists(_system, "alerts"))
+        return true;
+
+
+    _system.alerts =
+    {
+        cooldown_remaining: 0,
+        cooldown_seconds: 3,
+
+        // States are stored by a network's primary-node instance ID.
+        states: {}
+    };
+
+
+    return true;
+}
+
+
+/// @description Returns a reasonably stable identifier for one local network.
+
+function scr_energy_network_alert_key_get(_network)
+{
+    if (!is_struct(_network))
+        return "";
+
+    if (array_length(_network.nodes) <= 0)
+        return "";
+
+
+    var _lowest_id = infinity;
+
+
+    for (var i = 0; i < array_length(_network.nodes); ++i)
+    {
+        var _node = _network.nodes[i];
+
+        if (!instance_exists(_node))
+            continue;
+
+        _lowest_id =
+            min(
+                _lowest_id,
+                real(_node.id)
+            );
+    }
+
+
+    if (_lowest_id == infinity)
+        return "";
+
+
+    return "grid_"
+        + string(floor(_lowest_id));
+}
+
+
+/// @description Returns readable local-network state text.
+
+function scr_energy_network_state_text(_state)
+{
+    switch (_state)
+    {
+        case EnergyNetworkState.OFFLINE:
+            return "OFFLINE";
+
+        case EnergyNetworkState.DEFICIT:
+            return "DEFICIT";
+
+        case EnergyNetworkState.BATTERY:
+            return "BATTERY SUPPORT";
+
+        case EnergyNetworkState.BALANCED:
+            return "BALANCED";
+
+        case EnergyNetworkState.SURPLUS:
+            return "SURPLUS";
+    }
+
+
+    return "UNKNOWN";
+}
+
+
+/// @description Sends one throttled energy-network alert.
+
+function scr_energy_alert_send(
+    _type,
+    _title,
+    _message
+)
+{
+    var _alerts =
+        global.vtd_level.energy.alerts;
+
+    if (_alerts.cooldown_remaining > 0)
+        return false;
+
+
+    if (
+        !scr_hud_alert_push(
+            _type,
+            _title,
+            _message,
+            2.5
+        )
+    )
+    {
+        return false;
+    }
+
+
+    _alerts.cooldown_remaining =
+        _alerts.cooldown_seconds;
+
+
+    return true;
+}
+
+
+/// @description Detects and reports important state changes in one network.
+
+function scr_energy_network_alert_update(_network)
+{
+    if (!is_struct(_network))
+        return false;
+
+
+    var _system =
+        global.vtd_level.energy;
+
+    var _alerts =
+        _system.alerts;
+
+    var _key =
+        scr_energy_network_alert_key_get(
+            _network
+        );
+
+
+    if (_key == "")
+        return false;
+
+
+    // The first observation establishes a baseline without producing
+    // an alert when the level initially creates its networks.
+
+    if (!variable_struct_exists(_alerts.states, _key))
+    {
+        variable_struct_set(
+            _alerts.states,
+            _key,
+            {
+                state: _network.state,
+                stored: _network.stored
+            }
+        );
+
+        return true;
+    }
+
+
+    var _record =
+        variable_struct_get(
+            _alerts.states,
+            _key
+        );
+
+    var _previous_state =
+        _record.state;
+
+    var _previous_stored =
+        _record.stored;
+
+
+    // Store the new state even when the global alert throttle suppresses
+    // its message. This prevents an old transition firing much later.
+
+    _record.state =
+        _network.state;
+
+    _record.stored =
+        _network.stored;
+
+
+    // Battery depletion is more important than a general state change.
+
+    var _battery_depleted =
+        _previous_stored > 0
+        && _network.stored <= 0
+        && (
+            _network.state == EnergyNetworkState.DEFICIT
+            || _network.state == EnergyNetworkState.OFFLINE
+        );
+
+
+    if (_battery_depleted)
+    {
+        return scr_energy_alert_send(
+            HudAlertType.DANGER,
+            "BATTERY RESERVE DEPLETED",
+            "GRID "
+            + string(_network.id + 1)
+            + " // LOAD SHEDDING EXPECTED"
+        );
+    }
+
+
+    if (_previous_state == _network.state)
+        return true;
+
+
+    switch (_network.state)
+    {
+        case EnergyNetworkState.OFFLINE:
+        {
+            return scr_energy_alert_send(
+                HudAlertType.DANGER,
+                "ENERGY NETWORK OFFLINE",
+                "GRID "
+                + string(_network.id + 1)
+                + " // NO ACTIVE SUPPLY"
+            );
+        }
+
+
+        case EnergyNetworkState.DEFICIT:
+        {
+            return scr_energy_alert_send(
+                HudAlertType.WARNING,
+                "LOCAL GRID DEFICIT",
+                "GRID "
+                + string(_network.id + 1)
+                + " // PRIORITY DISTRIBUTION ACTIVE"
+            );
+        }
+
+
+        case EnergyNetworkState.BATTERY:
+        {
+            return scr_energy_alert_send(
+                HudAlertType.WARNING,
+                "BATTERY SUPPORT ACTIVE",
+                "GRID "
+                + string(_network.id + 1)
+                + " // RESERVES DISCHARGING"
+            );
+        }
+
+
+        case EnergyNetworkState.BALANCED:
+        case EnergyNetworkState.SURPLUS:
+        {
+            var _previously_unhealthy =
+                _previous_state == EnergyNetworkState.OFFLINE
+                || _previous_state == EnergyNetworkState.DEFICIT
+                || _previous_state == EnergyNetworkState.BATTERY;
+
+
+            if (_previously_unhealthy)
+            {
+                return scr_energy_alert_send(
+                    HudAlertType.SUCCESS,
+                    "ENERGY NETWORK RECOVERED",
+                    "GRID "
+                    + string(_network.id + 1)
+                    + " // "
+                    + scr_energy_network_state_text(
+                        _network.state
+                    )
+                );
+            }
+        }
+        break;
+    }
+
+
+    return true;
 }
