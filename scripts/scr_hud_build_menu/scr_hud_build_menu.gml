@@ -242,10 +242,13 @@ function scr_hud_build_category_get(_building_data)
     if (!is_struct(_building_data))
         return BuildMenuCategory.AUXILIARY;
 
+
     switch (_building_data.identity.type)
     {
-        case BuildingType.WALL:
         case BuildingType.TOWER:
+            return BuildMenuCategory.TOWERS;
+
+        case BuildingType.WALL:
             return BuildMenuCategory.DEFENSE;
 
         case BuildingType.MINER:
@@ -269,9 +272,9 @@ function scr_hud_build_category_get(_building_data)
             return BuildMenuCategory.AUXILIARY;
     }
 
+
     return BuildMenuCategory.AUXILIARY;
 }
-
 
 /// @description Returns readable category text.
 
@@ -279,6 +282,9 @@ function scr_hud_build_category_name(_category)
 {
     switch (_category)
     {
+        case BuildMenuCategory.TOWERS:
+            return "TOWERS";
+
         case BuildMenuCategory.DEFENSE:
             return "DEFENSE";
 
@@ -365,13 +371,13 @@ function scr_hud_building_role_text(_data)
     return "";
 }
 
-
 /// @description Creates the reusable bottom build-menu runtime.
 
 function scr_hud_build_menu_create()
 {
     var _categories =
     [
+        BuildMenuCategory.TOWERS,
         BuildMenuCategory.DEFENSE,
         BuildMenuCategory.EXTRACTION,
         BuildMenuCategory.STORAGE,
@@ -380,20 +386,32 @@ function scr_hud_build_menu_create()
         BuildMenuCategory.SUPPORT
     ];
 
-    var _category_buttons = [];
+
+    var _category_buttons =
+        [];
 
 
-    for (var i = 0; i < array_length(_categories); ++i)
+    for (
+        var i = 0;
+        i < array_length(_categories);
+        ++i
+    )
     {
-        var _category = _categories[i];
+        var _category =
+            _categories[i];
 
         var _button =
             scr_hud_button_create(
                 _category,
-                scr_hud_build_category_name(_category)
+                scr_hud_build_category_name(
+                    _category
+                )
             );
 
-        _button.data = _category;
+
+        _button.data =
+            _category;
+
 
         array_push(
             _category_buttons,
@@ -402,8 +420,13 @@ function scr_hud_build_menu_create()
     }
 
 
+    // One saved scroll position for every BuildMenuCategory value.
+
     var _scroll_positions =
-        array_create(7, 0);
+        array_create(
+            8,
+            0
+        );
 
 
     return
@@ -412,13 +435,20 @@ function scr_hud_build_menu_create()
         progress: 0,
         animation_speed: 0.16,
 
-        category: BuildMenuCategory.DEFENSE,
+        category:
+            BuildMenuCategory.TOWERS,
 
-        category_buttons: _category_buttons,
-        building_buttons: [],
+        category_buttons:
+            _category_buttons,
 
-        scroll_positions: _scroll_positions,
-        scroll_index: 0,
+        building_buttons:
+            [],
+
+        scroll_positions:
+            _scroll_positions,
+
+        scroll_index:
+            0,
 
         build_button:
             scr_hud_button_create(
@@ -440,18 +470,18 @@ function scr_hud_build_menu_create()
             ),
 
         layout:
-{
-    card_width: 142,
-    card_height: 136,
-    card_gap: 8,
+        {
+            card_width: 142,
+            card_height: 136,
+            card_gap: 8,
 
-    strip_left: 0,
-    strip_top: 0,
-    strip_width: 0,
-    strip_height: 0,
+            strip_left: 0,
+            strip_top: 0,
+            strip_width: 0,
+            strip_height: 0,
 
-    visible_count: 1
-}
+            visible_count: 1
+        }
     };
 }
 

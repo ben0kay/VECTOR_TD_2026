@@ -135,7 +135,7 @@ enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT }
 
 enum HudAlertType { INFO, WARNING, DANGER, MILESTONE, SUCCESS }
 enum HudAlertState { OPENING, HOLDING, CLOSING }
-enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
+enum BuildMenuCategory { TOWERS, DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
 
 
 // ============================================================================

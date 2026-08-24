@@ -83,21 +83,16 @@ function scr_game_initialize()
 
 function scr_level_initialize()
 {
-    global.LevelState =
-        LevelState.INITIALIZING;
-
-    global.CameraState =
-        CameraState.FOLLOW_PLAYER;
+    global.LevelState = LevelState.INITIALIZING;
+    global.CameraState = CameraState.FOLLOW_PLAYER;
 
 
-    var _world_key =
-        "world_test";
+    var _world_key = "world_test";
 
     var _world_data =
         scr_world_data_get(
             _world_key
         );
-
 
     if (!scr_world_data_valid(_world_data))
     {
@@ -110,28 +105,16 @@ function scr_level_initialize()
     }
 
 
-    var _cell_size =
-        global.vtd.settings.grid_cell_size;
-
-    var _columns =
-        ceil(
-            room_width
-            / _cell_size
-        );
-
-    var _rows =
-        ceil(
-            room_height
-            / _cell_size
-        );
+    var _cell_size = global.vtd.settings.grid_cell_size;
+    var _columns = ceil(room_width / _cell_size);
+    var _rows = ceil(room_height / _cell_size);
 
 
     global.vtd_level =
     {
         identity:
         {
-            world_key:
-                _world_key
+            world_key: _world_key
         },
 
         time:
@@ -149,14 +132,12 @@ function scr_level_initialize()
             rows: _rows
         },
 
-        world:
-            undefined,
+        world: undefined,
 
         navigation:
         {
             ready: false,
             revision: 0,
-
             grid_ground: -1,
             grid_breach: -1,
             grid_flying: -1
@@ -196,8 +177,7 @@ function scr_level_initialize()
 
             overlay:
             {
-                mode:
-                    EnergyOverlayMode.OFF
+                mode: EnergyOverlayMode.OFF
             },
 
             totals:
@@ -276,8 +256,7 @@ function scr_level_initialize()
         );
 
 
-    global.vtd_level.navigation.ready =
-        true;
+    global.vtd_level.navigation.ready = true;
 
 
     // ========================================================================
@@ -294,8 +273,17 @@ function scr_level_initialize()
     }
 
 
-    global.LevelState =
-        LevelState.PLAYING;
+    if (!scr_world_generate(_world_key))
+    {
+        show_debug_message(
+            "LEVEL ERROR - world generation failed."
+        );
+
+        return false;
+    }
+
+
+    global.LevelState = LevelState.PLAYING;
 
 
     show_debug_message(

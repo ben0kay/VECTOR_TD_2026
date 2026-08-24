@@ -48,33 +48,57 @@ function scr_build_mode_initialize(
     return true;
 }
 
+/// @description Shows the current capacity when placement is rejected.
 
-/// @description Begins placement for one building definition.
-
-function scr_build_mode_begin(
-    _controller,
-    _building_key
-)
+function scr_build_limit_alert_push(_data)
 {
-    if (!instance_exists(_controller))
+    if (!is_struct(_data))
+        return false;
+
+    if (
+        !variable_struct_exists(
+            _data,
+            "build_limit"
+        )
+    )
+    {
+        return false;
+    }
+
+
+    var _limit =
+        _data.build_limit;
+
+    if (!is_struct(_limit))
+        return false;
+
+    if (_limit.type == BuildLimitType.NONE)
         return false;
 
 
-    var _data =
-        scr_building_data_get(
-            _building_key
+    var _entry =
+        scr_build_limit_entry_get(
+            _limit.type
         );
 
-
-    if (!scr_building_data_valid(_data))
+    if (!is_struct(_entry))
         return false;
 
 
-    _controller.build.selected_key =
-        _building_key;
+    scr_hud_alert_push(
+        HudAlertType.WARNING,
+        "BUILD LIMIT REACHED",
 
-    global.BuildState =
-        BuildState.PLACING;
+        scr_build_limit_name(
+            _limit.type
+        )
+        + "  "
+        + string(_entry.used)
+        + " / "
+        + string(_entry.maximum),
+
+        2.5
+    );
 
 
     return true;
@@ -169,150 +193,47 @@ function scr_build_mode_preview_update(_controller)
     return true;
 }
 
+/// @description Begins placement for one building definition.
 
-/// @description Pays for and creates the selected building.
-
-function scr_build_mode_place(_controller)
+function scr_build_mode_begin(
+    _controller,
+    _building_key
+)
 {
     if (!instance_exists(_controller))
-        return noone;
-
-
-    var _build = _controller.build;
-    var _preview = _build.preview;
-
-    if (!_preview.valid)
-        return noone;
+        return false;
 
 
     var _data =
         scr_building_data_get(
-            _build.selected_key
+            _building_key
         );
+
 
     if (!scr_building_data_valid(_data))
-        return noone;
+        return false;
 
 
-    var _object = noone;
+    // Reject the selection immediately when its category is full.
 
-
-    switch (_data.identity.type)
+    if (!scr_build_limit_can_place(_data))
     {
-        case BuildingType.WALL:
-            _object = o_wall;
-        break;
+        scr_build_limit_alert_push(
+            _data
+        );
 
-        case BuildingType.TOWER:
-            _object = o_tower;
-        break;
-
-        case BuildingType.MINER:
-            _object = o_miner;
-        break;
-
-        case BuildingType.STORAGE:
-            _object = o_storage;
-        break;
-
-        case BuildingType.REFINERY:
-        {
-            // FUTURE:
-            // _object = o_refinery;
-        }
-        break;
-
-        case BuildingType.POWER_GENERATOR:
-	    _object = o_energy_generator;
-		break;
-
-		case BuildingType.POWER_NODE:
-		    _object = o_energy_node;
-		break;
-
-		case BuildingType.POWER_BATTERY:
-		    _object = o_energy_battery;
-		break;
-
-        case BuildingType.SUPPORT:
-        {
-            // FUTURE:
-            // _object = o_support_building;
-        }
-        break;
-		
-		case BuildingType.FOUNDATION:
-		_object = o_foundation;
-		break;
+        return false;
     }
 
 
-    if (_object == noone)
-        return noone;
+    _controller.build.selected_key =
+        _building_key;
+
+    global.BuildState =
+        BuildState.PLACING;
 
 
-    // Confirm affordability immediately before payment.
-
-    if (
-        !scr_resource_cost_pay(
-            _data.economy.cost
-        )
-    )
-    {
-        scr_hud_alert_push(
-            HudAlertType.WARNING,
-            "INSUFFICIENT RESOURCES",
-            "CONSTRUCTION COST CANNOT BE PAID",
-            2
-        );
-
-        return noone;
-    }
-
-
-    var _placement_layer =
-    "Buildings";
-
-	if (_data.identity.type == BuildingType.FOUNDATION)
-	    _placement_layer = "Foundations";
-
-
-	var _building =
-	    instance_create_layer(
-	        _preview.world_x,
-	        _preview.world_y,
-	        _placement_layer,
-	        _object,
-	        {
-	            building_key: _build.selected_key,
-	            placement_cell_x: _preview.cell_x,
-	            placement_cell_y: _preview.cell_y
-	        }
-	    );
-
-
-    if (!instance_exists(_building))
-    {
-        scr_resource_cost_refund(
-            _data.economy.cost
-        );
-
-        show_debug_message(
-            "BUILD ERROR - creation failed and cost was refunded: "
-            + _data.identity.name
-        );
-
-        return noone;
-    }
-
-
-    show_debug_message(
-        "BUILD PLACED: "
-        + _data.identity.name
-    );
-
-
-    return _building;
+    return true;
 }
 
 
@@ -483,6 +404,13 @@ function scr_build_mode_placement_valid(
 {
     if (!scr_building_data_valid(_data))
         return false;
+
+
+    // Capacity is tested before resources and terrain.
+
+    if (!scr_build_limit_can_place(_data))
+        return false;
+
 
     if (
         !scr_resource_cost_can_afford(
