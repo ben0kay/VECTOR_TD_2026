@@ -18,23 +18,19 @@ function scr_player_initialize(_player)
     // ========================================================================
 
     _player.movement =
-    {
-        speed:
-            6,
+	{
+	    speed: 6,
+	    speed_base: 6,
+	    speed_multiplier: 1,
 
-        input:
-        {
-            x:
-                0,
+	    input:
+	    {
+	        x: 0,
+	        y: 0
+	    },
 
-            y:
-                0
-        },
-
-        moving:
-            false
-    };
-
+	    moving: false
+	};
 
     // ========================================================================
     // VITALS
@@ -188,7 +184,7 @@ function scr_player_input_update(_player)
 }
 
 
-/// @description Moves the player and clamps them inside the current map.
+/// @description Moves the player with foundation movement bonuses.
 
 function scr_player_movement_update(_player)
 {
@@ -201,6 +197,39 @@ function scr_player_movement_update(_player)
 
     var _radius =
         _player.visual.radius;
+
+
+    var _cell =
+        scr_building_position_to_cell(
+            _player.x,
+            _player.y
+        );
+
+    var _foundation =
+        scr_foundation_at_cell(
+            _cell.x,
+            _cell.y
+        );
+
+
+    _movement.speed_multiplier = 1;
+
+    if (
+        instance_exists(_foundation)
+        && _foundation.BuildingState
+            == BuildingState.ACTIVE
+    )
+    {
+        _movement.speed_multiplier =
+            _foundation.building_data
+                .foundation
+                .player_speed_multiplier;
+    }
+
+
+    _movement.speed =
+        _movement.speed_base
+        * _movement.speed_multiplier;
 
 
     _player.x +=
@@ -225,11 +254,6 @@ function scr_player_movement_update(_player)
             _radius,
             room_height - _radius
         );
-
-
-    // FUTURE:
-    // Collision against terrain and solid buildings can be inserted here
-    // without changing the input or state functions.
 
 
     return true;

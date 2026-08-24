@@ -814,7 +814,7 @@ function scr_tower_data_aa_rocket()
 
             footprint: { width_cells: 2, height_cells: 2 },
             vitals: { hp_maximum: 320 },
-            construction: { time_seconds: 0 },
+            construction: { time_seconds: 5 },
 
             economy:
             {
