@@ -1,3 +1,34 @@
+
+/// @description Registers every tower definition.
+
+function scr_tower_data_initialize()
+{
+    if (!scr_tower_data_basic_ground()) return false;
+    if (!scr_tower_data_anti_air()) return false;
+    if (!scr_tower_data_minigun()) return false;
+    if (!scr_tower_data_cannon()) return false;
+    if (!scr_tower_data_laser()) return false;
+    if (!scr_tower_data_sniper()) return false;
+	if (!scr_tower_data_cryo()) return false;
+	if (!scr_tower_data_stasis()) return false;
+	if (!scr_tower_data_disruptor()) return false;
+	if (!scr_tower_data_mortar()) return false;
+	if (!scr_tower_data_aa_rocket()) return false;
+
+    // FUTURE TOWERS:
+    // artillery
+    // anti-armour
+    // ground-and-air hybrid
+    // slowing
+    // support and repair
+    // shield disruption
+    // chain lightning
+
+    show_debug_message("VECTOR TD 2026 - TOWER DATA INITIALIZED");
+
+    return true;
+}
+
 /// @description Registers the basic ground tower.
 
 function scr_tower_data_basic_ground()
@@ -402,7 +433,7 @@ description_long: "A slow precision rail weapon that prioritizes high-health gro
 
     tower:
     {
-        range: 600,
+        range: 768,
         target_mode: TowerTargetMode.HIGHEST_HP,
         target_layer: EnemyMovementLayer.GROUND,
         requires_line_of_sight: true,
@@ -412,9 +443,9 @@ description_long: "A slow precision rail weapon that prioritizes high-health gro
         {
             type: TowerWeaponType.HITSCAN,
             damage_type: DamageType.KINETIC,
-            damage: 100,
-            energy_cost: 10,
-            cooldown_seconds: 2.8,
+            damage: 140,
+            energy_cost: 12,
+            cooldown_seconds: 3,
 
             muzzle:
             {
@@ -882,34 +913,4 @@ description_long: "Launches guided rockets at flying enemies. Each impact damage
 );
 
 return true;
-}
-
-/// @description Registers every tower definition.
-
-function scr_tower_data_initialize()
-{
-    if (!scr_tower_data_basic_ground()) return false;
-    if (!scr_tower_data_anti_air()) return false;
-    if (!scr_tower_data_minigun()) return false;
-    if (!scr_tower_data_cannon()) return false;
-    if (!scr_tower_data_laser()) return false;
-    if (!scr_tower_data_sniper()) return false;
-	if (!scr_tower_data_cryo()) return false;
-	if (!scr_tower_data_stasis()) return false;
-	if (!scr_tower_data_disruptor()) return false;
-	if (!scr_tower_data_mortar()) return false;
-	if (!scr_tower_data_aa_rocket()) return false;
-
-    // FUTURE TOWERS:
-    // artillery
-    // anti-armour
-    // ground-and-air hybrid
-    // slowing
-    // support and repair
-    // shield disruption
-    // chain lightning
-
-    show_debug_message("VECTOR TD 2026 - TOWER DATA INITIALIZED");
-
-    return true;
 }
