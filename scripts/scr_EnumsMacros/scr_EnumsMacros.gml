@@ -82,6 +82,14 @@ enum BuildingType
     FOUNDATION
 }
 enum BuildState { NONE, PLACING }
+enum BuildLimitType
+{
+    NONE,
+    TOWER,
+    DEFENSE,
+    ECONOMY,
+    INFRASTRUCTURE
+}
 
 
 // ============================================================================

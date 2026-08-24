@@ -63,6 +63,7 @@
     {"id":{"name":"o_wall","path":"objects/o_wall/o_wall.yy",},},
     {"id":{"name":"r_world_test","path":"rooms/r_world_test/r_world_test.yy",},},
     {"id":{"name":"scr_attack_area","path":"scripts/scr_attack_area/scr_attack_area.yy",},},
+    {"id":{"name":"scr_build_limits","path":"scripts/scr_build_limits/scr_build_limits.yy",},},
     {"id":{"name":"scr_build_mode","path":"scripts/scr_build_mode/scr_build_mode.yy",},},
     {"id":{"name":"scr_building_data","path":"scripts/scr_building_data/scr_building_data.yy",},},
     {"id":{"name":"scr_building_visual","path":"scripts/scr_building_visual/scr_building_visual.yy",},},

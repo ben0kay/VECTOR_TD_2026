@@ -7,7 +7,13 @@ function scr_building_initialize(_building)
     if (!instance_exists(_building))
         return false;
 
-    if (!variable_instance_exists(_building, "building_key"))
+
+    if (
+        !variable_instance_exists(
+            _building,
+            "building_key"
+        )
+    )
     {
         show_debug_message(
             "BUILDING ERROR - building_key was not supplied."
@@ -22,6 +28,7 @@ function scr_building_initialize(_building)
             _building.building_key
         );
 
+
     if (!scr_building_data_valid(_data))
     {
         show_debug_message(
@@ -33,24 +40,37 @@ function scr_building_initialize(_building)
     }
 
 
-    _building.building_data = _data;
+    _building.building_data =
+        _data;
+
 
     _building.identity =
     {
-        key: _data.identity.key,
-        name: _data.identity.name,
-        type: _data.identity.type
+        key:
+            _data.identity.key,
+
+        name:
+            _data.identity.name,
+
+        type:
+            _data.identity.type
     };
+
 
     _building.visual =
     {
-        color: _data.visual.color
+        color:
+            _data.visual.color
     };
+
 
     _building.footprint =
     {
-        width_cells: _data.footprint.width_cells,
-        height_cells: _data.footprint.height_cells,
+        width_cells:
+            _data.footprint.width_cells,
+
+        height_cells:
+            _data.footprint.height_cells,
 
         origin:
         {
@@ -64,8 +84,14 @@ function scr_building_initialize(_building)
 
 
     if (
-        !variable_instance_exists(_building, "placement_cell_x")
-        || !variable_instance_exists(_building, "placement_cell_y")
+        !variable_instance_exists(
+            _building,
+            "placement_cell_x"
+        )
+        || !variable_instance_exists(
+            _building,
+            "placement_cell_y"
+        )
     )
     {
         show_debug_message(
@@ -102,10 +128,15 @@ function scr_building_initialize(_building)
             _building
         );
 
-    var _foundation_multiplier = 1;
+    var _foundation_multiplier =
+        1;
+
 
     if (_foundation_coverage >= 1)
-        _foundation_multiplier = 1.05;
+    {
+        _foundation_multiplier =
+            1.05;
+    }
 
 
     var _hp_maximum =
@@ -115,9 +146,14 @@ function scr_building_initialize(_building)
 
     _building.foundation =
     {
-        coverage: _foundation_coverage,
-        fully_supported: _foundation_coverage >= 1,
-        hp_multiplier: _foundation_multiplier
+        coverage:
+            _foundation_coverage,
+
+        fully_supported:
+            _foundation_coverage >= 1,
+
+        hp_multiplier:
+            _foundation_multiplier
     };
 
 
@@ -136,8 +172,11 @@ function scr_building_initialize(_building)
     {
         hp:
         {
-            current: _initial_hp,
-            maximum: _hp_maximum
+            current:
+                _initial_hp,
+
+            maximum:
+                _hp_maximum
         }
     };
 
@@ -155,11 +194,24 @@ function scr_building_initialize(_building)
 
     _building.construction =
     {
-        progress_seconds: 0,
-        duration_seconds: _construction_seconds,
-        percent: 0,
-        hp_remaining: max(0, _hp_maximum - _initial_hp),
-        complete: false
+        progress_seconds:
+            0,
+
+        duration_seconds:
+            _construction_seconds,
+
+        percent:
+            0,
+
+        hp_remaining:
+            max(
+                0,
+                _hp_maximum
+                - _initial_hp
+            ),
+
+        complete:
+            false
     };
 
 
@@ -167,25 +219,48 @@ function scr_building_initialize(_building)
         BuildingState.CONSTRUCTING;
 
 
-	// ========================================================================
-	// ENERGY
-	// ========================================================================
+    // ========================================================================
+    // ENERGY
+    // ========================================================================
 
-	_building.energy =
-	    scr_energy_runtime_create(
-	        _data
-	    );
+    _building.energy =
+        scr_energy_runtime_create(
+            _data
+        );
 
-	if (!is_struct(_building.energy))
-	{
-	    show_debug_message(
-	        "BUILDING ERROR - energy runtime failed: "
-	        + _building.identity.key
-	    );
 
-	    return false;
-	}
+    if (!is_struct(_building.energy))
+    {
+        show_debug_message(
+            "BUILDING ERROR - energy runtime failed: "
+            + _building.identity.key
+        );
 
+        return false;
+    }
+
+
+    // ========================================================================
+    // BUILD CAPACITY
+    // ========================================================================
+    //
+    // Capacity is reserved immediately. An unfinished building therefore
+    // cannot be used to bypass its category limit.
+
+    if (!scr_build_limit_register(_building))
+    {
+        show_debug_message(
+            "BUILDING ERROR - capacity registration failed: "
+            + _building.identity.key
+        );
+
+        return false;
+    }
+
+
+    // ========================================================================
+    // INSTANT CONSTRUCTION
+    // ========================================================================
 
     if (_construction_seconds <= 0)
     {
@@ -823,27 +898,6 @@ function scr_building_draw(_building)
 }
 
 
-/// @description Releases resources owned by one building.
-
-function scr_building_cleanup(_building)
-{
-    if (!instance_exists(_building))
-        return false;
-
-    if (
-        variable_instance_exists(_building, "energy")
-        && is_struct(_building.energy)
-        && _building.energy.participates
-    )
-    {
-        scr_energy_topology_dirty();
-    }
-
-    scr_building_footprint_release(_building);
-
-    return true;
-}
-
 /// @description Returns the initialized building occupying one grid cell.
 
 function scr_building_at_cell(_cell_x, _cell_y)
@@ -935,9 +989,15 @@ function scr_building_construction_complete(_building)
     _building.construction.progress_seconds =
         _building.construction.duration_seconds;
 
-    _building.construction.percent = 1;
-    _building.construction.hp_remaining = 0;
-    _building.construction.complete = true;
+    _building.construction.percent =
+        1;
+
+    _building.construction.hp_remaining =
+        0;
+
+    _building.construction.complete =
+        true;
+
 
     _building.BuildingState =
         BuildingState.ACTIVE;
@@ -945,9 +1005,19 @@ function scr_building_construction_complete(_building)
 
     if (_building.energy.participates)
     {
-        _building.energy.registration_pending = true;
+        _building.energy.registration_pending =
+            true;
+
         scr_energy_topology_dirty();
     }
+
+
+    // This does nothing for an ordinary building. For a future hub, its
+    // capacity bonus becomes available only after construction completes.
+
+    scr_build_limit_hub_activate(
+        _building
+    );
 
 
     show_debug_message(
@@ -1062,6 +1132,42 @@ function scr_building_update(_building)
         }
         break;
     }
+
+
+    return true;
+}
+
+/// @description Releases resources owned by one building.
+
+function scr_building_cleanup(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+
+    // Release used capacity and any bonus supplied by a hub.
+
+    scr_build_limit_unregister(
+        _building
+    );
+
+
+    if (
+        variable_instance_exists(
+            _building,
+            "energy"
+        )
+        && is_struct(_building.energy)
+        && _building.energy.participates
+    )
+    {
+        scr_energy_topology_dirty();
+    }
+
+
+    scr_building_footprint_release(
+        _building
+    );
 
 
     return true;

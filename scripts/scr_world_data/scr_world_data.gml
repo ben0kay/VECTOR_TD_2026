@@ -87,6 +87,14 @@ function scr_world_data_initialize()
 			        amount: 0
 			    }
 			],
+			
+			build_limits:
+			{
+			    tower: 10,
+			    defense: 50,
+			    economy: 10,
+			    infrastructure: 20
+			},
 
             generation:
             {

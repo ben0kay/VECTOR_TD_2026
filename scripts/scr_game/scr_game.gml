@@ -5,10 +5,18 @@
 
 function scr_game_initialize()
 {
-    global.GameState = GameState.BOOT;
-    global.LevelState = LevelState.EXITING;
-    global.CameraState = CameraState.FOLLOW_PLAYER;
-    global.BuildState = BuildState.NONE;
+    global.GameState =
+        GameState.BOOT;
+
+    global.LevelState =
+        LevelState.EXITING;
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
+
+    global.BuildState =
+        BuildState.NONE;
+
 
     global.vtd =
     {
@@ -40,12 +48,17 @@ function scr_game_initialize()
     // DATA DEFINITIONS
     // ========================================================================
 
-	scr_enemy_data_initialize();
-	scr_building_data_initialize();
-	scr_tower_data_initialize();
-	scr_energy_consumer_data_defaults_apply();
-	scr_resource_data_initialize();
-	scr_world_data_initialize();
+    scr_enemy_data_initialize();
+    scr_building_data_initialize();
+    scr_tower_data_initialize();
+
+    // Every building receives a capacity category before runtime begins.
+
+    scr_build_limit_data_defaults_apply();
+
+    scr_energy_consumer_data_defaults_apply();
+    scr_resource_data_initialize();
+    scr_world_data_initialize();
 
 
     // FUTURE:
@@ -54,11 +67,14 @@ function scr_game_initialize()
     // scr_boss_data_initialize();
 
 
-    global.GameState = GameState.PLAYING;
+    global.GameState =
+        GameState.PLAYING;
+
 
     show_debug_message(
         "VECTOR TD 2026 - GAME INITIALIZED"
     );
+
 
     return true;
 }
@@ -67,16 +83,21 @@ function scr_game_initialize()
 
 function scr_level_initialize()
 {
-    global.LevelState = LevelState.INITIALIZING;
-    global.CameraState = CameraState.FOLLOW_PLAYER;
+    global.LevelState =
+        LevelState.INITIALIZING;
+
+    global.CameraState =
+        CameraState.FOLLOW_PLAYER;
 
 
-    var _world_key = "world_test";
+    var _world_key =
+        "world_test";
 
     var _world_data =
         scr_world_data_get(
             _world_key
         );
+
 
     if (!scr_world_data_valid(_world_data))
     {
@@ -89,16 +110,28 @@ function scr_level_initialize()
     }
 
 
-    var _cell_size = global.vtd.settings.grid_cell_size;
-    var _columns = ceil(room_width / _cell_size);
-    var _rows = ceil(room_height / _cell_size);
+    var _cell_size =
+        global.vtd.settings.grid_cell_size;
+
+    var _columns =
+        ceil(
+            room_width
+            / _cell_size
+        );
+
+    var _rows =
+        ceil(
+            room_height
+            / _cell_size
+        );
 
 
     global.vtd_level =
     {
         identity:
         {
-            world_key: _world_key
+            world_key:
+                _world_key
         },
 
         time:
@@ -116,12 +149,14 @@ function scr_level_initialize()
             rows: _rows
         },
 
-        world: undefined,
+        world:
+            undefined,
 
         navigation:
         {
             ready: false,
             revision: 0,
+
             grid_ground: -1,
             grid_breach: -1,
             grid_flying: -1
@@ -149,29 +184,47 @@ function scr_level_initialize()
             // milestones
         },
 
+        build_limits:
+            undefined,
+
         energy:
-		{
-		    controller: noone,
-		    dirty: true,
-		    revision: 0,
-		    networks: [],
+        {
+            controller: noone,
+            dirty: true,
+            revision: 0,
+            networks: [],
 
-		    overlay:
-		    {
-		        mode: EnergyOverlayMode.OFF
-		    },
+            overlay:
+            {
+                mode:
+                    EnergyOverlayMode.OFF
+            },
 
-		    totals:
-		    {
-		        generation: 0,
-		        demand: 0,
-		        net: 0,
-		        stored: 0,
-		        storage_maximum: 0,
-		        deficient_networks: 0
-		    }
-		}
+            totals:
+            {
+                generation: 0,
+                demand: 0,
+                net: 0,
+                stored: 0,
+                storage_maximum: 0,
+                deficient_networks: 0
+            }
+        }
     };
+
+
+    // ========================================================================
+    // BUILD CAPACITY
+    // ========================================================================
+
+    if (!scr_build_limits_initialize(_world_data))
+    {
+        show_debug_message(
+            "LEVEL ERROR - build-limit initialization failed."
+        );
+
+        return false;
+    }
 
 
     // ========================================================================
@@ -223,7 +276,8 @@ function scr_level_initialize()
         );
 
 
-    global.vtd_level.navigation.ready = true;
+    global.vtd_level.navigation.ready =
+        true;
 
 
     // ========================================================================
@@ -240,25 +294,17 @@ function scr_level_initialize()
     }
 
 
-    if (!scr_world_generate(_world_key))
-    {
-        show_debug_message(
-            "LEVEL ERROR - world generation failed."
-        );
+    global.LevelState =
+        LevelState.PLAYING;
 
-        return false;
-    }
-
-
-    global.LevelState = LevelState.PLAYING;
 
     show_debug_message(
         "VECTOR TD 2026 - LEVEL INITIALIZED"
     );
 
+
     return true;
 }
-
 
 /// @description Releases runtime data owned by the current level.
 
