@@ -23,11 +23,8 @@ var _result_active =
 
 if (_result_active)
 {
-    // The results interface covers the ordinary gameplay HUD.
-    // Major mission-failure/success alerts remain above its opening animation.
-
+    // Results replace every ordinary HUD element and alert.
     scr_level_result_hud_draw(id);
-    scr_hud_alert_draw(id);
 
     draw_set_alpha(1);
     draw_set_color(c_white);
