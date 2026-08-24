@@ -68,22 +68,45 @@ function scr_enemy_data_initialize()
     return true;
 }
 
-/// @description Creates a standard fixed enemy reward definition.
+/// @description Creates one enemy reward definition.
 
-function scr_enemy_rewards_create(_credits, _experience)
+function scr_enemy_rewards_create(
+    _credits,
+    _experience,
+    _pickup_chance = 0.2,
+    _pickup_multiplier = 0.5
+)
 {
     return
     {
-        experience: max(0, _experience),
+        experience:
+            max(0, _experience),
 
         resources:
-        [
-            {
-                resource_key: "resource_credits",
-                amount: max(0, _credits),
-                chance: 1
-            }
-        ]
+        [{
+            resource_key: "resource_credits",
+            amount: max(0, _credits),
+            chance: 1
+        }],
+
+        physical_drop:
+        {
+            enabled: true,
+            resource_key: "resource_credits",
+
+            chance:
+                clamp(
+                    _pickup_chance,
+                    0,
+                    1
+                ),
+
+            amount:
+                ceil(
+                    max(0, _credits)
+                    * max(0, _pickup_multiplier)
+                )
+        }
     };
 }
 

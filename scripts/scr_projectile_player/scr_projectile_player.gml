@@ -313,12 +313,9 @@ function scr_projectile_player_enemy_find(
     return _closest_enemy;
 }
 
+/// @description Updates one player projectile with ordered solid collision.
 
-/// @description Updates one player projectile.
-
-function scr_projectile_player_update(
-    _projectile
-)
+function scr_projectile_player_update(_projectile)
 {
     if (!instance_exists(_projectile))
         return false;
@@ -341,10 +338,7 @@ function scr_projectile_player_update(
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(
-            _projectile
-        );
-
+        instance_destroy(_projectile);
         return true;
     }
 
@@ -354,7 +348,6 @@ function scr_projectile_player_update(
 
     var _start_y =
         _projectile.y;
-
 
     var _end_x =
         _start_x
@@ -371,57 +364,117 @@ function scr_projectile_player_update(
         );
 
 
-    var _enemy =
-        scr_projectile_player_enemy_find(
-            _projectile,
+    var _distance =
+        point_distance(
             _start_x,
             _start_y,
             _end_x,
             _end_y
         );
 
+    var _steps =
+        max(
+            1,
+            ceil(
+                _distance
+                / max(1, _projectile.visual.radius)
+            )
+        );
 
-    if (instance_exists(_enemy))
+
+    var _previous_x = _start_x;
+    var _previous_y = _start_y;
+
+
+    for (var i = 1; i <= _steps; ++i)
     {
-        var _damage =
-            scr_damage_create(
-                _projectile.combat.damage,
-                _projectile.combat.owner,
-                DamageSource.PLAYER
+        var _progress =
+            i / _steps;
+
+        var _check_x =
+            lerp(
+                _start_x,
+                _end_x,
+                _progress
+            );
+
+        var _check_y =
+            lerp(
+                _start_y,
+                _end_y,
+                _progress
             );
 
 
-        scr_enemy_damage(
-            _enemy,
-            _damage
-        );
+        // Ordinary buildings, CPU and terrain block player shots.
+        // Basic walls intentionally allow player projectiles through.
+
+        if (
+            scr_world_circle_gameplay_solid(
+                _check_x,
+                _check_y,
+                _projectile.visual.radius,
+                false
+            )
+        )
+        {
+            // FUTURE:
+            // solid impact sparks
+            // terrain hit particles
+            // ricochet weapons
+
+            instance_destroy(_projectile);
+            return true;
+        }
 
 
-        // FUTURE:
-        // impact effect
-        // impact sound
-        // piercing projectiles
-        // explosive projectiles
+        var _enemy =
+            scr_projectile_player_enemy_find(
+                _projectile,
+                _previous_x,
+                _previous_y,
+                _check_x,
+                _check_y
+            );
 
 
-        instance_destroy(
-            _projectile
-        );
+        if (instance_exists(_enemy))
+        {
+            var _damage =
+                scr_damage_create(
+                    _projectile.combat.damage,
+                    _projectile.combat.owner,
+                    DamageSource.PLAYER
+                );
 
-        return true;
+
+            scr_enemy_damage(
+                _enemy,
+                _damage
+            );
+
+
+            // FUTURE:
+            // enemy impact effect
+            // piercing projectiles
+            // explosive player weapons
+
+            instance_destroy(_projectile);
+            return true;
+        }
+
+
+        _previous_x = _check_x;
+        _previous_y = _check_y;
     }
 
 
-    _projectile.x =
-        _end_x;
-
-    _projectile.y =
-        _end_y;
+    _projectile.x = _end_x;
+    _projectile.y = _end_y;
 
 
     return true;
 }
-
 
 /// @description Draws one player projectile.
 

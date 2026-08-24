@@ -49,6 +49,7 @@
     {"id":{"name":"o_foundation","path":"objects/o_foundation/o_foundation.yy",},},
     {"id":{"name":"o_hud_level","path":"objects/o_hud_level/o_hud_level.yy",},},
     {"id":{"name":"o_miner","path":"objects/o_miner/o_miner.yy",},},
+    {"id":{"name":"o_pickup","path":"objects/o_pickup/o_pickup.yy",},},
     {"id":{"name":"o_player","path":"objects/o_player/o_player.yy",},},
     {"id":{"name":"o_projectile_enemy","path":"objects/o_projectile_enemy/o_projectile_enemy.yy",},},
     {"id":{"name":"o_projectile_player","path":"objects/o_projectile_player/o_projectile_player.yy",},},

@@ -124,9 +124,53 @@ function scr_enemy_initialize(_enemy)
 	    experience:
 	        _data.rewards.experience,
 
-	    resources:
-	        []
+	    resources: [],
+
+	    physical_drop:
+	    {
+	        enabled: false,
+	        resource_key: "",
+	        chance: 0,
+	        amount: 0
+	    }
 	};
+
+
+	for (var i = 0; i < array_length(_data.rewards.resources); ++i)
+	{
+	    var _reward =
+	        _data.rewards.resources[i];
+
+	    array_push(
+	        _enemy.rewards.resources,
+	        {
+	            resource_key: _reward.resource_key,
+	            amount: _reward.amount,
+	            chance: _reward.chance
+	        }
+	    );
+	}
+
+
+	if (
+	    variable_struct_exists(
+	        _data.rewards,
+	        "physical_drop"
+	    )
+	    && is_struct(_data.rewards.physical_drop)
+	)
+	{
+	    var _drop =
+	        _data.rewards.physical_drop;
+
+	    _enemy.rewards.physical_drop =
+	    {
+	        enabled: _drop.enabled,
+	        resource_key: _drop.resource_key,
+	        chance: _drop.chance,
+	        amount: _drop.amount
+	    };
+	}
 
 
 	for (
@@ -2045,6 +2089,11 @@ function scr_enemy_die(_enemy, _damage)
             _enemy,
             _damage
         );
+		
+		scr_enemy_pickup_drop_try(
+	    _enemy,
+	    _damage
+	);
     }
 
 
@@ -2056,7 +2105,6 @@ function scr_enemy_die(_enemy, _damage)
 
     // FUTURE:
     // particles
-    // physical item drops
     // elite reward modifiers
     // death sounds
 
@@ -2066,3 +2114,43 @@ function scr_enemy_die(_enemy, _damage)
     return true;
 }
 
+/// @description Attempts to create one defeated enemy's physical drop.
+
+function scr_enemy_pickup_drop_try(_enemy, _damage)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!scr_enemy_reward_source_valid(_damage))
+        return false;
+
+    if (!variable_instance_exists(_enemy, "rewards"))
+        return false;
+
+    if (!variable_struct_exists(_enemy.rewards, "physical_drop"))
+        return false;
+
+
+    var _drop =
+        _enemy.rewards.physical_drop;
+
+
+    if (!_drop.enabled)
+        return false;
+
+    if (_drop.amount <= 0)
+        return false;
+
+    if (random(1) > _drop.chance)
+        return false;
+
+
+    return instance_exists(
+        scr_pickup_create(
+            _enemy.x,
+            _enemy.y,
+            _drop.resource_key,
+            _drop.amount
+        )
+    );
+}
