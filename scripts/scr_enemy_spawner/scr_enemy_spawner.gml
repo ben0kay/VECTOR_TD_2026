@@ -95,6 +95,64 @@ function scr_enemy_spawner_data_valid(_data)
 }
 
 
+/// @description Creates one data-driven enemy instance.
+
+function scr_enemy_spawn(
+    _enemy_key,
+    _world_x,
+    _world_y,
+    _spawn_direction = undefined,
+    _spawn_modifiers = [],
+    _major_wave_number = 0
+)
+{
+    var _data =
+        scr_enemy_data_get(
+            _enemy_key
+        );
+
+    if (!scr_enemy_data_valid(_data))
+        return noone;
+
+
+    var _creation_variables =
+    {
+        enemy_key: _enemy_key,
+
+        spawn_modifiers:
+            scr_enemy_modifiers_copy(
+                _spawn_modifiers
+            ),
+
+        // Zero means this enemy did not originate from an authored wave.
+        major_wave_number:
+            max(0, floor(_major_wave_number))
+    };
+
+
+    if (!is_undefined(_spawn_direction))
+    {
+        variable_struct_set(
+            _creation_variables,
+            "spawn_direction",
+            _spawn_direction
+        );
+    }
+
+
+    return instance_create_layer(
+        _world_x,
+        _world_y,
+
+        scr_layer_enemy_get(
+            _data.movement.layer
+        ),
+
+        o_enemy,
+        _creation_variables
+    );
+}
+
 /// @description Returns one frame expressed in seconds.
 
 function scr_enemy_spawner_step_seconds()
@@ -414,6 +472,7 @@ function scr_enemy_spawner_wave_groups_queue(
     _spawner,
     _wave,
     _wave_side
+	_wave_number
 )
 {
     if (!instance_exists(_spawner))
@@ -524,6 +583,7 @@ function scr_enemy_spawner_wave_groups_queue(
                         random_range(0.05, 0.95),
 
                     source_name: _wave.name,
+					major_wave_number: _wave_number,
                     failed_attempts: 0
                 }
             );
@@ -596,14 +656,29 @@ function scr_enemy_spawner_queue_update(
 
         if (is_struct(_position))
         {
+			
+			var _major_wave_number = 0;
+
+			if (
+			    variable_struct_exists(
+			        _entry,
+			        "major_wave_number"
+			    )
+			)
+			{
+			    _major_wave_number =
+			        _entry.major_wave_number;
+			}
+			
             var _enemy =
-                scr_enemy_spawn(
-                    _entry.enemy_key,
-                    _position.x,
-                    _position.y,
-                    undefined,
-                    _entry.modifiers
-                );
+		    scr_enemy_spawn(
+		        _entry.enemy_key,
+		        _position.x,
+		        _position.y,
+		        undefined,
+		        _entry.modifiers,
+		        _major_wave_number
+		    );
 
             if (instance_exists(_enemy))
             {
@@ -933,12 +1008,16 @@ function scr_enemy_spawner_wave_release(_spawner)
         ];
 
 
-    var _queued =
-        scr_enemy_spawner_wave_groups_queue(
-            _spawner,
-            _wave,
-            _warning.side
-        );
+    var _wave_number =
+    _warning.wave_index + 1;
+
+	var _queued =
+	    scr_enemy_spawner_wave_groups_queue(
+	        _spawner,
+	        _wave,
+	        _warning.side,
+	        _wave_number
+	    );
 
 
     if (!_queued)
@@ -1601,4 +1680,84 @@ function scr_enemy_spawner_cleanup(_spawner)
 
 
     return true;
+}
+
+/// @description Spawns one enemy configuration at a random map edge.
+
+function scr_enemy_spawn_edge(
+    _enemy_key,
+    _spawn_modifiers = []
+)
+{
+    var _margin = 64;
+    var _spawn_x = _margin;
+    var _spawn_y = _margin;
+
+
+    switch (irandom(3))
+    {
+        case 0:
+        {
+            _spawn_x =
+                random_range(
+                    _margin,
+                    room_width - _margin
+                );
+
+            _spawn_y =
+                _margin;
+        }
+        break;
+
+
+        case 1:
+        {
+            _spawn_x =
+                room_width - _margin;
+
+            _spawn_y =
+                random_range(
+                    _margin,
+                    room_height - _margin
+                );
+        }
+        break;
+
+
+        case 2:
+        {
+            _spawn_x =
+                random_range(
+                    _margin,
+                    room_width - _margin
+                );
+
+            _spawn_y =
+                room_height - _margin;
+        }
+        break;
+
+
+        case 3:
+        {
+            _spawn_x =
+                _margin;
+
+            _spawn_y =
+                random_range(
+                    _margin,
+                    room_height - _margin
+                );
+        }
+        break;
+    }
+
+
+    return scr_enemy_spawn(
+        _enemy_key,
+        _spawn_x,
+        _spawn_y,
+        undefined,
+        _spawn_modifiers
+    );
 }

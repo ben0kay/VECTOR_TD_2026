@@ -100,6 +100,7 @@
     {"id":{"name":"scr_logistics","path":"scripts/scr_logistics/scr_logistics.yy",},},
     {"id":{"name":"scr_miner","path":"scripts/scr_miner/scr_miner.yy",},},
     {"id":{"name":"scr_navigation","path":"scripts/scr_navigation/scr_navigation.yy",},},
+    {"id":{"name":"scr_particles","path":"scripts/scr_particles/scr_particles.yy",},},
     {"id":{"name":"scr_pickup","path":"scripts/scr_pickup/scr_pickup.yy",},},
     {"id":{"name":"scr_player","path":"scripts/scr_player/scr_player.yy",},},
     {"id":{"name":"scr_projectile_enemy","path":"scripts/scr_projectile_enemy/scr_projectile_enemy.yy",},},

@@ -191,17 +191,18 @@ function scr_level_result_enemy_kill_record(_damage)
     return true;
 }
 
+/// @description Records one authored major wave entering the battlefield.
 
-/// @description Records one major wave entering the battlefield.
-
-function scr_level_result_wave_reached()
+function scr_level_result_wave_reached(_wave_number)
 {
     if (!scr_level_result_initialize())
         return false;
 
-    global.vtd_level.result
-        .tracking
-        .waves_reached++;
+    global.vtd_level.result.tracking.waves_reached =
+        max(
+            global.vtd_level.result.tracking.waves_reached,
+            _wave_number
+        );
 
     return true;
 }
@@ -365,7 +366,6 @@ function scr_level_result_resolve(
     return true;
 }
 
-
 /// @description Updates victory conditions and result-panel animation.
 
 function scr_level_result_update()
@@ -392,7 +392,6 @@ function scr_level_result_update()
                 _result.animation.delay_remaining - _delta
             );
 
-
         if (_result.animation.delay_remaining <= 0)
         {
             _result.animation.progress =
@@ -405,7 +404,6 @@ function scr_level_result_update()
             _result.animation.input_ready =
                 _result.animation.progress >= 0.96;
         }
-
 
         return true;
     }
@@ -428,7 +426,6 @@ function scr_level_result_update()
             "PRIMARY OBJECTIVE COMPLETE"
         );
     }
-
 
     if (global.LevelState != LevelState.PLAYING)
         return true;
@@ -466,10 +463,30 @@ function scr_level_result_update()
 
         case LevelVictoryType.COMPLETE_WAVES:
         {
+            var _required_wave =
+                _victory.required_waves;
+
             if (
-                _victory.required_waves > 0
-                && _result.tracking.waves_reached
-                    >= _victory.required_waves
+                _required_wave <= 0
+                || _result.tracking.waves_reached
+                    < _required_wave
+            )
+            {
+                break;
+            }
+
+
+            // Only inspect the final wave periodically.
+            // This avoids scanning the enemy population every frame.
+
+            if ((global.vtd.tick mod 10) != 0)
+                break;
+
+
+            if (
+                scr_level_result_required_wave_clear(
+                    _required_wave
+                )
             )
             {
                 return scr_level_result_resolve(
@@ -1205,6 +1222,64 @@ function scr_level_result_hud_draw(_hud)
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
+
+    return true;
+}
+
+/// @description Returns whether the required authored wave has been completely defeated.
+
+function scr_level_result_required_wave_clear(_required_wave)
+{
+    if (_required_wave <= 0)
+        return false;
+
+
+    // Check enemies from the required wave that have not spawned yet.
+
+    var _spawner =
+        global.vtd_level.entities.spawner;
+
+    if (instance_exists(_spawner))
+    {
+        var _queue =
+            _spawner.spawner.queue;
+
+        for (var i = 0; i < array_length(_queue); ++i)
+        {
+            var _entry = _queue[i];
+
+            if (
+                variable_struct_exists(_entry, "major_wave_number")
+                && _entry.major_wave_number == _required_wave
+            )
+            {
+                return false;
+            }
+        }
+    }
+
+
+    // Check living enemies belonging to the required wave.
+
+    var _enemy_count =
+        instance_number(o_enemy);
+
+    for (var i = 0; i < _enemy_count; ++i)
+    {
+        var _enemy =
+            instance_find(o_enemy, i);
+
+        if (
+            instance_exists(_enemy)
+            && variable_instance_exists(_enemy, "major_wave_number")
+            && _enemy.major_wave_number == _required_wave
+            && _enemy.EnemyState != EnemyState.DEAD
+        )
+        {
+            return false;
+        }
+    }
+
 
     return true;
 }

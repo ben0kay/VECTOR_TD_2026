@@ -122,12 +122,13 @@ function scr_enemy_transport_release(_enemy)
 
 
             scr_enemy_spawn(
-                _cargo.enemy_key,
-                _spawn_x,
-                _spawn_y,
-                _angle,
-                _child_modifiers
-            );
+		    _cargo.enemy_key,
+		    _spawn_x,
+		    _spawn_y,
+		    _angle,
+		    _child_modifiers,
+		    _enemy.major_wave_number
+		);
 
             _released++;
         }
@@ -423,15 +424,13 @@ function scr_enemy_split(_enemy)
 
 
         scr_enemy_spawn(
-            _split.enemy_key,
-            _spawn_x,
-            _spawn_y,
-            _angle,
-
-            // Children inherit composable spawn modifiers.
-
-            _enemy.modifiers
-        );
+		    _split.enemy_key,
+		    _spawn_x,
+		    _spawn_y,
+		    _angle,
+		    _enemy.modifiers,
+		    _enemy.major_wave_number
+		);
     }
 
 
