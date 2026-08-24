@@ -844,12 +844,9 @@ function scr_building_cleanup(_building)
     return true;
 }
 
-/// @description Returns the building occupying one grid cell.
+/// @description Returns the initialized building occupying one grid cell.
 
-function scr_building_at_cell(
-    _cell_x,
-    _cell_y
-)
+function scr_building_at_cell(_cell_x, _cell_y)
 {
     var _building_count =
         instance_number(
@@ -857,11 +854,7 @@ function scr_building_at_cell(
         );
 
 
-    for (
-        var i = 0;
-        i < _building_count;
-        ++i
-    )
+    for (var i = 0; i < _building_count; ++i)
     {
         var _building =
             instance_find(
@@ -869,33 +862,44 @@ function scr_building_at_cell(
                 i
             );
 
-
         if (!instance_exists(_building))
             continue;
 
-        if (
-            _building.BuildingState
-            == BuildingState.DESTROYED
-        )
-        {
+
+        // A building is visible to instance searches while its Create event
+        // is still running. Ignore it until its runtime is initialized.
+
+        if (!variable_instance_exists(_building, "BuildingState"))
             continue;
-        }
+
+        if (!variable_instance_exists(_building, "footprint"))
+            continue;
+
+        if (!is_struct(_building.footprint))
+            continue;
+
+
+        if (_building.BuildingState == BuildingState.DESTROYED)
+            continue;
 
         if (!_building.footprint.reserved)
             continue;
 
+        if (!is_array(_building.footprint.cells))
+            continue;
+
 
         for (
-            var j = 0;
-            j < array_length(
-                _building.footprint.cells
-            );
-            ++j
+            var cell_index = 0;
+            cell_index < array_length(_building.footprint.cells);
+            ++cell_index
         )
         {
             var _cell =
-                _building.footprint.cells[j];
+                _building.footprint.cells[cell_index];
 
+            if (!is_struct(_cell))
+                continue;
 
             if (
                 _cell.x == _cell_x
