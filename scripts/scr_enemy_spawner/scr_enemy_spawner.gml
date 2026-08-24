@@ -471,7 +471,7 @@ function scr_enemy_spawner_group_queue(
 function scr_enemy_spawner_wave_groups_queue(
     _spawner,
     _wave,
-    _wave_side
+    _wave_side,
 	_wave_number
 )
 {
