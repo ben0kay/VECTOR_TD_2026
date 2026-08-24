@@ -356,31 +356,138 @@ function scr_enemy_effects_draw(_enemy)
         _enemy.visual.radius;
 
 
+    // ========================================================================
+    // CRYO SLOW
+    // ========================================================================
+
     if (_enemy.effects.slow.active)
     {
-        draw_set_alpha(0.7);
+        var _cryo_radius =
+            _radius + 4;
+
+        var _spin =
+            (
+                global.vtd.tick * 1.5
+                + real(_enemy.id)
+            )
+            mod 360;
+
+
+        draw_set_alpha(0.75);
         draw_set_color(c_aqua);
 
-        draw_arc(
-            _enemy.x,
-            _enemy.y,
-            _radius + 3,
-            25,
-            155
-        );
 
-        draw_arc(
-            _enemy.x,
-            _enemy.y,
-            _radius + 3,
-            205,
-            335
-        );
+        // Four separated curved sections create a rotating frozen outline.
+
+        for (var section = 0; section < 4; ++section)
+        {
+            var _section_start =
+                _spin
+                + (section * 90);
+
+            var _section_end =
+                _section_start + 48;
+
+            var _previous_x =
+                _enemy.x
+                + lengthdir_x(
+                    _cryo_radius,
+                    _section_start
+                );
+
+            var _previous_y =
+                _enemy.y
+                + lengthdir_y(
+                    _cryo_radius,
+                    _section_start
+                );
+
+
+            for (
+                var _angle = _section_start + 8;
+                _angle <= _section_end;
+                _angle += 8
+            )
+            {
+                var _next_x =
+                    _enemy.x
+                    + lengthdir_x(
+                        _cryo_radius,
+                        _angle
+                    );
+
+                var _next_y =
+                    _enemy.y
+                    + lengthdir_y(
+                        _cryo_radius,
+                        _angle
+                    );
+
+
+                draw_line(
+                    _previous_x,
+                    _previous_y,
+                    _next_x,
+                    _next_y
+                );
+
+
+                _previous_x =
+                    _next_x;
+
+                _previous_y =
+                    _next_y;
+            }
+        }
+
+
+        // Small outward ice marks.
+
+        for (var i = 0; i < 4; ++i)
+        {
+            var _mark_angle =
+                _spin
+                + 24
+                + (i * 90);
+
+            draw_line(
+                _enemy.x
+                + lengthdir_x(
+                    _cryo_radius - 2,
+                    _mark_angle
+                ),
+
+                _enemy.y
+                + lengthdir_y(
+                    _cryo_radius - 2,
+                    _mark_angle
+                ),
+
+                _enemy.x
+                + lengthdir_x(
+                    _cryo_radius + 3,
+                    _mark_angle
+                ),
+
+                _enemy.y
+                + lengthdir_y(
+                    _cryo_radius + 3,
+                    _mark_angle
+                )
+            );
+        }
     }
 
 
+    // ========================================================================
+    // STASIS
+    // ========================================================================
+
     if (_enemy.effects.stasis.active)
     {
+        var _stasis_radius =
+            _radius + 7;
+
         var _pulse =
             0.65
             + dsin(
@@ -388,15 +495,27 @@ function scr_enemy_effects_draw(_enemy)
                 + real(_enemy.id)
             ) * 0.2;
 
+
         draw_set_alpha(_pulse);
-        draw_set_color(make_color_rgb(120, 170, 255));
+
+        draw_set_color(
+            make_color_rgb(
+                120,
+                170,
+                255
+            )
+        );
+
 
         draw_circle(
             _enemy.x,
             _enemy.y,
-            _radius + 6,
+            _stasis_radius,
             true
         );
+
+
+        // Horizontal and vertical containment lines.
 
         draw_line(
             _enemy.x - _radius,
@@ -404,8 +523,50 @@ function scr_enemy_effects_draw(_enemy)
             _enemy.x + _radius,
             _enemy.y
         );
+
+        draw_line(
+            _enemy.x,
+            _enemy.y - _radius,
+            _enemy.x,
+            _enemy.y + _radius
+        );
+
+
+        // Diamond-shaped inner lock.
+
+        draw_line(
+            _enemy.x,
+            _enemy.y - (_radius * 0.55),
+            _enemy.x + (_radius * 0.55),
+            _enemy.y
+        );
+
+        draw_line(
+            _enemy.x + (_radius * 0.55),
+            _enemy.y,
+            _enemy.x,
+            _enemy.y + (_radius * 0.55)
+        );
+
+        draw_line(
+            _enemy.x,
+            _enemy.y + (_radius * 0.55),
+            _enemy.x - (_radius * 0.55),
+            _enemy.y
+        );
+
+        draw_line(
+            _enemy.x - (_radius * 0.55),
+            _enemy.y,
+            _enemy.x,
+            _enemy.y - (_radius * 0.55)
+        );
     }
 
+
+    // ========================================================================
+    // RESTORE DRAWING STATE
+    // ========================================================================
 
     draw_set_alpha(1);
     draw_set_color(c_white);
