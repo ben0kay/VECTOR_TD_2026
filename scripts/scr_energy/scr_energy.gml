@@ -1069,8 +1069,201 @@ function scr_energy_overlay_draw()
     }
 
 
+    // Draw private building capacitors after network lines so the bars
+	// remain clearly visible above the overlay.
+
+	scr_energy_buffers_draw(
+	    _mode == EnergyOverlayMode.DETAILED
+	);
+
+
+	draw_set_alpha(1);
+	draw_set_color(c_white);
+
+	return true;
+}
+
+/// @description Draws one building's internal energy-buffer bar.
+
+function scr_energy_buffer_draw(_building, _detailed = false)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (!_building.energy.participates)
+        return false;
+
+    if (_building.energy.buffer.maximum <= 0)
+        return false;
+
+
+    var _ratio =
+        clamp(
+            _building.energy.buffer.current
+            / _building.energy.buffer.maximum,
+            0,
+            1
+        );
+
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _building_half_width =
+        (_building.footprint.width_cells * _cell_size)
+        * 0.5;
+
+    var _building_half_height =
+        (_building.footprint.height_cells * _cell_size)
+        * 0.5;
+
+
+    var _bar_width = 7;
+
+    var _bar_height =
+        max(
+            24,
+            (_building_half_height * 2) - 10
+        );
+
+    var _left =
+        _building.x
+        + _building_half_width
+        + 5;
+
+    var _right =
+        _left
+        + _bar_width;
+
+    var _top =
+        _building.y
+        - (_bar_height * 0.5);
+
+    var _bottom =
+        _building.y
+        + (_bar_height * 0.5);
+
+    var _fill_top =
+        lerp(
+            _bottom,
+            _top,
+            _ratio
+        );
+
+
+    var _color = c_aqua;
+
+    if (!_building.energy.connected)
+        _color = c_red;
+    else if (_ratio <= 0.2)
+        _color = make_color_rgb(255, 100, 40);
+    else if (_ratio <= 0.5)
+        _color = c_yellow;
+
+
+    // Dark capacitor background.
+
+    draw_set_alpha(0.8);
+    draw_set_color(c_black);
+
+    draw_rectangle(
+        _left,
+        _top,
+        _right,
+        _bottom,
+        false
+    );
+
+
+    // Stored energy.
+
+    draw_set_alpha(0.9);
+    draw_set_color(_color);
+
+    draw_rectangle(
+        _left + 1,
+        _fill_top,
+        _right - 1,
+        _bottom - 1,
+        false
+    );
+
+
+    // Vector outline and capacity marks.
+
+    draw_set_alpha(1);
+    draw_set_color(_color);
+
+    draw_rectangle(
+        _left,
+        _top,
+        _right,
+        _bottom,
+        true
+    );
+
+    draw_line(
+        _left,
+        _building.y,
+        _right,
+        _building.y
+    );
+
+
+    if (_detailed)
+    {
+        draw_text(
+            _right + 4,
+            _top,
+            string_format(
+                _building.energy.buffer.current,
+                0,
+                1
+            )
+            + "/"
+            + string_format(
+                _building.energy.buffer.maximum,
+                0,
+                1
+            )
+        );
+    }
+
+
     draw_set_alpha(1);
     draw_set_color(c_white);
+
+    return true;
+}
+
+
+/// @description Draws internal buffers for every participating building.
+
+function scr_energy_buffers_draw(_detailed = false)
+{
+    var _building_count =
+        instance_number(
+            o_building_par
+        );
+
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
+        if (!instance_exists(_building))
+            continue;
+
+        scr_energy_buffer_draw(
+            _building,
+            _detailed
+        );
+    }
+
 
     return true;
 }
