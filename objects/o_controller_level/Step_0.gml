@@ -4,7 +4,7 @@ switch (global.LevelState)
 {
     case LevelState.INITIALIZING:
     {
-        // Initialization currently completes in the Create event.
+        // Initialization currently completes in the Create Event.
     }
     break;
 
@@ -15,85 +15,19 @@ switch (global.LevelState)
 
         global.vtd_level.time.seconds =
             global.vtd_level.time.frames
-            / max(1, game_get_speed(gamespeed_fps));
+            / max(
+                1,
+                game_get_speed(gamespeed_fps)
+            );
 
 
-        // ================================================================
-        // TEMPORARY ENEMY TEST CONTROLS
-        // ================================================================
-
-		if (keyboard_check_pressed(ord("Q")))
-			room_restart();
-
-        if (keyboard_check_pressed(ord("N")))
-            scr_enemy_spawn_edge("enemy_weak");
-
-        if (keyboard_check_pressed(ord("J")))
-            scr_enemy_spawn_edge("enemy_hunter");
-
-        if (keyboard_check_pressed(ord("H")))
-            scr_enemy_spawn_edge("enemy_phaser");
-
-        if (keyboard_check_pressed(ord("U")))
-            scr_enemy_spawn_edge("enemy_shooter_single");
-
-        if (keyboard_check_pressed(ord("I")))
-            scr_enemy_spawn_edge("enemy_shooter_triple");
-
-        if (keyboard_check_pressed(ord("O")))
-            scr_enemy_spawn_edge("enemy_kamikaze");
-
-        if (keyboard_check_pressed(ord("L")))
-            scr_enemy_spawn_edge("enemy_splitter");
-			
-		if (keyboard_check_pressed(ord("F")))
-		scr_enemy_spawn_edge("enemy_flyer");
-			
-			if (keyboard_check_pressed(ord("X")))
-		{
-		    scr_enemy_spawn_edge(
-		        "enemy_weak",
-		        [
-		            EnemyModifier.SHIELDED
-		        ]
-		    );
-		}
-		
-		if (keyboard_check_pressed(ord("V")))
-	    scr_enemy_spawn_edge("enemy_brute");
-
-		if (keyboard_check_pressed(ord("R")))
-		    scr_enemy_spawn_edge("enemy_transporter");
-
-		if (keyboard_check_pressed(ord("Z")))
-		    scr_enemy_spawn_edge("enemy_gunship");
-			
-		if (keyboard_check_pressed(ord("4")))
-		scr_enemy_spawn_edge("enemy_shield_generator");
-		
-		if (keyboard_check_pressed(ord("5")))
-		scr_enemy_spawn_edge("enemy_siege_beam");
-		
-		if (keyboard_check_pressed(ord("6")))
-		scr_enemy_spawn_edge("enemy_siege_rocket");
-	
-
-        // Direct CPU damage test.
-
-        if (keyboard_check_pressed(ord("K")))
-        {
-            var _cpu = global.vtd_level.entities.cpu;
-
-            if (instance_exists(_cpu))
-                scr_cpu_damage(_cpu, 100);
-        }
-
-
+        // Enemy spawning, CPU damage and room-reset testing now belong
+        // to the F1 debug interface.
+        //
         // FUTURE:
-        // baseline spawning
-        // clusters
-        // waves
-        // milestones
+        // victory-condition checks
+        // objective updates
+        // scripted level events
     }
     break;
 
@@ -102,6 +36,8 @@ switch (global.LevelState)
     {
         // FUTURE:
         // victory handling
+        // rewards
+        // return to level selection
     }
     break;
 
@@ -110,13 +46,15 @@ switch (global.LevelState)
     {
         // FUTURE:
         // defeat handling
+        // retry
+        // return to level selection
     }
     break;
 
 
     case LevelState.EXITING:
     {
-        // Cleanup belongs to the Clean Up event.
+        // Cleanup belongs to the Clean Up Event.
     }
     break;
 }

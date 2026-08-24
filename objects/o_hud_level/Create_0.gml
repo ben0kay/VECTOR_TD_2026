@@ -81,9 +81,11 @@ hud.selection_panel =
     scr_hud_selection_panel_create();
 
 
-scr_hud_build_menu_cards_rebuild(
-    id
-);
+hud.debug_menu =
+    scr_debug_menu_create();
+
+
+scr_hud_build_menu_cards_rebuild(id);
 
 
 global.vtd_level.entities.hud =

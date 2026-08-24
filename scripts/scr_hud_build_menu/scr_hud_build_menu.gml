@@ -595,28 +595,61 @@ function scr_hud_pointer_blocks_world()
     if (!is_struct(global.vtd_level))
         return false;
 
-    if (!variable_struct_exists(global.vtd_level.entities, "hud"))
+    if (
+        !variable_struct_exists(
+            global.vtd_level.entities,
+            "hud"
+        )
+    )
+    {
         return false;
+    }
 
-    var _hud = global.vtd_level.entities.hud;
+
+    var _hud =
+        global.vtd_level.entities.hud;
 
     if (!instance_exists(_hud))
         return false;
 
-    var _mouse_x = device_mouse_x_to_gui(0);
-    var _mouse_y = device_mouse_y_to_gui(0);
 
-    var _gui_width = display_get_gui_width();
-    var _gui_height = display_get_gui_height();
+    // The debug overlay captures the complete pointer while open.
+
+    if (
+        variable_struct_exists(
+            _hud.hud,
+            "debug_menu"
+        )
+        && _hud.hud.debug_menu.open
+    )
+    {
+        return true;
+    }
+
+
+    var _mouse_x =
+        device_mouse_x_to_gui(0);
+
+    var _mouse_y =
+        device_mouse_y_to_gui(0);
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
 
     var _tray_top =
-        _gui_height - _hud.hud.bottom.height;
+        _gui_height
+        - _hud.hud.bottom.height;
 
     var _inspector_left =
-        _gui_width - _hud.hud.bottom.inspector_width;
+        _gui_width
+        - _hud.hud.bottom.inspector_width;
 
     var _inspector_top =
-        _gui_height - _hud.hud.bottom.inspector_height;
+        _gui_height
+        - _hud.hud.bottom.inspector_height;
 
     var _inside_tray =
         _mouse_y >= _tray_top;
@@ -625,7 +658,10 @@ function scr_hud_pointer_blocks_world()
         _mouse_x >= _inspector_left
         && _mouse_y >= _inspector_top;
 
-    return _inside_tray || _inside_inspector;
+
+    return
+        _inside_tray
+        || _inside_inspector;
 }
 
 /// @description Changes the selected build category.
