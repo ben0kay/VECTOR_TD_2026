@@ -109,6 +109,7 @@
     {"id":{"name":"scr_tower","path":"scripts/scr_tower/scr_tower.yy",},},
     {"id":{"name":"scr_world_data","path":"scripts/scr_world_data/scr_world_data.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
+    {"id":{"name":"s_dead_cell","path":"sprites/s_dead_cell/s_dead_cell.yy",},},
   ],
   "resourceType":"GMProject",
   "resourceVersion":"2.0",

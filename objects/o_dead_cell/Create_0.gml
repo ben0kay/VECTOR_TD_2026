@@ -1,4 +1,4 @@
-/// @description Initializes one visible dead terrain cell.
+/// @description Validates one generated dead terrain cell.
 
 if (
     !variable_instance_exists(id, "world_cell_x")
@@ -13,12 +13,8 @@ if (
     exit;
 }
 
-
 if (
-    scr_world_cell_type_get(
-        world_cell_x,
-        world_cell_y
-    )
+    scr_world_cell_type_get(world_cell_x, world_cell_y)
     != WorldCellType.DEAD
 )
 {
@@ -29,12 +25,3 @@ if (
     instance_destroy();
     exit;
 }
-
-
-visual =
-{
-    color: make_color_rgb(55, 65, 75),
-
-    // Adds small visual variation without affecting terrain rules.
-    inset: irandom_range(4, 8)
-};
