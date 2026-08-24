@@ -93,3 +93,292 @@ function scr_energy_battery_draw(_building)
     draw_set_alpha(1);
     draw_set_color(c_white);
 }
+
+/// @description Draws the Credit Magnet's vector assembly.
+
+function scr_utility_credit_magnet_draw(_utility)
+{
+    var _pulse =
+        0.75
+        + sin(
+            global.vtd.tick * 5
+            + real(_utility.id)
+        ) * 0.2;
+
+    var _color =
+        make_color_rgb(
+            190,
+            70,
+            255
+        );
+
+
+    draw_set_color(_color);
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        17,
+        false
+    );
+
+    scr_draw_arc(
+    _utility.x - 9,
+    _utility.y,
+    9,
+    90,
+    270
+	);
+
+	scr_draw_arc(
+	    _utility.x + 9,
+	    _utility.y,
+	    9,
+	    270,
+	    90
+	);
+
+
+    draw_line_width(
+        _utility.x - 9,
+        _utility.y + 9,
+        _utility.x - 9,
+        _utility.y + 20,
+        3
+    );
+
+    draw_line_width(
+        _utility.x + 9,
+        _utility.y + 9,
+        _utility.x + 9,
+        _utility.y + 20,
+        3
+    );
+
+
+    draw_set_alpha(_pulse);
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        5,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+}
+
+
+/// @description Draws the Restoration Array and its active repair beam.
+
+function scr_utility_repairer_draw(_utility)
+{
+    if (!instance_exists(_utility))
+        return false;
+
+
+    var _runtime = _utility.utility;
+
+    var _color_outer =
+        make_color_rgb(30, 170, 100);
+
+    var _color_core =
+        make_color_rgb(150, 255, 205);
+
+    var _pulse =
+        0.7
+        + dsin(
+            global.vtd.tick * 6
+            + real(_utility.id)
+        ) * 0.2;
+
+
+    // ========================================================================
+    // RESTORATION ARRAY ASSEMBLY
+    // ========================================================================
+
+    draw_set_color(_color_core);
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        16,
+        false
+    );
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        9,
+        true
+    );
+
+
+    // Medical/restoration cross.
+
+    draw_line_width(
+        _utility.x - 11,
+        _utility.y,
+        _utility.x + 11,
+        _utility.y,
+        4
+    );
+
+    draw_line_width(
+        _utility.x,
+        _utility.y - 11,
+        _utility.x,
+        _utility.y + 11,
+        4
+    );
+
+
+    draw_set_alpha(_pulse);
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        4,
+        false
+    );
+
+
+    // ========================================================================
+    // ACTIVE REPAIR BEAM
+    // ========================================================================
+
+    if (
+        _runtime.feedback.remaining > 0
+        && instance_exists(_runtime.target)
+    )
+    {
+        var _beam_alpha =
+            clamp(
+                _runtime.feedback.remaining
+                / max(
+                    0.001,
+                    _runtime.feedback.duration
+                ),
+                0,
+                1
+            );
+
+        scr_draw_beam(
+            _utility.x,
+            _utility.y,
+            _runtime.target.x,
+            _runtime.target.y,
+            _color_outer,
+            _color_core,
+            5,
+            _beam_alpha,
+            7
+        );
+
+
+        // Expanding repair confirmation ring.
+
+        var _repair_progress =
+            1 - _beam_alpha;
+
+        draw_set_color(_color_core);
+        draw_set_alpha(_beam_alpha);
+
+        draw_circle(
+            _runtime.target.x,
+            _runtime.target.y,
+            10 + (_repair_progress * 18),
+            false
+        );
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
+
+/// @description Draws the passive Credit Uplink.
+
+function scr_utility_credit_uplink_draw(_utility)
+{
+    var _runtime =
+        _utility.utility;
+
+    var _pulse =
+        0.6
+        + sin(
+            global.vtd.tick * 4
+            + real(_utility.id)
+        ) * 0.25;
+
+
+    draw_set_color(c_yellow);
+
+    draw_rectangle(
+        _utility.x - 17,
+        _utility.y - 12,
+        _utility.x + 17,
+        _utility.y + 12,
+        true
+    );
+
+    draw_line(
+        _utility.x,
+        _utility.y - 20,
+        _utility.x,
+        _utility.y + 12
+    );
+
+    draw_line(
+        _utility.x,
+        _utility.y - 20,
+        _utility.x - 9,
+        _utility.y - 29
+    );
+
+    draw_line(
+        _utility.x,
+        _utility.y - 20,
+        _utility.x + 9,
+        _utility.y - 29
+    );
+
+
+    draw_set_alpha(_pulse);
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        6,
+        true
+    );
+
+
+    if (_runtime.feedback.remaining > 0)
+    {
+        var _radius =
+            12
+            + (
+                1
+                - _runtime.feedback.remaining
+                / max(
+                    0.001,
+                    _runtime.feedback.duration
+                )
+            ) * 18;
+
+        draw_circle(
+            _utility.x,
+            _utility.y,
+            _radius,
+            false
+        );
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+}

@@ -521,55 +521,34 @@ function scr_tower_visual_sniper(_tower)
 
 function scr_tower_weapon_trace_draw(_tower)
 {
-    var _trace = _tower.combat.weapon.trace;
+    if (!instance_exists(_tower))
+        return false;
+
+    var _trace =
+        _tower.combat.weapon.trace;
 
     if (!_trace.active)
         return true;
 
 
-    // Outer heated beam or rail trail.
-
-    draw_set_color(_trace.color_outer);
-    draw_set_alpha(0.8);
-
-    draw_line_width(
+    scr_draw_beam(
         _trace.start_x,
         _trace.start_y,
         _trace.end_x,
         _trace.end_y,
-        _trace.width
-    );
-
-
-    // Bright inner beam core.
-
-    draw_set_color(_trace.color_core);
-    draw_set_alpha(0.9);
-
-    draw_line_width(
-        _trace.start_x,
-        _trace.start_y,
-        _trace.end_x,
-        _trace.end_y,
-        max(1, _trace.width * 0.35)
-    );
-
-
-    // Small impact point.
-
-    draw_circle(
-        _trace.end_x,
-        _trace.end_y,
-        max(2, _trace.width),
-        true
+        _trace.color_outer,
+        _trace.color_core,
+        _trace.width,
+        0.9,
+        max(2, _trace.width)
     );
 
 
     // FUTURE PARTICLE HOOK:
-    // Ember particles can be distributed between start and end.
+    // Laser embers can be distributed along this trace.
+    // Restoration beams can use floating repair particles.
+    // Energy links can animate packets travelling between endpoints.
 
-    draw_set_alpha(1);
-    draw_set_color(c_white);
 
     return true;
 }
