@@ -164,3 +164,7 @@ enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPOR
 #macro GAMEPLAY_ACTIVE \
     (global.GameState == GameState.PLAYING \
     && global.LevelState == LevelState.PLAYING)
+	
+#macro BUILDING_CAN_OPERATE \
+    (GAMEPLAY_ACTIVE \
+    && BuildingState == BuildingState.ACTIVE)

@@ -37,6 +37,7 @@
     {"id":{"name":"o_controller_fog","path":"objects/o_controller_fog/o_controller_fog.yy",},},
     {"id":{"name":"o_controller_level","path":"objects/o_controller_level/o_controller_level.yy",},},
     {"id":{"name":"o_controller_main","path":"objects/o_controller_main/o_controller_main.yy",},},
+    {"id":{"name":"o_controller_power","path":"objects/o_controller_power/o_controller_power.yy",},},
     {"id":{"name":"o_cpu","path":"objects/o_cpu/o_cpu.yy",},},
     {"id":{"name":"o_dead_cell","path":"objects/o_dead_cell/o_dead_cell.yy",},},
     {"id":{"name":"o_effect","path":"objects/o_effect/o_effect.yy",},},

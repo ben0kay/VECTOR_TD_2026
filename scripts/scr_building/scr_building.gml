@@ -931,12 +931,25 @@ function scr_building_at_cell(
     return noone;
 }
 
-/// @description Completes one building and enables future runtime systems.
+/// @description Completes construction and activates one building.
 
 function scr_building_construction_complete(_building)
 {
     if (!instance_exists(_building))
         return false;
+
+
+    // Add any structural HP that construction has not supplied yet.
+    // This makes zero-second buildings spawn at full HP while preserving
+    // damage suffered by buildings during timed construction.
+
+    _building.vitals.hp.current =
+        min(
+            _building.vitals.hp.maximum,
+
+            _building.vitals.hp.current
+            + _building.construction.hp_remaining
+        );
 
 
     _building.construction.progress_seconds =
@@ -946,12 +959,12 @@ function scr_building_construction_complete(_building)
     _building.construction.hp_remaining = 0;
     _building.construction.complete = true;
 
+
     _building.BuildingState =
         BuildingState.ACTIVE;
 
 
-    // Power networks will consume this hook in the next batch.
-    // Registration occurs only after construction is complete.
+    // Power networks will process this after the local power system exists.
 
     if (_building.power.participates)
         _building.power.registration_pending = true;

@@ -2,18 +2,11 @@
 
 event_inherited();
 
-
-if (!instance_exists(id))
-    exit;
-
-if (!GAMEPLAY_ACTIVE) exit;
-
-if (BuildingState != BuildingState.ACTIVE)
+if (!BUILDING_CAN_OPERATE)
     exit;
 
 
 // FUTURE:
-// power state
-// storage damage or leakage
+// storage leakage
 // active cargo ports
 // drone reservations
