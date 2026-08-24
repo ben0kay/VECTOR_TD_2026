@@ -97,6 +97,28 @@ if (!instance_exists(_camera))
     exit;
 }
 
+// ========================================================================
+// ENERGY CONTROLLER
+// ========================================================================
+
+var _energy_controller =
+    instance_create_layer(
+        0,
+        0,
+        "Controller",
+        o_controller_energy
+    );
+
+if (!instance_exists(_energy_controller))
+{
+    show_debug_message(
+        "LEVEL ERROR - energy controller creation failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
 
 // ========================================================================
 // FOG OF WAR

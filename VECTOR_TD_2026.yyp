@@ -11,7 +11,7 @@
   "defaultScriptType":1,
   "Folders":[
     {"$GMFolder":"","%Name":"controllers","folderPath":"folders/controllers.yy","name":"controllers","resourceType":"GMFolder","resourceVersion":"2.0",},
-    {"$GMFolder":"","%Name":"data","folderPath":"folders/data.yy","name":"data","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"data","folderPath":"folders/scripts/data.yy","name":"data","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"entities","folderPath":"folders/entities.yy","name":"entities","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"objects","folderPath":"folders/objects.yy","name":"objects","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"buildings","folderPath":"folders/objects/buildings.yy","name":"buildings","resourceType":"GMFolder","resourceVersion":"2.0",},

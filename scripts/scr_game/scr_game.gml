@@ -148,15 +148,28 @@ function scr_level_initialize()
             // milestones
         },
 
-        power:
-        {
-            // FUTURE:
-            // local power networks
-            // generators
-            // nodes
-            // consumers
-            // batteries
-        }
+        energy:
+		{
+		    controller: noone,
+		    dirty: true,
+		    revision: 0,
+		    networks: [],
+
+		    overlay:
+		    {
+		        mode: EnergyOverlayMode.OFF
+		    },
+
+		    totals:
+		    {
+		        generation: 0,
+		        demand: 0,
+		        net: 0,
+		        stored: 0,
+		        storage_maximum: 0,
+		        deficient_networks: 0
+		    }
+		}
     };
 
 

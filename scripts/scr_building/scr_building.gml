@@ -167,49 +167,24 @@ function scr_building_initialize(_building)
         BuildingState.CONSTRUCTING;
 
 
-    // ========================================================================
-    // EARLY POWER RUNTIME
-    // ========================================================================
+	// ========================================================================
+	// ENERGY
+	// ========================================================================
 
-    var _participates =
-        variable_struct_exists(
-            _data,
-            "power"
-        );
+	_building.energy =
+	    scr_energy_runtime_create(
+	        _data
+	    );
 
+	if (!is_struct(_building.energy))
+	{
+	    show_debug_message(
+	        "BUILDING ERROR - energy runtime failed: "
+	        + _building.identity.key
+	    );
 
-    _building.power =
-    {
-        participates: _participates,
-        network_id: -1,
-        connected: false,
-        supplied: !_participates,
-        registration_pending: false,
-
-        demand:
-        {
-            idle: 0,
-            activity: 0,
-            requested: 0,
-            received: 0
-        },
-
-        activity:
-        {
-            active: false,
-            energy_cost: 0
-        }
-    };
-
-
-    if (_participates)
-    {
-        if (variable_struct_exists(_data.power, "idle_demand"))
-            _building.power.demand.idle = _data.power.idle_demand;
-
-        if (variable_struct_exists(_data.power, "activity_demand"))
-            _building.power.demand.activity = _data.power.activity_demand;
-    }
+	    return false;
+	}
 
 
     if (_construction_seconds <= 0)
@@ -855,6 +830,14 @@ function scr_building_cleanup(_building)
     if (!instance_exists(_building))
         return false;
 
+	if (
+	    variable_instance_exists(id, "energy")
+	    && is_struct(energy)
+	    && energy.participates
+	)
+	{
+	    scr_energy_topology_dirty();
+	}
 
     scr_building_footprint_release(
         _building
@@ -939,10 +922,6 @@ function scr_building_construction_complete(_building)
         return false;
 
 
-    // Add any structural HP that construction has not supplied yet.
-    // This makes zero-second buildings spawn at full HP while preserving
-    // damage suffered by buildings during timed construction.
-
     _building.vitals.hp.current =
         min(
             _building.vitals.hp.maximum,
@@ -959,19 +938,19 @@ function scr_building_construction_complete(_building)
     _building.construction.hp_remaining = 0;
     _building.construction.complete = true;
 
-
     _building.BuildingState =
         BuildingState.ACTIVE;
 
 
-    // Power networks will process this after the local power system exists.
-
-    if (_building.power.participates)
-        _building.power.registration_pending = true;
+    if (_building.energy.participates)
+    {
+        _building.energy.registration_pending = true;
+        scr_energy_topology_dirty();
+    }
 
 
     show_debug_message(
-        "BUILDING COMPLETE: "
+        "BUILDING ACTIVE: "
         + _building.identity.name
     );
 
