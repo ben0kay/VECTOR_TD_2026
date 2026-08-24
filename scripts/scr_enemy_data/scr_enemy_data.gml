@@ -1180,6 +1180,9 @@ function scr_enemy_data_gunship()
                 key: "enemy_gunship",
                 name: "Orbiting Gunship"
             },
+			
+			behavior:
+	    EnemyBehavior.ORBIT,
 
             visual:
             {
@@ -1274,6 +1277,9 @@ function scr_enemy_data_shield_generator()
                 name: "Shield Generator"
             },
 
+			behavior:
+			EnemyBehavior.SUPPORT,
+
             visual:
             {
                 sprite: -1,
@@ -1362,6 +1368,9 @@ function scr_enemy_data_siege_beam()
                 key: "enemy_siege_beam",
                 name: "Siege Beam Platform"
             },
+
+			behavior:
+    EnemyBehavior.ANCHOR_BEAM,
 
             visual:
             {
@@ -1500,6 +1509,9 @@ function scr_enemy_data_siege_rocket()
                 key: "enemy_siege_rocket",
                 name: "Siege Rocket Platform"
             },
+				
+			behavior:
+    EnemyBehavior.STANDOFF,	
 
             visual:
             {
@@ -1579,7 +1591,7 @@ function scr_enemy_data_siege_rocket()
 
             abilities:
             [
-                EnemyAbility.STANDOFF_ATTACK
+
             ]
         }
     );

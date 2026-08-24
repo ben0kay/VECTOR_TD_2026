@@ -218,30 +218,81 @@ function scr_enemy_initialize(_enemy)
 	}
 
 
-    var _brainless = false;
-    var _destroy_on_impact = false;
+    var _brainless =
+    false;
 
-    if (variable_struct_exists(_data.movement, "brainless"))
-        _brainless = _data.movement.brainless;
-
-    if (variable_struct_exists(_data.movement, "destroy_on_impact"))
-        _destroy_on_impact = _data.movement.destroy_on_impact;
+var _destroy_on_impact =
+    false;
 
 
-    var _initial_direction = random(360);
+if (variable_struct_exists(_data.movement, "brainless"))
+{
+    _brainless =
+        _data.movement.brainless;
+}
 
-    if (variable_instance_exists(_enemy, "spawn_direction"))
-        _initial_direction = _enemy.spawn_direction;
+if (variable_struct_exists(_data.movement, "destroy_on_impact"))
+{
+    _destroy_on_impact =
+        _data.movement.destroy_on_impact;
+}
 
 
-    _enemy.movement =
-    {
-        speed: _data.movement.speed,
-        layer: _data.movement.layer,
-        brainless: _brainless,
-        direction: _initial_direction,
-        destroy_on_impact: _destroy_on_impact
-    };
+var _initial_direction =
+    random(360);
+
+if (variable_instance_exists(_enemy, "spawn_direction"))
+{
+    _initial_direction =
+        _enemy.spawn_direction;
+}
+
+
+_enemy.movement =
+{
+    speed: _data.movement.speed,
+    layer: _data.movement.layer,
+
+    brainless: _brainless,
+    direction: _initial_direction,
+
+    destroy_on_impact:
+        _destroy_on_impact
+};
+
+
+_enemy.movement.speed_base =
+    _data.movement.speed;
+
+
+// ========================================================================
+// PRIMARY BEHAVIOR
+// ========================================================================
+
+_enemy.EnemyBehavior =
+    EnemyBehavior.STANDARD;
+
+
+// Existing brainless definitions remain compatible automatically.
+
+if (_brainless)
+{
+    _enemy.EnemyBehavior =
+        EnemyBehavior.BRAINLESS;
+}
+
+
+// New and specialized definitions explicitly select their behavior.
+
+if (variable_struct_exists(_data, "behavior"))
+{
+    _enemy.EnemyBehavior =
+        _data.behavior;
+}
+
+
+_enemy.visual.draw_angle =
+    _initial_direction;
 
 	// ========================================================================
 	// STATUS EFFECTS
@@ -867,7 +918,7 @@ function scr_enemy_attack(_enemy)
     return true;
 }
 
-/// @description Updates one generic enemy.
+/// @description Processes shared enemy logic and dispatches its primary behavior.
 
 function scr_enemy_update(_enemy)
 {
@@ -875,38 +926,62 @@ function scr_enemy_update(_enemy)
         return false;
 
 
-    // Brainless enemies perform no targeting or pathfinding.
-
-    if (_enemy.movement.brainless)
-        return scr_enemy_brainless_update(_enemy);
-
-
-    var _fps = max(
-        1,
-        game_get_speed(gamespeed_fps)
-    );
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
 
-    _enemy.attack.cooldown.remaining = max(
-        0,
-        _enemy.attack.cooldown.remaining - (1 / _fps)
-    );
+    _enemy.attack.cooldown.remaining =
+        max(
+            0,
+            _enemy.attack.cooldown.remaining
+            - (1 / _fps)
+        );
+
+
+    // Brainless enemies do not require strategic targets or paths.
+
+    if (
+        _enemy.EnemyBehavior
+        == EnemyBehavior.BRAINLESS
+    )
+    {
+        return scr_enemy_behavior_update(
+            _enemy
+        );
+    }
 
 
     // ========================================================================
-    // TARGET RECOVERY
+    // STRATEGIC TARGET RECOVERY
     // ========================================================================
 
     if (!instance_exists(_enemy.targeting.strategic))
     {
-        _enemy.targeting.strategic =
-            scr_enemy_target_acquire(_enemy);
+        var _strategic =
+            scr_enemy_target_acquire(
+                _enemy
+            );
+
+        scr_enemy_strategic_target_set(
+            _enemy,
+            _strategic
+        );
     }
 
 
     if (!instance_exists(_enemy.targeting.breach))
-        _enemy.targeting.breach = noone;
+    {
+        _enemy.targeting.breach =
+            noone;
+    }
 
+
+    // ========================================================================
+    // ACTIVE TARGET RECOVERY
+    // ========================================================================
 
     if (!instance_exists(_enemy.targeting.target))
     {
@@ -917,17 +992,27 @@ function scr_enemy_update(_enemy)
         }
         else
         {
-            _enemy.targeting.target =
-                scr_enemy_target_acquire(_enemy);
+            var _strategic =
+                scr_enemy_target_acquire(
+                    _enemy
+                );
 
-            _enemy.targeting.strategic =
-                _enemy.targeting.target;
+            scr_enemy_strategic_target_set(
+                _enemy,
+                _strategic
+            );
+
+            _enemy.targeting.target =
+                _enemy.targeting.strategic;
         }
 
 
         if (!instance_exists(_enemy.targeting.target))
         {
-            scr_navigation_enemy_stop(_enemy);
+            scr_navigation_enemy_stop(
+                _enemy
+            );
+
             return true;
         }
 
@@ -939,147 +1024,11 @@ function scr_enemy_update(_enemy)
     }
 
 
-    // ========================================================================
-    // SPECIAL BEHAVIOURS
-    // ========================================================================
+    // Exactly one primary behavior runs per enemy.
 
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.SHIELD_ALLIES
-        )
-    )
-    {
-        return scr_enemy_shield_generator_update(
-            _enemy
-        );
-    }
-
-
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.CONTINUOUS_BEAM
-        )
-    )
-    {
-        return scr_enemy_siege_beam_update(
-            _enemy
-        );
-    }
-	
-	if (
-    scr_enemy_has_ability(
-        _enemy,
-        EnemyAbility.STANDOFF_ATTACK
-	    )
-	)
-	{
-	    return scr_enemy_standoff_update(
-	        _enemy
-	    );
-	}
-
-
-    if (
-        scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.ORBIT_TARGET
-        )
-    )
-    {
-        return scr_enemy_orbit_update(_enemy);
-    }
-
-
-    // ========================================================================
-    // STANDARD MOVEMENT / COMBAT
-    // ========================================================================
-
-    var _target = _enemy.targeting.target;
-
-    var _edge_distance = scr_enemy_target_edge_distance(
-        _enemy,
-        _target
+    return scr_enemy_behavior_update(
+        _enemy
     );
-
-
-    switch (_enemy.EnemyState)
-    {
-        case EnemyState.SPAWNING:
-        {
-            _enemy.EnemyState = EnemyState.MOVING;
-
-            scr_navigation_enemy_repath_request(
-                _enemy,
-                true
-            );
-        }
-        break;
-
-
-        case EnemyState.MOVING:
-        {
-            if (_edge_distance <= _enemy.attack.range)
-            {
-                scr_navigation_enemy_stop(_enemy);
-                _enemy.EnemyState = EnemyState.ATTACKING;
-                break;
-            }
-
-            scr_navigation_enemy_update(_enemy);
-        }
-        break;
-
-
-        case EnemyState.ATTACKING:
-        {
-            _enemy.visual.draw_angle = point_direction(
-                _enemy.x,
-                _enemy.y,
-                _target.x,
-                _target.y
-            );
-
-
-            if (_edge_distance > _enemy.attack.range)
-            {
-                _enemy.EnemyState = EnemyState.MOVING;
-
-                scr_navigation_enemy_repath_request(
-                    _enemy,
-                    true
-                );
-
-                break;
-            }
-
-
-            if (_enemy.attack.cooldown.remaining <= 0)
-                scr_enemy_attack(_enemy);
-        }
-        break;
-
-
-        case EnemyState.STUNNED:
-        {
-            scr_navigation_enemy_stop(_enemy);
-
-            // FUTURE:
-            // timed status-effect recovery
-        }
-        break;
-
-
-        case EnemyState.DEAD:
-        {
-            scr_navigation_enemy_stop(_enemy);
-        }
-        break;
-    }
-
-
-    return true;
 }
 
 /// @description Spawns one data-driven enemy with optional direction and modifiers.
