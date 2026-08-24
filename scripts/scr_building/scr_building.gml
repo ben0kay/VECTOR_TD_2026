@@ -1,5 +1,233 @@
 /// @description Generic building initialization, footprint, and drawing.
 
+/// @description Initializes one generic building runtime.
+
+function scr_building_initialize(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (!variable_instance_exists(_building, "building_key"))
+    {
+        show_debug_message(
+            "BUILDING ERROR - building_key was not supplied."
+        );
+
+        return false;
+    }
+
+
+    var _data =
+        scr_building_data_get(
+            _building.building_key
+        );
+
+    if (!scr_building_data_valid(_data))
+    {
+        show_debug_message(
+            "BUILDING ERROR - invalid definition: "
+            + string(_building.building_key)
+        );
+
+        return false;
+    }
+
+
+    _building.building_data = _data;
+
+    _building.identity =
+    {
+        key: _data.identity.key,
+        name: _data.identity.name,
+        type: _data.identity.type
+    };
+
+    _building.visual =
+    {
+        color: _data.visual.color
+    };
+
+    _building.footprint =
+    {
+        width_cells: _data.footprint.width_cells,
+        height_cells: _data.footprint.height_cells,
+
+        origin:
+        {
+            x: -1,
+            y: -1
+        },
+
+        cells: [],
+        reserved: false
+    };
+
+
+    if (
+        !variable_instance_exists(_building, "placement_cell_x")
+        || !variable_instance_exists(_building, "placement_cell_y")
+    )
+    {
+        show_debug_message(
+            "BUILDING ERROR - placement cell was not supplied."
+        );
+
+        return false;
+    }
+
+
+    if (
+        !scr_building_footprint_reserve(
+            _building,
+            _building.placement_cell_x,
+            _building.placement_cell_y
+        )
+    )
+    {
+        show_debug_message(
+            "BUILDING ERROR - footprint reservation failed: "
+            + _building.identity.key
+        );
+
+        return false;
+    }
+
+
+    // ========================================================================
+    // FOUNDATION SUPPORT
+    // ========================================================================
+
+    var _foundation_coverage =
+        scr_foundation_building_coverage_get(
+            _building
+        );
+
+    var _foundation_multiplier = 1;
+
+    if (_foundation_coverage >= 1)
+        _foundation_multiplier = 1.05;
+
+
+    var _hp_maximum =
+        _data.vitals.hp_maximum
+        * _foundation_multiplier;
+
+
+    _building.foundation =
+    {
+        coverage: _foundation_coverage,
+        fully_supported: _foundation_coverage >= 1,
+        hp_multiplier: _foundation_multiplier
+    };
+
+
+    // ========================================================================
+    // VITALS
+    // ========================================================================
+
+    var _initial_hp =
+        max(
+            1,
+            _hp_maximum * 0.1
+        );
+
+
+    _building.vitals =
+    {
+        hp:
+        {
+            current: _initial_hp,
+            maximum: _hp_maximum
+        }
+    };
+
+
+    // ========================================================================
+    // CONSTRUCTION
+    // ========================================================================
+
+    var _construction_seconds =
+        max(
+            0,
+            _data.construction.time_seconds
+        );
+
+
+    _building.construction =
+    {
+        progress_seconds: 0,
+        duration_seconds: _construction_seconds,
+        percent: 0,
+        hp_remaining: max(0, _hp_maximum - _initial_hp),
+        complete: false
+    };
+
+
+    _building.BuildingState =
+        BuildingState.CONSTRUCTING;
+
+
+    // ========================================================================
+    // EARLY POWER RUNTIME
+    // ========================================================================
+
+    var _participates =
+        variable_struct_exists(
+            _data,
+            "power"
+        );
+
+
+    _building.power =
+    {
+        participates: _participates,
+        network_id: -1,
+        connected: false,
+        supplied: !_participates,
+        registration_pending: false,
+
+        demand:
+        {
+            idle: 0,
+            activity: 0,
+            requested: 0,
+            received: 0
+        },
+
+        activity:
+        {
+            active: false,
+            energy_cost: 0
+        }
+    };
+
+
+    if (_participates)
+    {
+        if (variable_struct_exists(_data.power, "idle_demand"))
+            _building.power.demand.idle = _data.power.idle_demand;
+
+        if (variable_struct_exists(_data.power, "activity_demand"))
+            _building.power.demand.activity = _data.power.activity_demand;
+    }
+
+
+    if (_construction_seconds <= 0)
+    {
+        scr_building_construction_complete(
+            _building
+        );
+    }
+
+
+    show_debug_message(
+        "BUILDING CREATED: "
+        + _building.identity.name
+    );
+
+
+    return true;
+}
 
 /// @description Converts a cell into its world-centre position.
 
@@ -389,163 +617,6 @@ function scr_building_footprint_release(_building)
     return true;
 }
 
-/// @description Initializes one generic building parent instance.
-
-function scr_building_initialize(
-    _building
-)
-{
-    if (!instance_exists(_building))
-        return false;
-
-
-    if (
-        !variable_instance_exists(
-            _building,
-            "building_key"
-        )
-    )
-    {
-        show_debug_message(
-            "BUILDING ERROR - building_key was not supplied."
-        );
-
-        return false;
-    }
-
-
-    var _data =
-        scr_building_data_get(
-            _building.building_key
-        );
-
-
-    if (!scr_building_data_valid(_data))
-    {
-        show_debug_message(
-            "BUILDING ERROR - invalid definition: "
-            + string(
-                _building.building_key
-            )
-        );
-
-        return false;
-    }
-
-
-    _building.building_data =
-        _data;
-
-
-    _building.BuildingState =
-        BuildingState.ACTIVE;
-
-
-    _building.identity =
-    {
-        key:
-            _data.identity.key,
-
-        name:
-            _data.identity.name,
-
-        type:
-            _data.identity.type
-    };
-
-
-    _building.visual =
-    {
-        color:
-            _data.visual.color
-    };
-
-
-    _building.vitals =
-    {
-        hp:
-        {
-            current:
-                _data.vitals.hp_maximum,
-
-            maximum:
-                _data.vitals.hp_maximum
-        }
-    };
-
-
-    _building.footprint =
-    {
-        width_cells:
-            _data.footprint.width_cells,
-
-        height_cells:
-            _data.footprint.height_cells,
-
-        origin:
-        {
-            x:
-                -1,
-
-            y:
-                -1
-        },
-
-        cells:
-            [],
-
-        reserved:
-            false
-    };
-
-
-    // The build controller supplies the intended origin cell.
-
-    if (
-        !variable_instance_exists(
-            _building,
-            "placement_cell_x"
-        )
-        || !variable_instance_exists(
-            _building,
-            "placement_cell_y"
-        )
-    )
-    {
-        show_debug_message(
-            "BUILDING ERROR - placement cell was not supplied."
-        );
-
-        return false;
-    }
-
-
-    if (
-        !scr_building_footprint_reserve(
-            _building,
-            _building.placement_cell_x,
-            _building.placement_cell_y
-        )
-    )
-    {
-        show_debug_message(
-            "BUILDING ERROR - footprint reservation failed: "
-            + _building.identity.key
-        );
-
-        return false;
-    }
-
-
-    show_debug_message(
-        "BUILDING CREATED: "
-        + _building.identity.name
-    );
-
-
-    return true;
-}
-
 
 /// @description Applies damage to one building.
 
@@ -652,6 +723,79 @@ function scr_building_draw(_building)
     draw_set_alpha(
         1
     );
+	
+	// ========================================================================
+	// CONSTRUCTION OVERLAY
+	// ========================================================================
+
+	if (_building.BuildingState == BuildingState.CONSTRUCTING)
+	{
+	    var _construction_percent =
+	        _building.construction.percent;
+
+	    var _scan_y =
+	        lerp(
+	            _bottom,
+	            _top,
+	            _construction_percent
+	        );
+
+
+	    // Unfinished upper section.
+
+	    draw_set_color(c_black);
+	    draw_set_alpha(0.65);
+
+	    draw_rectangle(
+	        _left,
+	        _top,
+	        _right,
+	        _scan_y,
+	        true
+	    );
+
+
+	    // Moving vector construction scan.
+
+	    draw_set_color(c_aqua);
+	    draw_set_alpha(0.9);
+
+	    draw_line(
+	        _left,
+	        _scan_y,
+	        _right,
+	        _scan_y
+	    );
+
+
+	    // Construction progress bar.
+
+	    draw_set_alpha(1);
+	    draw_set_color(c_dkgray);
+
+	    draw_rectangle(
+	        _left,
+	        _bottom + 4,
+	        _right,
+	        _bottom + 8,
+	        false
+	    );
+
+	    draw_set_color(c_aqua);
+
+	    draw_rectangle(
+	        _left,
+	        _bottom + 4,
+	        _left
+	        + ((_right - _left)
+	        * _construction_percent),
+	        _bottom + 8,
+	        false
+	    );
+
+
+	    draw_set_alpha(1);
+	}
 
 
     // ========================================================================
@@ -786,3 +930,147 @@ function scr_building_at_cell(
 
     return noone;
 }
+
+/// @description Completes one building and enables future runtime systems.
+
+function scr_building_construction_complete(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+
+    _building.construction.progress_seconds =
+        _building.construction.duration_seconds;
+
+    _building.construction.percent = 1;
+    _building.construction.hp_remaining = 0;
+    _building.construction.complete = true;
+
+    _building.BuildingState =
+        BuildingState.ACTIVE;
+
+
+    // Power networks will consume this hook in the next batch.
+    // Registration occurs only after construction is complete.
+
+    if (_building.power.participates)
+        _building.power.registration_pending = true;
+
+
+    show_debug_message(
+        "BUILDING COMPLETE: "
+        + _building.identity.name
+    );
+
+
+    return true;
+}
+
+
+/// @description Updates one generic building construction lifecycle.
+
+function scr_building_update(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+
+    switch (_building.BuildingState)
+    {
+        case BuildingState.CONSTRUCTING:
+        {
+            var _fps =
+                max(
+                    1,
+                    game_get_speed(gamespeed_fps)
+                );
+
+            var _delta =
+                1 / _fps;
+
+            var _previous_percent =
+                _building.construction.percent;
+
+
+            _building.construction.progress_seconds =
+                min(
+                    _building.construction.duration_seconds,
+                    _building.construction.progress_seconds + _delta
+                );
+
+            _building.construction.percent =
+                clamp(
+                    _building.construction.progress_seconds
+                    / max(
+                        0.001,
+                        _building.construction.duration_seconds
+                    ),
+                    0,
+                    1
+                );
+
+
+            var _percent_added =
+                _building.construction.percent
+                - _previous_percent;
+
+            var _hp_added =
+                _building.construction.hp_remaining
+                * _percent_added
+                / max(
+                    0.001,
+                    1 - _previous_percent
+                );
+
+
+            _building.vitals.hp.current =
+                min(
+                    _building.vitals.hp.maximum,
+                    _building.vitals.hp.current + _hp_added
+                );
+
+            _building.construction.hp_remaining =
+                max(
+                    0,
+                    _building.construction.hp_remaining - _hp_added
+                );
+
+
+            if (_building.construction.percent >= 1)
+            {
+                scr_building_construction_complete(
+                    _building
+                );
+            }
+        }
+        break;
+
+
+        case BuildingState.ACTIVE:
+        {
+            // Category objects run their own active behaviour.
+        }
+        break;
+
+
+        case BuildingState.DISABLED:
+        {
+            // FUTURE:
+            // manual shutdown
+            // power shortage
+            // EMP effects
+        }
+        break;
+
+
+        case BuildingState.DESTROYED:
+        {
+            // Destruction cleanup belongs to scr_building_damage().
+        }
+        break;
+    }
+
+
+    return true;
+}
+

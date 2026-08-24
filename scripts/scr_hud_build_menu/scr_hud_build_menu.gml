@@ -264,6 +264,9 @@ function scr_hud_build_category_get(_building_data)
 
         case BuildingType.SUPPORT:
             return BuildMenuCategory.SUPPORT;
+			
+		case BuildingType.FOUNDATION:
+		 return BuildMenuCategory.AUXILIARY;
     }
 
 
@@ -334,6 +337,9 @@ function scr_hud_building_role_text(_data)
 
         case BuildingType.SUPPORT:
             return "SUPPORT";
+			
+		case BuildingType.FOUNDATION:
+		return "FOUNDATION";
 
         case BuildingType.TOWER:
         {

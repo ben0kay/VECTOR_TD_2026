@@ -242,6 +242,10 @@ function scr_build_mode_place(_controller)
             // _object = o_support_building;
         }
         break;
+		
+		case BuildingType.FOUNDATION:
+		_object = o_foundation;
+		break;
     }
 
 
@@ -268,18 +272,25 @@ function scr_build_mode_place(_controller)
     }
 
 
-    var _building =
-        instance_create_layer(
-            _preview.world_x,
-            _preview.world_y,
-            "Buildings",
-            _object,
-            {
-                building_key: _build.selected_key,
-                placement_cell_x: _preview.cell_x,
-                placement_cell_y: _preview.cell_y
-            }
-        );
+    var _placement_layer =
+    "Buildings";
+
+	if (_data.identity.type == BuildingType.FOUNDATION)
+	    _placement_layer = "Foundations";
+
+
+	var _building =
+	    instance_create_layer(
+	        _preview.world_x,
+	        _preview.world_y,
+	        _placement_layer,
+	        _object,
+	        {
+	            building_key: _build.selected_key,
+	            placement_cell_x: _preview.cell_x,
+	            placement_cell_y: _preview.cell_y
+	        }
+	    );
 
 
     if (!instance_exists(_building))
@@ -464,7 +475,7 @@ function scr_build_mode_draw(
     return true;
 }
 
-/// @description Returns whether the selected building can be afforded and placed.
+/// @description Returns whether the selected definition may be placed.
 
 function scr_build_mode_placement_valid(
     _data,
@@ -474,7 +485,6 @@ function scr_build_mode_placement_valid(
 {
     if (!scr_building_data_valid(_data))
         return false;
-
 
     if (
         !scr_resource_cost_can_afford(
@@ -488,6 +498,16 @@ function scr_build_mode_placement_valid(
 
     switch (_data.identity.type)
     {
+        case BuildingType.FOUNDATION:
+        {
+            return scr_foundation_placement_valid(
+                _data,
+                _cell_x,
+                _cell_y
+            );
+        }
+
+
         case BuildingType.MINER:
         {
             return scr_miner_placement_valid(

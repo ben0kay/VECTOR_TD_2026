@@ -1,7 +1,6 @@
 /// @description World-cell storage, terrain placement, and test generation.
 
-
-/// @description Creates the current level's world-cell grids.
+/// @description Creates the current level's world and foundation grids.
 
 function scr_world_initialize()
 {
@@ -28,7 +27,12 @@ function scr_world_initialize()
         {
             cell_type: ds_grid_create(_columns, _rows),
             resource_key: ds_grid_create(_columns, _rows),
-            vein_id: ds_grid_create(_columns, _rows)
+            vein_id: ds_grid_create(_columns, _rows),
+
+            // Stores the foundation instance occupying each cell.
+            // This remains separate from navigation and building occupancy.
+
+            foundation: ds_grid_create(_columns, _rows)
         }
     };
 
@@ -48,10 +52,17 @@ function scr_world_initialize()
         -1
     );
 
+    ds_grid_clear(
+        global.vtd_level.world.grid.foundation,
+        noone
+    );
+
 
     global.vtd_level.world.ready = true;
 
-    show_debug_message("VECTOR TD 2026 - WORLD GRID INITIALIZED");
+    show_debug_message(
+        "VECTOR TD 2026 - WORLD GRID INITIALIZED"
+    );
 
     return true;
 }
@@ -277,7 +288,6 @@ function scr_world_test_cluster_create()
     return true;
 }
 
-
 /// @description Releases grids owned by the current world runtime.
 
 function scr_world_cleanup()
@@ -295,7 +305,8 @@ function scr_world_cleanup()
         return true;
 
 
-    var _world = global.vtd_level.world;
+    var _world =
+        global.vtd_level.world;
 
     _world.ready = false;
 
@@ -309,10 +320,14 @@ function scr_world_cleanup()
     if (ds_exists(_world.grid.vein_id, ds_type_grid))
         ds_grid_destroy(_world.grid.vein_id);
 
+    if (ds_exists(_world.grid.foundation, ds_type_grid))
+        ds_grid_destroy(_world.grid.foundation);
+
 
     _world.grid.cell_type = -1;
     _world.grid.resource_key = -1;
     _world.grid.vein_id = -1;
+    _world.grid.foundation = -1;
 
 
     return true;

@@ -3,6 +3,7 @@
 
 // ============================================================================
 // GAME / LEVEL
+// ============================================================================
 
 enum GameState { BOOT, MENU, PLAYING, PAUSED, GAME_OVER }
 enum LevelState { INITIALIZING, PLAYING, COMPLETE, FAILED, EXITING }
@@ -11,27 +12,24 @@ enum CameraState { FOLLOW_PLAYER, ROAMING }
 
 // ============================================================================
 // WORLD / GENERATION
+// ============================================================================
 
 enum WorldCellType { EMPTY, DEAD, RESOURCE }
 enum WorldGenerationStyle { NONE, CLUSTERS, CAVERNS }
+enum WorldContentType { ENEMY, BUILDING, RESOURCE, DEPOSIT }
 enum SpawnSide { TOP, RIGHT, BOTTOM, LEFT, RANDOM, INHERIT }
-enum WorldContentType
-{
-    ENEMY,
-    BUILDING,
-    RESOURCE,
-    DEPOSIT
-}
 
 
 // ============================================================================
 // PLAYER
+// ============================================================================
 
 enum PlayerState { ACTIVE, STUNNED, DEAD }
 
 
 // ============================================================================
 // ENEMIES
+// ============================================================================
 
 enum EnemyState { SPAWNING, MOVING, ATTACKING, STUNNED, DEAD }
 enum EnemyTarget { CPU, BUILDING, PLAYER }
@@ -43,102 +41,93 @@ enum EnemyModifier { SHIELDED }
 
 
 // ============================================================================
+// ENEMY EFFECTS / STATUS
+// ============================================================================
+
+enum EnemyEffect { SLOW, STASIS, DAMAGE_OVER_TIME }
+
+
+// ============================================================================
 // COMBAT / DAMAGE
+// ============================================================================
 
 enum DamageSource { PLAYER, TOWER, ENEMY, ENVIRONMENT }
+enum DamageType { KINETIC, EXPLOSIVE, LASER }
+enum AttackAreaShape { POINT, CIRCLE, LINE, CONE, CAPSULE }
+
+
+// ============================================================================
+// PROJECTILES
+// ============================================================================
+
 enum ProjectileImpact { DIRECT, EXPLOSIVE }
+enum ProjectileMovement { STRAIGHT, TARGET_POSITION, HOMING }
 
 
 // ============================================================================
 // BUILDINGS / CONSTRUCTION
+// ============================================================================
 
 enum BuildingState { CONSTRUCTING, ACTIVE, DISABLED, DESTROYED }
-enum BuildingType { CPU, WALL, TOWER, MINER, REFINERY, STORAGE, POWER_GENERATOR, POWER_NODE, SUPPORT }
+enum BuildingType
+{
+    CPU, WALL, TOWER,
+    MINER,
+    REFINERY,
+    STORAGE,
+    POWER_GENERATOR,
+    POWER_NODE,
+    POWER_BATTERY,
+    SUPPORT,
+    FOUNDATION
+}
 enum BuildState { NONE, PLACING }
 
 
 // ============================================================================
-// TOWERS
+// TOWERS / WEAPONS
+// ============================================================================
+
+enum TowerWeaponType { PROJECTILE, HITSCAN, BEAM }
+enum TowerMuzzleMode { CENTER, ALTERNATING }
+
+
+// ============================================================================
+// TOWER TARGETING
+// ============================================================================
 
 enum TowerTargetMode { CLOSEST, FURTHEST, LOWEST_HP, HIGHEST_HP }
+enum TowerTargetFilter { ANY, NOT_SLOWED, NOT_STASIS, NOT_DISRUPTED }
 
 
 // ============================================================================
 // LOGISTICS
+// ============================================================================
 
 enum CargoDroneState { WAITING_SOURCE, TO_SOURCE, TO_STORAGE, WAITING_STORAGE, DESTROYED }
 
 
 // ============================================================================
+// RESOURCES / ECONOMY
+// ============================================================================
+
+enum ResourceType { CURRENCY, RAW_MATERIAL }
+
+
+// ============================================================================
+// VISUAL EFFECTS
+// ============================================================================
+
+enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT }
+
+
+// ============================================================================
 // HUD / UI
+// ============================================================================
 
 enum HudAlertType { INFO, WARNING, DANGER, MILESTONE, SUCCESS }
 enum HudAlertState { OPENING, HOLDING, CLOSING }
 enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPORT, AUXILIARY }
-
-enum ResourceType
-{
-    CURRENCY,
-    RAW_MATERIAL
-}
-
-enum DamageType
-{
-    KINETIC,
-    EXPLOSIVE,
-    LASER
-}
-
-enum AttackAreaShape
-{
-    POINT,
-    CIRCLE,
-    LINE,
-    CONE,
-    CAPSULE
-}
-
-enum EffectType
-{
-    SHOCKWAVE,
-    IMPACT_FLASH,
-    BEAM_IMPACT
-}
-
-enum TowerWeaponType
-{
-    PROJECTILE,
-    HITSCAN,
-    BEAM
-}
-
-enum TowerMuzzleMode
-{
-    CENTER,
-    ALTERNATING
-}
-
-enum EnemyEffect
-{
-    SLOW,
-    STASIS,
-    DAMAGE_OVER_TIME
-}
-
-enum TowerTargetFilter
-{
-    ANY,
-    NOT_SLOWED,
-    NOT_STASIS,
-    NOT_DISRUPTED
-}
-
-enum ProjectileMovement
-{
-    STRAIGHT,
-    TARGET_POSITION,
-    HOMING
-}
 
 
 // Staggered update helpers.
