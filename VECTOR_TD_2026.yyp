@@ -91,6 +91,7 @@
     {"id":{"name":"scr_game","path":"scripts/scr_game/scr_game.yy",},},
     {"id":{"name":"scr_hud_alert","path":"scripts/scr_hud_alert/scr_hud_alert.yy",},},
     {"id":{"name":"scr_hud_build_menu","path":"scripts/scr_hud_build_menu/scr_hud_build_menu.yy",},},
+    {"id":{"name":"scr_hud_notification","path":"scripts/scr_hud_notification/scr_hud_notification.yy",},},
     {"id":{"name":"scr_hud","path":"scripts/scr_hud/scr_hud.yy",},},
     {"id":{"name":"scr_layers","path":"scripts/scr_layers/scr_layers.yy",},},
     {"id":{"name":"scr_logistics","path":"scripts/scr_logistics/scr_logistics.yy",},},
