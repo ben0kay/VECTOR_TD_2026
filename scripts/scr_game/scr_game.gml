@@ -1,6 +1,5 @@
 /// @description Core game and level initialization functions.
 
-
 /// @description Creates the persistent game runtime.
 
 function scr_game_initialize()
@@ -51,12 +50,11 @@ function scr_game_initialize()
     scr_enemy_data_initialize();
     scr_building_data_initialize();
     scr_tower_data_initialize();
-
-    // Every building receives a capacity category before runtime begins.
+    scr_building_hub_data_initialize();
 
     scr_build_limit_data_defaults_apply();
-
     scr_energy_consumer_data_defaults_apply();
+
     scr_resource_data_initialize();
     scr_world_data_initialize();
 

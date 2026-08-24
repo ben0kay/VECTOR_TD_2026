@@ -813,3 +813,208 @@ function scr_building_data_energy_battery()
 
     return true;
 }
+
+/// @description Creates one specialized capacity-hub definition.
+
+function scr_building_hub_definition_create(
+    _key,
+    _name,
+    _description_short,
+    _color,
+    _limit_type,
+    _limit_amount
+)
+{
+    return
+    {
+        identity:
+        {
+            key:
+                _key,
+
+            name:
+                _name,
+
+            type:
+                BuildingType.SUPPORT,
+
+            description_short:
+                _description_short,
+
+            description_long:
+                "A specialized command facility that expands the number of structures your fortress can coordinate. Its bonus becomes available when construction finishes and is lost if the hub is destroyed. Existing structures remain operational if the base becomes over capacity."
+        },
+
+        visual:
+        {
+            color:
+                _color
+        },
+
+        footprint:
+        {
+            width_cells: 2,
+            height_cells: 2
+        },
+
+        vitals:
+        {
+            hp_maximum: 400
+        },
+
+        construction:
+        {
+            time_seconds: 6
+        },
+
+        economy:
+        {
+            cost:
+            [
+                {
+                    resource_key:
+                        "resource_credits",
+
+                    amount:
+                        500
+                },
+
+                {
+                    resource_key:
+                        "resource_carbon",
+
+                    amount:
+                        100
+                }
+            ]
+        },
+
+        // Every hub consumes one infrastructure slot.
+
+        build_limit:
+        {
+            type:
+                BuildLimitType.INFRASTRUCTURE,
+
+            amount:
+                1
+        },
+
+        // This is the capacity supplied when construction completes.
+
+        hub:
+        {
+            limit_type:
+                _limit_type,
+
+            amount:
+                _limit_amount
+        },
+
+        energy:
+        {
+            role:
+                EnergyRole.CONSUMER,
+
+            priority:
+                EnergyPriority.HIGH,
+
+            connection_range:
+                320,
+
+            generation_per_second:
+                0,
+
+            input_rate:
+                8,
+
+            idle_demand:
+                0.5,
+
+            activity_cost:
+                0,
+
+            buffer:
+            {
+                capacity:
+                    25,
+
+                starting_ratio:
+                    0.5
+            }
+        }
+    };
+}
+
+
+/// @description Registers all specialized capacity hubs.
+
+function scr_building_hub_data_initialize()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_tower",
+
+        scr_building_hub_definition_create(
+            "hub_tower",
+            "Tower Operations Hub",
+            "Adds 10 tower capacity.",
+            c_yellow,
+            BuildLimitType.TOWER,
+            10
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_defense",
+
+        scr_building_hub_definition_create(
+            "hub_defense",
+            "Defense Coordination Hub",
+            "Adds 50 defense capacity.",
+            c_fuchsia,
+            BuildLimitType.DEFENSE,
+            50
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_economy",
+
+        scr_building_hub_definition_create(
+            "hub_economy",
+            "Economy Administration Hub",
+            "Adds 10 economy capacity.",
+            make_color_rgb(90, 210, 120),
+            BuildLimitType.ECONOMY,
+            10
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_infrastructure",
+
+        scr_building_hub_definition_create(
+            "hub_infrastructure",
+            "Infrastructure Control Hub",
+            "Adds 15 infrastructure capacity.",
+            c_aqua,
+            BuildLimitType.INFRASTRUCTURE,
+            15
+        )
+    );
+
+
+    show_debug_message(
+        "VECTOR TD 2026 - CAPACITY HUB DATA INITIALIZED"
+    );
+
+
+    return true;
+}

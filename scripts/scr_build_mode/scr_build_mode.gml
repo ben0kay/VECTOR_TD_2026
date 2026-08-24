@@ -265,8 +265,6 @@ function scr_build_mode_place(_controller)
         return noone;
 
 
-    // Confirm capacity immediately before payment.
-
     if (!scr_build_limit_can_place(_data))
     {
         scr_build_limit_alert_push(
@@ -327,10 +325,7 @@ function scr_build_mode_place(_controller)
 
 
         case BuildingType.SUPPORT:
-        {
-            // FUTURE:
-            // _object = o_support_building;
-        }
+            _object = o_building_par;
         break;
 
 
@@ -343,8 +338,6 @@ function scr_build_mode_place(_controller)
     if (_object == noone)
         return noone;
 
-
-    // Confirm affordability immediately before payment.
 
     if (
         !scr_resource_cost_pay(

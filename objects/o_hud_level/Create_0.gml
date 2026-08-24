@@ -16,7 +16,9 @@ hud =
 
     top:
     {
-        height: 44,
+        height: 88,
+        row_height: 44,
+
         color: c_aqua,
         background_alpha: 0.92
     },
@@ -85,7 +87,9 @@ hud.debug_menu =
     scr_debug_menu_create();
 
 
-scr_hud_build_menu_cards_rebuild(id);
+scr_hud_build_menu_cards_rebuild(
+    id
+);
 
 
 global.vtd_level.entities.hud =
