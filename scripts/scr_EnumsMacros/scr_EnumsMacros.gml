@@ -115,7 +115,8 @@ enum BuildingType
     POWER_NODE,
     POWER_BATTERY,
     SUPPORT,
-    FOUNDATION
+    FOUNDATION,
+	UTILITY
 }
 enum BuildState { NONE, PLACING }
 enum BuildLimitType
@@ -126,6 +127,13 @@ enum BuildLimitType
     ECONOMY,
     INFRASTRUCTURE
 }
+enum UtilityType
+{
+    CREDIT_MAGNET,
+    REPAIRER,
+    CREDIT_UPLINK
+}
+
 
 
 // ============================================================================

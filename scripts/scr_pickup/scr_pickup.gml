@@ -29,7 +29,6 @@ function scr_pickup_create(
     );
 }
 
-
 /// @description Initializes one physical pickup.
 
 function scr_pickup_initialize(_pickup)
@@ -70,6 +69,8 @@ function scr_pickup_initialize(_pickup)
     _pickup.collection =
     {
         collected: false,
+
+        attractor: noone,
 
         magnet_range: 128,
         collection_range: 22,
@@ -148,7 +149,6 @@ function scr_pickup_collect(
     return true;
 }
 
-
 /// @description Updates attraction, collection and expiration.
 
 function scr_pickup_update(_pickup)
@@ -157,14 +157,11 @@ function scr_pickup_update(_pickup)
         return false;
 
 
-    var _fps =
-        max(
+    var _delta =
+        1 / max(
             1,
             game_get_speed(gamespeed_fps)
         );
-
-    var _delta =
-        1 / _fps;
 
 
     _pickup.life.remaining_seconds =
@@ -182,59 +179,76 @@ function scr_pickup_update(_pickup)
     }
 
 
-    _pickup.visual.hover_time +=
-        5;
-
-    _pickup.visual.rotation +=
-        2;
+    _pickup.visual.hover_time += 5;
+    _pickup.visual.rotation += 2;
 
 
-    var _player =
-        global.vtd_level.entities.player;
+    var _collector =
+        _pickup.collection.attractor;
 
 
-    if (!instance_exists(_player))
+    if (!instance_exists(_collector))
+    {
+        _pickup.collection.attractor =
+            noone;
+
+        _collector =
+            global.vtd_level.entities.player;
+    }
+
+
+    if (!instance_exists(_collector))
         return true;
 
-    if (_player.PlayerState == PlayerState.DEAD)
+
+    if (
+        _collector.object_index == o_player
+        && _collector.PlayerState == PlayerState.DEAD
+    )
+    {
         return true;
+    }
 
 
     var _distance =
         point_distance(
             _pickup.x,
             _pickup.y,
-            _player.x,
-            _player.y
+            _collector.x,
+            _collector.y
         );
 
 
-    if (_distance <= _pickup.collection.collection_range)
-    {
-        scr_pickup_collect(
-            _pickup,
-            _player
-        );
-
-        return true;
-    }
-
-
-    if (_distance <= _pickup.collection.magnet_range)
+    if (
+        _pickup.collection.attractor != noone
+        || _distance <= _pickup.collection.magnet_range
+    )
     {
         _pickup.x =
             lerp(
                 _pickup.x,
-                _player.x,
+                _collector.x,
                 _pickup.collection.magnet_strength
             );
 
         _pickup.y =
             lerp(
                 _pickup.y,
-                _player.y,
+                _collector.y,
                 _pickup.collection.magnet_strength
             );
+    }
+
+
+    if (
+        _distance
+        <= _pickup.collection.collection_range
+    )
+    {
+        scr_pickup_collect(
+            _pickup,
+            _collector
+        );
     }
 
 

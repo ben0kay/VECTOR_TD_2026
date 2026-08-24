@@ -270,6 +270,9 @@ function scr_hud_build_category_get(_building_data)
 
         case BuildingType.FOUNDATION:
             return BuildMenuCategory.AUXILIARY;
+		
+		case BuildingType.UTILITY:
+		return BuildMenuCategory.SUPPORT;
     }
 
 

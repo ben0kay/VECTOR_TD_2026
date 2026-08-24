@@ -19,6 +19,7 @@ function scr_build_limit_default_type_get(_data)
         case BuildingType.MINER:
         case BuildingType.STORAGE:
         case BuildingType.REFINERY:
+		case BuildingType.UTILITY:
             return BuildLimitType.ECONOMY;
 
         case BuildingType.POWER_GENERATOR:

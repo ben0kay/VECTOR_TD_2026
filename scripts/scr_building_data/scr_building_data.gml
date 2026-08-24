@@ -412,6 +412,9 @@ function scr_building_data_initialize()
 
 	if (!scr_building_data_foundation_basic())
 	    return false;
+	
+	if (!scr_building_data_utility_initialize())
+    return false;
 
 
     // FUTURE NON-TOWER BUILDINGS:
@@ -944,6 +947,313 @@ function scr_building_hub_definition_create(
             }
         }
     };
+}
+
+/// @description Registers every active utility building.
+
+function scr_building_data_utility_initialize()
+{
+    if (!scr_building_data_utility_credit_magnet())
+        return false;
+
+    if (!scr_building_data_utility_repairer())
+        return false;
+
+    if (!scr_building_data_utility_credit_uplink())
+        return false;
+
+    return true;
+}
+
+
+/// @description Registers the Credit Magnet.
+
+function scr_building_data_utility_credit_magnet()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "utility_credit_magnet",
+        {
+            identity:
+            {
+                key: "utility_credit_magnet",
+                name: "Credit Magnet",
+                type: BuildingType.UTILITY,
+
+                description_short:
+                    "Attracts nearby physical credit pickups.",
+
+                description_long:
+                    "Periodically emits an energized collection pulse that claims nearby credit pickups and draws them safely into the structure."
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        95,
+                        35,
+                        125
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 1,
+                height_cells: 1
+            },
+
+            vitals:
+            {
+                hp_maximum: 180
+            },
+
+            construction:
+            {
+                time_seconds: 3
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 200
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.ECONOMY,
+                amount: 1
+            },
+
+            utility:
+            {
+                type: UtilityType.CREDIT_MAGNET,
+
+                range: 768,
+                interval_seconds: 2,
+                amount: 0,
+
+                resource_key:
+                    "resource_credits"
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.LOW,
+
+                connection_range: 320,
+                generation_per_second: 0,
+
+                input_rate: 5,
+                idle_demand: 0.5,
+                activity_cost: 5,
+
+                buffer:
+                {
+                    capacity: 15,
+                    starting_ratio: 0
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+
+/// @description Registers the Restoration Array.
+
+function scr_building_data_utility_repairer()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "utility_repairer",
+        {
+            identity:
+            {
+                key: "utility_repairer",
+                name: "Restoration Array",
+                type: BuildingType.UTILITY,
+
+                description_short:
+                    "Repairs the most damaged nearby structure.",
+
+                description_long:
+                    "A defensive maintenance system that periodically identifies the nearby structure with the lowest integrity and restores part of its health."
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        35,
+                        125,
+                        85
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 350
+            },
+
+            construction:
+            {
+                time_seconds: 5
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 350
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.ECONOMY,
+                amount: 1
+            },
+
+            utility:
+            {
+                type: UtilityType.REPAIRER,
+
+                range: 448,
+                interval_seconds: 0.5,
+                amount: 8
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.NORMAL,
+
+                connection_range: 320,
+                generation_per_second: 0,
+
+                input_rate: 8,
+                idle_demand: 1,
+                activity_cost: 2,
+
+                buffer:
+                {
+                    capacity: 20,
+                    starting_ratio: 0
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+
+/// @description Registers the passive Credit Uplink.
+
+function scr_building_data_utility_credit_uplink()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "utility_credit_uplink",
+        {
+            identity:
+            {
+                key: "utility_credit_uplink",
+                name: "Credit Uplink",
+                type: BuildingType.UTILITY,
+
+                description_short:
+                    "Generates a small recurring credit income.",
+
+                description_long:
+                    "Maintains an automated off-world trade and communications link. While supplied with energy, it periodically transfers a fixed credit payment into the level economy."
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        130,
+                        105,
+                        25
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 250
+            },
+
+            construction:
+            {
+                time_seconds: 4
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 250
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.ECONOMY,
+                amount: 1
+            },
+
+            utility:
+            {
+                type: UtilityType.CREDIT_UPLINK,
+
+                range: 0,
+                interval_seconds: 5,
+                amount: 2
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.LOW,
+
+                connection_range: 320,
+                generation_per_second: 0,
+
+                input_rate: 5,
+                idle_demand: 0.25,
+                activity_cost: 4,
+
+                buffer:
+                {
+                    capacity: 15,
+                    starting_ratio: 0
+                }
+            }
+        }
+    );
+
+    return true;
 }
 
 
