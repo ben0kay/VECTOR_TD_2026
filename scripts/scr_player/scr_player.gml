@@ -62,7 +62,7 @@ function scr_player_initialize(_player)
             0,
 
         radius:
-            20,
+            17,
 
         color:
             c_aqua
@@ -84,7 +84,7 @@ function scr_player_initialize(_player)
         weapon:
         {
             damage:
-                10,
+                20,
 
             cooldown:
             {
@@ -98,7 +98,7 @@ function scr_player_initialize(_player)
             projectile:
             {
                 speed:
-                    16,
+                    20,
 
                 lifetime_seconds:
                     1.5,
