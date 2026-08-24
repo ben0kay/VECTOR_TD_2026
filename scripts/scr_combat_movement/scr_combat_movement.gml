@@ -109,6 +109,23 @@ function scr_enemy_advanced_initialize(_enemy)
 
 	        completed: false,
 	        succeeded: false
+	    },
+
+	    follow_repath:
+	    {
+	        interval_minimum: 0.25,
+	        interval_maximum: 0.45,
+
+	        minimum_distance: 32,
+
+	        remaining:
+	            random_range(
+	                0.25,
+	                0.45
+	            ),
+
+	        target_x: _enemy.x,
+	        target_y: _enemy.y
 	    }
 	};
 
@@ -420,8 +437,17 @@ function scr_enemy_player_targeting_update(_enemy)
     var _data =
         _runtime.data;
 
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
-    // Enemies without player targeting may still use strategic rescanning.
+    var _delta =
+        1 / _fps;
+
+
+    // Enemies not pursuing the player may periodically reconsider buildings.
 
     if (!_runtime.active)
     {
@@ -487,8 +513,8 @@ function scr_enemy_player_targeting_update(_enemy)
         }
 
 
-        // Let the normal navigation request determine reachability.
-        // A failed route restores the strategic building.
+        // A completed failed route means the player cannot currently
+        // be reached. Return to the cached strategic objective.
 
         if (
             _data.require_reachable
@@ -504,6 +530,65 @@ function scr_enemy_player_targeting_update(_enemy)
 
         _enemy.targeting.target =
             _player;
+
+
+        // ================================================================
+        // MOVING-TARGET PATH REFRESH
+        // ================================================================
+
+        var _follow =
+            _runtime.follow_repath;
+
+        _follow.remaining =
+            max(
+                0,
+                _follow.remaining - _delta
+            );
+
+
+        var _player_move_x =
+            _player.x - _follow.target_x;
+
+        var _player_move_y =
+            _player.y - _follow.target_y;
+
+        var _player_move_squared =
+            (_player_move_x * _player_move_x)
+            + (_player_move_y * _player_move_y);
+
+        var _minimum_distance_squared =
+            _follow.minimum_distance
+            * _follow.minimum_distance;
+
+
+        if (
+            _follow.remaining <= 0
+            && _player_move_squared
+                >= _minimum_distance_squared
+        )
+        {
+            _follow.target_x =
+                _player.x;
+
+            _follow.target_y =
+                _player.y;
+
+            _follow.remaining =
+                random_range(
+                    _follow.interval_minimum,
+                    _follow.interval_maximum
+                );
+
+
+            // This recalculates this enemy's route to the player's latest
+            // position. It does not rebuild or modify the shared MP grid.
+
+            scr_navigation_enemy_repath_request(
+                _enemy,
+                true
+            );
+        }
+
 
         return true;
     }
@@ -534,7 +619,7 @@ function scr_enemy_player_targeting_update(_enemy)
         + (_difference_y * _difference_y);
 
 
-    // Being outside range does not consume the roll.
+    // Being outside acquisition range does not consume the roll.
 
     if (
         _distance_squared
@@ -546,7 +631,7 @@ function scr_enemy_player_targeting_update(_enemy)
     }
 
 
-    // Blocked sight also does not consume the roll.
+    // Blocked line of sight does not consume the roll.
 
     if (
         _data.require_line_of_sight
@@ -560,7 +645,7 @@ function scr_enemy_player_targeting_update(_enemy)
     }
 
 
-    // The conditions are valid, so this strategic target's roll is consumed.
+    // The required conditions are valid, so consume this objective's roll.
 
     _runtime.roll.completed =
         true;
@@ -590,6 +675,21 @@ function scr_enemy_player_targeting_update(_enemy)
 
     _enemy.EnemyState =
         EnemyState.MOVING;
+
+
+    // Cache the position used by this first path request.
+
+    _runtime.follow_repath.target_x =
+        _player.x;
+
+    _runtime.follow_repath.target_y =
+        _player.y;
+
+    _runtime.follow_repath.remaining =
+        random_range(
+            _runtime.follow_repath.interval_minimum,
+            _runtime.follow_repath.interval_maximum
+        );
 
 
     scr_navigation_enemy_repath_request(
