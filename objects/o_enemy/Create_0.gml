@@ -9,3 +9,14 @@ if (!scr_enemy_initialize(id))
     instance_destroy();
     exit;
 }
+
+
+if (!scr_enemy_advanced_initialize(id))
+{
+    show_debug_message(
+        "ENEMY ERROR - advanced initialization failed."
+    );
+
+    instance_destroy();
+    exit;
+}

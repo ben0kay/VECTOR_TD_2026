@@ -69,6 +69,7 @@
     {"id":{"name":"scr_building_visual","path":"scripts/scr_building_visual/scr_building_visual.yy",},},
     {"id":{"name":"scr_building","path":"scripts/scr_building/scr_building.yy",},},
     {"id":{"name":"scr_camera","path":"scripts/scr_camera/scr_camera.yy",},},
+    {"id":{"name":"scr_combat_movement","path":"scripts/scr_combat_movement/scr_combat_movement.yy",},},
     {"id":{"name":"scr_cpu","path":"scripts/scr_cpu/scr_cpu.yy",},},
     {"id":{"name":"scr_culling","path":"scripts/scr_culling/scr_culling.yy",},},
     {"id":{"name":"scr_damage","path":"scripts/scr_damage/scr_damage.yy",},},

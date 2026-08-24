@@ -471,12 +471,35 @@ function scr_enemy_data_hunter()
 
             targeting:
             {
-                target_type: EnemyTarget.BUILDING
+                target_type:
+                    EnemyTarget.BUILDING,
+
+                player:
+                {
+                    enabled: true,
+
+                    acquire_range: 420,
+                    lose_range: 560,
+
+                    acquire_chance: 0.30,
+
+                    check_interval_minimum: 0.8,
+                    check_interval_maximum: 1.3,
+
+                    lock_seconds_minimum: 3,
+                    lock_seconds_maximum: 6,
+
+                    reacquire_seconds: 2,
+
+                    require_line_of_sight: true,
+                    require_reachable: true
+                }
             },
 
             navigation:
             {
-                blocked_action: EnemyBlockedAction.BREACH
+                blocked_action:
+                    EnemyBlockedAction.BREACH
             },
 
             attack:
@@ -486,9 +509,12 @@ function scr_enemy_data_hunter()
                 range: 4,
                 cooldown_seconds: 1
             },
-			
+
             rewards:
-            scr_enemy_rewards_create(8, 2),		
+                scr_enemy_rewards_create(
+                    8,
+                    2
+                ),
 
             abilities: []
         }
@@ -1341,9 +1367,16 @@ function scr_enemy_data_siege_beam()
             visual:
             {
                 sprite: -1,
-                draw_function: scr_enemy_visual_siege_beam,
+                draw_function:
+                    scr_enemy_visual_siege_beam,
+
                 radius: 44,
-                color: make_color_rgb(220, 70, 255)
+                color:
+                    make_color_rgb(
+                        220,
+                        70,
+                        255
+                    )
             },
 
             vitals:
@@ -1360,15 +1393,24 @@ function scr_enemy_data_siege_beam()
 
             targeting:
             {
-                target_type: EnemyTarget.BUILDING
+                target_type:
+                    EnemyTarget.BUILDING,
+
+                // Siege platforms remain committed to structures.
+
+                player:
+                {
+                    enabled: false
+                }
             },
 
             navigation:
             {
-                blocked_action: EnemyBlockedAction.BREACH
+                blocked_action:
+                    EnemyBlockedAction.BREACH
             },
 
-            // Damage is measured per second for continuous beams.
+            // Damage is measured per second.
 
             attack:
             {
@@ -1376,6 +1418,40 @@ function scr_enemy_data_siege_beam()
                 damage: 24,
                 range: 620,
                 cooldown_seconds: 0
+            },
+
+            combat_movement:
+            {
+                type:
+                    EnemyCombatMovement.ANCHOR_ROAM,
+
+                preferred_range: 500,
+                minimum_range: 360,
+                maximum_range: 620,
+
+                anchor_radius: 72,
+
+                speed_multiplier: 0.8,
+
+                hull_turn_speed: 1.8,
+                turret_turn_speed: 6,
+
+                reposition:
+                {
+                    enabled: true,
+                    chance: 0.65,
+
+                    interval_minimum: 2.5,
+                    interval_maximum: 4,
+
+                    distance_minimum: 32,
+                    distance_maximum: 64,
+
+                    candidate_attempts: 6,
+                    arrival_tolerance: 5,
+
+                    require_line_of_sight: true
+                }
             },
 
             rewards:
@@ -1393,8 +1469,16 @@ function scr_enemy_data_siege_beam()
             {
                 beam:
                 {
-                    color: make_color_rgb(255, 70, 240),
-                    inner_color: c_white,
+                    color:
+                        make_color_rgb(
+                            255,
+                            70,
+                            240
+                        ),
+
+                    inner_color:
+                        c_white,
+
                     width: 5
                 }
             }

@@ -7,7 +7,7 @@ if (global.LevelState != LevelState.PLAYING)
     exit;
 
 
-// Effects calculate the enemy's effective movement speed first.
+// Effects calculate the effective movement speed first.
 
 scr_enemy_effects_update(id);
 
@@ -15,7 +15,16 @@ if (!instance_exists(id))
     exit;
 
 
-// Gameplay may now move, navigate or attack using the effective speed.
+// Temporary player aggro may override the active target while preserving
+// the enemy's strategic building or CPU objective.
+
+scr_enemy_player_targeting_update(id);
+
+if (!instance_exists(id))
+    exit;
+
+
+// Gameplay may now navigate, reposition or attack.
 
 scr_enemy_update(id);
 

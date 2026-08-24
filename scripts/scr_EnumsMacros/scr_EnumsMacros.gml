@@ -34,6 +34,16 @@ enum PlayerState { ACTIVE, STUNNED, DEAD }
 enum EnemyState { SPAWNING, MOVING, ATTACKING, STUNNED, DEAD }
 enum EnemyTarget { CPU, BUILDING, PLAYER }
 enum EnemyMovementLayer { GROUND, FLYING, UNDERGROUND }
+
+enum EnemyCombatMovement
+{
+    STATIONARY,
+    ANCHOR_ROAM,
+    STRAFE,
+    ORBIT,
+    KITE
+}
+
 enum EnemyBlockedAction { WAIT, RETARGET, BREACH }
 enum EnemyAttack { CONTACT, PROJECTILE }
 enum EnemyAbility { PHASING, EXPLODE_ON_DEATH, SPLIT_ON_DEATH, TRANSPORT_ENEMIES, REGENERATE, ORBIT_TARGET, SHIELD_ALLIES, CONTINUOUS_BEAM }
