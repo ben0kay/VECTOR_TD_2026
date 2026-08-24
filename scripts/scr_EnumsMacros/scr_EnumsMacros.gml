@@ -39,9 +39,6 @@ enum EnemyCombatMovement
 {
     STATIONARY,
     ANCHOR_ROAM,
-    STRAFE,
-    ORBIT,
-    KITE
 }
 
 enum EnemyBlockedAction { WAIT, RETARGET, BREACH }
