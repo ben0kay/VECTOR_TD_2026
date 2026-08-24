@@ -1791,3 +1791,167 @@ function scr_world_circle_gameplay_solid(
 
     return false;
 }
+
+/// @description Returns whether a rectangle overlaps gameplay solids.
+
+function scr_world_rectangle_gameplay_solid(
+    _left,
+    _top,
+    _right,
+    _bottom
+)
+{
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+
+    // ========================================================================
+    // PERMANENT TERRAIN
+    // ========================================================================
+
+    var _cell_left =
+        floor(_left / _cell_size);
+
+    var _cell_right =
+        floor((_right - 0.001) / _cell_size);
+
+    var _cell_top =
+        floor(_top / _cell_size);
+
+    var _cell_bottom =
+        floor((_bottom - 0.001) / _cell_size);
+
+
+    for (var cell_y = _cell_top; cell_y <= _cell_bottom; ++cell_y)
+    {
+        for (var cell_x = _cell_left; cell_x <= _cell_right; ++cell_x)
+        {
+            if (!scr_building_cell_inside_map(cell_x, cell_y))
+                return true;
+
+            var _cell_type =
+                scr_world_cell_type_get(
+                    cell_x,
+                    cell_y
+                );
+
+            if (
+                _cell_type == WorldCellType.DEAD
+                || _cell_type == WorldCellType.RESOURCE
+            )
+            {
+                return true;
+            }
+        }
+    }
+
+
+    // ========================================================================
+    // BUILDINGS
+    // ========================================================================
+
+    var _building_count =
+        instance_number(
+            o_building_par
+        );
+
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
+        if (!instance_exists(_building))
+            continue;
+
+        if (!variable_instance_exists(_building, "BuildingState"))
+            continue;
+
+        if (!variable_instance_exists(_building, "footprint"))
+            continue;
+
+        if (!is_struct(_building.footprint))
+            continue;
+
+        if (!_building.footprint.reserved)
+            continue;
+
+        if (_building.BuildingState == BuildingState.DESTROYED)
+            continue;
+
+
+        var _building_half_width =
+            _building.footprint.width_cells
+            * _cell_size
+            * 0.5;
+
+        var _building_half_height =
+            _building.footprint.height_cells
+            * _cell_size
+            * 0.5;
+
+        var _building_left =
+            _building.x - _building_half_width;
+
+        var _building_right =
+            _building.x + _building_half_width;
+
+        var _building_top =
+            _building.y - _building_half_height;
+
+        var _building_bottom =
+            _building.y + _building_half_height;
+
+
+        if (
+            _right > _building_left
+            && _left < _building_right
+            && _bottom > _building_top
+            && _top < _building_bottom
+        )
+        {
+            return true;
+        }
+    }
+
+
+    // ========================================================================
+    // CPU
+    // ========================================================================
+
+    var _cpu =
+        global.vtd_level.entities.cpu;
+
+
+    if (instance_exists(_cpu))
+    {
+        var _cpu_left =
+            _cpu.x - _cpu.visual.radius;
+
+        var _cpu_right =
+            _cpu.x + _cpu.visual.radius;
+
+        var _cpu_top =
+            _cpu.y - _cpu.visual.radius;
+
+        var _cpu_bottom =
+            _cpu.y + _cpu.visual.radius;
+
+
+        if (
+            _right > _cpu_left
+            && _left < _cpu_right
+            && _bottom > _cpu_top
+            && _top < _cpu_bottom
+        )
+        {
+            return true;
+        }
+    }
+
+
+    return false;
+}

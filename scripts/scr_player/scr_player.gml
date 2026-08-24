@@ -32,6 +32,17 @@ function scr_player_initialize(_player)
 	    moving: false
 	};
 
+
+	// ========================================================================
+	// COLLISION
+	// ========================================================================
+
+	_player.collision =
+	{
+	    half_width: 14,
+	    half_height: 14
+	};	
+	
     // ========================================================================
     // VITALS
     // ========================================================================
@@ -183,7 +194,7 @@ function scr_player_input_update(_player)
     return true;
 }
 
-/// @description Moves the player while resolving solid collisions.
+/// @description Moves the player with square collision and clean sliding.
 
 function scr_player_movement_update(_player)
 {
@@ -193,9 +204,6 @@ function scr_player_movement_update(_player)
 
     var _movement =
         _player.movement;
-
-    var _radius =
-        _player.visual.radius;
 
 
     // ========================================================================
@@ -215,7 +223,8 @@ function scr_player_movement_update(_player)
         );
 
 
-    _movement.speed_multiplier = 1;
+    _movement.speed_multiplier =
+        1;
 
 
     if (
@@ -245,56 +254,36 @@ function scr_player_movement_update(_player)
         * _movement.speed;
 
 
-    // ========================================================================
-    // HORIZONTAL COLLISION
-    // ========================================================================
+    // Separate axis resolution allows clean sliding along structures.
 
-    var _next_x =
+    scr_player_axis_move(
+        _player,
+        _move_x,
+        true
+    );
+
+    scr_player_axis_move(
+        _player,
+        _move_y,
+        false
+    );
+
+
+    _player.x =
         clamp(
-            _player.x + _move_x,
-            _radius,
-            room_width - _radius
-        );
-
-
-    if (
-        !scr_world_circle_gameplay_solid(
-            _next_x,
-            _player.y,
-            _radius,
-            true
-        )
-    )
-    {
-        _player.x =
-            _next_x;
-    }
-
-
-    // ========================================================================
-    // VERTICAL COLLISION
-    // ========================================================================
-
-    var _next_y =
-        clamp(
-            _player.y + _move_y,
-            _radius,
-            room_height - _radius
-        );
-
-
-    if (
-        !scr_world_circle_gameplay_solid(
             _player.x,
-            _next_y,
-            _radius,
-            true
-        )
-    )
-    {
-        _player.y =
-            _next_y;
-    }
+            _player.collision.half_width,
+            room_width
+                - _player.collision.half_width
+        );
+
+    _player.y =
+        clamp(
+            _player.y,
+            _player.collision.half_height,
+            room_height
+                - _player.collision.half_height
+        );
 
 
     return true;
@@ -613,7 +602,6 @@ function scr_player_damage(_player, _damage)
     return true;
 }
 
-/// @description Data-driven physical pickups and player collection.
 
 /// @description Creates one physical resource pickup.
 
@@ -954,6 +942,88 @@ function scr_pickup_draw(_pickup)
 
     draw_set_alpha(1);
     draw_set_color(c_white);
+
+
+    return true;
+}
+
+/// @description Moves the player along one axis against square solids.
+
+function scr_player_axis_move(
+    _player,
+    _amount,
+    _horizontal
+)
+{
+    if (!instance_exists(_player))
+        return false;
+
+    if (_amount == 0)
+        return true;
+
+
+    var _steps =
+        max(
+            1,
+            ceil(abs(_amount))
+        );
+
+    var _step =
+        _amount / _steps;
+
+
+    repeat (_steps)
+    {
+        var _next_x =
+            _player.x
+            + (
+                _horizontal
+                ? _step
+                : 0
+            );
+
+        var _next_y =
+            _player.y
+            + (
+                _horizontal
+                ? 0
+                : _step
+            );
+
+
+        var _left =
+            _next_x
+            - _player.collision.half_width;
+
+        var _right =
+            _next_x
+            + _player.collision.half_width;
+
+        var _top =
+            _next_y
+            - _player.collision.half_height;
+
+        var _bottom =
+            _next_y
+            + _player.collision.half_height;
+
+
+        if (
+            scr_world_rectangle_gameplay_solid(
+                _left,
+                _top,
+                _right,
+                _bottom
+            )
+        )
+        {
+            break;
+        }
+
+
+        _player.x = _next_x;
+        _player.y = _next_y;
+    }
 
 
     return true;
