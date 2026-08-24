@@ -1069,7 +1069,7 @@ function scr_enemy_visual_shield_generator(_enemy)
     return true;
 }
 
-/// @description Draws the heavy continuous-beam siege platform.
+/// @description Draws the mobile continuous-beam siege tank.
 
 function scr_enemy_visual_siege_beam(_enemy)
 {
@@ -1079,141 +1079,251 @@ function scr_enemy_visual_siege_beam(_enemy)
 
     var _x = _enemy.x;
     var _y = _enemy.y;
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
-    var _color = _enemy.visual.color;
 
+    var _radius =
+        _enemy.visual.radius;
+
+    var _hull_angle =
+        _enemy.visual.hull_angle;
+
+    var _turret_angle =
+        _enemy.visual.turret_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    // ========================================================================
+    // HULL
+    // ========================================================================
 
     draw_set_color(_color);
 
 
-    // Heavy hexagonal chassis.
+    // Armoured hexagonal chassis.
 
     for (var i = 0; i < 6; ++i)
     {
-        var _a1 = _angle + 30 + (i * 60);
-        var _a2 = _angle + 30 + (((i + 1) mod 6) * 60);
+        var _a1 =
+            _hull_angle
+            + 30
+            + (i * 60);
+
+        var _a2 =
+            _hull_angle
+            + 30
+            + (((i + 1) mod 6) * 60);
 
         draw_line_width(
             _x + lengthdir_x(_radius, _a1),
             _y + lengthdir_y(_radius, _a1),
+
             _x + lengthdir_x(_radius, _a2),
             _y + lengthdir_y(_radius, _a2),
+
             3
         );
     }
 
 
-    // Four siege stabilizers.
+    // Track lines make hull rotation obvious.
 
-    for (var i = 0; i < 4; ++i)
-    {
-        var _leg_angle = _angle + 45 + (i * 90);
-
-        draw_line_width(
-            _x + lengthdir_x(_radius * 0.45, _leg_angle),
-            _y + lengthdir_y(_radius * 0.45, _leg_angle),
-            _x + lengthdir_x(_radius * 1.15, _leg_angle),
-            _y + lengthdir_y(_radius * 1.15, _leg_angle),
-            4
+    var _track_side_x =
+        lengthdir_x(
+            _radius * 0.62,
+            _hull_angle + 90
         );
 
-        draw_circle(
-            _x + lengthdir_x(_radius * 1.15, _leg_angle),
-            _y + lengthdir_y(_radius * 1.15, _leg_angle),
-            4,
-            false
+    var _track_side_y =
+        lengthdir_y(
+            _radius * 0.62,
+            _hull_angle + 90
         );
-    }
+
+    var _track_front_x =
+        lengthdir_x(
+            _radius * 0.68,
+            _hull_angle
+        );
+
+    var _track_front_y =
+        lengthdir_y(
+            _radius * 0.68,
+            _hull_angle
+        );
 
 
-    // Forward beam emitter.
+    draw_line_width(
+        _x + _track_side_x - _track_front_x,
+        _y + _track_side_y - _track_front_y,
 
-    draw_circle(_x, _y, _radius * 0.42, false);
-    draw_circle(_x, _y, _radius * 0.18, true);
+        _x + _track_side_x + _track_front_x,
+        _y + _track_side_y + _track_front_y,
+
+        5
+    );
+
+    draw_line_width(
+        _x - _track_side_x - _track_front_x,
+        _y - _track_side_y - _track_front_y,
+
+        _x - _track_side_x + _track_front_x,
+        _y - _track_side_y + _track_front_y,
+
+        5
+    );
+
+
+    // Hull direction marker.
 
     draw_line_width(
         _x,
         _y,
-        _x + lengthdir_x(_radius * 1.2, _angle),
-        _y + lengthdir_y(_radius * 1.2, _angle),
-        8
+
+        _x + lengthdir_x(
+            _radius * 0.55,
+            _hull_angle
+        ),
+
+        _y + lengthdir_y(
+            _radius * 0.55,
+            _hull_angle
+        ),
+
+        2
     );
 
 
-    // Draw the continuous beam only while actively firing.
+    // ========================================================================
+    // TURRET
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.46,
+        false
+    );
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.22,
+        true
+    );
+
+
+    var _turret_side_x =
+        lengthdir_x(
+            7,
+            _turret_angle + 90
+        );
+
+    var _turret_side_y =
+        lengthdir_y(
+            7,
+            _turret_angle + 90
+        );
+
+    var _muzzle_x =
+        _x + lengthdir_x(
+            _radius * 1.22,
+            _turret_angle
+        );
+
+    var _muzzle_y =
+        _y + lengthdir_y(
+            _radius * 1.22,
+            _turret_angle
+        );
+
+
+    draw_line_width(
+        _x + _turret_side_x,
+        _y + _turret_side_y,
+
+        _muzzle_x + _turret_side_x,
+        _muzzle_y + _turret_side_y,
+
+        4
+    );
+
+    draw_line_width(
+        _x - _turret_side_x,
+        _y - _turret_side_y,
+
+        _muzzle_x - _turret_side_x,
+        _muzzle_y - _turret_side_y,
+
+        4
+    );
+
+    draw_line_width(
+        _muzzle_x + _turret_side_x,
+        _muzzle_y + _turret_side_y,
+
+        _muzzle_x - _turret_side_x,
+        _muzzle_y - _turret_side_y,
+
+        3
+    );
+
+
+    // ========================================================================
+    // CONTINUOUS BEAM
+    // ========================================================================
 
     if (
-        _enemy.EnemyState == EnemyState.ATTACKING
-        && instance_exists(_enemy.targeting.target)
+        _enemy.EnemyState
+            == EnemyState.ATTACKING
+        && instance_exists(
+            _enemy.targeting.target
+        )
     )
     {
-        var _target = _enemy.targeting.target;
+        var _target =
+            _enemy.targeting.target;
 
-        var _beam_color = _color;
-        var _inner_color = c_white;
-        var _beam_width = 5;
-
-
-        if (
-            variable_struct_exists(
-                _enemy.enemy_data,
-                "ability_data"
-            )
-            && variable_struct_exists(
-                _enemy.enemy_data.ability_data,
-                "beam"
-            )
-        )
-        {
-            var _beam =
-                _enemy.enemy_data.ability_data.beam;
-
-            _beam_color = _beam.color;
-            _inner_color = _beam.inner_color;
-            _beam_width = _beam.width;
-        }
-
-
-        var _muzzle_x =
-            _x + lengthdir_x(_radius * 1.2, _angle);
-
-        var _muzzle_y =
-            _y + lengthdir_y(_radius * 1.2, _angle);
+        var _beam =
+            _enemy.enemy_data
+                .ability_data
+                .beam;
 
         var _flicker =
             dsin(
                 (global.vtd.tick * 28)
                 + real(_enemy.id)
-            ) * 2;
+            )
+            * 2;
 
 
         draw_set_alpha(0.35);
-        draw_set_color(_beam_color);
+        draw_set_color(_beam.color);
 
         draw_line_width(
             _muzzle_x,
             _muzzle_y,
             _target.x,
             _target.y,
-            _beam_width + 6
+            _beam.width + 6
         );
 
 
         draw_set_alpha(0.9);
-        draw_set_color(_beam_color);
 
         draw_line_width(
             _muzzle_x,
             _muzzle_y,
             _target.x + _flicker,
             _target.y - _flicker,
-            _beam_width
+            _beam.width
         );
 
 
         draw_set_alpha(1);
-        draw_set_color(_inner_color);
+        draw_set_color(
+            _beam.inner_color
+        );
 
         draw_line_width(
             _muzzle_x,
@@ -1225,10 +1335,10 @@ function scr_enemy_visual_siege_beam(_enemy)
 
 
         // FUTURE:
-        // heat embers
-        // beam impact particles
-        // target scorch marks
-        // charging sound
+        // beam embers
+        // heat particles
+        // impact sparks
+        // scorch marks
     }
 
 

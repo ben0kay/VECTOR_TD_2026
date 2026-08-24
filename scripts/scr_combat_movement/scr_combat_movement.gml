@@ -54,82 +54,120 @@ function scr_enemy_advanced_initialize(_enemy)
 
 
     // ========================================================================
-    // TEMPORARY PLAYER TARGETING
-    // ========================================================================
+	// OPTIONAL PLAYER TARGETING
+	// ========================================================================
 
-    var _player_data =
-    {
-        enabled: false,
+	var _player_data =
+	{
+	    enabled: false,
 
-        acquire_range: 0,
-        lose_range: 0,
-        acquire_chance: 0,
+	    acquire_range: 0,
+	    forget_range_multiplier: 1.3,
+	    acquire_chance: 0,
 
-        check_interval_minimum: 1,
-        check_interval_maximum: 1.5,
-
-        lock_seconds_minimum: 3,
-        lock_seconds_maximum: 5,
-
-        reacquire_seconds: 2,
-
-        require_line_of_sight: true,
-        require_reachable: true
-    };
+	    require_line_of_sight: true,
+	    require_reachable: true
+	};
 
 
-    if (
-        variable_struct_exists(
-            _data.targeting,
-            "player"
-        )
-        && is_struct(_data.targeting.player)
-    )
-    {
-        var _source =
-            _data.targeting.player;
+	if (
+	    variable_struct_exists(_data.targeting, "player")
+	    && is_struct(_data.targeting.player)
+	)
+	{
+	    var _source =
+	        _data.targeting.player;
 
-        var _names =
-            variable_struct_get_names(
-                _source
-            );
+	    var _names =
+	        variable_struct_get_names(
+	            _source
+	        );
 
-        for (
-            var i = 0;
-            i < array_length(_names);
-            ++i
-        )
-        {
-            variable_struct_set(
-                _player_data,
-                _names[i],
-                variable_struct_get(
-                    _source,
-                    _names[i]
-                )
-            );
-        }
-    }
+	    for (var i = 0; i < array_length(_names); ++i)
+	    {
+	        variable_struct_set(
+	            _player_data,
+	            _names[i],
+	            variable_struct_get(
+	                _source,
+	                _names[i]
+	            )
+	        );
+	    }
+	}
 
 
-    _enemy.targeting.player =
-    {
-        data: _player_data,
+	_enemy.targeting.player =
+	{
+	    data: _player_data,
+	    active: false,
 
-        active: false,
+	    roll:
+	    {
+	        strategic_target:
+	            _enemy.targeting.strategic,
 
-        check_remaining:
-            random_range(
-                _player_data
-                    .check_interval_minimum,
+	        completed: false,
+	        succeeded: false
+	    }
+	};
 
-                _player_data
-                    .check_interval_maximum
-            ),
 
-        lock_remaining: 0,
-        reacquire_remaining: 0
-    };
+	// ========================================================================
+	// STRATEGIC BUILDING RETARGETING
+	// ========================================================================
+
+	var _strategic_data =
+	{
+	    enabled: false,
+
+	    interval_minimum: 0.75,
+	    interval_maximum: 1.5,
+
+	    minimum_distance_advantage: 64,
+	    switch_ratio: 0.85
+	};
+
+
+	if (
+	    variable_struct_exists(_data.targeting, "strategic_retarget")
+	    && is_struct(_data.targeting.strategic_retarget)
+	)
+	{
+	    var _source =
+	        _data.targeting.strategic_retarget;
+
+	    var _names =
+	        variable_struct_get_names(
+	            _source
+	        );
+
+	    for (var i = 0; i < array_length(_names); ++i)
+	    {
+	        variable_struct_set(
+	            _strategic_data,
+	            _names[i],
+	            variable_struct_get(
+	                _source,
+	                _names[i]
+	            )
+	        );
+	    }
+	}
+
+
+	_enemy.targeting.strategic_retarget =
+	{
+	    data: _strategic_data,
+
+	    // Different enemies begin their scans on different frames.
+
+	    remaining:
+	        random_range(
+	            _strategic_data.interval_minimum,
+	            _strategic_data.interval_maximum
+	        )
+	};
 
 
     // ========================================================================
@@ -297,7 +335,7 @@ function scr_enemy_advanced_initialize(_enemy)
 }
 
 
-/// @description Restores an enemy's strategic target after player aggro.
+/// @description Restores the best strategic target after player aggro ends.
 
 function scr_enemy_player_target_restore(_enemy)
 {
@@ -308,34 +346,50 @@ function scr_enemy_player_target_restore(_enemy)
     var _runtime =
         _enemy.targeting.player;
 
-    _runtime.active = false;
-    _runtime.lock_remaining = 0;
+    _runtime.active =
+        false;
 
-    _runtime.reacquire_remaining =
-        max(
-            0,
-            _runtime.data.reacquire_seconds
-        );
+    _runtime.roll.succeeded =
+        false;
 
+
+    // Look for a newly placed, meaningfully closer building immediately.
+
+    scr_enemy_strategic_retarget_update(
+        _enemy,
+        true
+    );
+
+
+    // If the cached target was destroyed, acquire a replacement regardless
+    // of the ordinary target-switch distance requirement.
 
     if (!instance_exists(_enemy.targeting.strategic))
     {
-        _enemy.targeting.strategic =
+        var _replacement =
             scr_enemy_target_acquire(
                 _enemy
             );
+
+        scr_enemy_strategic_target_set(
+            _enemy,
+            _replacement
+        );
     }
 
-
-    _enemy.targeting.target =
-        _enemy.targeting.strategic;
 
     _enemy.targeting.breach =
         noone;
 
+    _enemy.targeting.target =
+        _enemy.targeting.strategic;
+
 
     if (instance_exists(_enemy.targeting.target))
     {
+        _enemy.navigation.reachable =
+            true;
+
         _enemy.EnemyState =
             EnemyState.MOVING;
 
@@ -349,23 +403,15 @@ function scr_enemy_player_target_restore(_enemy)
     return true;
 }
 
-
-/// @description Processes optional temporary player aggro.
+/// @description Processes strategic retargeting and one player roll per objective.
 
 function scr_enemy_player_targeting_update(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    if (
-        !variable_struct_exists(
-            _enemy.targeting,
-            "player"
-        )
-    )
-    {
+    if (!variable_struct_exists(_enemy.targeting, "player"))
         return true;
-    }
 
 
     var _runtime =
@@ -374,40 +420,24 @@ function scr_enemy_player_targeting_update(_enemy)
     var _data =
         _runtime.data;
 
+
+    // Enemies without player targeting may still use strategic rescanning.
+
+    if (!_runtime.active)
+    {
+        scr_enemy_strategic_retarget_update(
+            _enemy
+        );
+    }
+
+
+    scr_enemy_player_roll_sync(
+        _enemy
+    );
+
+
     if (!_data.enabled)
         return true;
-
-
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
-
-    var _delta =
-        1 / _fps;
-
-
-    _runtime.check_remaining =
-        max(
-            0,
-            _runtime.check_remaining
-            - _delta
-        );
-
-    _runtime.lock_remaining =
-        max(
-            0,
-            _runtime.lock_remaining
-            - _delta
-        );
-
-    _runtime.reacquire_remaining =
-        max(
-            0,
-            _runtime.reacquire_remaining
-            - _delta
-        );
 
 
     var _player =
@@ -415,13 +445,17 @@ function scr_enemy_player_targeting_update(_enemy)
 
 
     // ========================================================================
-    // MAINTAIN EXISTING PLAYER AGGRO
+    // MAINTAIN ACTIVE PLAYER TARGET
     // ========================================================================
 
     if (_runtime.active)
     {
         if (!instance_exists(_player))
-            return scr_enemy_player_target_restore(_enemy);
+        {
+            return scr_enemy_player_target_restore(
+                _enemy
+            );
+        }
 
 
         var _difference_x =
@@ -434,16 +468,17 @@ function scr_enemy_player_targeting_update(_enemy)
             (_difference_x * _difference_x)
             + (_difference_y * _difference_y);
 
-        var _lose_range =
-            max(
-                _data.acquire_range,
-                _data.lose_range
+        var _forget_range =
+            _data.acquire_range
+            * max(
+                1,
+                _data.forget_range_multiplier
             );
 
 
         if (
             _distance_squared
-            > _lose_range * _lose_range
+            > _forget_range * _forget_range
         )
         {
             return scr_enemy_player_target_restore(
@@ -452,22 +487,14 @@ function scr_enemy_player_targeting_update(_enemy)
         }
 
 
-        // A failed player route restores the cached strategic objective.
-        // This avoids repeatedly performing a separate MP-grid test here.
+        // Let the normal navigation request determine reachability.
+        // A failed route restores the strategic building.
 
         if (
             _data.require_reachable
             && !_enemy.navigation.reachable
             && !_enemy.navigation.needs_path
         )
-        {
-            return scr_enemy_player_target_restore(
-                _enemy
-            );
-        }
-
-
-        if (_runtime.lock_remaining <= 0)
         {
             return scr_enemy_player_target_restore(
                 _enemy
@@ -483,22 +510,14 @@ function scr_enemy_player_targeting_update(_enemy)
 
 
     // ========================================================================
-    // PLAYER ACQUISITION
+    // ONE PLAYER ROLL FOR THE CURRENT STRATEGIC TARGET
     // ========================================================================
 
-    if (_runtime.reacquire_remaining > 0)
+    if (_runtime.roll.completed)
         return true;
 
-    if (_runtime.check_remaining > 0)
+    if (!instance_exists(_enemy.targeting.strategic))
         return true;
-
-
-    _runtime.check_remaining =
-        random_range(
-            _data.check_interval_minimum,
-            _data.check_interval_maximum
-        );
-
 
     if (!instance_exists(_player))
         return true;
@@ -515,6 +534,8 @@ function scr_enemy_player_targeting_update(_enemy)
         + (_difference_y * _difference_y);
 
 
+    // Being outside range does not consume the roll.
+
     if (
         _distance_squared
         > _data.acquire_range
@@ -525,17 +546,13 @@ function scr_enemy_player_targeting_update(_enemy)
     }
 
 
-    if (random(1) > _data.acquire_chance)
-        return true;
-
+    // Blocked sight also does not consume the roll.
 
     if (
         _data.require_line_of_sight
-        && scr_world_line_blocked_by_dead(
-            _enemy.x,
-            _enemy.y,
-            _player.x,
-            _player.y
+        && !scr_enemy_player_line_of_sight_clear(
+            _enemy,
+            _player
         )
     )
     {
@@ -543,16 +560,24 @@ function scr_enemy_player_targeting_update(_enemy)
     }
 
 
-    // Preserve the building/CPU objective. Only the active target changes.
+    // The conditions are valid, so this strategic target's roll is consumed.
 
-    _runtime.active = true;
+    _runtime.roll.completed =
+        true;
 
-    _runtime.lock_remaining =
-        random_range(
-            _data.lock_seconds_minimum,
-            _data.lock_seconds_maximum
-        );
+    _runtime.roll.succeeded =
+        random(1)
+        <= _data.acquire_chance;
 
+
+    if (!_runtime.roll.succeeded)
+        return true;
+
+
+    // Preserve the strategic building while temporarily pursuing the player.
+
+    _runtime.active =
+        true;
 
     _enemy.targeting.breach =
         noone;
@@ -1237,4 +1262,319 @@ function scr_enemy_combat_movement_update(
     return scr_enemy_combat_destination_move(
         _enemy
     );
+}
+
+/// @description Assigns a new strategic target and resets target-specific decisions.
+
+function scr_enemy_strategic_target_set(_enemy, _target)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _old_target =
+        _enemy.targeting.strategic;
+
+    if (_old_target == _target)
+        return false;
+
+
+    _enemy.targeting.strategic =
+        _target;
+
+
+    // A new strategic target permits one new player roll.
+
+    if (variable_struct_exists(_enemy.targeting, "player"))
+    {
+        var _player_runtime =
+            _enemy.targeting.player;
+
+        _player_runtime.roll.strategic_target =
+            _target;
+
+        _player_runtime.roll.completed =
+            false;
+
+        _player_runtime.roll.succeeded =
+            false;
+    }
+
+
+    // Do not interrupt active player aggro or an active breach target.
+
+    if (
+        !_enemy.targeting.player.active
+        && !instance_exists(_enemy.targeting.breach)
+    )
+    {
+        _enemy.targeting.target =
+            _target;
+    }
+
+
+    return true;
+}
+
+/// @description Synchronizes the player roll with the current strategic target.
+
+function scr_enemy_player_roll_sync(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _runtime =
+        _enemy.targeting.player;
+
+    if (
+        _runtime.roll.strategic_target
+        == _enemy.targeting.strategic
+    )
+    {
+        return true;
+    }
+
+
+    _runtime.roll.strategic_target =
+        _enemy.targeting.strategic;
+
+    _runtime.roll.completed =
+        false;
+
+    _runtime.roll.succeeded =
+        false;
+
+
+    return true;
+}
+
+/// @description Updates an enemy's cached strategic building target.
+
+function scr_enemy_strategic_retarget_update(
+    _enemy,
+    _immediate = false
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _runtime =
+        _enemy.targeting.strategic_retarget;
+
+    var _data =
+        _runtime.data;
+
+
+    if (!_data.enabled)
+        return true;
+
+    if (
+        _enemy.targeting.player.active
+        || instance_exists(_enemy.targeting.breach)
+    )
+    {
+        return true;
+    }
+
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    _runtime.remaining =
+        max(
+            0,
+            _runtime.remaining - (1 / _fps)
+        );
+
+
+    if (!_immediate && _runtime.remaining > 0)
+        return true;
+
+
+    _runtime.remaining =
+        random_range(
+            _data.interval_minimum,
+            _data.interval_maximum
+        );
+
+
+    var _current =
+        _enemy.targeting.strategic;
+
+    var _candidate =
+        scr_enemy_closest_building_get(
+            _enemy
+        );
+
+
+    // Building hunters fall back to the CPU when no ordinary building exists.
+
+    if (!instance_exists(_candidate))
+    {
+        _candidate =
+            global.vtd_level.entities.cpu;
+    }
+
+
+    if (!instance_exists(_candidate))
+        return false;
+
+
+    // An invalid target is replaced immediately.
+
+    if (!instance_exists(_current))
+    {
+        scr_enemy_strategic_target_set(
+            _enemy,
+            _candidate
+        );
+
+        return true;
+    }
+
+
+    if (_candidate == _current)
+        return true;
+
+
+    var _current_distance =
+        point_distance(
+            _enemy.x,
+            _enemy.y,
+            _current.x,
+            _current.y
+        );
+
+    var _candidate_distance =
+        point_distance(
+            _enemy.x,
+            _enemy.y,
+            _candidate.x,
+            _candidate.y
+        );
+
+
+    var _fixed_advantage =
+        _candidate_distance
+        <= _current_distance
+        - _data.minimum_distance_advantage;
+
+    var _ratio_advantage =
+        _candidate_distance
+        <= _current_distance
+        * _data.switch_ratio;
+
+
+    if (!_fixed_advantage && !_ratio_advantage)
+        return true;
+
+
+    scr_enemy_strategic_target_set(
+        _enemy,
+        _candidate
+    );
+
+
+    _enemy.EnemyState =
+        EnemyState.MOVING;
+
+    scr_navigation_enemy_repath_request(
+        _enemy,
+        true
+    );
+
+
+    return true;
+}
+
+/// @description Returns whether an enemy has clear sight of the player.
+
+function scr_enemy_player_line_of_sight_clear(
+    _enemy,
+    _player
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_player))
+        return false;
+
+
+    if (
+        _enemy.movement.layer
+        == EnemyMovementLayer.FLYING
+    )
+    {
+        return true;
+    }
+
+
+    var _distance =
+        point_distance(
+            _enemy.x,
+            _enemy.y,
+            _player.x,
+            _player.y
+        );
+
+    if (_distance <= 0)
+        return true;
+
+
+    var _spacing =
+        max(
+            8,
+            global.vtd_level.map.cell_size
+            * 0.5
+        );
+
+    var _checks =
+        max(
+            1,
+            ceil(_distance / _spacing)
+        );
+
+
+    // Skip both endpoints. Only space between the enemy and player matters.
+
+    for (var i = 1; i < _checks; ++i)
+    {
+        var _amount =
+            i / _checks;
+
+        var _check_x =
+            lerp(
+                _enemy.x,
+                _player.x,
+                _amount
+            );
+
+        var _check_y =
+            lerp(
+                _enemy.y,
+                _player.y,
+                _amount
+            );
+
+
+        if (
+            scr_world_circle_gameplay_solid(
+                _check_x,
+                _check_y,
+                2,
+                true
+            )
+        )
+        {
+            return false;
+        }
+    }
+
+
+    return true;
 }

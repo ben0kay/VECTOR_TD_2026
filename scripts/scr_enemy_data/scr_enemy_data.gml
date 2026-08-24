@@ -471,35 +471,35 @@ function scr_enemy_data_hunter()
 
             targeting:
             {
-                target_type:
-                    EnemyTarget.BUILDING,
+                target_type: EnemyTarget.BUILDING,
 
                 player:
                 {
                     enabled: true,
 
                     acquire_range: 420,
-                    lose_range: 560,
-
+                    forget_range_multiplier: 1.3,
                     acquire_chance: 0.30,
-
-                    check_interval_minimum: 0.8,
-                    check_interval_maximum: 1.3,
-
-                    lock_seconds_minimum: 3,
-                    lock_seconds_maximum: 6,
-
-                    reacquire_seconds: 2,
 
                     require_line_of_sight: true,
                     require_reachable: true
+                },
+
+                strategic_retarget:
+                {
+                    enabled: true,
+
+                    interval_minimum: 0.75,
+                    interval_maximum: 1.5,
+
+                    minimum_distance_advantage: 64,
+                    switch_ratio: 0.85
                 }
             },
 
             navigation:
             {
-                blocked_action:
-                    EnemyBlockedAction.BREACH
+                blocked_action: EnemyBlockedAction.BREACH
             },
 
             attack:
@@ -522,7 +522,6 @@ function scr_enemy_data_hunter()
 
     return true;
 }
-
 /// @description Registers the CPU-seeking phasing enemy.
 
 function scr_enemy_data_phaser()

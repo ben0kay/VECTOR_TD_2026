@@ -1609,8 +1609,7 @@ function scr_enemy_brainless_update(_enemy)
     return true;
 }
 
-
-/// @description Updates an enemy's custom draw angle from its real movement.
+/// @description Updates enemy hull, turret and compatibility draw angles.
 
 function scr_enemy_visual_direction_update(_enemy)
 {
@@ -1618,39 +1617,34 @@ function scr_enemy_visual_direction_update(_enemy)
         return false;
 
 
+    var _has_advanced_visual =
+        variable_struct_exists(
+            _enemy.visual,
+            "hull_angle"
+        )
+        && variable_struct_exists(
+            _enemy.visual,
+            "turret_angle"
+        );
+
+
     // ========================================================================
     // BRAINLESS MOVEMENT
     // ========================================================================
-
-    // Brainless enemies control their movement direction directly.
 
     if (_enemy.movement.brainless)
     {
         _enemy.visual.draw_angle =
             _enemy.movement.direction;
 
-        return true;
-    }
+        if (_has_advanced_visual)
+        {
+            _enemy.visual.hull_angle =
+                _enemy.movement.direction;
 
-
-    // ========================================================================
-    // ATTACKING
-    // ========================================================================
-
-    // Stationary attacking enemies face their current target.
-
-    if (
-        _enemy.EnemyState == EnemyState.ATTACKING
-        && instance_exists(_enemy.targeting.target)
-    )
-    {
-        _enemy.visual.draw_angle =
-            point_direction(
-                _enemy.x,
-                _enemy.y,
-                _enemy.targeting.target.x,
-                _enemy.targeting.target.y
-            );
+            _enemy.visual.turret_angle =
+                _enemy.movement.direction;
+        }
 
         return true;
     }
@@ -1661,20 +1655,21 @@ function scr_enemy_visual_direction_update(_enemy)
     // ========================================================================
 
     var _moved_x =
-        _enemy.x - _enemy.xprevious;
+        _enemy.x
+        - _enemy.xprevious;
 
     var _moved_y =
-        _enemy.y - _enemy.yprevious;
+        _enemy.y
+        - _enemy.yprevious;
 
-
-    // Use actual displacement whenever the enemy moved this frame.
-
-    if (
+    var _moved =
         abs(_moved_x) > 0.01
-        || abs(_moved_y) > 0.01
-    )
+        || abs(_moved_y) > 0.01;
+
+
+    if (_moved)
     {
-        _enemy.visual.draw_angle =
+        var _movement_angle =
             point_direction(
                 _enemy.xprevious,
                 _enemy.yprevious,
@@ -1682,20 +1677,174 @@ function scr_enemy_visual_direction_update(_enemy)
                 _enemy.y
             );
 
-        return true;
+
+        if (_has_advanced_visual)
+        {
+            var _turn_speed = 6;
+
+            if (
+                variable_instance_exists(
+                    _enemy,
+                    "combat_movement"
+                )
+                && is_struct(
+                    _enemy.combat_movement
+                )
+            )
+            {
+                _turn_speed =
+                    _enemy.combat_movement
+                        .data
+                        .hull_turn_speed;
+            }
+
+
+            _enemy.visual.hull_angle =
+                scr_enemy_angle_approach(
+                    _enemy.visual.hull_angle,
+                    _movement_angle,
+                    _turn_speed
+                );
+
+            _enemy.visual.draw_angle =
+                _enemy.visual.hull_angle;
+        }
+        else
+        {
+            _enemy.visual.draw_angle =
+                _movement_angle;
+        }
     }
 
 
-    // Native GameMaker paths maintain the built-in direction variable.
-    // This handles a newly assigned path before its first movement frame.
+    // ========================================================================
+    // TURRET TRACKING
+    // ========================================================================
 
     if (
-        _enemy.EnemyState == EnemyState.MOVING
+        _has_advanced_visual
+        && instance_exists(
+            _enemy.targeting.target
+        )
+    )
+    {
+        var _target_angle =
+            point_direction(
+                _enemy.x,
+                _enemy.y,
+                _enemy.targeting.target.x,
+                _enemy.targeting.target.y
+            );
+
+        var _turret_speed = 8;
+
+
+        if (
+            variable_instance_exists(
+                _enemy,
+                "combat_movement"
+            )
+            && is_struct(
+                _enemy.combat_movement
+            )
+        )
+        {
+            _turret_speed =
+                _enemy.combat_movement
+                    .data
+                    .turret_turn_speed;
+        }
+
+
+        _enemy.visual.turret_angle =
+            scr_enemy_angle_approach(
+                _enemy.visual.turret_angle,
+                _target_angle,
+                _turret_speed
+            );
+    }
+
+
+    // ========================================================================
+    // ORDINARY STATIONARY ATTACKERS
+    // ========================================================================
+
+    if (
+        !_moved
+        && _enemy.EnemyState
+            == EnemyState.ATTACKING
+        && instance_exists(
+            _enemy.targeting.target
+        )
+    )
+    {
+        var _uses_separate_hull =
+            false;
+
+
+        if (
+            variable_instance_exists(
+                _enemy,
+                "combat_movement"
+            )
+            && is_struct(
+                _enemy.combat_movement
+            )
+        )
+        {
+            _uses_separate_hull =
+                _enemy.combat_movement
+                    .data.type
+                != EnemyCombatMovement
+                    .STATIONARY;
+        }
+
+
+        if (!_uses_separate_hull)
+        {
+            _enemy.visual.draw_angle =
+                point_direction(
+                    _enemy.x,
+                    _enemy.y,
+                    _enemy.targeting.target.x,
+                    _enemy.targeting.target.y
+                );
+
+            if (_has_advanced_visual)
+            {
+                _enemy.visual.hull_angle =
+                    _enemy.visual.draw_angle;
+            }
+        }
+    }
+
+
+    // A newly assigned native path may not have moved yet.
+
+    if (
+        !_moved
+        && _enemy.EnemyState
+            == EnemyState.MOVING
         && _enemy.path_index != -1
     )
     {
-        _enemy.visual.draw_angle =
-            _enemy.direction;
+        if (_has_advanced_visual)
+        {
+            _enemy.visual.hull_angle =
+                scr_enemy_angle_approach(
+                    _enemy.visual.hull_angle,
+                    _enemy.direction,
+                    6
+                );
+
+            _enemy.visual.draw_angle =
+                _enemy.visual.hull_angle;
+        }
+        else
+        {
+            _enemy.visual.draw_angle =
+                _enemy.direction;
+        }
     }
 
 
@@ -2213,7 +2362,7 @@ function scr_enemy_damage_target(
     return false;
 }
 
-/// @description Updates one continuous-beam siege enemy.
+/// @description Updates one mobile continuous-beam siege platform.
 
 function scr_enemy_siege_beam_update(_enemy)
 {
@@ -2221,23 +2370,29 @@ function scr_enemy_siege_beam_update(_enemy)
         return false;
 
 
-    var _target = _enemy.targeting.target;
+    var _target =
+        _enemy.targeting.target;
 
     if (!instance_exists(_target))
         return true;
 
 
-    var _edge_distance = scr_enemy_target_edge_distance(
-        _enemy,
-        _target
-    );
+    var _edge_distance =
+        scr_enemy_target_edge_distance(
+            _enemy,
+            _target
+        );
+
+    var _combat_data =
+        _enemy.combat_movement.data;
 
 
     switch (_enemy.EnemyState)
     {
         case EnemyState.SPAWNING:
         {
-            _enemy.EnemyState = EnemyState.MOVING;
+            _enemy.EnemyState =
+                EnemyState.MOVING;
 
             scr_navigation_enemy_repath_request(
                 _enemy,
@@ -2249,31 +2404,51 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.MOVING:
         {
-            if (_edge_distance <= _enemy.attack.range)
+            if (
+                _edge_distance
+                <= _combat_data.preferred_range
+            )
             {
-                scr_navigation_enemy_stop(_enemy);
-                _enemy.EnemyState = EnemyState.ATTACKING;
+                scr_navigation_enemy_stop(
+                    _enemy
+                );
+
+                _enemy.EnemyState =
+                    EnemyState.ATTACKING;
+
+                scr_enemy_combat_anchor_begin(
+                    _enemy,
+                    _target
+                );
+
                 break;
             }
 
-            scr_navigation_enemy_update(_enemy);
+
+            scr_navigation_enemy_update(
+                _enemy
+            );
         }
         break;
 
 
         case EnemyState.ATTACKING:
         {
-            _enemy.visual.draw_angle = point_direction(
-                _enemy.x,
-                _enemy.y,
-                _target.x,
-                _target.y
-            );
-
-
-            if (_edge_distance > _enemy.attack.range)
+            if (
+                _edge_distance
+                > _combat_data.maximum_range
+            )
             {
-                _enemy.EnemyState = EnemyState.MOVING;
+                _enemy.combat_movement
+                    .anchor.valid =
+                    false;
+
+                _enemy.combat_movement
+                    .destination.active =
+                    false;
+
+                _enemy.EnemyState =
+                    EnemyState.MOVING;
 
                 scr_navigation_enemy_repath_request(
                     _enemy,
@@ -2284,13 +2459,39 @@ function scr_enemy_siege_beam_update(_enemy)
             }
 
 
-            // Continuous damage is converted from damage-per-second
-            // into the correct amount for this frame.
+            // The turret remains locked on the target independently
+            // from the hull's movement direction.
 
-            var _fps = max(
-                1,
-                game_get_speed(gamespeed_fps)
+            var _target_angle =
+                point_direction(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
+
+            _enemy.visual.turret_angle =
+                scr_enemy_angle_approach(
+                    _enemy.visual.turret_angle,
+                    _target_angle,
+                    _combat_data.turret_turn_speed
+                );
+
+
+            // Local movement does not interrupt the beam.
+
+            scr_enemy_combat_movement_update(
+                _enemy,
+                _target
             );
+
+
+            var _fps =
+                max(
+                    1,
+                    game_get_speed(gamespeed_fps)
+                );
+
 
             scr_enemy_damage_target(
                 _enemy,
@@ -2305,7 +2506,13 @@ function scr_enemy_siege_beam_update(_enemy)
         case EnemyState.STUNNED:
         case EnemyState.DEAD:
         {
-            scr_navigation_enemy_stop(_enemy);
+            scr_navigation_enemy_stop(
+                _enemy
+            );
+
+            _enemy.combat_movement
+                .destination.active =
+                false;
         }
         break;
     }
