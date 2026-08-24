@@ -220,9 +220,12 @@ function scr_projectile_tower_enemy_find(
 }
 
 
-/// @description Applies tower projectile damage and optional effects.
+/// @description Resolves one tower projectile impact.
 
-function scr_projectile_tower_impact(_projectile, _direct_target)
+function scr_projectile_tower_impact(
+    _projectile,
+    _direct_target
+)
 {
     if (!instance_exists(_projectile))
         return false;
@@ -230,6 +233,27 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
 
     var _combat =
         _projectile.combat;
+
+    var _impact_x =
+        _projectile.x;
+
+    var _impact_y =
+        _projectile.y;
+
+    var _impact_color =
+        _projectile.visual.color;
+
+
+    // A direct target gives us a more accurate impact position.
+
+    if (instance_exists(_direct_target))
+    {
+        _impact_x =
+            _direct_target.x;
+
+        _impact_y =
+            _direct_target.y;
+    }
 
 
     switch (_combat.impact)
@@ -249,6 +273,44 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
                     _combat.damage_type
                 )
             );
+
+
+            switch (_combat.damage_type)
+            {
+                case DamageType.LASER:
+                {
+                    scr_particles_laser_impact(
+                        _impact_x,
+                        _impact_y,
+                        _impact_color
+                    );
+                }
+                break;
+
+
+                case DamageType.KINETIC:
+                {
+                    scr_particles_impact(
+                        _impact_x,
+                        _impact_y,
+                        _impact_color,
+                        3
+                    );
+                }
+                break;
+
+
+                case DamageType.EXPLOSIVE:
+                {
+                    scr_particles_explosion(
+                        _impact_x,
+                        _impact_y,
+                        _impact_color,
+                        0.6
+                    );
+                }
+                break;
+            }
         }
         break;
 
@@ -257,8 +319,11 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
         {
             var _area =
             {
-                shape: AttackAreaShape.CIRCLE,
-                radius: _combat.damage_radius,
+                shape:
+                    AttackAreaShape.CIRCLE,
+
+                radius:
+                    _combat.damage_radius,
 
                 falloff:
                 {
@@ -283,12 +348,24 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
 
 
             scr_effect_shockwave_create(
-			    _projectile.x,
-			    _projectile.y,
-			    _combat.damage_radius,
-			    _projectile.visual.color,
-			    _combat.target_layer
-			);
+                _projectile.x,
+                _projectile.y,
+                _combat.damage_radius,
+                _impact_color,
+                _combat.target_layer
+            );
+
+
+            scr_particles_explosion(
+                _projectile.x,
+                _projectile.y,
+                _impact_color,
+                clamp(
+                    _combat.damage_radius / 96,
+                    0.75,
+                    2
+                )
+            );
         }
         break;
     }
@@ -300,10 +377,19 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
 
     if (is_struct(_combat.effect))
     {
-        var _effect_radius = 0;
+        var _effect_radius =
+            0;
 
-        if (variable_struct_exists(_combat.effect, "radius"))
-            _effect_radius = _combat.effect.radius;
+        if (
+            variable_struct_exists(
+                _combat.effect,
+                "radius"
+            )
+        )
+        {
+            _effect_radius =
+                _combat.effect.radius;
+        }
 
 
         if (_effect_radius > 0)
@@ -317,11 +403,13 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
                 _combat.owner
             );
 
+
             scr_effect_shockwave_create(
                 _projectile.x,
                 _projectile.y,
                 _effect_radius,
-                _projectile.visual.color
+                _impact_color,
+                _combat.target_layer
             );
         }
         else if (instance_exists(_direct_target))

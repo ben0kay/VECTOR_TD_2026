@@ -410,6 +410,185 @@ function scr_particles_beam(
     return true;
 }
 
+/// @description Creates a shield-collapse burst.
+
+function scr_particles_shield_break(
+    _x,
+    _y,
+    _color,
+    _radius
+)
+{
+    if (!scr_particles_ready())
+        return false;
+
+
+    var _particles =
+        global.vtd.particles;
+
+    var _types =
+        _particles.types;
+
+
+    part_type_color1(
+        _types.ring,
+        _color
+    );
+
+    part_type_size(
+        _types.ring,
+        max(0.2, _radius / 48),
+        max(0.25, _radius / 40),
+        0.08,
+        0
+    );
+
+
+    part_particles_create(
+        _particles.system,
+        _x,
+        _y,
+        _types.ring,
+        2
+    );
+
+
+    scr_particles_impact(
+        _x,
+        _y,
+        _color,
+        8
+    );
+
+
+    return true;
+}
+
+
+/// @description Creates a subtle propulsion particle behind a flying enemy.
+
+function scr_particles_flyer_thrust(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (_enemy.movement.layer != EnemyMovementLayer.FLYING)
+        return false;
+
+    if (!scr_particles_ready())
+        return false;
+
+    if (!scr_culling_check_instance(_enemy, 128))
+        return false;
+
+
+    var _particles =
+        global.vtd.particles;
+
+    var _type =
+        _particles.types.glow;
+
+    var _angle =
+        _enemy.visual.draw_angle + 180;
+
+    var _distance =
+        _enemy.visual.radius * 0.75;
+
+    var _x =
+        _enemy.x
+        + lengthdir_x(
+            _distance,
+            _angle
+        );
+
+    var _y =
+        _enemy.y
+        + lengthdir_y(
+            _distance,
+            _angle
+        );
+
+
+    part_type_color1(
+        _type,
+        make_color_rgb(
+            80,
+            210,
+            255
+        )
+    );
+
+    part_type_size(
+        _type,
+        0.07,
+        0.13,
+        -0.008,
+        0
+    );
+
+
+    part_particles_create(
+        _particles.system,
+        _x,
+        _y,
+        _type,
+        1
+    );
+
+
+    return true;
+}
+
+
+/// @description Updates staggered ambient particles for one enemy.
+
+function scr_particles_enemy_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (_enemy.EnemyState == EnemyState.DEAD)
+        return false;
+
+
+    switch (_enemy.movement.layer)
+    {
+        case EnemyMovementLayer.FLYING:
+        {
+            // Stagger by instance ID so every flyer does not emit together.
+
+            if (
+                (
+                    global.vtd.tick
+                    + real(_enemy.id)
+                )
+                mod 5
+                == 0
+            )
+            {
+                scr_particles_flyer_thrust(
+                    _enemy
+                );
+            }
+        }
+        break;
+
+
+        case EnemyMovementLayer.GROUND:
+        case EnemyMovementLayer.UNDERGROUND:
+        {
+            // FUTURE:
+            // dust
+            // underground disturbance
+            // heavy-unit exhaust
+        }
+        break;
+    }
+
+
+    return true;
+}
+
 
 // ============================================================================
 // GAMEPLAY EFFECTS
@@ -577,6 +756,8 @@ function scr_particles_explosion(
 
     return true;
 }
+
+
 
 
 // ============================================================================

@@ -36,3 +36,4 @@ if (!instance_exists(id))
 
 scr_enemy_visual_direction_update(id);
 scr_enemy_shield_update(id);
+scr_particles_enemy_update(id);

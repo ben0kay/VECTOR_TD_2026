@@ -980,7 +980,6 @@ function scr_building_construction_complete(_building)
     _building.vitals.hp.current =
         min(
             _building.vitals.hp.maximum,
-
             _building.vitals.hp.current
             + _building.construction.hp_remaining
         );
@@ -1012,11 +1011,37 @@ function scr_building_construction_complete(_building)
     }
 
 
-    // This does nothing for an ordinary building. For a future hub, its
-    // capacity bonus becomes available only after construction completes.
+    // A future capacity hub only applies its bonus after construction.
 
     scr_build_limit_hub_activate(
         _building
+    );
+
+
+    // ========================================================================
+    // COMPLETION FEEDBACK
+    // ========================================================================
+
+    var _completion_color =
+        c_aqua;
+
+    if (
+        is_struct(_building.visual)
+        && variable_struct_exists(
+            _building.visual,
+            "color"
+        )
+    )
+    {
+        _completion_color =
+            _building.visual.color;
+    }
+
+
+    scr_particles_construction_complete(
+        _building.x,
+        _building.y,
+        _completion_color
     );
 
 

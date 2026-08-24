@@ -1153,18 +1153,30 @@ function scr_enemy_damage(_enemy, _damage)
 
 
         if (_support.current <= 0)
-        {
-            _support.current = 0;
-            _support.enabled = false;
+		{
+		    _support.current =
+		        0;
 
-            scr_effect_shockwave_create(
-                _enemy.x,
-                _enemy.y,
-                _enemy.visual.radius + 20,
-                _support.color,
-				_enemy.movement.layer
-            );
-        }
+		    _support.enabled =
+		        false;
+
+
+		    scr_effect_shockwave_create(
+		        _enemy.x,
+		        _enemy.y,
+		        _enemy.visual.radius + 20,
+		        _support.color,
+		        _enemy.movement.layer
+		    );
+
+
+		    scr_particles_shield_break(
+		        _enemy.x,
+		        _enemy.y,
+		        _support.color,
+		        _enemy.visual.radius + 20
+		    );
+		}
     }
 
 
@@ -1199,18 +1211,30 @@ function scr_enemy_damage(_enemy, _damage)
 
 
         if (_shield.current <= 0)
-        {
-            _shield.current = 0;
-            _shield.enabled = false;
+		{
+		    _shield.current =
+		        0;
 
-            scr_effect_shockwave_create(
-                _enemy.x,
-                _enemy.y,
-                _enemy.visual.radius + 16,
-                _shield.color,
-				_enemy.movement.layer
-            );
-        }
+		    _shield.enabled =
+		        false;
+
+
+		    scr_effect_shockwave_create(
+		        _enemy.x,
+		        _enemy.y,
+		        _enemy.visual.radius + 16,
+		        _shield.color,
+		        _enemy.movement.layer
+		    );
+
+
+		    scr_particles_shield_break(
+		        _enemy.x,
+		        _enemy.y,
+		        _shield.color,
+		        _enemy.visual.radius + 16
+		    );
+		}
     }
 
 
