@@ -33,21 +33,27 @@ function scr_tower_initialize(_tower)
 
 
     // ========================================================================
-    // TARGETING
-    // ========================================================================
+	// TARGETING
+	// ========================================================================
 
-    var _requires_line_of_sight = true;
+	var _requires_line_of_sight = true;
+	var _target_filter = TowerTargetFilter.ANY;
 
-    if (variable_struct_exists(_data, "requires_line_of_sight"))
-        _requires_line_of_sight = _data.requires_line_of_sight;
+	if (variable_struct_exists(_data, "requires_line_of_sight"))
+	    _requires_line_of_sight = _data.requires_line_of_sight;
 
-    _tower.targeting =
-    {
-        target: noone,
-        mode: _data.target_mode,
-        layer: _data.target_layer,
-        requires_line_of_sight: _requires_line_of_sight
-    };
+	if (variable_struct_exists(_data, "target_filter"))
+	    _target_filter = _data.target_filter;
+
+
+	_tower.targeting =
+	{
+	    target: noone,
+	    mode: _data.target_mode,
+	    layer: _data.target_layer,
+	    filter: _target_filter,
+	    requires_line_of_sight: _requires_line_of_sight
+	};
 
 
     // ========================================================================
@@ -221,7 +227,7 @@ function scr_tower_trace_set(
 }
 
 
-/// @description Returns whether an enemy is visible and targetable.
+/// @description Returns whether an enemy is valid for one tower.
 
 function scr_tower_target_valid(_tower, _enemy)
 {
@@ -234,13 +240,8 @@ function scr_tower_target_valid(_tower, _enemy)
     if (_enemy.EnemyState == EnemyState.DEAD)
         return false;
 
-    if (
-        _enemy.movement.layer
-        != _tower.targeting.layer
-    )
-    {
+    if (_enemy.movement.layer != _tower.targeting.layer)
         return false;
-    }
 
     if (!scr_fog_position_visible(_enemy.x, _enemy.y))
         return false;
@@ -254,7 +255,7 @@ function scr_tower_target_valid(_tower, _enemy)
             _enemy.y
         )
         > _tower.combat.range
-            + _enemy.visual.radius
+        + _enemy.visual.radius
     )
     {
         return false;
@@ -275,9 +276,41 @@ function scr_tower_target_valid(_tower, _enemy)
     }
 
 
+    switch (_tower.targeting.filter)
+    {
+        case TowerTargetFilter.NOT_SLOWED:
+        {
+            if (
+                scr_enemy_effect_active(
+                    _enemy,
+                    EnemyEffect.SLOW
+                )
+            )
+            {
+                return false;
+            }
+        }
+        break;
+
+
+        case TowerTargetFilter.NOT_STASIS:
+        {
+            if (
+                scr_enemy_effect_active(
+                    _enemy,
+                    EnemyEffect.STASIS
+                )
+            )
+            {
+                return false;
+            }
+        }
+        break;
+    }
+
+
     return true;
 }
-
 
 /// @description Acquires an enemy using the tower's targeting mode.
 

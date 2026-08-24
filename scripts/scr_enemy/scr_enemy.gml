@@ -109,6 +109,7 @@ function scr_enemy_initialize(_enemy)
 
 
     _enemy.enemy_data = _data;
+	
     _enemy.EnemyState = EnemyState.SPAWNING;
 
 
@@ -279,6 +280,41 @@ function scr_enemy_initialize(_enemy)
         destroy_on_impact: _destroy_on_impact
     };
 
+	// ========================================================================
+	// STATUS EFFECTS
+	// ========================================================================
+
+	_enemy.effects =
+	{
+	    slow:
+	    {
+	        active: false,
+	        multiplier: 1,
+	        remaining_seconds: 0,
+	        source: noone
+	    },
+
+	    stasis:
+	    {
+	        active: false,
+	        remaining_seconds: 0,
+	        source: noone
+	    },
+
+	    damage_over_time:
+	    {
+	        active: false,
+	        damage: 0,
+	        interval_seconds: 1,
+	        interval_remaining: 0,
+	        remaining_seconds: 0,
+	        damage_type: DamageType.KINETIC,
+	        source: noone
+	    }
+	};
+
+	_enemy.movement.speed_base =
+	    _data.movement.speed;
 
     _enemy.visual.draw_angle = _initial_direction;
 
@@ -1006,7 +1042,7 @@ function scr_enemy_spawn_test()
     return scr_enemy_spawn_edge("enemy_weak");
 }
 
-/// @description Draws one enemy, its optional shield and health display.
+/// @description Draws one enemy and all current combat feedback.
 
 function scr_enemy_draw(_enemy)
 {
@@ -1015,11 +1051,11 @@ function scr_enemy_draw(_enemy)
 
     scr_enemy_shield_draw(_enemy);
     scr_enemy_visual_draw(_enemy);
+    scr_enemy_effects_draw(_enemy);
     scr_enemy_health_bar_draw(_enemy);
 
     return true;
 }
-
 /// @description Applies support-shield, natural-shield and health damage.
 
 function scr_enemy_damage(_enemy, _damage)

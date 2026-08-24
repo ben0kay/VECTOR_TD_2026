@@ -430,6 +430,197 @@ function scr_tower_data_sniper()
     return true;
 }
 
+/// @description Registers the single-target Cryo Tower.
+
+function scr_tower_data_cryo()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_cryo",
+        {
+            identity:
+            {
+                key: "tower_cryo",
+                name: "Cryo Tower",
+                type: BuildingType.TOWER,
+                description_short: "Spreads permanent slowing effects.",
+                description_long: "Fires cryogenic projectiles that permanently reduce enemy movement speed. It ignores enemies that are already slowed, spreading its shots across approaching groups."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(20, 70, 90),
+                turret_color: c_aqua
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 260
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 300
+                }]
+            },
+
+            tower:
+            {
+                range: 440,
+                target_mode: TowerTargetMode.FURTHEST,
+                target_layer: EnemyMovementLayer.GROUND,
+                target_filter: TowerTargetFilter.NOT_SLOWED,
+                requires_line_of_sight: true,
+                draw_function: scr_tower_visual_cryo,
+
+                weapon:
+                {
+                    type: TowerWeaponType.PROJECTILE,
+                    damage_type: DamageType.KINETIC,
+                    damage: 6,
+                    cooldown_seconds: 2.5,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 38,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        speed: 18,
+                        lifetime_seconds: 4,
+                        radius: 5,
+                        color: c_aqua,
+                        impact: ProjectileImpact.DIRECT,
+                        damage_radius: 0,
+
+                        effect:
+                        {
+                            type: EnemyEffect.SLOW,
+                            multiplier: 0.67,
+                            duration_seconds: -1,
+                            radius: 0
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the single-target Stasis Tower.
+
+function scr_tower_data_stasis()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_stasis",
+        {
+            identity:
+            {
+                key: "tower_stasis",
+                name: "Stasis Tower",
+                type: BuildingType.TOWER,
+                description_short: "Temporarily freezes individual enemies.",
+                description_long: "Launches concentrated stasis projectiles that completely stop one ground enemy for several seconds. It ignores targets that are already frozen."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(45, 35, 100),
+                turret_color: make_color_rgb(145, 175, 255)
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 300
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 380
+                }]
+            },
+
+            tower:
+            {
+                range: 460,
+                target_mode: TowerTargetMode.FURTHEST,
+                target_layer: EnemyMovementLayer.GROUND,
+                target_filter: TowerTargetFilter.NOT_STASIS,
+                requires_line_of_sight: true,
+                draw_function: scr_tower_visual_stasis,
+
+                weapon:
+                {
+                    type: TowerWeaponType.PROJECTILE,
+                    damage_type: DamageType.LASER,
+                    damage: 4,
+                    cooldown_seconds: 4.5,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 40,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        speed: 15,
+                        lifetime_seconds: 5,
+                        radius: 6,
+                        color: make_color_rgb(145, 175, 255),
+                        impact: ProjectileImpact.DIRECT,
+                        damage_radius: 0,
+
+                        effect:
+                        {
+                            type: EnemyEffect.STASIS,
+                            duration_seconds: 3,
+                            radius: 0
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
 
 /// @description Registers every tower definition.
 
@@ -441,6 +632,8 @@ function scr_tower_data_initialize()
     if (!scr_tower_data_cannon()) return false;
     if (!scr_tower_data_laser()) return false;
     if (!scr_tower_data_sniper()) return false;
+	if (!scr_tower_data_cryo()) return false;
+	if (!scr_tower_data_stasis()) return false;
 
     // FUTURE TOWERS:
     // artillery

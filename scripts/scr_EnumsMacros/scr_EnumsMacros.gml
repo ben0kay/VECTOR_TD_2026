@@ -118,6 +118,20 @@ enum TowerMuzzleMode
     ALTERNATING
 }
 
+enum EnemyEffect
+{
+    SLOW,
+    STASIS,
+    DAMAGE_OVER_TIME
+}
+
+enum TowerTargetFilter
+{
+    ANY,
+    NOT_SLOWED,
+    NOT_STASIS
+}
+
 
 // Staggered update helpers.
 //

@@ -199,7 +199,7 @@ function scr_enemy_visual_draw(_enemy)
 }
 
 
-/// @description Draws an enemy's health bar and optional shield bar.
+/// @description Draws an enemy's health, natural shield and support shield bars.
 
 function scr_enemy_health_bar_draw(_enemy)
 {
@@ -214,53 +214,116 @@ function scr_enemy_health_bar_draw(_enemy)
     var _bar_left = _enemy.x - _radius;
     var _hp_bar_top = _enemy.y + _hover - _radius - 8;
 
+    var _shield =
+        _enemy.vitals.shield;
+
 
     // ========================================================================
-    // SHIELD BAR
+    // NATURAL SHIELD BAR
     // ========================================================================
 
-    if (variable_struct_exists(_enemy.vitals, "shield"))
+    if (
+        is_struct(_shield)
+        && _shield.enabled
+        && _shield.maximum > 0
+    )
     {
-        var _shield = _enemy.vitals.shield;
+        var _shield_percent =
+            clamp(
+                _shield.current
+                / _shield.maximum,
+                0,
+                1
+            );
+
+        var _shield_bar_top =
+            _hp_bar_top - 4;
+
+
+        draw_set_color(c_dkgray);
+
+        draw_rectangle(
+            _bar_left,
+            _shield_bar_top,
+            _bar_left + _bar_width,
+            _shield_bar_top + 2,
+            false
+        );
+
+
+        draw_set_color(_shield.color);
+
+        draw_rectangle(
+            _bar_left,
+            _shield_bar_top,
+            _bar_left
+            + (_bar_width * _shield_percent),
+            _shield_bar_top + 2,
+            false
+        );
+    }
+
+
+    // ========================================================================
+    // TEMPORARY SUPPORT SHIELD BAR
+    // ========================================================================
+
+    if (
+        is_struct(_shield)
+        && is_struct(_shield.support)
+        && _shield.support.enabled
+        && _shield.support.maximum > 0
+        && _shield.support.current > 0
+    )
+    {
+        var _support =
+            _shield.support;
+
+        var _support_percent =
+            clamp(
+                _support.current
+                / _support.maximum,
+                0,
+                1
+            );
+
+
+        // If the enemy also has a natural shield, place this bar above it.
+        // Otherwise, place it directly above the health bar.
+
+        var _support_bar_top =
+            _hp_bar_top - 4;
 
         if (
-            is_struct(_shield)
-            && variable_struct_exists(_shield, "enabled")
-            && _shield.enabled
+            _shield.enabled
             && _shield.maximum > 0
         )
         {
-            var _shield_percent =
-                clamp(
-                    _shield.current / _shield.maximum,
-                    0,
-                    1
-                );
-
-            var _shield_bar_top = _hp_bar_top - 4;
-
-
-            draw_set_color(c_dkgray);
-
-            draw_rectangle(
-                _bar_left,
-                _shield_bar_top,
-                _bar_left + _bar_width,
-                _shield_bar_top + 2,
-                false
-            );
-
-
-            draw_set_color(_shield.color);
-
-            draw_rectangle(
-                _bar_left,
-                _shield_bar_top,
-                _bar_left + (_bar_width * _shield_percent),
-                _shield_bar_top + 2,
-                false
-            );
+            _support_bar_top -= 4;
         }
+
+
+        draw_set_color(c_dkgray);
+
+        draw_rectangle(
+            _bar_left,
+            _support_bar_top,
+            _bar_left + _bar_width,
+            _support_bar_top + 2,
+            false
+        );
+
+
+        draw_set_color(_support.color);
+
+        draw_rectangle(
+            _bar_left,
+            _support_bar_top,
+            _bar_left
+            + (_bar_width * _support_percent),
+            _support_bar_top + 2,
+            false
+        );
     }
 
 
@@ -271,7 +334,10 @@ function scr_enemy_health_bar_draw(_enemy)
     var _hp_percent =
         clamp(
             _enemy.vitals.hp.current
-            / max(1, _enemy.vitals.hp.maximum),
+            / max(
+                1,
+                _enemy.vitals.hp.maximum
+            ),
             0,
             1
         );
@@ -293,7 +359,8 @@ function scr_enemy_health_bar_draw(_enemy)
     draw_rectangle(
         _bar_left,
         _hp_bar_top,
-        _bar_left + (_bar_width * _hp_percent),
+        _bar_left
+        + (_bar_width * _hp_percent),
         _hp_bar_top + 3,
         false
     );

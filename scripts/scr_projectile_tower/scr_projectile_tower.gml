@@ -19,6 +19,13 @@ function scr_projectile_tower_create(
     if (!is_struct(_projectile_data))
         return noone;
 
+
+    var _effect = undefined;
+
+    if (variable_struct_exists(_projectile_data, "effect"))
+        _effect = _projectile_data.effect;
+
+
     return instance_create_layer(
         _world_x,
         _world_y,
@@ -35,7 +42,8 @@ function scr_projectile_tower_create(
             projectile_angle: _draw_angle,
             projectile_impact: _projectile_data.impact,
             projectile_damage_radius: _projectile_data.damage_radius,
-            projectile_target_layer: _target_layer
+            projectile_target_layer: _target_layer,
+            projectile_effect: _effect
         }
     );
 }
@@ -47,6 +55,7 @@ function scr_projectile_tower_initialize(_projectile)
     if (!instance_exists(_projectile))
         return false;
 
+
     _projectile.combat =
     {
         owner: _projectile.projectile_owner,
@@ -54,18 +63,22 @@ function scr_projectile_tower_initialize(_projectile)
         damage_type: _projectile.projectile_damage_type,
         impact: _projectile.projectile_impact,
         damage_radius: _projectile.projectile_damage_radius,
-        target_layer: _projectile.projectile_target_layer
+        target_layer: _projectile.projectile_target_layer,
+        effect: _projectile.projectile_effect
     };
+
 
     _projectile.movement =
     {
         speed: _projectile.projectile_speed
     };
 
+
     _projectile.life =
     {
         remaining: _projectile.projectile_lifetime
     };
+
 
     _projectile.visual =
     {
@@ -73,6 +86,7 @@ function scr_projectile_tower_initialize(_projectile)
         radius: _projectile.projectile_radius,
         color: _projectile.projectile_color
     };
+
 
     return true;
 }
@@ -156,14 +170,16 @@ function scr_projectile_tower_enemy_find(
 }
 
 
-/// @description Applies direct or circular damage at a projectile impact.
+/// @description Applies tower projectile damage and optional effects.
 
 function scr_projectile_tower_impact(_projectile, _direct_target)
 {
     if (!instance_exists(_projectile))
         return false;
 
-    var _combat = _projectile.combat;
+
+    var _combat =
+        _projectile.combat;
 
 
     switch (_combat.impact)
@@ -173,15 +189,16 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
             if (!instance_exists(_direct_target))
                 return false;
 
-            var _damage =
+
+            scr_enemy_damage(
+                _direct_target,
                 scr_damage_create(
                     _combat.damage,
                     _combat.owner,
                     DamageSource.TOWER,
                     _combat.damage_type
-                );
-
-            scr_enemy_damage(_direct_target, _damage);
+                )
+            );
         }
         break;
 
@@ -201,6 +218,7 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
                 }
             };
 
+
             scr_attack_area_apply(
                 _combat.owner,
                 DamageSource.TOWER,
@@ -213,22 +231,58 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
                 _area
             );
 
+
             scr_effect_shockwave_create(
                 _projectile.x,
                 _projectile.y,
                 _combat.damage_radius,
                 _projectile.visual.color
             );
-
-
-            // FUTURE:
-            // explosion particles
-            // debris
-            // sound
-            // camera shake
         }
         break;
     }
+
+
+    // ========================================================================
+    // OPTIONAL STATUS EFFECT
+    // ========================================================================
+
+    if (is_struct(_combat.effect))
+    {
+        var _effect_radius = 0;
+
+        if (variable_struct_exists(_combat.effect, "radius"))
+            _effect_radius = _combat.effect.radius;
+
+
+        if (_effect_radius > 0)
+        {
+            scr_enemy_effect_area_apply(
+                _projectile.x,
+                _projectile.y,
+                _effect_radius,
+                _combat.target_layer,
+                _combat.effect,
+                _combat.owner
+            );
+
+            scr_effect_shockwave_create(
+                _projectile.x,
+                _projectile.y,
+                _effect_radius,
+                _projectile.visual.color
+            );
+        }
+        else if (instance_exists(_direct_target))
+        {
+            scr_enemy_effect_apply(
+                _direct_target,
+                _combat.effect,
+                _combat.owner
+            );
+        }
+    }
+
 
     return true;
 }

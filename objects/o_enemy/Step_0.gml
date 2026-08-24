@@ -1,7 +1,5 @@
 /// @description Processes one generic enemy.
 
-/// @description Processes one generic enemy.
-
 if (global.GameState != GameState.PLAYING)
     exit;
 
@@ -9,13 +7,23 @@ if (global.LevelState != LevelState.PLAYING)
     exit;
 
 
-// Process gameplay first. This may start a path, change direction,
-// enter an attacking state, or move a brainless enemy.
+// Effects calculate the enemy's effective movement speed first.
+
+scr_enemy_effects_update(id);
+
+if (!instance_exists(id))
+    exit;
+
+
+// Gameplay may now move, navigate or attack using the effective speed.
 
 scr_enemy_update(id);
 
+if (!instance_exists(id))
+    exit;
 
-// Update visual feedback after the enemy's gameplay state is known.
+
+// Visual feedback follows the completed gameplay update.
 
 scr_enemy_visual_direction_update(id);
 scr_enemy_shield_update(id);

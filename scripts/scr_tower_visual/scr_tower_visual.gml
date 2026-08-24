@@ -573,3 +573,119 @@ function scr_tower_weapon_trace_draw(_tower)
 
     return true;
 }
+
+/// @description Draws the Cryo Tower.
+
+function scr_tower_visual_cryo(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+
+    draw_set_color(_color);
+
+
+    // Rotating frozen core.
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _a1 = _angle + (i * 60);
+        var _a2 = _angle + (((i + 1) mod 6) * 60);
+
+        draw_line_width(
+            _x + lengthdir_x(13, _a1),
+            _y + lengthdir_y(13, _a1),
+            _x + lengthdir_x(13, _a2),
+            _y + lengthdir_y(13, _a2),
+            2
+        );
+    }
+
+
+    var _side_x = lengthdir_x(5, _angle + 90);
+    var _side_y = lengthdir_y(5, _angle + 90);
+    var _end_x = _x + lengthdir_x(36, _angle);
+    var _end_y = _y + lengthdir_y(36, _angle);
+
+    draw_line_width(
+        _x + _side_x,
+        _y + _side_y,
+        _end_x + _side_x,
+        _end_y + _side_y,
+        2
+    );
+
+    draw_line_width(
+        _x - _side_x,
+        _y - _side_y,
+        _end_x - _side_x,
+        _end_y - _side_y,
+        2
+    );
+
+    draw_circle(_x, _y, 5, true);
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the Stasis Tower.
+
+function scr_tower_visual_stasis(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+
+    var _pulse =
+        0.65
+        + dsin(
+            global.vtd.tick * 5
+            + real(_tower.id)
+        ) * 0.25;
+
+
+    draw_set_color(_color);
+
+    draw_circle(_x, _y, 16, true);
+    draw_circle(_x, _y, 10, false);
+
+
+    // Radial containment marks.
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _mark_angle =
+            _angle
+            + (i * 90);
+
+        draw_line_width(
+            _x + lengthdir_x(12, _mark_angle),
+            _y + lengthdir_y(12, _mark_angle),
+            _x + lengthdir_x(18, _mark_angle),
+            _y + lengthdir_y(18, _mark_angle),
+            2
+        );
+    }
+
+
+    draw_set_alpha(_pulse);
+
+    draw_line_width(
+        _x,
+        _y,
+        _x + lengthdir_x(38, _angle),
+        _y + lengthdir_y(38, _angle),
+        4
+    );
+
+    draw_set_alpha(1);
+    draw_circle(_x, _y, 4, true);
+
+    draw_set_color(c_white);
+
+    return true;
+}
