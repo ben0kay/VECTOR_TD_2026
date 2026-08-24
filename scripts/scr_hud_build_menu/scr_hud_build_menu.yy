@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_hud_build_menu",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"hud",
+    "path":"folders/scripts/hud.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_projectile_enemy",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"projectile",
+    "path":"folders/scripts/projectile.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

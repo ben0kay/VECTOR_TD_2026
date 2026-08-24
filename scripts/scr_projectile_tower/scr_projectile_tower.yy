@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_projectile_tower",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"projectile",
+    "path":"folders/scripts/projectile.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
