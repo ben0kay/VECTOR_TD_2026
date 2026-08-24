@@ -43,6 +43,7 @@ function scr_game_initialize()
 	scr_enemy_data_initialize();
 	scr_building_data_initialize();
 	scr_tower_data_initialize();
+	scr_energy_consumer_data_defaults_apply();
 	scr_resource_data_initialize();
 	scr_world_data_initialize();
 

@@ -61,6 +61,7 @@
     {"id":{"name":"scr_attack_area","path":"scripts/scr_attack_area/scr_attack_area.yy",},},
     {"id":{"name":"scr_build_mode","path":"scripts/scr_build_mode/scr_build_mode.yy",},},
     {"id":{"name":"scr_building_data","path":"scripts/scr_building_data/scr_building_data.yy",},},
+    {"id":{"name":"scr_building_visual","path":"scripts/scr_building_visual/scr_building_visual.yy",},},
     {"id":{"name":"scr_building","path":"scripts/scr_building/scr_building.yy",},},
     {"id":{"name":"scr_camera","path":"scripts/scr_camera/scr_camera.yy",},},
     {"id":{"name":"scr_cpu","path":"scripts/scr_cpu/scr_cpu.yy",},},

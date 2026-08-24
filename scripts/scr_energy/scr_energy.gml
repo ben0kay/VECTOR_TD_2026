@@ -226,9 +226,9 @@ function scr_energy_networks_rebuild()
         if (!_building.energy.participates)
             continue;
 
-
         _building.energy.network_id = -1;
-        _building.energy.connected = false;
+		_building.energy.connected = false;
+		_building.energy.supplied = false;
 
 
         if (_building.BuildingState == BuildingState.ACTIVE)
@@ -767,98 +767,310 @@ function scr_energy_activity_consume(_building, _cost = undefined)
     return true;
 }
 
-/// @description Draws one generator's temporary vector assembly.
+/// @description Adds default energy data to operational buildings.
 
-function scr_energy_generator_draw(_building)
+function scr_energy_consumer_data_defaults_apply()
 {
-    var _pulse = 0.75 + sin(global.vtd.tick * 4) * 0.15;
-
-    draw_set_color(c_aqua);
-    draw_rectangle(
-        _building.x - 22,
-        _building.y - 14,
-        _building.x + 22,
-        _building.y + 14,
-        false
-    );
-
-    draw_line(_building.x - 22, _building.y, _building.x + 22, _building.y);
-    draw_line(_building.x, _building.y - 14, _building.x, _building.y + 14);
-
-    draw_set_alpha(_pulse);
-    draw_set_color(c_yellow);
-    draw_circle(_building.x, _building.y, 6, true);
-
-    draw_set_alpha(1);
-    draw_set_color(c_white);
-}
-
-
-/// @description Draws one local energy node.
-
-function scr_energy_node_draw(_building)
-{
-    var _pulse = 12 + sin(global.vtd.tick * 5) * 2;
-
-    draw_set_color(c_aqua);
-    draw_circle(_building.x, _building.y, _pulse, false);
-    draw_circle(_building.x, _building.y, 4, true);
-
-    for (var i = 0; i < 4; ++i)
-    {
-        var _angle = 45 + (i * 90);
-
-        draw_line(
-            _building.x + lengthdir_x(6, _angle),
-            _building.y + lengthdir_y(6, _angle),
-            _building.x + lengthdir_x(17, _angle),
-            _building.y + lengthdir_y(17, _angle)
+    var _keys =
+        variable_struct_get_names(
+            global.vtd.data.buildings
         );
+
+    for (var i = 0; i < array_length(_keys); ++i)
+    {
+        var _data =
+            variable_struct_get(
+                global.vtd.data.buildings,
+                _keys[i]
+            );
+
+        if (!is_struct(_data))
+            continue;
+
+        if (variable_struct_exists(_data, "energy"))
+            continue;
+
+
+        switch (_data.identity.type)
+        {
+            case BuildingType.TOWER:
+            {
+                _data.energy =
+                {
+                    role: EnergyRole.CONSUMER,
+                    priority: EnergyPriority.HIGH,
+
+                    connection_range: 320,
+                    generation_per_second: 0,
+
+                    input_rate: 8,
+                    idle_demand: 0.25,
+                    activity_cost: 2,
+
+                    buffer:
+                    {
+                        capacity: 20,
+                        starting_ratio: 0
+                    }
+                };
+            }
+            break;
+
+
+            case BuildingType.MINER:
+            {
+                _data.energy =
+                {
+                    role: EnergyRole.CONSUMER,
+                    priority: EnergyPriority.NORMAL,
+
+                    connection_range: 320,
+                    generation_per_second: 0,
+
+                    input_rate: 6,
+                    idle_demand: 1,
+                    activity_cost: 2,
+
+                    buffer:
+                    {
+                        capacity: 15,
+                        starting_ratio: 0
+                    }
+                };
+            }
+            break;
+
+
+            case BuildingType.STORAGE:
+            {
+                _data.energy =
+                {
+                    role: EnergyRole.CONSUMER,
+                    priority: EnergyPriority.LOW,
+
+                    connection_range: 320,
+                    generation_per_second: 0,
+
+                    input_rate: 2,
+                    idle_demand: 0.1,
+                    activity_cost: 0,
+
+                    buffer:
+                    {
+                        capacity: 5,
+                        starting_ratio: 0
+                    }
+                };
+            }
+            break;
+        }
     }
 
-    draw_set_color(c_white);
+
+    show_debug_message(
+        "VECTOR TD 2026 - ENERGY CONSUMER DEFAULTS APPLIED"
+    );
+
+
+    return true;
+}
+
+/// @description Returns the closest connected node belonging to a member.
+
+function scr_energy_member_node_get(_member, _network)
+{
+    if (!instance_exists(_member))
+        return noone;
+
+    var _closest = noone;
+    var _closest_distance = infinity;
+
+
+    for (var i = 0; i < array_length(_network.nodes); ++i)
+    {
+        var _node = _network.nodes[i];
+
+        if (!instance_exists(_node))
+            continue;
+
+        if (!scr_energy_connection_valid(_member, _node))
+            continue;
+
+        var _distance =
+            point_distance(
+                _member.x,
+                _member.y,
+                _node.x,
+                _node.y
+            );
+
+        if (_distance < _closest_distance)
+        {
+            _closest = _node;
+            _closest_distance = _distance;
+        }
+    }
+
+
+    return _closest;
 }
 
 
-/// @description Draws one network battery and its stored-energy level.
+/// @description Draws every visible local energy network.
 
-function scr_energy_battery_draw(_building)
+function scr_energy_overlay_draw()
 {
-    var _battery = _building.energy.battery;
+    if (!variable_global_exists("vtd_level"))
+        return false;
 
-    var _ratio =
-        _battery.current
-        / max(1, _battery.maximum);
+    if (!is_struct(global.vtd_level.energy))
+        return false;
 
-    draw_set_color(c_lime);
 
-    draw_rectangle(
-        _building.x - 18,
-        _building.y - 24,
-        _building.x + 18,
-        _building.y + 24,
-        true
-    );
+    var _system = global.vtd_level.energy;
+    var _mode = _system.overlay.mode;
 
-    draw_rectangle(
-        _building.x - 7,
-        _building.y - 29,
-        _building.x + 7,
-        _building.y - 24,
-        true
-    );
+    if (_mode == EnergyOverlayMode.OFF)
+        return true;
 
-    draw_set_alpha(0.4);
-    draw_set_color(c_lime);
 
-    draw_rectangle(
-        _building.x - 14,
-        _building.y + 20,
-        _building.x + 14,
-        lerp(_building.y + 20, _building.y - 20, _ratio),
-        false
-    );
+    for (var n = 0; n < array_length(_system.networks); ++n)
+    {
+        var _network = _system.networks[n];
+        var _color = _network.color;
+
+
+        switch (_network.state)
+        {
+            case EnergyNetworkState.OFFLINE:
+                _color = c_gray;
+            break;
+
+            case EnergyNetworkState.DEFICIT:
+                _color = c_red;
+            break;
+
+            case EnergyNetworkState.BATTERY:
+                _color = make_color_rgb(255, 150, 40);
+            break;
+        }
+
+
+        draw_set_alpha(0.7);
+        draw_set_color(_color);
+
+
+        // Draw node-to-node backbone connections once.
+
+        for (var i = 0; i < array_length(_network.nodes); ++i)
+        {
+            var _first = _network.nodes[i];
+
+            if (!instance_exists(_first))
+                continue;
+
+            for (var j = i + 1; j < array_length(_network.nodes); ++j)
+            {
+                var _second = _network.nodes[j];
+
+                if (
+                    instance_exists(_second)
+                    && scr_energy_connection_valid(_first, _second)
+                )
+                {
+                    draw_line(
+                        _first.x,
+                        _first.y,
+                        _second.x,
+                        _second.y
+                    );
+                }
+            }
+        }
+
+
+        // Attach each non-node member to its closest valid node.
+
+        for (var m = 0; m < array_length(_network.members); ++m)
+        {
+            var _member = _network.members[m];
+
+            if (!instance_exists(_member))
+                continue;
+
+            if (_member.energy.role == EnergyRole.NODE)
+                continue;
+
+            var _node =
+                scr_energy_member_node_get(
+                    _member,
+                    _network
+                );
+
+            if (!instance_exists(_node))
+                continue;
+
+            draw_line(
+                _member.x,
+                _member.y,
+                _node.x,
+                _node.y
+            );
+        }
+
+
+        // Detailed mode also exposes each node's connection radius.
+
+        if (_mode == EnergyOverlayMode.DETAILED)
+        {
+            draw_set_alpha(0.15);
+
+            for (var r = 0; r < array_length(_network.nodes); ++r)
+            {
+                var _range_node = _network.nodes[r];
+
+                if (!instance_exists(_range_node))
+                    continue;
+
+                draw_circle(
+                    _range_node.x,
+                    _range_node.y,
+                    _range_node.energy.connection_range,
+                    false
+                );
+            }
+
+
+            draw_set_alpha(1);
+
+            if (array_length(_network.nodes) > 0)
+            {
+                var _label_node = _network.nodes[0];
+
+                if (instance_exists(_label_node))
+                {
+                    draw_text(
+                        _label_node.x + 14,
+                        _label_node.y + 14,
+                        "GRID "
+                        + string(_network.id + 1)
+                        + " | IN "
+                        + string_format(_network.generation, 0, 1)
+                        + " | OUT "
+                        + string_format(_network.demand, 0, 1)
+                        + " | BAT "
+                        + string(floor(_network.stored))
+                        + "/"
+                        + string(floor(_network.storage_maximum))
+                    );
+                }
+            }
+        }
+    }
+
 
     draw_set_alpha(1);
     draw_set_color(c_white);
+
+    return true;
 }

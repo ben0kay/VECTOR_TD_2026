@@ -453,7 +453,7 @@ function scr_tower_target_acquire(_tower)
 }
 
 
-/// @description Fires one tower weapon using its configured weapon type.
+/// @description Fires one tower weapon after paying its activity energy.
 
 function scr_tower_fire(_tower)
 {
@@ -466,13 +466,16 @@ function scr_tower_fire(_tower)
         return false;
 
 
+    // The shot waits until the tower's private buffer contains
+    // enough energy. No cooldown is applied to a failed attempt.
+
+    if (!scr_energy_activity_consume(_tower))
+        return false;
+
+
     var _weapon = _tower.combat.weapon;
     var _muzzle = scr_tower_muzzle_position_get(_tower);
     var _fired = false;
-
-
-    // Store the impact position before damage is applied.
-    // Hitscan and beam damage may immediately destroy the target.
 
     var _target_x = _target.x;
     var _target_y = _target.y;
@@ -483,20 +486,19 @@ function scr_tower_fire(_tower)
         case TowerWeaponType.PROJECTILE:
         {
             var _projectile =
-		    scr_projectile_tower_create(
-		        _tower,
-		        _muzzle.x,
-		        _muzzle.y,
-		        _tower.visual.draw_angle,
-		        _weapon.damage,
-		        _weapon.damage_type,
-		        _weapon.projectile,
-		        _tower.targeting.layer,
-		        _target
-		    );
+                scr_projectile_tower_create(
+                    _tower,
+                    _muzzle.x,
+                    _muzzle.y,
+                    _tower.visual.draw_angle,
+                    _weapon.damage,
+                    _weapon.damage_type,
+                    _weapon.projectile,
+                    _tower.targeting.layer,
+                    _target
+                );
 
-            _fired =
-                instance_exists(_projectile);
+            _fired = instance_exists(_projectile);
         }
         break;
 
@@ -511,15 +513,7 @@ function scr_tower_fire(_tower)
                     _weapon.damage_type
                 );
 
-
-            scr_enemy_damage(
-                _target,
-                _damage
-            );
-
-
-            // Use the stored position because the shot may have killed
-            // and destroyed its target immediately.
+            scr_enemy_damage(_target, _damage);
 
             scr_tower_trace_set(
                 _tower,
@@ -532,7 +526,6 @@ function scr_tower_fire(_tower)
                 _weapon.hitscan.width,
                 _weapon.hitscan.visual_seconds
             );
-
 
             _fired = true;
         }
@@ -549,14 +542,7 @@ function scr_tower_fire(_tower)
                     _weapon.damage_type
                 );
 
-
-            scr_enemy_damage(
-                _target,
-                _damage
-            );
-
-
-            // Beam endpoint also uses the position captured before damage.
+            scr_enemy_damage(_target, _damage);
 
             scr_tower_trace_set(
                 _tower,
@@ -570,32 +556,35 @@ function scr_tower_fire(_tower)
                 _weapon.beam.visual_seconds
             );
 
-
             _fired = true;
 
-
             // FUTURE PARTICLE HOOK:
-            // Ember particles can be distributed between the stored
-            // muzzle and impact positions.
+            // Emit laser heat and ember particles along this trace.
         }
         break;
     }
 
 
     if (!_fired)
+    {
+        // Refund the activity cost when projectile creation fails.
+
+        _tower.energy.buffer.current =
+            min(
+                _tower.energy.buffer.maximum,
+                _tower.energy.buffer.current
+                + _tower.energy.demand.activity_cost
+            );
+
         return false;
+    }
 
 
     _weapon.cooldown.remaining =
         _weapon.cooldown.duration;
 
+    scr_tower_muzzle_advance(_tower);
 
-    scr_tower_muzzle_advance(
-        _tower
-    );
-
-
-    // Clear the reference if this shot destroyed its target.
 
     if (!instance_exists(_tower.targeting.target))
         _tower.targeting.target = noone;
@@ -605,8 +594,8 @@ function scr_tower_fire(_tower)
     // firing sounds
     // recoil
     // muzzle flashes
-    // firing power demand
     // heat generation
+    // overclock energy multiplier
 
 
     return true;

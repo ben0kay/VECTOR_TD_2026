@@ -947,6 +947,36 @@ function scr_hud_top_bar_draw(_hud)
             c_aqua
         );
 
+	// ========================================================================
+	// AGGREGATE ENERGY INFORMATION
+	// ========================================================================
+	//
+	// These totals summarize every independent local network.
+	// They do not create a shared global energy pool.
+
+	var _energy_totals =
+	    global.vtd_level.energy.totals;
+
+	var _energy_color =
+	    _energy_totals.deficient_networks > 0
+	    ? c_red
+	    : c_lime;
+
+	var _energy_text =
+	    string_format(_energy_totals.generation, 0, 1)
+	    + " IN | "
+	    + string_format(_energy_totals.demand, 0, 1)
+	    + " OUT";
+
+	_draw_x =
+	    scr_hud_top_cell_draw(
+	        _draw_x,
+	        220,
+	        _height,
+	        "Energy",
+	        _energy_text,
+	        _energy_color
+	    );
 
     // ========================================================================
     // DATA-DRIVEN RAW RESOURCES

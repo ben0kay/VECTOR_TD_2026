@@ -169,7 +169,7 @@ function scr_miner_initialize(_miner)
     return true;
 }
 
-/// @description Extracts material and requests visible cargo collection.
+/// @description Extracts material using energy and requests cargo collection.
 
 function scr_miner_update(_miner)
 {
@@ -192,73 +192,88 @@ function scr_miner_update(_miner)
 
         if (_can_extract)
         {
-            // FUTURE:
-            // Require active power.
-            // Apply extraction upgrades.
-            // Apply overclock modifiers.
-            // Generate underground noise.
+            var _fps =
+                max(
+                    1,
+                    game_get_speed(gamespeed_fps)
+                );
 
-            var _fps = max(
-                1,
-                game_get_speed(gamespeed_fps)
-            );
-
-            var _requested =
-                _miner.mining.rate_per_second
+            var _activity_cost =
+                _miner.energy.demand.activity_cost
                 / _fps;
 
-            var _hopper_space =
-                _miner.hopper.capacity
-                - _miner.hopper.current;
 
-            var _extracted = min(
-                _requested,
-                _hopper_space,
-                _node.amount.current
-            );
+            _can_extract =
+                scr_energy_activity_consume(
+                    _miner,
+                    _activity_cost
+                );
 
 
-            if (_extracted > 0)
+            if (_can_extract)
             {
-                _node.amount.current = max(
-                    0,
-                    _node.amount.current
-                    - _extracted
-                );
+                var _requested =
+                    _miner.mining.rate_per_second
+                    / _fps;
 
-                _miner.hopper.current = min(
-                    _miner.hopper.capacity,
-                    _miner.hopper.current
-                    + _extracted
-                );
+                var _hopper_space =
+                    _miner.hopper.capacity
+                    - _miner.hopper.current;
 
-                _miner.mining.total_extracted += _extracted;
-                _miner.mining.extracting = true;
-            }
-
-
-            if (_node.amount.current <= 0)
-            {
-                _node.amount.current = 0;
-                _node.amount.depleted = true;
-
-                show_debug_message(
-                    "RESOURCE DEPLETED: "
-                    + _node.identity.name
-                    + " | VEIN "
-                    + string(_node.identity.vein_id)
-                );
+                var _extracted =
+                    min(
+                        _requested,
+                        _hopper_space,
+                        _node.amount.current
+                    );
 
 
-                // FUTURE:
-                // Convert the cell back into dead terrain.
-                // Let advanced miners continue through a vein.
+                if (_extracted > 0)
+                {
+                    _node.amount.current =
+                        max(
+                            0,
+                            _node.amount.current
+                            - _extracted
+                        );
+
+                    _miner.hopper.current =
+                        min(
+                            _miner.hopper.capacity,
+                            _miner.hopper.current
+                            + _extracted
+                        );
+
+                    _miner.mining.total_extracted +=
+                        _extracted;
+
+                    _miner.mining.extracting = true;
+                }
+
+
+                if (_node.amount.current <= 0)
+                {
+                    _node.amount.current = 0;
+                    _node.amount.depleted = true;
+
+                    show_debug_message(
+                        "RESOURCE DEPLETED: "
+                        + _node.identity.name
+                        + " | VEIN "
+                        + string(_node.identity.vein_id)
+                    );
+
+
+                    // FUTURE:
+                    // Convert the cell back into dead terrain.
+                    // Let advanced miners continue through a vein.
+                }
             }
         }
     }
 
 
-    // Collection can continue even if extraction has temporarily stopped.
+    // Cargo already mined can still be collected during an outage.
 
     scr_logistics_miner_update(_miner);
 
