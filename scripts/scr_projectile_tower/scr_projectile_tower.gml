@@ -59,7 +59,9 @@ function scr_projectile_tower_create(
     return instance_create_layer(
         _world_x,
         _world_y,
-        "Instances",
+        scr_layer_projectile_get(
+    _target_layer
+),
         o_projectile_tower,
         {
             projectile_owner: _owner,
@@ -281,11 +283,12 @@ function scr_projectile_tower_impact(_projectile, _direct_target)
 
 
             scr_effect_shockwave_create(
-                _projectile.x,
-                _projectile.y,
-                _combat.damage_radius,
-                _projectile.visual.color
-            );
+			    _projectile.x,
+			    _projectile.y,
+			    _combat.damage_radius,
+			    _projectile.visual.color,
+			    _combat.target_layer
+			);
         }
         break;
     }

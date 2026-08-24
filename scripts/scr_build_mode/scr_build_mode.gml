@@ -272,7 +272,7 @@ function scr_build_mode_place(_controller)
         instance_create_layer(
             _preview.world_x,
             _preview.world_y,
-            "Instances",
+            "Buildings",
             _object,
             {
                 building_key: _build.selected_key,

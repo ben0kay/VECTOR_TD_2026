@@ -209,7 +209,7 @@ function scr_world_dead_cell_place(_cell_x, _cell_y)
     var _dead_cell = instance_create_layer(
         _position.x,
         _position.y,
-        "Instances",
+        "World",
         o_dead_cell,
         {
             world_cell_x: _cell_x,
@@ -598,7 +598,7 @@ function scr_world_blueprint_realize()
                     var _dead_cell = instance_create_layer(
                         _position.x,
                         _position.y,
-                        "Instances",
+                        "World",
                         o_dead_cell,
                         {
                             world_cell_x: _cell_x,
@@ -633,7 +633,7 @@ function scr_world_blueprint_realize()
                     var _resource_node = instance_create_layer(
                         _position.x,
                         _position.y,
-                        "Instances",
+                        "World",
                         o_resource_node,
                         {
                             world_cell_x: _cell_x,

@@ -138,7 +138,8 @@ function scr_enemy_transport_release(_enemy)
         _enemy.x,
         _enemy.y,
         _transport.spawn_radius + 20,
-        _enemy.visual.color
+        _enemy.visual.color,
+		_enemy.movement.layer
     );
 
 

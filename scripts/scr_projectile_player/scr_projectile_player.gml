@@ -22,7 +22,7 @@ function scr_projectile_player_create(
     return instance_create_layer(
         _world_x,
         _world_y,
-        "Instances",
+        "Projectiles_Ground",
         o_projectile_player,
         {
             owner:

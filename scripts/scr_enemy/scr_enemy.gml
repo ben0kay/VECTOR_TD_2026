@@ -1028,7 +1028,9 @@ function scr_enemy_spawn(
     return instance_create_layer(
         _world_x,
         _world_y,
-        "Instances",
+        scr_layer_enemy_get(
+    _data.movement.layer
+),
         o_enemy,
         _creation_variables
     );
@@ -1133,7 +1135,8 @@ function scr_enemy_damage(_enemy, _damage)
                 _enemy.x,
                 _enemy.y,
                 _enemy.visual.radius + 20,
-                _support.color
+                _support.color,
+				_enemy.movement.layer
             );
         }
     }
@@ -1178,7 +1181,8 @@ function scr_enemy_damage(_enemy, _damage)
                 _enemy.x,
                 _enemy.y,
                 _enemy.visual.radius + 16,
-                _shield.color
+                _shield.color,
+				_enemy.movement.layer
             );
         }
     }

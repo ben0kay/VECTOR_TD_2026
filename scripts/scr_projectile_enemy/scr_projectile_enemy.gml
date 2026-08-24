@@ -1,7 +1,7 @@
 /// @description Hostile projectile creation, collision, damage, and drawing.
 
 
-/// @description Creates one hostile projectile.
+/// @description Creates one hostile projectile on its owner's visual layer.
 
 function scr_projectile_enemy_create(
     _owner,
@@ -22,7 +22,11 @@ function scr_projectile_enemy_create(
     return instance_create_layer(
         _world_x,
         _world_y,
-        "Instances",
+
+        scr_layer_projectile_get(
+            _owner.movement.layer
+        ),
+
         o_projectile_enemy,
         {
             projectile_owner: _owner,

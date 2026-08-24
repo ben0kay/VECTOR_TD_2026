@@ -1,32 +1,28 @@
-/// @description Creates one primitive vector shockwave effect.
+/// @description Creates one primitive shockwave on the appropriate effects layer.
 
 function scr_effect_shockwave_create(
     _world_x,
     _world_y,
     _radius,
-    _color
+    _color,
+    _movement_layer = EnemyMovementLayer.GROUND
 )
 {
     return instance_create_layer(
         _world_x,
         _world_y,
-        "Instances",
+
+        scr_layer_effect_get(
+            _movement_layer
+        ),
+
         o_effect,
         {
-            effect_type:
-                EffectType.SHOCKWAVE,
-
-            effect_duration:
-                0.35,
-
-            effect_color:
-                _color,
-
-            effect_radius_start:
-                6,
-
-            effect_radius_end:
-                max(6, _radius)
+            effect_type: EffectType.SHOCKWAVE,
+            effect_duration: 0.35,
+            effect_color: _color,
+            effect_radius_start: 6,
+            effect_radius_end: max(6, _radius)
         }
     );
 }
