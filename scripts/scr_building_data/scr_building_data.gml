@@ -400,8 +400,18 @@ function scr_building_data_initialize()
         }
     };
 	
-	if (!scr_building_data_foundation_basic())
+	
+	if (!scr_building_data_energy_generator())
     return false;
+
+	if (!scr_building_data_energy_node())
+	    return false;
+
+	if (!scr_building_data_energy_battery())
+	    return false;
+
+	if (!scr_building_data_foundation_basic())
+	    return false;
 
 
     // FUTURE NON-TOWER BUILDINGS:
@@ -624,6 +634,182 @@ function scr_building_data_foundation_basic()
             }
         }
     );
+
+    return true;
+}
+
+/// @description Registers the basic solar energy generator.
+
+function scr_building_data_energy_generator()
+{
+    variable_struct_set(global.vtd.data.buildings, "energy_generator_solar",
+    {
+        identity:
+        {
+            key: "energy_generator_solar",
+            name: "Solar Generator",
+            type: BuildingType.POWER_GENERATOR,
+            description_short: "Produces energy for one local network.",
+            description_long: "A basic renewable generator. Connect it to an energy node to supply nearby buildings and charge network batteries."
+        },
+
+        visual:
+        {
+            color: make_color_rgb(60, 170, 220)
+        },
+
+        footprint: { width_cells: 2, height_cells: 2 },
+        vitals: { hp_maximum: 250 },
+        construction: { time_seconds: 3 },
+
+        economy:
+        {
+            cost:
+            [{
+                resource_key: "resource_credits",
+                amount: 120
+            }]
+        },
+
+        energy:
+        {
+            role: EnergyRole.GENERATOR,
+            priority: EnergyPriority.CRITICAL,
+
+            connection_range: 320,
+            generation_per_second: 25,
+
+            input_rate: 0,
+            idle_demand: 0,
+            activity_cost: 0,
+
+            buffer:
+            {
+                capacity: 0,
+                starting_ratio: 0
+            }
+        }
+    });
+
+    return true;
+}
+
+/// @description Registers the basic local energy node.
+
+function scr_building_data_energy_node()
+{
+    variable_struct_set(global.vtd.data.buildings, "energy_node_basic",
+    {
+        identity:
+        {
+            key: "energy_node_basic",
+            name: "Energy Node",
+            type: BuildingType.POWER_NODE,
+            description_short: "Connects nearby buildings into a local network.",
+            description_long: "A local distribution node. Nearby generators, consumers and batteries attach to it, while multiple nodes connect into a larger independent network."
+        },
+
+        visual:
+        {
+            color: c_aqua
+        },
+
+        footprint: { width_cells: 1, height_cells: 1 },
+        vitals: { hp_maximum: 180 },
+        construction: { time_seconds: 2 },
+
+        economy:
+        {
+            cost:
+            [{
+                resource_key: "resource_credits",
+                amount: 40
+            }]
+        },
+
+        energy:
+        {
+            role: EnergyRole.NODE,
+            priority: EnergyPriority.CRITICAL,
+
+            connection_range: 384,
+            generation_per_second: 0,
+
+            input_rate: 0,
+            idle_demand: 0,
+            activity_cost: 0,
+
+            buffer:
+            {
+                capacity: 0,
+                starting_ratio: 0
+            }
+        }
+    });
+
+    return true;
+}
+
+/// @description Registers the basic local-network energy battery.
+
+function scr_building_data_energy_battery()
+{
+    variable_struct_set(global.vtd.data.buildings, "energy_battery_basic",
+    {
+        identity:
+        {
+            key: "energy_battery_basic",
+            name: "Energy Battery",
+            type: BuildingType.POWER_BATTERY,
+            description_short: "Stores surplus energy for one local network.",
+            description_long: "A network battery that charges from surplus generation and discharges when local demand exceeds supply. Stored energy remains inside this battery if its network is divided."
+        },
+
+        visual:
+        {
+            color: make_color_rgb(120, 220, 80)
+        },
+
+        footprint: { width_cells: 2, height_cells: 2 },
+        vitals: { hp_maximum: 300 },
+        construction: { time_seconds: 4 },
+
+        economy:
+        {
+            cost:
+            [{
+                resource_key: "resource_credits",
+                amount: 160
+            }]
+        },
+
+        energy:
+        {
+            role: EnergyRole.BATTERY,
+            priority: EnergyPriority.HIGH,
+
+            connection_range: 320,
+            generation_per_second: 0,
+
+            input_rate: 0,
+            idle_demand: 0,
+            activity_cost: 0,
+
+            buffer:
+            {
+                capacity: 0,
+                starting_ratio: 0
+            },
+
+            battery:
+            {
+                capacity: 500,
+                starting_ratio: 0.25,
+                charge_rate: 20,
+                discharge_rate: 30
+            }
+        }
+    });
 
     return true;
 }

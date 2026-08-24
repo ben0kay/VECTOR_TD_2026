@@ -223,18 +223,16 @@ function scr_build_mode_place(_controller)
         break;
 
         case BuildingType.POWER_GENERATOR:
-        {
-            // FUTURE:
-            // _object = o_power_generator;
-        }
-        break;
+	    _object = o_energy_generator;
+		break;
 
-        case BuildingType.POWER_NODE:
-        {
-            // FUTURE:
-            // _object = o_power_node;
-        }
-        break;
+		case BuildingType.POWER_NODE:
+		    _object = o_energy_node;
+		break;
+
+		case BuildingType.POWER_BATTERY:
+		    _object = o_energy_battery;
+		break;
 
         case BuildingType.SUPPORT:
         {

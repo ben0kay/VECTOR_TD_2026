@@ -830,19 +830,16 @@ function scr_building_cleanup(_building)
     if (!instance_exists(_building))
         return false;
 
-	if (
-	    variable_instance_exists(id, "energy")
-	    && is_struct(energy)
-	    && energy.participates
-	)
-	{
-	    scr_energy_topology_dirty();
-	}
+    if (
+        variable_instance_exists(_building, "energy")
+        && is_struct(_building.energy)
+        && _building.energy.participates
+    )
+    {
+        scr_energy_topology_dirty();
+    }
 
-    scr_building_footprint_release(
-        _building
-    );
-
+    scr_building_footprint_release(_building);
 
     return true;
 }

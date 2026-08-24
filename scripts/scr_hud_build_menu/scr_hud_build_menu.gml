@@ -242,7 +242,6 @@ function scr_hud_build_category_get(_building_data)
     if (!is_struct(_building_data))
         return BuildMenuCategory.AUXILIARY;
 
-
     switch (_building_data.identity.type)
     {
         case BuildingType.WALL:
@@ -257,6 +256,7 @@ function scr_hud_build_category_get(_building_data)
 
         case BuildingType.POWER_GENERATOR:
         case BuildingType.POWER_NODE:
+        case BuildingType.POWER_BATTERY:
             return BuildMenuCategory.POWER;
 
         case BuildingType.REFINERY:
@@ -264,11 +264,10 @@ function scr_hud_build_category_get(_building_data)
 
         case BuildingType.SUPPORT:
             return BuildMenuCategory.SUPPORT;
-			
-		case BuildingType.FOUNDATION:
-		 return BuildMenuCategory.AUXILIARY;
-    }
 
+        case BuildingType.FOUNDATION:
+            return BuildMenuCategory.AUXILIARY;
+    }
 
     return BuildMenuCategory.AUXILIARY;
 }
@@ -327,11 +326,14 @@ function scr_hud_building_role_text(_data)
             return "STORAGE";
 
         case BuildingType.POWER_GENERATOR:
-            return "GENERATOR";
+	    return "GENERATOR";
 
-        case BuildingType.POWER_NODE:
-            return "NETWORK";
+		case BuildingType.POWER_NODE:
+	    return "NETWORK";
 
+		case BuildingType.POWER_BATTERY:
+	    return "BATTERY";
+		
         case BuildingType.REFINERY:
             return "PRODUCTION";
 
