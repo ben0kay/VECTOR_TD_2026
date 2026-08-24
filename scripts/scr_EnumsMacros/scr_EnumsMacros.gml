@@ -160,3 +160,7 @@ enum BuildMenuCategory { DEFENSE, EXTRACTION, STORAGE, POWER, PRODUCTION, SUPPOR
 
 #macro OUTSIDE_VIEW_256 \
     (!scr_culling_check_instance(id, 256))
+	
+#macro GAMEPLAY_ACTIVE \
+    (global.GameState == GameState.PLAYING \
+    && global.LevelState == LevelState.PLAYING)

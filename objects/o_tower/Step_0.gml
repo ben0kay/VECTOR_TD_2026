@@ -1,16 +1,12 @@
-/// @description Updates construction and active tower behaviour.
+/// @description Inherits building logic and processes active tower behaviour.
 
-if (global.GameState != GameState.PLAYING)
-    exit;
+event_inherited();
 
-if (global.LevelState != LevelState.PLAYING)
-    exit;
-
-
-scr_building_update(id);
 
 if (!instance_exists(id))
     exit;
+
+if (!GAMEPLAY_ACTIVE) exit;
 
 if (BuildingState != BuildingState.ACTIVE)
     exit;

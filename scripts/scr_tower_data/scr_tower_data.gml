@@ -21,7 +21,7 @@ function scr_tower_data_basic_ground()
 
         footprint: { width_cells: 2, height_cells: 2 },
         vitals: { hp_maximum: 300 },
-        construction: { time_seconds: 0 },
+        construction: { time_seconds: 3 },
 
         economy:
         {
@@ -56,9 +56,9 @@ function scr_tower_data_basic_ground()
 
                 projectile:
                 {
-                    speed: 12,
+                    speed: 14,
                     lifetime_seconds: 3,
-                    radius: 4,
+                    radius: 3,
                     color: c_yellow,
                     impact: ProjectileImpact.DIRECT,
                     damage_radius: 0
@@ -69,7 +69,6 @@ function scr_tower_data_basic_ground()
 
     return true;
 }
-
 
 /// @description Registers the single-barrel anti-air tower.
 
@@ -143,7 +142,6 @@ function scr_tower_data_anti_air()
     return true;
 }
 
-
 /// @description Registers the alternating twin-minigun tower.
 
 function scr_tower_data_minigun()
@@ -215,7 +213,6 @@ function scr_tower_data_minigun()
 
     return true;
 }
-
 
 /// @description Registers the explosive ground cannon.
 
@@ -289,7 +286,6 @@ function scr_tower_data_cannon()
     return true;
 }
 
-
 /// @description Registers the continuous shield laser tower.
 
 function scr_tower_data_laser()
@@ -359,7 +355,6 @@ function scr_tower_data_laser()
 
     return true;
 }
-
 
 /// @description Registers the long-range sniper tower.
 
