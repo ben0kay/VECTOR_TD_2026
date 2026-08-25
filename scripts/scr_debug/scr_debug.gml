@@ -117,18 +117,41 @@ function scr_debug_menu_button_draw(
 }
 
 
-/// @description Spawns one debug enemy group.
+/// @description Spawns one debug enemy group with selected modifiers.
 
-function scr_debug_menu_enemy_spawn(_hud, _enemy_key)
+function scr_debug_menu_enemy_spawn(
+    _hud,
+    _enemy_key
+)
 {
     if (!instance_exists(_hud))
         return false;
 
-    var _menu = _hud.hud.debug_menu;
-    var _modifiers = [];
+
+    var _menu =
+        _hud.hud.debug_menu;
+
+    var _modifiers =
+        [];
+
 
     if (_menu.shielded)
-        array_push(_modifiers, EnemyModifier.SHIELDED);
+    {
+        array_push(
+            _modifiers,
+            EnemyModifier.SHIELDED
+        );
+    }
+
+
+    if (_menu.stealthed)
+    {
+        array_push(
+            _modifiers,
+            EnemyModifier.STEALTHED
+        );
+    }
+
 
     repeat (_menu.spawn_count)
     {
@@ -137,6 +160,7 @@ function scr_debug_menu_enemy_spawn(_hud, _enemy_key)
             _modifiers
         );
     }
+
 
     return true;
 }
@@ -204,7 +228,7 @@ function scr_debug_menu_update(_hud)
 
     var _control_gap = 8;
     var _control_width =
-        (_right - _left - (_control_gap * 3)) / 4;
+    (_right - _left - (_control_gap * 4)) / 5;
 
 
     // Close button.
@@ -266,6 +290,23 @@ function scr_debug_menu_update(_hud)
             _menu.shielded = !_menu.shielded;
             return true;
         }
+		
+		_button_left += _control_width + _control_gap;
+
+		if (
+		    scr_debug_menu_pointer_inside(
+		        _button_left,
+		        _control_top,
+		        _button_left + _control_width,
+		        _control_bottom
+		    )
+		)
+		{
+		    _menu.stealthed =
+		        !_menu.stealthed;
+
+		    return true;
+		}
 
 
         _button_left += _control_width + _control_gap;
@@ -507,7 +548,7 @@ function scr_debug_menu_draw(_hud)
     var _control_gap = 8;
 
     var _control_width =
-        (_right - _left - (_control_gap * 3)) / 4;
+    (_right - _left - (_control_gap * 4)) / 5;
 
     var _button_left = _left;
 
@@ -534,6 +575,24 @@ function scr_debug_menu_draw(_hud)
         c_yellow,
         _menu.shielded
     );
+	
+	_button_left +=
+    _control_width
+    + _control_gap;
+
+
+	scr_debug_menu_button_draw(
+	    _button_left,
+	    _control_top,
+	    _button_left + _control_width,
+	    _control_bottom,
+
+	    "STEALTH: "
+	    + (_menu.stealthed ? "YES" : "NO"),
+
+	    make_color_rgb(150, 80, 255),
+	    _menu.stealthed
+	);
 
 
     _button_left += _control_width + _control_gap;
@@ -664,4 +723,29 @@ function scr_debug_menu_draw(_hud)
     draw_set_valign(fa_top);
 
     return true;
+}
+
+/// @description Creates the clickable enemy debug interface.
+
+function scr_debug_menu_create()
+{
+    return
+    {
+        open: false,
+
+        width: 760,
+        height: 620,
+
+        columns: 2,
+        row_height: 48,
+        gap: 8,
+
+        scroll_row: 0,
+        spawn_count: 1,
+
+        shielded: false,
+        stealthed: false,
+
+        color: c_aqua
+    };
 }

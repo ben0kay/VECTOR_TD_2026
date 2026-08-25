@@ -64,7 +64,7 @@ enum EnemyAbility
     REGENERATE,
     SHIELD_ALLIES
 }
-enum EnemyModifier { SHIELDED }
+enum EnemyModifier { SHIELDED, STEALTHED }
 enum EnemyBehavior
 {
     STANDARD,

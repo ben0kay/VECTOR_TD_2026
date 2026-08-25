@@ -239,6 +239,9 @@ function scr_tower_target_valid(_tower, _enemy)
 
     if (_enemy.EnemyState == EnemyState.DEAD)
         return false;
+	
+	if (scr_enemy_stealth_cloaked(_enemy))
+    return false;
 
     if (_enemy.movement.layer != _tower.targeting.layer)
         return false;

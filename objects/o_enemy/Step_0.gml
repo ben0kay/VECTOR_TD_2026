@@ -1,9 +1,6 @@
 /// @description Processes one generic enemy.
 
-if (global.GameState != GameState.PLAYING)
-    exit;
-
-if (global.LevelState != LevelState.PLAYING)
+if (!GAMEPLAY_ACTIVE)
     exit;
 
 
@@ -15,8 +12,13 @@ if (!instance_exists(id))
     exit;
 
 
-// Only actual Centipede children enter the breadcrumb function.
-// Attached children skip targeting and MP-grid navigation.
+scr_enemy_stealth_update(id);
+
+if (!instance_exists(id))
+    exit;
+
+
+// Attached Centipede children use their recorded breadcrumb positions.
 
 if (
     is_centipede_child
@@ -49,7 +51,7 @@ if (!instance_exists(id))
     exit;
 
 
-// Only the Centipede head records breadcrumbs.
+// Only Centipede heads record breadcrumbs.
 
 if (is_centipede_head)
     scr_enemy_centipede_head_update(id);

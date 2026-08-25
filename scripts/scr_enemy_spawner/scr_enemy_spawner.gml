@@ -1505,6 +1505,14 @@ function scr_enemy_spawner_modifier_eligible(
                 && _data.vitals.shield_maximum > 0
             );
         }
+		
+		case EnemyModifier.STEALTHED:
+		{
+		    // Every enemy can theoretically receive stealth.
+		    // Specific exclusions can be added here later.
+
+		    return true;
+		}
     }
 
     return true;

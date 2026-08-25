@@ -436,6 +436,8 @@ function scr_enemy_data_hunter()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_hunter,
+				scale_x: 1,
+				scale_y: 1,
                 radius: 11,
                 color: c_red
             },

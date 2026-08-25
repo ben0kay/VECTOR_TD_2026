@@ -325,22 +325,28 @@ function scr_enemy_visual_draw(_enemy)
         return false;
 
 
-    var _visual = _enemy.visual;
+    var _visual =
+        _enemy.visual;
 
 
-    // If a sprite is supplied by the enemy definition, it takes priority.
+    // A supplied sprite takes priority over primitive drawing.
+    // Custom visual scale is deliberately independent from image_xscale
+    // and image_yscale.
 
-    if (_visual.sprite != -1)
+    if (
+        _visual.sprite != -1
+        && sprite_exists(_visual.sprite)
+    )
     {
         draw_sprite_ext(
             _visual.sprite,
             _enemy.image_index,
             _enemy.x,
             _enemy.y,
-            1,
-            1,
+            _visual.scale_x,
+            _visual.scale_y,
             _visual.draw_angle,
-            c_white,
+            _visual.color,
             1
         );
 
@@ -348,7 +354,7 @@ function scr_enemy_visual_draw(_enemy)
     }
 
 
-    // Until a sprite is assigned, use the enemy's primitive renderer.
+    // Primitive vector renderer used while no sprite is assigned.
 
     if (!is_undefined(_visual.draw_function))
     {
@@ -357,19 +363,7 @@ function scr_enemy_visual_draw(_enemy)
     }
 
 
-    // Emergency fallback for an incomplete enemy definition.
-
-    draw_set_color(_visual.color);
-
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _visual.radius,
-        false
-    );
-
-
-    return true;
+    return false;
 }
 
 

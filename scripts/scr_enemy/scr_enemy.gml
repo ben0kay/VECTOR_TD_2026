@@ -116,14 +116,33 @@ function scr_enemy_initialize(_enemy)
 	    );
 	}	
 
-    _enemy.visual =
-    {
-        sprite: _data.visual.sprite,
-        draw_function: _data.visual.draw_function,
-        draw_angle: 0,
-        radius: _data.visual.radius,
-        color: _data.visual.color
-    };
+    // ========================================================================
+	// VISUAL
+	// ========================================================================
+
+	var _scale_x = 1;
+	var _scale_y = 1;
+
+	if (variable_struct_exists(_data.visual, "scale_x"))
+	    _scale_x = _data.visual.scale_x;
+
+	if (variable_struct_exists(_data.visual, "scale_y"))
+	    _scale_y = _data.visual.scale_y;
+
+
+	_enemy.visual =
+	{
+	    sprite: _data.visual.sprite,
+	    draw_function: _data.visual.draw_function,
+
+	    draw_angle: 0,
+
+	    scale_x: _scale_x,
+	    scale_y: _scale_y,
+
+	    radius: _data.visual.radius,
+	    color: _data.visual.color
+	};
 
 
     _enemy.vitals =
@@ -1073,15 +1092,54 @@ function scr_enemy_spawn_test()
 
 /// @description Draws one enemy and all current combat feedback.
 
+/// @description Draws one enemy and its visible combat feedback.
+
 function scr_enemy_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
+
+    if (scr_enemy_stealth_cloaked(_enemy))
+    {
+        var _shimmer =
+            sin(
+                (global.vtd.tick * 3)
+                + real(_enemy.id)
+            )
+            * 0.035;
+
+
+        draw_set_alpha(
+            clamp(
+                _enemy.stealth.alpha.current
+                + _shimmer,
+                0.08,
+                0.3
+            )
+        );
+
+
+        scr_enemy_visual_draw(_enemy);
+
+
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+
+        return true;
+    }
+
+
+    draw_set_alpha(1);
+
     scr_enemy_shield_draw(_enemy);
     scr_enemy_visual_draw(_enemy);
     scr_enemy_effects_draw(_enemy);
     scr_enemy_health_bar_draw(_enemy);
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
 
     return true;
 }
@@ -1965,6 +2023,8 @@ function scr_enemy_modifier_has(
 
 /// @description Adds one modifier to an existing enemy.
 
+/// @description Adds one modifier to an existing enemy.
+
 function scr_enemy_modifier_add(
     _enemy,
     _modifier
@@ -1973,17 +2033,13 @@ function scr_enemy_modifier_add(
     if (!instance_exists(_enemy))
         return false;
 
+
     if (!variable_instance_exists(_enemy, "modifiers"))
         _enemy.modifiers = [];
 
+
     if (scr_enemy_modifier_has(_enemy, _modifier))
         return true;
-
-
-    array_push(
-        _enemy.modifiers,
-        _modifier
-    );
 
 
     switch (_modifier)
@@ -1993,13 +2049,52 @@ function scr_enemy_modifier_add(
             if (_enemy.vitals.shield.maximum <= 0)
                 return false;
 
+
+            array_push(
+                _enemy.modifiers,
+                _modifier
+            );
+
+
             _enemy.vitals.shield.enabled = true;
 
             _enemy.vitals.shield.current =
                 _enemy.vitals.shield.maximum;
+
+
+            return true;
         }
-        break;
+
+
+        case EnemyModifier.STEALTHED:
+        {
+            array_push(
+                _enemy.modifiers,
+                _modifier
+            );
+
+
+            if (
+                variable_instance_exists(
+                    _enemy,
+                    "stealth"
+                )
+                && is_struct(_enemy.stealth)
+            )
+            {
+                _enemy.stealth.modifier = true;
+            }
+
+
+            return true;
+        }
     }
+
+
+    array_push(
+        _enemy.modifiers,
+        _modifier
+    );
 
 
     return true;
