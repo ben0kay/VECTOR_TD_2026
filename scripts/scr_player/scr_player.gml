@@ -133,8 +133,7 @@ function scr_player_initialize(_player)
     return true;
 }
 
-
-/// @description Reads player movement input.
+/// @description Reads player movement input for the current camera mode.
 
 function scr_player_input_update(_player)
 {
@@ -146,39 +145,83 @@ function scr_player_input_update(_player)
         _player.movement.input;
 
 
-    _input.x =
-        keyboard_check(
-            ord("D")
-        )
-        - keyboard_check(
-            ord("A")
+    // WASD always controls the player.
+
+    var _move_x =
+        keyboard_check(ord("D"))
+        - keyboard_check(ord("A"));
+
+    var _move_y =
+        keyboard_check(ord("S"))
+        - keyboard_check(ord("W"));
+
+
+    // Arrow keys control the player only while the camera follows them.
+    // In roaming mode, the camera consumes the arrow keys instead.
+
+    switch (global.CameraState)
+    {
+        case CameraState.FOLLOW_PLAYER:
+        {
+            _move_x +=
+                keyboard_check(vk_right)
+                - keyboard_check(vk_left);
+
+            _move_y +=
+                keyboard_check(vk_down)
+                - keyboard_check(vk_up);
+        }
+        break;
+
+
+        case CameraState.ROAMING:
+        {
+            // Arrow keys belong exclusively to the roaming camera.
+        }
+        break;
+    }
+
+
+    // Prevent combined WASD and arrow input from exceeding one direction.
+
+    _move_x =
+        clamp(
+            _move_x,
+            -1,
+            1
         );
 
-    _input.y =
-        keyboard_check(
-            ord("S")
-        )
-        - keyboard_check(
-            ord("W")
+    _move_y =
+        clamp(
+            _move_y,
+            -1,
+            1
         );
 
 
     // Normalize diagonal movement.
 
     if (
-        _input.x != 0
-        && _input.y != 0
+        _move_x != 0
+        && _move_y != 0
     )
     {
         var _normalizer =
             1 / sqrt(2);
 
-        _input.x *=
+        _move_x *=
             _normalizer;
 
-        _input.y *=
+        _move_y *=
             _normalizer;
     }
+
+
+    _input.x =
+        _move_x;
+
+    _input.y =
+        _move_y;
 
 
     _player.movement.moving =
