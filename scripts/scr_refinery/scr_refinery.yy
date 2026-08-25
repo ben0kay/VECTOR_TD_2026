@@ -1,0 +1,10 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_refinery",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_refinery",
+  "parent":{"name":"scripts","path":"folders/scripts.yy"},
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0"
+}

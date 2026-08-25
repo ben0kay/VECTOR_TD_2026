@@ -102,6 +102,9 @@ hud.build_menu.hovered_key = "";
 hud.selection_panel =
     scr_hud_selection_panel_create();
 
+hud.refinery_controls =
+    scr_hud_refinery_controls_create();
+
 hud.debug_menu =
     scr_debug_menu_create();
 

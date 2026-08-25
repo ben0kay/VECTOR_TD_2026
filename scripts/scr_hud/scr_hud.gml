@@ -421,115 +421,54 @@ function scr_hud_selection_content_draw(
 
         case o_storage:
         {
-            var _resource_data =
-                scr_resource_data_get(
-                    _selected.storage.resource_key
+            draw_set_color(c_dkgray);
+            draw_line(_left + 18, _top + 98, _right - 18, _top + 98);
+
+            var _compartments = _selected.storage.compartments;
+            for (var i = 0; i < array_length(_compartments); ++i)
+            {
+                var _compartment = _compartments[i];
+                var _resource_data = scr_resource_data_get(_compartment.resource_key);
+                var _resource_name = scr_resource_data_valid(_resource_data)
+                    ? _resource_data.identity.name
+                    : _compartment.resource_key;
+                var _resource_color = scr_resource_data_valid(_resource_data)
+                    ? _resource_data.visual.color
+                    : c_white;
+
+                scr_hud_label_value_draw(
+                    _left + 18,
+                    _top + 110 + (i * 40),
+                    string_upper(_resource_name),
+                    string_format(_compartment.current, 0, 1)
+                    + " / " + string_format(_compartment.capacity, 0, 1),
+                    _resource_color
                 );
 
-            var _resource_name =
-                _selected.storage.resource_key;
-
-            var _resource_color =
-                _selected.visual.color;
-
-
-            if (scr_resource_data_valid(_resource_data))
-            {
-                _resource_name =
-                    _resource_data.identity.name;
-
-                _resource_color =
-                    _resource_data.visual.color;
+                scr_hud_label_value_draw(
+                    _left + 18,
+                    _top + 130 + (i * 40),
+                    "IN / OUT RESERVED",
+                    string_format(_compartment.incoming_reserved, 0, 1)
+                    + " / " + string_format(_compartment.outgoing_reserved, 0, 1),
+                    c_aqua
+                );
             }
-
-
-            draw_set_color(c_dkgray);
-
-            draw_line(
-                _left + 18,
-                _top + 98,
-                _right - 18,
-                _top + 98
-            );
-
-
-            scr_hud_label_value_draw(
-                _left + 18,
-                _top + 110,
-                "RESOURCE",
-                _resource_name,
-                _resource_color
-            );
-
-
-            scr_hud_label_value_draw(
-                _left + 18,
-                _top + 130,
-                "CONTENTS",
-                string_format(_selected.storage.current, 0, 1)
-                + " / "
-                + string_format(_selected.storage.capacity, 0, 1),
-                _resource_color
-            );
-
-
-            scr_hud_label_value_draw(
-                _left + 18,
-                _top + 150,
-                "INCOMING",
-                string_format(
-                    _selected.storage.incoming_reserved,
-                    0,
-                    1
-                ),
-                c_aqua
-            );
-
-
-            var _storage_status =
-                scr_hud_storage_status_get(_selected);
-
-            var _storage_status_color = c_white;
-
-
-            switch (_storage_status)
-            {
-                case "DELIVERY INCOMING":
-                    _storage_status_color = c_aqua;
-                break;
-
-                case "AVAILABLE":
-                    _storage_status_color = c_lime;
-                break;
-
-                case "FULL":
-                    _storage_status_color = c_yellow;
-                break;
-            }
-
-
-            scr_hud_label_value_draw(
-                _left + 18,
-                _top + 170,
-                "OPERATION",
-                _storage_status,
-                _storage_status_color
-            );
-
-
-            // FUTURE:
-            // storage transfer rules
-            // accepted-resource filters
-            // priority settings
-            // cargo ports
         }
         break;
 		
-		case o_tower:
+	case o_tower:
 		{
     scr_hud_tower_selection_draw(_selected, _left, _top, _right);
 		}
 		break;
+
+
+        case o_refinery:
+        {
+            scr_hud_refinery_inspector_draw(_selected, _left, _top);
+        }
+        break;
 
 
         default:
@@ -861,13 +800,15 @@ function scr_hud_storage_status_get(_storage)
     if (!variable_instance_exists(_storage, "storage"))
         return "UNINITIALIZED";
 
-    if (_storage.storage.current >= _storage.storage.capacity)
+    var _totals = scr_storage_totals_get(_storage);
+
+    if (_totals.current >= _totals.capacity)
         return "FULL";
 
-    if (_storage.storage.incoming_reserved > 0)
+    if (_totals.incoming > 0 || _totals.outgoing > 0)
         return "DELIVERY INCOMING";
 
-    if (_storage.storage.current > 0)
+    if (_totals.current > 0)
         return "AVAILABLE";
 
     return "EMPTY";
@@ -1063,8 +1004,7 @@ function scr_hud_top_bar_draw(_hud)
             continue;
 
         if (
-            _resource_data.identity.type
-            != ResourceType.RAW_MATERIAL
+            _resource_data.identity.type != ResourceType.RAW_MATERIAL
         )
         {
             continue;
@@ -1100,6 +1040,18 @@ function scr_hud_top_bar_draw(_hud)
                 + string(
                     floor(_entry.capacity)
                 );
+
+            if (variable_struct_exists(_resource_data.identity, "refined_key"))
+            {
+                var _refined_entry = scr_resource_level_entry_get(_resource_data.identity.refined_key);
+                if (is_struct(_refined_entry))
+                {
+                    _value += " | R "
+                        + string(floor(_refined_entry.current))
+                        + "/"
+                        + string(floor(_refined_entry.capacity));
+                }
+            }
         }
 
 
@@ -1108,7 +1060,7 @@ function scr_hud_top_bar_draw(_hud)
                 _draw_x,
                 _resource_width,
                 _row_height,
-                _resource_data.identity.name,
+                _resource_data.identity.name + " R/F",
                 _value,
                 _resource_data.visual.color,
                 0
@@ -2758,6 +2710,16 @@ function scr_hud_selection_panel_update(_hud)
     _tray_top
 );
 
+    if (_selected.object_index == o_refinery)
+    {
+        scr_hud_refinery_controls_update(
+            _hud,
+            _selected,
+            _inspector_left,
+            _tray_top
+        );
+    }
+
 
     _sell.enabled =
         _selected.identity.type
@@ -3138,6 +3100,15 @@ function scr_hud_selection_panel_draw(_hud)
         // overclock controls
         // ammunition selection
         // manual targeting
+    }
+    else if (_selected.object_index == o_refinery)
+    {
+        scr_hud_refinery_controls_draw(
+            _hud,
+            _selected,
+            _inspector_left,
+            _tray_top
+        );
     }
     else
     {

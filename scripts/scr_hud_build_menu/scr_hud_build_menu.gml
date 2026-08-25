@@ -1545,10 +1545,24 @@ function scr_hud_build_preview_inspector_draw(
 
         case BuildingType.STORAGE:
         {
+            var _capacity_total = 0;
+            for (var i = 0; i < array_length(_data.storage.compartments); ++i)
+                _capacity_total += _data.storage.compartments[i].capacity;
+
             draw_text(
                 _stat_x,
                 _section_y + 20,
-                "CAPACITY  " + string(_data.storage.capacity)
+                "CAPACITY  " + string(_capacity_total)
+            );
+        }
+        break;
+
+        case BuildingType.REFINERY:
+        {
+            draw_text(
+                _stat_x,
+                _section_y + 20,
+                "RECIPES  " + string(array_length(_data.refinery.recipes))
             );
         }
         break;

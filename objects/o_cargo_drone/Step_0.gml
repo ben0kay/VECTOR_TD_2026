@@ -7,4 +7,7 @@ if (global.LevelState != LevelState.PLAYING)
     exit;
 
 
-scr_logistics_drone_update(id);
+if (cargo_job == CargoDroneJob.MINER_DELIVERY)
+    scr_logistics_drone_update(id);
+else
+    scr_refinery_drone_update(id);

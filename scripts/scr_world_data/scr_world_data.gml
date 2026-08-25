@@ -219,100 +219,40 @@ function scr_world_data_initialize()
 
 
                 baseline:
-				{
-			    enabled: true,
+                {
+                    enabled: true,
 
-			    interval_start_seconds: 4,
-			    interval_end_seconds: 1.5,
-			    scaling_seconds: 600,
+                    interval_start_seconds: 4,
+                    interval_end_seconds: 1.5,
+                    scaling_seconds: 600,
 
-			    pool:
-			    [
-			        {
-			            enemy_key: "enemy_weak",
-			            weight: 100,
-			            unlock_seconds: 0
-			        },
+                    pool:
+                    [
+                        {
+                            enemy_key: "enemy_weak",
+                            weight: 100,
+                            unlock_seconds: 0
+                        },
 
-			        {
-			            enemy_key: "enemy_hunter",
-			            weight: 40,
-			            unlock_seconds: 75
-			        },
+                        {
+                            enemy_key: "enemy_hunter",
+                            weight: 30,
+                            unlock_seconds: 90
+                        },
 
-			        {
-			            enemy_key: "enemy_shooter_single",
-			            weight: 30,
-			            unlock_seconds: 150
-			        },
+                        {
+                            enemy_key: "enemy_shooter_single",
+                            weight: 20,
+                            unlock_seconds: 180
+                        },
 
-			        {
-			            enemy_key: "enemy_phaser",
-			            weight: 22,
-			            unlock_seconds: 210
-			        },
-
-			        {
-			            enemy_key: "enemy_kamikaze",
-			            weight: 18,
-			            unlock_seconds: 270
-			        },
-
-			        {
-			            enemy_key: "enemy_flyer",
-			            weight: 22,
-			            unlock_seconds: 300
-			        },
-
-			        {
-			            enemy_key: "enemy_shooter_triple",
-			            weight: 16,
-			            unlock_seconds: 360
-			        },
-
-			        {
-			            enemy_key: "enemy_splitter",
-			            weight: 14,
-			            unlock_seconds: 420
-			        },
-
-			        {
-			            enemy_key: "enemy_brute",
-			            weight: 10,
-			            unlock_seconds: 480
-			        },
-
-			        {
-			            enemy_key: "enemy_gunship",
-			            weight: 10,
-			            unlock_seconds: 540
-			        },
-
-			        {
-			            enemy_key: "enemy_transporter",
-			            weight: 7,
-			            unlock_seconds: 600
-			        },
-
-			        {
-			            enemy_key: "enemy_shield_generator",
-			            weight: 6,
-			            unlock_seconds: 660
-			        },
-
-			        {
-			            enemy_key: "enemy_siege_beam",
-			            weight: 3,
-			            unlock_seconds: 780
-			        },
-
-			        {
-			            enemy_key: "enemy_siege_rocket",
-			            weight: 2,
-			            unlock_seconds: 900
-			        }
-			    ]
-			}
+                        {
+                            enemy_key: "enemy_phaser",
+                            weight: 12,
+                            unlock_seconds: 240
+                        }
+                    ]
+                },
 
 
                 clusters:

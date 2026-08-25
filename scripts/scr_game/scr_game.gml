@@ -33,6 +33,7 @@ function scr_game_initialize()
             enemies: {},
             buildings: {},
             resources: {},
+            recipes: {},
             worlds: {}
         },
 
@@ -56,6 +57,7 @@ function scr_game_initialize()
     scr_energy_consumer_data_defaults_apply();
 
     scr_resource_data_initialize();
+    scr_recipe_data_initialize();
     scr_world_data_initialize();
 	scr_particles_initialize();
 

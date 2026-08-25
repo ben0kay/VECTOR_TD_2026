@@ -39,7 +39,8 @@ function scr_resource_data_initialize()
             {
                 key: "resource_carbon",
                 name: "Carbon",
-                type: ResourceType.RAW_MATERIAL
+                type: ResourceType.RAW_MATERIAL,
+                refined_key: "resource_refined_carbon"
             },
 
             visual:
@@ -69,7 +70,8 @@ function scr_resource_data_initialize()
             {
                 key: "resource_silicon",
                 name: "Silicon",
-                type: ResourceType.RAW_MATERIAL
+                type: ResourceType.RAW_MATERIAL,
+                refined_key: "resource_refined_silicon"
             },
 
             visual:
@@ -99,7 +101,8 @@ function scr_resource_data_initialize()
             {
                 key: "resource_copper",
                 name: "Copper",
-                type: ResourceType.RAW_MATERIAL
+                type: ResourceType.RAW_MATERIAL,
+                refined_key: "resource_refined_copper"
             },
 
             visual:
@@ -119,6 +122,64 @@ function scr_resource_data_initialize()
             {
                 vein_size_min: 3,
                 vein_size_max: 8
+            }
+        },
+
+
+        // ====================================================================
+        // REFINED MATERIALS
+        // ====================================================================
+
+        resource_refined_carbon:
+        {
+            identity:
+            {
+                key: "resource_refined_carbon",
+                name: "Refined Carbon",
+                type: ResourceType.REFINED_MATERIAL
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: undefined,
+                color: make_color_rgb(145, 255, 170)
+            }
+        },
+
+
+        resource_refined_silicon:
+        {
+            identity:
+            {
+                key: "resource_refined_silicon",
+                name: "Refined Silicon",
+                type: ResourceType.REFINED_MATERIAL
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: undefined,
+                color: make_color_rgb(145, 225, 255)
+            }
+        },
+
+
+        resource_refined_copper:
+        {
+            identity:
+            {
+                key: "resource_refined_copper",
+                name: "Refined Copper",
+                type: ResourceType.REFINED_MATERIAL
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: undefined,
+                color: make_color_rgb(255, 175, 105)
             }
         }
     };
@@ -238,6 +299,10 @@ function scr_resource_data_valid(_data)
 
             return true;
         }
+
+
+        case ResourceType.REFINED_MATERIAL:
+            return true;
     }
 
 
@@ -389,6 +454,26 @@ function scr_resource_amount_get(_resource_key)
     return _entry.current;
 }
 
+
+/// @description Returns material not already reserved for logistics.
+
+function scr_resource_available_get(_resource_key)
+{
+    var _data = scr_resource_data_get(_resource_key);
+    if (!scr_resource_data_valid(_data)) return 0;
+
+    if (_data.identity.type == ResourceType.CURRENCY)
+        return scr_resource_amount_get(_resource_key);
+
+    var _available = 0;
+    var _count = instance_number(o_storage);
+
+    for (var i = 0; i < _count; ++i)
+        _available += scr_storage_available_amount(instance_find(o_storage, i), _resource_key);
+
+    return _available;
+}
+
 /// @description Adds an amount to one level resource.
 
 function scr_resource_amount_add(_resource_key, _amount)
@@ -452,7 +537,7 @@ function scr_resource_cost_can_afford(_cost)
             return false;
 
         if (
-            scr_resource_amount_get(_entry.resource_key)
+            scr_resource_available_get(_entry.resource_key)
             < _entry.amount
         )
         {
@@ -502,6 +587,9 @@ function scr_resource_amount_remove(_resource_key, _amount)
         return true;
     }
 
+    if (scr_resource_available_get(_resource_key) < _amount)
+        return false;
+
 
     // Physical materials are removed from their actual storage buildings.
 
@@ -516,20 +604,12 @@ function scr_resource_amount_remove(_resource_key, _amount)
         if (!instance_exists(_storage))
             continue;
 
-        if (!variable_instance_exists(_storage, "storage"))
-            continue;
+        var _removed = scr_storage_withdraw(
+            _storage,
+            _resource_key,
+            _remaining
+        );
 
-        if (_storage.storage.resource_key != _resource_key)
-            continue;
-
-
-        var _removed =
-            min(
-                _remaining,
-                _storage.storage.current
-            );
-
-        _storage.storage.current -= _removed;
         _remaining -= _removed;
 
 
@@ -541,8 +621,6 @@ function scr_resource_amount_remove(_resource_key, _amount)
     if (_remaining > 0)
         return false;
 
-
-    _entry.current -= _amount;
 
     return true;
 }

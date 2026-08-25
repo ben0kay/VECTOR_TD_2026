@@ -1,0 +1,10 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_hud_refinery",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_hud_refinery",
+  "parent":{"name":"hud","path":"folders/scripts/hud.yy"},
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0"
+}

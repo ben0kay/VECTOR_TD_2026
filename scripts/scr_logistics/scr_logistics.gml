@@ -175,6 +175,7 @@ function scr_logistics_drone_reservation_release(_drone)
     {
         scr_storage_reservation_release(
             _destination,
+            _drone.cargo.resource_key,
             _reserved
         );
     }

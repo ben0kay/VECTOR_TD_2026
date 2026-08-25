@@ -289,10 +289,7 @@ function scr_build_mode_place(_controller)
         break;
 
         case BuildingType.REFINERY:
-        {
-            // FUTURE:
-            // _object = o_refinery;
-        }
+            _object = o_refinery;
         break;
 
         case BuildingType.POWER_GENERATOR:

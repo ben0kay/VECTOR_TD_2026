@@ -169,14 +169,26 @@ enum TowerTargetFilter { ANY, NOT_SLOWED, NOT_STASIS, NOT_DISRUPTED }
 // LOGISTICS
 // ============================================================================
 
-enum CargoDroneState { WAITING_SOURCE, TO_SOURCE, TO_STORAGE, WAITING_STORAGE, DESTROYED }
+enum CargoDroneState { WAITING_SOURCE, TO_SOURCE, TO_STORAGE, TO_REFINERY, WAITING_STORAGE, DESTROYED }
+enum CargoDroneJob { MINER_DELIVERY, REFINERY_INPUT, REFINERY_OUTPUT }
+
+enum ProductionState
+{
+    IDLE,
+    REQUESTING_INPUT,
+    AWAITING_INPUT,
+    PROCESSING,
+    OUTPUT_READY,
+    BLOCKED_OUTPUT,
+    PAUSED
+}
 
 
 // ============================================================================
 // RESOURCES / ECONOMY
 // ============================================================================
 
-enum ResourceType { CURRENCY, RAW_MATERIAL }
+enum ResourceType { CURRENCY, RAW_MATERIAL, REFINED_MATERIAL }
 
 
 // ============================================================================

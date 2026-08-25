@@ -284,8 +284,11 @@ function scr_building_data_initialize()
 
             storage:
             {
-                resource_key: "resource_carbon",
-                capacity: 1000
+                compartments:
+                [
+                    { resource_key: "resource_carbon", capacity: 1000 },
+                    { resource_key: "resource_refined_carbon", capacity: 100 }
+                ]
             }
         },
 
@@ -339,8 +342,11 @@ function scr_building_data_initialize()
 
             storage:
             {
-                resource_key: "resource_silicon",
-                capacity: 750
+                compartments:
+                [
+                    { resource_key: "resource_silicon", capacity: 750 },
+                    { resource_key: "resource_refined_silicon", capacity: 75 }
+                ]
             }
         },
 
@@ -394,8 +400,57 @@ function scr_building_data_initialize()
 
             storage:
             {
-                resource_key: "resource_copper",
-                capacity: 750
+                compartments:
+                [
+                    { resource_key: "resource_copper", capacity: 750 },
+                    { resource_key: "resource_refined_copper", capacity: 75 }
+                ]
+            }
+        },
+
+
+        // ====================================================================
+        // REFINERY
+        // ====================================================================
+
+        refinery_basic:
+        {
+            identity:
+            {
+                key: "refinery_basic",
+                name: "Material Refinery",
+                type: BuildingType.REFINERY,
+                description_short: "Processes raw materials into refined resources.",
+                description_long: "A flexible industrial processor. Select a recipe and cargo drones will collect raw inputs, deliver them here, and transport completed refined material back to compatible storage."
+            },
+
+            visual: { color: make_color_rgb(45, 145, 165) },
+            footprint: { width_cells: 3, height_cells: 3 },
+            vitals: { hp_maximum: 500 },
+            construction: { time_seconds: 8 },
+            economy:
+            {
+                cost: [{ resource_key: "resource_credits", amount: 500 }]
+            },
+            build_limit: { type: BuildLimitType.ECONOMY, amount: 2 },
+
+            refinery:
+            {
+                recipes: ["refined_carbon", "refined_silicon", "refined_copper"],
+                output_buffer_batches: 5,
+                drone_speed: 8
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.NORMAL,
+                connection_range: 320,
+                generation_per_second: 0,
+                input_rate: 10,
+                idle_demand: 1,
+                activity_cost: 5,
+                buffer: { capacity: 30, starting_ratio: 0 }
             }
         }
     };
