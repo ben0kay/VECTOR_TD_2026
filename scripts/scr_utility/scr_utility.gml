@@ -1,6 +1,5 @@
 /// @description Active data-driven utility-building behaviour.
 
-
 /// @description Initializes one utility building.
 
 function scr_utility_initialize(_utility)
@@ -8,8 +7,10 @@ function scr_utility_initialize(_utility)
     if (!instance_exists(_utility))
         return false;
 
+
     var _data =
         _utility.building_data;
+
 
     if (
         !variable_struct_exists(_data, "utility")
@@ -36,12 +37,18 @@ function scr_utility_initialize(_utility)
         interval:
         {
             duration:
-                max(0.05, _source.interval_seconds),
+                max(
+                    0.05,
+                    _source.interval_seconds
+                ),
 
             remaining:
                 random_range(
                     0,
-                    max(0.05, _source.interval_seconds)
+                    max(
+                        0.05,
+                        _source.interval_seconds
+                    )
                 )
         },
 
@@ -64,25 +71,79 @@ function scr_utility_initialize(_utility)
 
             claimed_last:
                 0
+        },
+
+        radar:
+        {
+            reveal_seconds: 0,
+            sweep_angle: 0,
+            sweep_degrees_per_second: 0,
+
+            detected_last: 0,
+
+            color:
+                c_aqua,
+
+            pulse:
+            {
+                active: false,
+                progress: 0,
+                duration: 0.65
+            }
         }
     };
 
 
-    if (
-        variable_struct_exists(
-            _source,
-            "resource_key"
-        )
-    )
+    // ========================================================================
+    // CREDIT MAGNET
+    // ========================================================================
+
+    if (variable_struct_exists(_source, "resource_key"))
     {
         _utility.utility.magnet.resource_key =
             _source.resource_key;
     }
 
 
+    // ========================================================================
+    // RADAR
+    // ========================================================================
+
+    if (
+        _utility.UtilityType == UtilityType.RADAR
+        && variable_struct_exists(_source, "radar")
+        && is_struct(_source.radar)
+    )
+    {
+        var _radar_data =
+            _source.radar;
+
+        var _radar =
+            _utility.utility.radar;
+
+
+        _radar.reveal_seconds =
+            max(
+                0.1,
+                _radar_data.reveal_seconds
+            );
+
+        _radar.sweep_degrees_per_second =
+            _radar_data.sweep_degrees_per_second;
+
+        _radar.pulse.duration =
+            max(
+                0.1,
+                _radar_data.pulse_duration_seconds
+            );
+
+        _radar.color =
+            _radar_data.color;
+    }
+
+
     return true;
 }
-
 
 /// @description Processes the configured utility behaviour.
 
@@ -102,16 +163,62 @@ function scr_utility_update(_utility)
         );
 
 
+    // ========================================================================
+    // RADAR VISUAL RUNTIME
+    // ========================================================================
+
+    if (_utility.UtilityType == UtilityType.RADAR)
+    {
+        var _radar =
+            _runtime.radar;
+
+
+        _radar.sweep_angle =
+            (
+                _radar.sweep_angle
+                + (
+                    _radar.sweep_degrees_per_second
+                    * _delta
+                )
+            )
+            mod 360;
+
+
+        if (_radar.pulse.active)
+        {
+            _radar.pulse.progress +=
+                _delta
+                / max(
+                    0.01,
+                    _radar.pulse.duration
+                );
+
+
+            if (_radar.pulse.progress >= 1)
+            {
+                _radar.pulse.progress = 1;
+                _radar.pulse.active = false;
+            }
+        }
+    }
+
+
+    // ========================================================================
+    // GENERAL TIMERS
+    // ========================================================================
+
     _runtime.interval.remaining =
         max(
             0,
-            _runtime.interval.remaining - _delta
+            _runtime.interval.remaining
+            - _delta
         );
 
     _runtime.feedback.remaining =
         max(
             0,
-            _runtime.feedback.remaining - _delta
+            _runtime.feedback.remaining
+            - _delta
         );
 
 
@@ -119,18 +226,29 @@ function scr_utility_update(_utility)
         return true;
 
 
+    // ========================================================================
+    // UTILITY ACTION
+    // ========================================================================
+
     switch (_utility.UtilityType)
     {
         case UtilityType.CREDIT_MAGNET:
             scr_utility_credit_magnet_update(_utility);
         break;
 
+
         case UtilityType.REPAIRER:
             scr_utility_repairer_update(_utility);
         break;
 
+
         case UtilityType.CREDIT_UPLINK:
             scr_utility_credit_uplink_update(_utility);
+        break;
+
+
+        case UtilityType.RADAR:
+            scr_utility_radar_update(_utility);
         break;
     }
 
@@ -473,7 +591,6 @@ function scr_utility_credit_uplink_update(_utility)
     return true;
 }
 
-
 /// @description Draws the configured utility assembly.
 
 function scr_utility_draw(_utility)
@@ -485,23 +602,119 @@ function scr_utility_draw(_utility)
     switch (_utility.UtilityType)
     {
         case UtilityType.CREDIT_MAGNET:
-            scr_utility_credit_magnet_draw(_utility);
-        break;
+            return scr_utility_credit_magnet_draw(_utility);
+
 
         case UtilityType.REPAIRER:
-            scr_utility_repairer_draw(_utility);
-        break;
+            return scr_utility_repairer_draw(_utility);
+
 
         case UtilityType.CREDIT_UPLINK:
-            scr_utility_credit_uplink_draw(_utility);
-        break;
+            return scr_utility_credit_uplink_draw(_utility);
+
+
+        case UtilityType.RADAR:
+            return scr_utility_radar_draw(_utility);
     }
+
+
+    return false;
+}
+
+/// @description Emits one powered scan and reveals nearby cloaked enemies.
+
+function scr_utility_radar_update(_utility)
+{
+    if (!instance_exists(_utility))
+        return false;
+
+
+    var _runtime =
+        _utility.utility;
+
+    var _radar =
+        _runtime.radar;
+
+
+    // Every scan consumes activity energy, even if no cloaked enemy is found.
+
+    if (!scr_energy_activity_consume(_utility))
+        return false;
+
+
+    _radar.detected_last = 0;
+
+
+    var _enemy_count =
+        instance_number(o_enemy);
+
+
+    for (var i = 0; i < _enemy_count; ++i)
+    {
+        var _enemy =
+            instance_find(
+                o_enemy,
+                i
+            );
+
+
+        if (!instance_exists(_enemy))
+            continue;
+
+        if (_enemy.EnemyState == EnemyState.DEAD)
+            continue;
+
+        if (!scr_enemy_stealth_available(_enemy))
+            continue;
+
+
+        if (
+            point_distance(
+                _utility.x,
+                _utility.y,
+                _enemy.x,
+                _enemy.y
+            )
+            > _runtime.range
+            + _enemy.visual.radius
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            scr_enemy_stealth_reveal(
+                _enemy,
+                _radar.reveal_seconds
+            )
+        )
+        {
+            _radar.detected_last++;
+        }
+    }
+
+
+    // Restart the expanding visual scan ring.
+
+    _radar.pulse.active = true;
+    _radar.pulse.progress = 0;
+
+    _runtime.feedback.remaining =
+        _runtime.feedback.duration;
+
+
+    // FUTURE:
+    // radar scan particles
+    // scan sound
+    // fog-of-war exploration
+    // underground detection
+    // enemy classification upgrades
+    // radar jamming
 
 
     return true;
 }
-
-
 
 /// @description Clears references owned by one utility building.
 

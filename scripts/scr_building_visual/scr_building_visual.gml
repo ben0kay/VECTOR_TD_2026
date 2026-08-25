@@ -382,3 +382,260 @@ function scr_utility_credit_uplink_draw(_utility)
     draw_set_alpha(1);
     draw_set_color(c_white);
 }
+
+/// @description Draws the Radar Array and its active detection pulse.
+
+function scr_utility_radar_draw(_utility)
+{
+    if (!instance_exists(_utility))
+        return false;
+
+
+    var _runtime =
+        _utility.utility;
+
+    var _radar =
+        _runtime.radar;
+
+    var _x =
+        _utility.x;
+
+    var _y =
+        _utility.y;
+
+    var _angle =
+        _radar.sweep_angle;
+
+    var _color =
+        _radar.color;
+
+
+    var _pulse =
+        0.7
+        + dsin(
+            (global.vtd.tick * 5)
+            + real(_utility.id)
+        ) * 0.2;
+
+
+    // ========================================================================
+    // VECTOR BASE
+    // ========================================================================
+
+    draw_set_color(_color);
+    draw_set_alpha(0.8);
+
+    draw_circle(
+        _x,
+        _y,
+        20,
+        false
+    );
+
+    draw_circle(
+        _x,
+        _y,
+        13,
+        false
+    );
+
+
+    // Four support braces.
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _brace_angle =
+            45
+            + (i * 90);
+
+
+        draw_line(
+            _x + lengthdir_x(13, _brace_angle),
+            _y + lengthdir_y(13, _brace_angle),
+
+            _x + lengthdir_x(22, _brace_angle),
+            _y + lengthdir_y(22, _brace_angle)
+        );
+    }
+
+
+    // ========================================================================
+    // ROTATING RADAR DISH
+    // ========================================================================
+
+    var _dish_x =
+        _x
+        + lengthdir_x(
+            18,
+            _angle
+        );
+
+    var _dish_y =
+        _y
+        + lengthdir_y(
+            18,
+            _angle
+        );
+
+
+    draw_set_alpha(1);
+
+    draw_line_width(
+        _x,
+        _y,
+        _dish_x,
+        _dish_y,
+        3
+    );
+
+
+    var _dish_left_x =
+        _dish_x
+        + lengthdir_x(
+            10,
+            _angle + 125
+        );
+
+    var _dish_left_y =
+        _dish_y
+        + lengthdir_y(
+            10,
+            _angle + 125
+        );
+
+    var _dish_right_x =
+        _dish_x
+        + lengthdir_x(
+            10,
+            _angle - 125
+        );
+
+    var _dish_right_y =
+        _dish_y
+        + lengthdir_y(
+            10,
+            _angle - 125
+        );
+
+
+    draw_line_width(
+        _dish_left_x,
+        _dish_left_y,
+        _dish_x,
+        _dish_y,
+        2
+    );
+
+    draw_line_width(
+        _dish_x,
+        _dish_y,
+        _dish_right_x,
+        _dish_right_y,
+        2
+    );
+
+
+    // ========================================================================
+    // SWEEP LINE
+    // ========================================================================
+
+    draw_set_alpha(0.28);
+
+    draw_line(
+        _x,
+        _y,
+        _x + lengthdir_x(52, _angle),
+        _y + lengthdir_y(52, _angle)
+    );
+
+
+    // Faint trailing sweep lines.
+
+    draw_set_alpha(0.12);
+
+    for (var i = 1; i <= 3; ++i)
+    {
+        var _trail_angle =
+            _angle
+            - (i * 8);
+
+
+        draw_line(
+            _x,
+            _y,
+            _x + lengthdir_x(48, _trail_angle),
+            _y + lengthdir_y(48, _trail_angle)
+        );
+    }
+
+
+    // ========================================================================
+    // EXPANDING DETECTION PULSE
+    // ========================================================================
+
+    if (_radar.pulse.active)
+    {
+        var _progress =
+            clamp(
+                _radar.pulse.progress,
+                0,
+                1
+            );
+
+        var _radius =
+            lerp(
+                20,
+                _runtime.range,
+                _progress
+            );
+
+        var _alpha =
+            1 - _progress;
+
+
+        draw_set_alpha(
+            _alpha * 0.55
+        );
+
+        draw_circle(
+            _x,
+            _y,
+            _radius,
+            true
+        );
+
+
+        draw_set_alpha(
+            _alpha * 0.16
+        );
+
+        draw_circle(
+            _x,
+            _y,
+            max(0, _radius - 4),
+            true
+        );
+    }
+
+
+    // ========================================================================
+    // CENTRAL STATUS LIGHT
+    // ========================================================================
+
+    draw_set_alpha(_pulse);
+    draw_set_color(c_white);
+
+    draw_circle(
+        _x,
+        _y,
+        4,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+
+    return true;
+}

@@ -10,6 +10,69 @@ function scr_building_data_foundations_initialize()
 }
 
 
+/// @description Registers the basic structural foundation. ????? not being used ????
+
+function scr_building_data_foundation_basic()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "foundation_basic",
+        {
+            identity:
+            {
+                key: "foundation_basic",
+                name: "Basic Foundation",
+                type: BuildingType.FOUNDATION,
+
+                description_short:
+                    "Structural flooring for buildings and player movement.",
+
+                description_long:
+                    "A flat construction platform placed before ordinary buildings. Fully supported buildings gain 5% maximum integrity, while the player moves 15% faster across completed foundation tiles."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(30, 150, 170)
+            },
+
+            footprint:
+            {
+                width_cells: 1,
+                height_cells: 1
+            },
+
+            vitals:
+            {
+                hp_maximum: 75
+            },
+
+            construction:
+            {
+                time_seconds: 1.5
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 5
+                }]
+            },
+
+            foundation:
+            {
+                building_hp_multiplier: 1.05,
+                player_speed_multiplier: 1.15
+            }
+        }
+    );
+
+    return true;
+}
+
+
 /// @description Registers the Accelerator Foundation.
 
 function scr_building_data_foundation_accelerator()

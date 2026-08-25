@@ -489,6 +489,246 @@ function scr_building_data_initialize()
     return true;
 }
 
+/// @description Creates one specialized capacity-hub definition.
+
+function scr_building_hub_definition_create(
+    _key,
+    _name,
+    _description_short,
+    _color,
+    _limit_type,
+    _limit_amount
+)
+{
+    return
+    {
+        identity:
+        {
+            key:
+                _key,
+
+            name:
+                _name,
+
+            type:
+                BuildingType.SUPPORT,
+
+            description_short:
+                _description_short,
+
+            description_long:
+                "A specialized command facility that expands the number of structures your fortress can coordinate. Its bonus becomes available when construction finishes and is lost if the hub is destroyed. Existing structures remain operational if the base becomes over capacity."
+        },
+
+        visual:
+        {
+            color:
+                _color
+        },
+
+        footprint:
+        {
+            width_cells: 2,
+            height_cells: 2
+        },
+
+        vitals:
+        {
+            hp_maximum: 400
+        },
+
+        construction:
+        {
+            time_seconds: 6
+        },
+
+        economy:
+        {
+            cost:
+            [
+                {
+                    resource_key:
+                        "resource_credits",
+
+                    amount:
+                        500
+                },
+
+                {
+                    resource_key:
+                        "resource_carbon",
+
+                    amount:
+                        100
+                }
+            ]
+        },
+
+        // Every hub consumes one infrastructure slot.
+
+        build_limit:
+        {
+            type:
+                BuildLimitType.INFRASTRUCTURE,
+
+            amount:
+                1
+        },
+
+        // This is the capacity supplied when construction completes.
+
+        hub:
+        {
+            limit_type:
+                _limit_type,
+
+            amount:
+                _limit_amount
+        },
+
+        energy:
+        {
+            role:
+                EnergyRole.CONSUMER,
+
+            priority:
+                EnergyPriority.HIGH,
+
+            connection_range:
+                320,
+
+            generation_per_second:
+                0,
+
+            input_rate:
+                8,
+
+            idle_demand:
+                0.5,
+
+            activity_cost:
+                0,
+
+            buffer:
+            {
+                capacity:
+                    25,
+
+                starting_ratio:
+                    0.5
+            }
+        }
+    };
+}
+
+
+/// @description Registers every active utility building.
+
+function scr_building_data_utility_initialize()
+{
+    if (!scr_building_data_utility_credit_magnet())
+        return false;
+
+    if (!scr_building_data_utility_repairer())
+        return false;
+
+    if (!scr_building_data_utility_credit_uplink())
+        return false;
+	
+	if (!scr_building_data_utility_radar())
+    return false;
+
+    return true;
+}
+
+/// @description Registers all specialized capacity hubs.
+
+function scr_building_hub_data_initialize()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_tower",
+
+        scr_building_hub_definition_create(
+            "hub_tower",
+            "Tower Operations Hub",
+            "Adds 10 tower capacity.",
+            c_yellow,
+            BuildLimitType.TOWER,
+            10
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_defense",
+
+        scr_building_hub_definition_create(
+            "hub_defense",
+            "Defense Coordination Hub",
+            "Adds 50 defense capacity.",
+            c_fuchsia,
+            BuildLimitType.DEFENSE,
+            50
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_economy",
+
+        scr_building_hub_definition_create(
+            "hub_economy",
+            "Economy Administration Hub",
+            "Adds 10 economy capacity.",
+            make_color_rgb(90, 210, 120),
+            BuildLimitType.ECONOMY,
+            10
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_infrastructure",
+
+        scr_building_hub_definition_create(
+            "hub_infrastructure",
+            "Infrastructure Control Hub",
+            "Adds 15 infrastructure capacity.",
+            c_aqua,
+            BuildLimitType.INFRASTRUCTURE,
+            15
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_foundation",
+
+        scr_building_hub_definition_create(
+            "hub_foundation",
+            "Foundation Control Hub",
+            "Adds 100 foundation capacity.",
+            make_color_rgb(100, 150, 190),
+            BuildLimitType.FOUNDATION,
+            100
+        )
+    );
+
+
+    show_debug_message(
+        "VECTOR TD 2026 - CAPACITY HUB DATA INITIALIZED"
+    );
+
+
+    return true;
+}
+
+
 /// @description Returns one building definition.
 
 function scr_building_data_get(_building_key)
@@ -634,67 +874,6 @@ function scr_building_data_valid(_data)
     return true;
 }
 
-/// @description Registers the basic structural foundation.
-
-function scr_building_data_foundation_basic()
-{
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "foundation_basic",
-        {
-            identity:
-            {
-                key: "foundation_basic",
-                name: "Basic Foundation",
-                type: BuildingType.FOUNDATION,
-
-                description_short:
-                    "Structural flooring for buildings and player movement.",
-
-                description_long:
-                    "A flat construction platform placed before ordinary buildings. Fully supported buildings gain 5% maximum integrity, while the player moves 15% faster across completed foundation tiles."
-            },
-
-            visual:
-            {
-                color: make_color_rgb(30, 150, 170)
-            },
-
-            footprint:
-            {
-                width_cells: 1,
-                height_cells: 1
-            },
-
-            vitals:
-            {
-                hp_maximum: 75
-            },
-
-            construction:
-            {
-                time_seconds: 1.5
-            },
-
-            economy:
-            {
-                cost:
-                [{
-                    resource_key: "resource_credits",
-                    amount: 5
-                }]
-            },
-
-            foundation:
-            {
-                building_hp_multiplier: 1.05,
-                player_speed_multiplier: 1.15
-            }
-        }
-    );
-
-    return true;
-}
 
 /// @description Registers the basic solar energy generator.
 
@@ -1191,236 +1370,115 @@ type: BuildingType.UTILITY,
 return true;
 }
 
-/// @description Creates one specialized capacity-hub definition.
+/// @description Registers the stealth-detection Radar Array.
 
-function scr_building_hub_definition_create(
-    _key,
-    _name,
-    _description_short,
-    _color,
-    _limit_type,
-    _limit_amount
-)
+function scr_building_data_utility_radar()
 {
-    return
-    {
-        identity:
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "utility_radar",
         {
-            key:
-                _key,
-
-            name:
-                _name,
-
-            type:
-                BuildingType.SUPPORT,
-
-            description_short:
-                _description_short,
-
-            description_long:
-                "A specialized command facility that expands the number of structures your fortress can coordinate. Its bonus becomes available when construction finishes and is lost if the hub is destroyed. Existing structures remain operational if the base becomes over capacity."
-        },
-
-        visual:
-        {
-            color:
-                _color
-        },
-
-        footprint:
-        {
-            width_cells: 2,
-            height_cells: 2
-        },
-
-        vitals:
-        {
-            hp_maximum: 400
-        },
-
-        construction:
-        {
-            time_seconds: 6
-        },
-
-        economy:
-        {
-            cost:
-            [
-                {
-                    resource_key:
-                        "resource_credits",
-
-                    amount:
-                        500
-                },
-
-                {
-                    resource_key:
-                        "resource_carbon",
-
-                    amount:
-                        100
-                }
-            ]
-        },
-
-        // Every hub consumes one infrastructure slot.
-
-        build_limit:
-        {
-            type:
-                BuildLimitType.INFRASTRUCTURE,
-
-            amount:
-                1
-        },
-
-        // This is the capacity supplied when construction completes.
-
-        hub:
-        {
-            limit_type:
-                _limit_type,
-
-            amount:
-                _limit_amount
-        },
-
-        energy:
-        {
-            role:
-                EnergyRole.CONSUMER,
-
-            priority:
-                EnergyPriority.HIGH,
-
-            connection_range:
-                320,
-
-            generation_per_second:
-                0,
-
-            input_rate:
-                8,
-
-            idle_demand:
-                0.5,
-
-            activity_cost:
-                0,
-
-            buffer:
+            identity:
             {
-                capacity:
-                    25,
+                key: "utility_radar",
+                name: "Radar Array",
+                type: BuildingType.UTILITY,
 
-                starting_ratio:
-                    0.5
+                description_short:
+                    "Detects cloaked enemies within its scan radius.",
+
+                description_long:
+                    "A powered surveillance installation that continuously sweeps the surrounding area. Periodic detection pulses temporarily reveal cloaked enemies, allowing defensive towers to acquire them."
+            },
+
+            build_menu:
+            {
+                order: 40
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        80,
+                        190,
+                        255
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 300
+            },
+
+            construction:
+            {
+                time_seconds: 6
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 450
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.INFRASTRUCTURE,
+                amount: 1
+            },
+
+            utility:
+            {
+                type: UtilityType.RADAR,
+
+                range: 512,
+                interval_seconds: 1.5,
+                amount: 0,
+
+                radar:
+                {
+                    reveal_seconds: 2.5,
+                    sweep_degrees_per_second: 100,
+                    pulse_duration_seconds: 0.65,
+
+                    color:
+                        make_color_rgb(
+                            80,
+                            190,
+                            255
+                        )
+                }
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.NORMAL,
+
+                connection_range: 320,
+                generation_per_second: 0,
+                storage_capacity: 0,
+
+                idle_demand: 2,
+                activity_cost: 8,
+
+                buffer:
+                {
+                    capacity: 30,
+                    starting_ratio: 0.5
+                }
             }
         }
-    };
-}
-
-
-/// @description Registers every active utility building.
-
-function scr_building_data_utility_initialize()
-{
-    if (!scr_building_data_utility_credit_magnet())
-        return false;
-
-    if (!scr_building_data_utility_repairer())
-        return false;
-
-    if (!scr_building_data_utility_credit_uplink())
-        return false;
-
-    return true;
-}
-
-/// @description Registers all specialized capacity hubs.
-
-function scr_building_hub_data_initialize()
-{
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "hub_tower",
-
-        scr_building_hub_definition_create(
-            "hub_tower",
-            "Tower Operations Hub",
-            "Adds 10 tower capacity.",
-            c_yellow,
-            BuildLimitType.TOWER,
-            10
-        )
-    );
-
-
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "hub_defense",
-
-        scr_building_hub_definition_create(
-            "hub_defense",
-            "Defense Coordination Hub",
-            "Adds 50 defense capacity.",
-            c_fuchsia,
-            BuildLimitType.DEFENSE,
-            50
-        )
-    );
-
-
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "hub_economy",
-
-        scr_building_hub_definition_create(
-            "hub_economy",
-            "Economy Administration Hub",
-            "Adds 10 economy capacity.",
-            make_color_rgb(90, 210, 120),
-            BuildLimitType.ECONOMY,
-            10
-        )
-    );
-
-
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "hub_infrastructure",
-
-        scr_building_hub_definition_create(
-            "hub_infrastructure",
-            "Infrastructure Control Hub",
-            "Adds 15 infrastructure capacity.",
-            c_aqua,
-            BuildLimitType.INFRASTRUCTURE,
-            15
-        )
-    );
-
-
-    variable_struct_set(
-        global.vtd.data.buildings,
-        "hub_foundation",
-
-        scr_building_hub_definition_create(
-            "hub_foundation",
-            "Foundation Control Hub",
-            "Adds 100 foundation capacity.",
-            make_color_rgb(100, 150, 190),
-            BuildLimitType.FOUNDATION,
-            100
-        )
-    );
-
-
-    show_debug_message(
-        "VECTOR TD 2026 - CAPACITY HUB DATA INITIALIZED"
     );
 
 
