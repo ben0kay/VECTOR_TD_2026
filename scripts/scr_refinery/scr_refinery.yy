@@ -4,7 +4,10 @@
   "isCompatibility":false,
   "isDnD":false,
   "name":"scr_refinery",
-  "parent":{"name":"scripts","path":"folders/scripts.yy"},
+  "parent":{
+    "name":"scripts",
+    "path":"folders/scripts.yy",
+  },
   "resourceType":"GMScript",
-  "resourceVersion":"2.0"
+  "resourceVersion":"2.0",
 }

@@ -240,7 +240,7 @@ function scr_hud_button_draw(_button)
 function scr_hud_build_category_get(_building_data)
 {
     if (!is_struct(_building_data))
-        return BuildMenuCategory.AUXILIARY;
+        return BuildMenuCategory.SUPPORT;
 
 
     switch (_building_data.identity.type)
@@ -269,14 +269,14 @@ function scr_hud_build_category_get(_building_data)
             return BuildMenuCategory.SUPPORT;
 
         case BuildingType.FOUNDATION:
-            return BuildMenuCategory.AUXILIARY;
+            return BuildMenuCategory.FOUNDATION
 		
 		case BuildingType.UTILITY:
 		return BuildMenuCategory.SUPPORT;
     }
 
 
-    return BuildMenuCategory.AUXILIARY;
+    return BuildMenuCategory.SUPPORT;
 }
 
 /// @description Returns readable category text.
@@ -306,8 +306,8 @@ function scr_hud_build_category_name(_category)
         case BuildMenuCategory.SUPPORT:
             return "SUPPORT";
 
-        case BuildMenuCategory.AUXILIARY:
-            return "AUXILIARY";
+        case BuildMenuCategory.FOUNDATION:
+            return "FOUNDATION";
     }
 
 
@@ -386,7 +386,9 @@ function scr_hud_build_menu_create()
         BuildMenuCategory.STORAGE,
         BuildMenuCategory.POWER,
         BuildMenuCategory.PRODUCTION,
-        BuildMenuCategory.SUPPORT
+        BuildMenuCategory.SUPPORT,
+		BuildMenuCategory.FOUNDATION
+
     ];
 
 
