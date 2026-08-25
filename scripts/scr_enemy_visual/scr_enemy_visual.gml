@@ -2140,7 +2140,7 @@ function scr_enemy_visual_centipede_head(_enemy)
     return true;
 }
 
-/// @description Draws one Centipede child.
+/// @description Draws one Centipede child as an angular armoured segment.
 
 function scr_enemy_visual_centipede_child(_enemy)
 {
@@ -2148,31 +2148,157 @@ function scr_enemy_visual_centipede_child(_enemy)
         return false;
 
 
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
+    var _x =
+        _enemy.x;
 
-    draw_set_color(_enemy.visual.color);
+    var _y =
+        _enemy.y;
 
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // MAIN SQUARE SEGMENT
+    // ========================================================================
+
+    scr_enemy_visual_helper_square(
+        _x,
+        _y,
         _radius,
-        false
+        _angle,
+        2
     );
 
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius * 0.35,
-        true
+
+    // ========================================================================
+    // INNER ARMOUR DIAMOND
+    // ========================================================================
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.52,
+        _angle,
+        1
     );
+
+
+    // ========================================================================
+    // FORWARD SPINE
+    // ========================================================================
 
     draw_line_width(
-        _enemy.x,
-        _enemy.y,
-        _enemy.x + lengthdir_x(_radius * 0.8, _angle),
-        _enemy.y + lengthdir_y(_radius * 0.8, _angle),
-        2
+        _x,
+        _y,
+
+        _x + lengthdir_x(
+            _radius * 0.82,
+            _angle
+        ),
+
+        _y + lengthdir_y(
+            _radius * 0.82,
+            _angle
+        ),
+
+        1
+    );
+
+
+    // ========================================================================
+    // SIDE ARMOUR / LEGS
+    // ========================================================================
+
+    for (var _side = -1; _side <= 1; _side += 2)
+    {
+        var _side_angle =
+            _angle
+            + (_side * 90);
+
+
+        var _root_x =
+            _x
+            + lengthdir_x(
+                _radius * 0.65,
+                _side_angle
+            );
+
+        var _root_y =
+            _y
+            + lengthdir_y(
+                _radius * 0.65,
+                _side_angle
+            );
+
+
+        var _joint_x =
+            _x
+            + lengthdir_x(
+                _radius * 1.15,
+                _side_angle
+            );
+
+        var _joint_y =
+            _y
+            + lengthdir_y(
+                _radius * 1.15,
+                _side_angle
+            );
+
+
+        var _tip_x =
+            _joint_x
+            + lengthdir_x(
+                _radius * 0.42,
+                _angle + 180
+            );
+
+        var _tip_y =
+            _joint_y
+            + lengthdir_y(
+                _radius * 0.42,
+                _angle + 180
+            );
+
+
+        draw_line_width(
+            _root_x,
+            _root_y,
+            _joint_x,
+            _joint_y,
+            1
+        );
+
+
+        draw_line_width(
+            _joint_x,
+            _joint_y,
+            _tip_x,
+            _tip_y,
+            1
+        );
+    }
+
+
+    // ========================================================================
+    // CENTRAL JOINT
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        1.5,
+        true
     );
 
 
