@@ -544,8 +544,8 @@ function scr_utility_radar_draw(_utility)
     draw_line(
         _x,
         _y,
-        _x + lengthdir_x(52, _angle),
-        _y + lengthdir_y(52, _angle)
+        _x + lengthdir_x(192, _angle),
+        _y + lengthdir_y(192, _angle)
     );
 
 
@@ -563,8 +563,8 @@ function scr_utility_radar_draw(_utility)
         draw_line(
             _x,
             _y,
-            _x + lengthdir_x(48, _trail_angle),
-            _y + lengthdir_y(48, _trail_angle)
+            _x + lengthdir_x(84, _trail_angle),
+            _y + lengthdir_y(84, _trail_angle)
         );
     }
 
@@ -593,9 +593,25 @@ function scr_utility_radar_draw(_utility)
             1 - _progress;
 
 
+        // Pulse begins 3 pixels thick and gradually becomes 1 pixel thick.
+
+        var _thickness =
+            lerp(
+                4,
+                1,
+                _progress
+            );
+
+
+        // Main pulse ring.
+        //
+        // Multiple circles are used so thickness can smoothly decrease
+        // without requiring a separate circle-width helper.
+
         draw_set_alpha(
             _alpha * 0.55
         );
+
 
         draw_circle(
             _x,
@@ -605,14 +621,67 @@ function scr_utility_radar_draw(_utility)
         );
 
 
+        if (_thickness > 1.35)
+        {
+            draw_set_alpha(
+                _alpha
+                * 0.42
+                * clamp(
+                    _thickness - 1,
+                    0,
+                    1
+                )
+            );
+
+            draw_circle(
+                _x,
+                _y,
+                max(
+                    0,
+                    _radius - 1
+                ),
+                true
+            );
+        }
+
+
+        if (_thickness > 2.1)
+        {
+            draw_set_alpha(
+                _alpha
+                * 0.28
+                * clamp(
+                    _thickness - 2,
+                    0,
+                    1
+                )
+            );
+
+            draw_circle(
+                _x,
+                _y,
+                max(
+                    0,
+                    _radius - 2
+                ),
+                true
+            );
+        }
+
+
+        // Faint inner echo ring.
+
         draw_set_alpha(
-            _alpha * 0.16
+            _alpha * 0.12
         );
 
         draw_circle(
             _x,
             _y,
-            max(0, _radius - 4),
+            max(
+                0,
+                _radius - 5
+            ),
             true
         );
     }

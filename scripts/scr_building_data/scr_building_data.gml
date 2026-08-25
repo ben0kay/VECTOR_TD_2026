@@ -1442,7 +1442,7 @@ function scr_building_data_utility_radar()
                 type: UtilityType.RADAR,
 
                 range: 512,
-                interval_seconds: 1.5,
+                interval_seconds: 3.5,
                 amount: 0,
 
                 radar:
