@@ -260,7 +260,6 @@ function scr_resource_data_get(_resource_key)
     );
 }
 
-
 /// @description Returns whether a resource definition contains valid data.
 
 function scr_resource_data_valid(_data)
@@ -301,7 +300,7 @@ function scr_resource_data_valid(_data)
         case ResourceType.CURRENCY:
         {
             // Currency exists only in the level economy.
-            // It does not spawn as a physical world deposit.
+            // It does not require deposits or physical generation data.
 
             return true;
         }
@@ -343,7 +342,13 @@ function scr_resource_data_valid(_data)
 
 
         case ResourceType.REFINED_MATERIAL:
+        case ResourceType.AMMUNITION:
+        {
+            // Manufactured resources need identity and visual data,
+            // but do not require world deposits or vein generation.
+
             return true;
+        }
     }
 
 
