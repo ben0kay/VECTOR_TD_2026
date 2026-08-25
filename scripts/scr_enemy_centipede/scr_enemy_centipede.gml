@@ -6,10 +6,15 @@ function scr_enemy_centipede_initialize(_enemy)
         return false;
 
 
+    // Fast Step-event flags.
+    // Ordinary enemies leave both false forever.
+
+    _enemy.is_centipede_head = false;
+    _enemy.is_centipede_child = false;
+
+
     _enemy.centipede =
     {
-        is_head: false,
-        is_child: false,
         detached: false,
 
         master: noone,
@@ -24,26 +29,33 @@ function scr_enemy_centipede_initialize(_enemy)
 
 
     // ========================================================================
-    // CHILD CREATED BY A HEAD
+    // CHILD CREATED BY A CENTIPEDE HEAD
     // ========================================================================
 
     if (variable_instance_exists(_enemy, "centipede_master"))
     {
-        _enemy.centipede.is_child = true;
-        _enemy.centipede.master = _enemy.centipede_master;
+        _enemy.is_centipede_child = true;
 
-        if (variable_instance_exists(_enemy, "centipede_follow_delay"))
+        _enemy.centipede.master =
+            _enemy.centipede_master;
+
+
+        if (variable_instance_exists(
+            _enemy,
+            "centipede_follow_delay"
+        ))
         {
             _enemy.centipede.follow_delay =
                 _enemy.centipede_follow_delay;
         }
+
 
         return true;
     }
 
 
     // ========================================================================
-    // ORDINARY NON-CENTIPEDE ENEMY
+    // ORDINARY ENEMY
     // ========================================================================
 
     var _data = _enemy.enemy_data;
@@ -56,15 +68,22 @@ function scr_enemy_centipede_initialize(_enemy)
 
 
     // ========================================================================
-    // HEAD
+    // CENTIPEDE HEAD
     // ========================================================================
+
+    _enemy.is_centipede_head = true;
+
 
     var _settings = _data.centipede;
     var _runtime = _enemy.centipede;
 
-    _runtime.is_head = true;
+
     _runtime.trail_stagger =
-        max(1, floor(_settings.trail_stagger));
+        max(
+            1,
+            floor(_settings.trail_stagger)
+        );
+
 
     _runtime.maximum_children =
         max(
@@ -74,12 +93,15 @@ function scr_enemy_centipede_initialize(_enemy)
 
 
     var _maximum_history =
-        (_runtime.maximum_children * _runtime.trail_stagger)
+        (
+            _runtime.maximum_children
+            * _runtime.trail_stagger
+        )
         + 5;
 
 
-    // Begin with the head's spawn position filling the trail.
-    // The children naturally stretch out as the head begins moving.
+    // Fill the initial history with the spawn position.
+    // The chain naturally stretches out when the head starts moving.
 
     repeat (_maximum_history)
     {
@@ -108,6 +130,7 @@ function scr_enemy_centipede_initialize(_enemy)
                 _settings.child_key,
                 i * _runtime.trail_stagger
             );
+
 
         if (instance_exists(_child))
             array_push(_runtime.children, _child);

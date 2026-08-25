@@ -75,32 +75,68 @@ function scr_enemy_visual_weak(_enemy)
             + (i * 120);
 
 
-        // Outer point of this blade.
+        // ====================================================================
+        // BLADE SHAPE
+        // ====================================================================
+
+        var _tip_length;
+        var _inner_distance;
+        var _inner_spread;
+
+
+        // Main forward/head blade:
+        // long, but noticeably wider than before.
+
+        if (i == 0)
+        {
+            _tip_length =
+                _radius * 1.50;
+
+            _inner_distance =
+                _radius * 0.50;
+
+            _inner_spread =
+                46;
+        }
+
+        // Rear/side blades:
+        // shorter than the head, but also wider.
+
+        else
+        {
+            _tip_length =
+                _radius * 1.05;
+
+            _inner_distance =
+                _radius * 0.48;
+
+            _inner_spread =
+                48;
+        }
+
+
+        // ====================================================================
+        // OUTER TIP
+        // ====================================================================
 
         var _tip_x =
             _x
             + lengthdir_x(
-                _radius * 1.45,
+                _tip_length,
                 _blade_angle
             );
 
         var _tip_y =
             _y
             + lengthdir_y(
-                _radius * 1.45,
+                _tip_length,
                 _blade_angle
             );
 
 
-        // The two inner points sit close to the middle,
-        // but spread sideways from the blade direction.
-
-        var _inner_distance =
-            _radius * 0.42;
-
-        var _inner_spread =
-            34;
-
+        // ====================================================================
+        // INNER BASE
+        // ====================================================================
 
         var _inner_a_x =
             _x
@@ -132,7 +168,9 @@ function scr_enemy_visual_weak(_enemy)
             );
 
 
-        // Draw one long skinny triangle.
+        // ====================================================================
+        // DRAW BLADE
+        // ====================================================================
 
         draw_line_width(
             _tip_x,

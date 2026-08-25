@@ -15,10 +15,13 @@ if (!instance_exists(id))
     exit;
 
 
-// Attached Centipede children replay the head's old positions.
-// They perform no targeting or MP-grid navigation.
+// Only actual Centipede children enter the breadcrumb function.
+// Attached children skip targeting and MP-grid navigation.
 
-if (scr_enemy_centipede_child_update(id))
+if (
+    is_centipede_child
+    && scr_enemy_centipede_child_update(id)
+)
 {
     if (!instance_exists(id))
         exit;
@@ -46,9 +49,10 @@ if (!instance_exists(id))
     exit;
 
 
-// A Centipede head records its position after completing movement.
+// Only the Centipede head records breadcrumbs.
 
-scr_enemy_centipede_head_update(id);
+if (is_centipede_head)
+    scr_enemy_centipede_head_update(id);
 
 
 // Visual feedback follows the completed gameplay update.
