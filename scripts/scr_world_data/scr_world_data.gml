@@ -362,8 +362,8 @@ function scr_world_data_initialize()
     enabled: true,
     warning_seconds: 8,
 
-    interval_min_seconds: 90,
-    interval_max_seconds: 120,
+    interval_min_seconds: 140,
+    interval_max_seconds: 180,
 
     // Run every wave sequentially once. Afterward, repeat only from
     // ADVANCED ASSAULT onward for the test world's endless pressure.
