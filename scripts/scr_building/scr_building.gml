@@ -163,27 +163,73 @@ function scr_building_initialize(_building)
 
 
     // ========================================================================
-    // VITALS
-    // ========================================================================
+	// VITALS
+	// ========================================================================
 
-    var _initial_hp =
-        max(
-            1,
-            _hp_maximum * 0.1
-        );
+	var _initial_hp =
+	    max(
+	        1,
+	        _hp_maximum * 0.1
+	    );
 
 
-    _building.vitals =
-    {
-        hp:
-        {
-            current:
-                _initial_hp,
+	// Buildings default to shield capacity equal to 25% maximum HP.
+	// Individual definitions may override this, including setting it to zero.
 
-            maximum:
-                _hp_maximum
-        }
-    };
+	var _shield_maximum =
+	    _hp_maximum * 0.25;
+
+
+	if (
+	    variable_struct_exists(
+	        _data.vitals,
+	        "shield_maximum"
+	    )
+	)
+	{
+	    _shield_maximum =
+	        max(
+	            0,
+	            _data.vitals.shield_maximum
+	        );
+	}
+
+
+	_building.vitals =
+	{
+	    hp:
+	    {
+	        current:
+	            _initial_hp,
+
+	        maximum:
+	            _hp_maximum
+	    },
+
+	    shield:
+	    {
+	        enabled: false,
+
+	        current: 0,
+	        maximum: _shield_maximum,
+
+	        source: noone,
+
+	        field_remaining_seconds: 0,
+
+	        regeneration_delay_seconds: 3,
+	        regeneration_delay_remaining: 0,
+
+	        hit_flash: 0,
+
+	        color:
+	            make_color_rgb(
+	                90,
+	                180,
+	                255
+	            )
+	    }
+	};
 
 
     // ========================================================================
@@ -672,8 +718,7 @@ function scr_building_footprint_release(_building)
     return true;
 }
 
-
-/// @description Applies damage to one building.
+/// @description Applies shield and health damage to one building.
 
 function scr_building_damage(
     _building,
@@ -686,21 +731,85 @@ function scr_building_damage(
     if (!is_struct(_damage))
         return false;
 
+    if (_building.BuildingState == BuildingState.DESTROYED)
+        return false;
+
+    if (_damage.amount <= 0)
+        return false;
+
+
+    var _remaining_damage =
+        _damage.amount;
+
+    var _shield =
+        _building.vitals.shield;
+
+
+    // ========================================================================
+    // FIELD SHIELD
+    // ========================================================================
+
     if (
-        _building.BuildingState
-        == BuildingState.DESTROYED
+        scr_building_shield_active(_building)
+        && _shield.current > 0
     )
     {
-        return false;
+        var _shield_damage =
+            min(
+                _shield.current,
+                _remaining_damage
+            );
+
+
+        _shield.current -=
+            _shield_damage;
+
+        _remaining_damage -=
+            _shield_damage;
+
+        _shield.hit_flash = 1;
+
+        _shield.regeneration_delay_remaining =
+            _shield.regeneration_delay_seconds;
+
+
+        if (_shield.current <= 0)
+        {
+            _shield.current = 0;
+
+            scr_effect_shockwave_create(
+                _building.x,
+                _building.y,
+                max(
+                    _building.footprint.width_cells,
+                    _building.footprint.height_cells
+                )
+                * global.vtd_level.map.cell_size,
+                _shield.color,
+                EnemyMovementLayer.GROUND
+            );
+
+            // The field remains connected and may regenerate later.
+        }
     }
 
 
-    _building.vitals.hp.current =
-        max(
-            0,
-            _building.vitals.hp.current
-            - _damage.amount
-        );
+    // ========================================================================
+    // STRUCTURAL HEALTH
+    // ========================================================================
+
+    if (_remaining_damage > 0)
+    {
+        _building.vitals.hp.current =
+            max(
+                0,
+                _building.vitals.hp.current
+                - _remaining_damage
+            );
+
+        _shield.regeneration_delay_remaining =
+            _shield.regeneration_delay_seconds;
+    }
 
 
     if (_building.vitals.hp.current <= 0)
@@ -708,9 +817,7 @@ function scr_building_damage(
         _building.BuildingState =
             BuildingState.DESTROYED;
 
-        instance_destroy(
-            _building
-        );
+        instance_destroy(_building);
     }
 
 

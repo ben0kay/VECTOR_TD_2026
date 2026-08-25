@@ -637,6 +637,9 @@ function scr_building_data_utility_initialize()
 	
 	if (!scr_building_data_utility_radar())
     return false;
+	
+	if (!scr_building_data_utility_shield_generator())
+    return false;
 
     return true;
 }
@@ -1491,3 +1494,126 @@ function scr_building_data_utility_radar()
 
     return true;
 }
+
+/// @description Registers the local field Shield Generator.
+
+function scr_building_data_utility_shield_generator()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "utility_shield_generator",
+        {
+            identity:
+            {
+                key: "utility_shield_generator",
+                name: "Shield Generator",
+                type: BuildingType.UTILITY,
+
+                description_short:
+                    "Projects regenerating shields over nearby buildings.",
+
+                description_long:
+                    "A high-demand defensive support installation. It projects individual shields over nearby structures and automatically restores damaged shields after they avoid incoming damage."
+            },
+
+            build_menu:
+            {
+                order: 50
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        90,
+                        180,
+                        255
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 3,
+                height_cells: 3
+            },
+
+            vitals:
+            {
+                hp_maximum: 500,
+                shield_maximum: 200
+            },
+
+            construction:
+            {
+                time_seconds: 10
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 800
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.INFRASTRUCTURE,
+                amount: 2
+            },
+
+            utility:
+            {
+                type:
+                    UtilityType.SHIELD_GENERATOR,
+
+                range: 448,
+                interval_seconds: 0.25,
+                amount: 0,
+
+                shield_generator:
+                {
+                    regeneration_delay_seconds: 3,
+                    regeneration_per_second: 20,
+
+                    idle_energy_per_building: 4,
+                    regeneration_energy_per_point: 0.08,
+
+                    field_linger_seconds: 0.6,
+
+                    color:
+                        make_color_rgb(
+                            90,
+                            180,
+                            255
+                        )
+                }
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.HIGH,
+
+                connection_range: 320,
+                generation_per_second: 0,
+
+                input_rate: 80,
+
+                idle_demand: 4,
+                activity_cost: 0,
+
+                buffer:
+                {
+                    capacity: 100,
+                    starting_ratio: 0.5
+                }
+            }
+        }
+    );
+
+
+    return true;
+}
+

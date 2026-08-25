@@ -74,6 +74,7 @@
     {"id":{"name":"scr_build_limits","path":"scripts/scr_build_limits/scr_build_limits.yy",},},
     {"id":{"name":"scr_build_mode","path":"scripts/scr_build_mode/scr_build_mode.yy",},},
     {"id":{"name":"scr_building_data","path":"scripts/scr_building_data/scr_building_data.yy",},},
+    {"id":{"name":"scr_building_shield","path":"scripts/scr_building_shield/scr_building_shield.yy",},},
     {"id":{"name":"scr_building_visual","path":"scripts/scr_building_visual/scr_building_visual.yy",},},
     {"id":{"name":"scr_building","path":"scripts/scr_building/scr_building.yy",},},
     {"id":{"name":"scr_camera","path":"scripts/scr_camera/scr_camera.yy",},},

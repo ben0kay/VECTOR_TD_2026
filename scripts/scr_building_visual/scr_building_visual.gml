@@ -708,3 +708,127 @@ function scr_utility_radar_draw(_utility)
 
     return true;
 }
+
+/// @description Draws the local field Shield Generator.
+
+function scr_utility_shield_generator_draw(_utility)
+{
+    if (!instance_exists(_utility))
+        return false;
+
+
+    var _runtime =
+        _utility.utility;
+
+    var _generator =
+        _runtime.shield_generator;
+
+    var _color =
+        _generator.color;
+
+    var _pulse =
+        0.7
+        + dsin(
+            (global.vtd.tick * 5)
+            + real(_utility.id)
+        )
+        * 0.2;
+
+
+    draw_set_color(_color);
+
+
+    // Outer field assembly.
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        22,
+        false
+    );
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        15,
+        false
+    );
+
+
+    // Six field emitters.
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _angle =
+            (i * 60)
+            + (global.vtd.tick * 0.5);
+
+        var _inner_x =
+            _utility.x
+            + lengthdir_x(
+                15,
+                _angle
+            );
+
+        var _inner_y =
+            _utility.y
+            + lengthdir_y(
+                15,
+                _angle
+            );
+
+        var _outer_x =
+            _utility.x
+            + lengthdir_x(
+                25,
+                _angle
+            );
+
+        var _outer_y =
+            _utility.y
+            + lengthdir_y(
+                25,
+                _angle
+            );
+
+
+        draw_line_width(
+            _inner_x,
+            _inner_y,
+            _outer_x,
+            _outer_y,
+            2
+        );
+    }
+
+
+    // Central field core.
+
+    draw_set_alpha(_pulse);
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        8,
+        true
+    );
+
+
+    // Subtle operational field radius.
+
+    draw_set_alpha(0.08);
+
+    draw_circle(
+        _utility.x,
+        _utility.y,
+        _runtime.range,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+
+    return true;
+}

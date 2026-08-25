@@ -139,7 +139,8 @@ enum UtilityType
     CREDIT_MAGNET,
     REPAIRER,
     CREDIT_UPLINK,
-	RADAR
+	RADAR,
+	SHIELD_GENERATOR
 }
 enum FoundationType
 {

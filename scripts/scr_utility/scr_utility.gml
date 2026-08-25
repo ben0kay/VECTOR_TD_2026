@@ -90,8 +90,39 @@ function scr_utility_initialize(_utility)
                 progress: 0,
                 duration: 0.65
             }
-        }
-    };
+        },
+   
+		shield_generator:
+		{
+		    base_idle_demand:
+		        _utility.energy.demand.idle_per_second,
+
+		    idle_energy_per_building: 0,
+
+		    regeneration_per_second: 0,
+		    regeneration_energy_per_point: 0,
+		    regeneration_delay_seconds: 3,
+
+		    field_linger_seconds: 0.5,
+
+		    color:
+		        make_color_rgb(
+		            90,
+		            180,
+		            255
+		        ),
+
+		    linked_buildings: [],
+		    linked_count: 0,
+
+		    pulse:
+		    {
+		        remaining: 0,
+		        duration: 0.4
+		    }
+		}
+   
+   };
 
 
     // ========================================================================
@@ -141,6 +172,62 @@ function scr_utility_initialize(_utility)
             _radar_data.color;
     }
 
+	// ========================================================================
+	// SHIELD GENERATOR
+	// ========================================================================
+
+	if (
+	    _utility.UtilityType
+	    == UtilityType.SHIELD_GENERATOR
+	    && variable_struct_exists(
+	        _source,
+	        "shield_generator"
+	    )
+	    && is_struct(
+	        _source.shield_generator
+	    )
+	)
+	{
+	    var _shield_data =
+	        _source.shield_generator;
+
+	    var _generator =
+	        _utility.utility.shield_generator;
+
+
+	    _generator.idle_energy_per_building =
+	        max(
+	            0,
+	            _shield_data.idle_energy_per_building
+	        );
+
+	    _generator.regeneration_per_second =
+	        max(
+	            0,
+	            _shield_data.regeneration_per_second
+	        );
+
+	    _generator.regeneration_energy_per_point =
+	        max(
+	            0,
+	            _shield_data.regeneration_energy_per_point
+	        );
+
+	    _generator.regeneration_delay_seconds =
+	        max(
+	            0,
+	            _shield_data.regeneration_delay_seconds
+	        );
+
+	    _generator.field_linger_seconds =
+	        max(
+	            0.1,
+	            _shield_data.field_linger_seconds
+	        );
+
+	    _generator.color =
+	        _shield_data.color;
+	}
 
     return true;
 }
@@ -250,6 +337,10 @@ function scr_utility_update(_utility)
         case UtilityType.RADAR:
             scr_utility_radar_update(_utility);
         break;
+		
+		case UtilityType.SHIELD_GENERATOR:
+	    scr_utility_shield_generator_update(_utility);
+		break;
     }
 
 
@@ -615,6 +706,9 @@ function scr_utility_draw(_utility)
 
         case UtilityType.RADAR:
             return scr_utility_radar_draw(_utility);
+			
+		case UtilityType.SHIELD_GENERATOR:
+			return scr_utility_shield_generator_draw(_utility);
     }
 
 
@@ -716,7 +810,236 @@ function scr_utility_radar_update(_utility)
     return true;
 }
 
+/// @description Returns whether one Shield Generator can own a field.
+
+function scr_utility_shield_generator_operational(_generator)
+{
+    if (!instance_exists(_generator))
+        return false;
+
+    if (_generator.object_index != o_utility)
+        return false;
+
+    if (
+        _generator.UtilityType
+        != UtilityType.SHIELD_GENERATOR
+    )
+    {
+        return false;
+    }
+
+    if (
+        _generator.BuildingState
+        != BuildingState.ACTIVE
+    )
+    {
+        return false;
+    }
+
+
+    return (
+        !_generator.energy.participates
+        || _generator.energy.supplied
+    );
+}
+
+
+/// @description Connects buildings, calculates demand and regenerates shields.
+
+function scr_utility_shield_generator_update(_utility)
+{
+    if (!instance_exists(_utility))
+        return false;
+
+
+    var _runtime =
+        _utility.utility;
+
+    var _generator =
+        _runtime.shield_generator;
+
+    var _delta =
+        _runtime.interval.duration;
+
+
+    _generator.linked_buildings = [];
+    _generator.linked_count = 0;
+
+
+    var _building_count =
+        instance_number(o_building_par);
+
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
+
+        if (!instance_exists(_building))
+            continue;
+
+        if (
+            _building.BuildingState
+            != BuildingState.ACTIVE
+        )
+        {
+            continue;
+        }
+
+
+        var _distance =
+            point_distance(
+                _utility.x,
+                _utility.y,
+                _building.x,
+                _building.y
+            );
+
+
+        if (_distance > _runtime.range)
+            continue;
+
+
+        var _shield =
+            _building.vitals.shield;
+
+        var _existing_source =
+            _shield.source;
+
+
+        // Keep a closer valid generator as the shield owner.
+
+        if (
+            instance_exists(_existing_source)
+            && _existing_source != _utility
+            && scr_utility_shield_generator_operational(
+                _existing_source
+            )
+        )
+        {
+            var _existing_distance =
+                point_distance(
+                    _existing_source.x,
+                    _existing_source.y,
+                    _building.x,
+                    _building.y
+                );
+
+
+            if (_existing_distance <= _distance)
+                continue;
+        }
+
+
+        if (
+            !scr_building_shield_connect(
+                _building,
+                _utility,
+                _generator.field_linger_seconds,
+                _generator.regeneration_delay_seconds,
+                _generator.color
+            )
+        )
+        {
+            continue;
+        }
+
+
+        array_push(
+            _generator.linked_buildings,
+            _building
+        );
+
+        _generator.linked_count++;
+
+
+        // ================================================================
+        // SHIELD REGENERATION
+        // ================================================================
+
+        if (
+            _shield.current < _shield.maximum
+            && _shield.regeneration_delay_remaining <= 0
+        )
+        {
+            var _desired_regeneration =
+                min(
+                    _shield.maximum
+                    - _shield.current,
+
+                    _generator.regeneration_per_second
+                    * _delta
+                );
+
+            var _energy_per_point =
+                _generator.regeneration_energy_per_point;
+
+            var _affordable_regeneration =
+                _desired_regeneration;
+
+
+            if (_energy_per_point > 0)
+            {
+                _affordable_regeneration =
+                    min(
+                        _desired_regeneration,
+
+                        _utility.energy.buffer.current
+                        / _energy_per_point
+                    );
+            }
+
+
+            var _regeneration_cost =
+                _affordable_regeneration
+                * _energy_per_point;
+
+
+            if (
+                _affordable_regeneration > 0
+                && scr_energy_activity_consume(
+                    _utility,
+                    _regeneration_cost
+                )
+            )
+            {
+                _shield.current =
+                    min(
+                        _shield.maximum,
+                        _shield.current
+                        + _affordable_regeneration
+                    );
+            }
+        }
+    }
+
+
+    // ========================================================================
+    // DYNAMIC IDLE ENERGY
+    // ========================================================================
+
+    _utility.energy.demand.idle_per_second =
+        _generator.base_idle_demand
+        + (
+            _generator.linked_count
+            * _generator.idle_energy_per_building
+        );
+
+
+    _generator.pulse.remaining =
+        _generator.pulse.duration;
+
+
+    return true;
+}
+
 /// @description Clears references owned by one utility building.
+
+
 
 function scr_utility_cleanup(_utility)
 {
