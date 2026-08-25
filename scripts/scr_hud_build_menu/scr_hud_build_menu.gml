@@ -812,7 +812,13 @@ function scr_hud_build_menu_update(_hud)
 
 
     if (!_menu.open && _menu.progress < 0.02)
-        return true;
+    return true;
+
+
+	// Keyboard category selection.
+	// This uses the same button order currently displayed by the HUD.
+
+	scr_hud_build_menu_category_hotkeys_update(_hud);
 
 
     // ========================================================================
@@ -1824,4 +1830,50 @@ function scr_hud_build_card_draw(_button)
     draw_set_valign(fa_top);
 
     return true;
+}
+
+/// @description Switches build categories using number keys.
+
+function scr_hud_build_menu_category_hotkeys_update(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _menu = _hud.hud.build_menu;
+
+    if (!_menu.open)
+        return false;
+
+
+    // Number keys follow the visible category-button order.
+    // 1 = first tab, 2 = second tab, and so on.
+
+    var _button_count =
+        min(
+            array_length(_menu.category_buttons),
+            9
+        );
+
+
+    for (var i = 0; i < _button_count; ++i)
+    {
+        var _key = ord(string(i + 1));
+
+        if (!keyboard_check_pressed(_key))
+            continue;
+
+
+        var _button = _menu.category_buttons[i];
+
+        scr_hud_build_menu_category_set(
+            _hud,
+            _button.data
+        );
+
+        return true;
+    }
+
+
+    return false;
 }

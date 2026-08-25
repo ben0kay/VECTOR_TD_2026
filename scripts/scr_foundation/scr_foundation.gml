@@ -746,7 +746,7 @@ function scr_foundation_building_modifier_get(
         + (_bonus_total / _cell_count);
 }
 
-/// @description Damages ground enemies occupying one powered Shock Grid.
+/// @description Damages ground enemies standing over an active shock foundation.
 
 function scr_foundation_shock_update(_foundation)
 {
@@ -754,27 +754,16 @@ function scr_foundation_shock_update(_foundation)
         return false;
 
 
-    var _shock =
-        _foundation.foundation.shock;
+    var _shock = _foundation.foundation.shock;
 
     if (!_shock.enabled)
         return true;
 
 
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
-
+    var _fps = max(1, game_get_speed(gamespeed_fps));
 
     _shock.interval_remaining =
-        max(
-            0,
-            _shock.interval_remaining
-            - (1 / _fps)
-        );
-
+        max(0, _shock.interval_remaining - (1 / _fps));
 
     if (_shock.interval_remaining > 0)
         return true;
@@ -784,25 +773,17 @@ function scr_foundation_shock_update(_foundation)
         _shock.interval_seconds;
 
 
-    var _cell_size =
-        global.vtd_level.map.cell_size;
-
-    var _half_size =
-        _cell_size * 0.5;
-
+    var _cell_size = global.vtd_level.map.cell_size;
+    var _half_size = _cell_size * 0.5;
     var _targets = [];
+    var _enemy_count = instance_number(o_enemy);
 
-    var _enemy_count =
-        instance_number(o_enemy);
 
+    // Collect every living ground enemy overlapping this tile.
 
     for (var i = 0; i < _enemy_count; ++i)
     {
-        var _enemy =
-            instance_find(
-                o_enemy,
-                i
-            );
+        var _enemy = instance_find(o_enemy, i);
 
         if (!instance_exists(_enemy))
             continue;
@@ -810,40 +791,20 @@ function scr_foundation_shock_update(_foundation)
         if (_enemy.EnemyState == EnemyState.DEAD)
             continue;
 
-        if (
-            _enemy.movement.layer
-            != EnemyMovementLayer.GROUND
-        )
-        {
+        if (_enemy.movement.layer != EnemyMovementLayer.GROUND)
             continue;
-        }
 
 
-        var _radius =
-            _enemy.visual.radius;
+        var _radius = _enemy.visual.radius;
 
-
-        if (
-            abs(_enemy.x - _foundation.x)
-            > _half_size + _radius
-        )
-        {
+        if (abs(_enemy.x - _foundation.x) > _half_size + _radius)
             continue;
-        }
 
-        if (
-            abs(_enemy.y - _foundation.y)
-            > _half_size + _radius
-        )
-        {
+        if (abs(_enemy.y - _foundation.y) > _half_size + _radius)
             continue;
-        }
 
 
-        array_push(
-            _targets,
-            _enemy
-        );
+        array_push(_targets, _enemy);
     }
 
 
@@ -859,11 +820,16 @@ function scr_foundation_shock_update(_foundation)
 
     for (var i = 0; i < array_length(_targets); ++i)
     {
-        var _enemy =
-            _targets[i];
+        var _enemy = _targets[i];
 
         if (!instance_exists(_enemy))
             continue;
+
+
+        // Cache the impact position because damage may destroy the enemy.
+
+        var _impact_x = _enemy.x;
+        var _impact_y = _enemy.y;
 
 
         scr_enemy_damage(
@@ -878,8 +844,8 @@ function scr_foundation_shock_update(_foundation)
 
 
         scr_particles_impact(
-            _enemy.x,
-            _enemy.y,
+            _impact_x,
+            _impact_y,
             _shock.color,
             3
         );
