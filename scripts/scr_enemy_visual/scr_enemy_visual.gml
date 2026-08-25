@@ -54,153 +54,59 @@ function scr_enemy_visual_weak(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-    var _x = _enemy.x;
-    var _y = _enemy.y;
+    var _x =
+        _enemy.x;
 
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
-    var _color = _enemy.visual.color;
+    var _y =
+        _enemy.y;
 
-    draw_set_color(_color);
+    var _radius =
+        _enemy.visual.radius;
 
-
-    // ========================================================================
-    // THREE OVERLAPPING TRIANGULAR BLADES
-    // ========================================================================
-
-    for (var i = 0; i < 3; ++i)
-    {
-        var _blade_angle =
-            _angle
-            + (i * 120);
+    var _angle =
+        _enemy.visual.draw_angle;
 
 
-        // ====================================================================
-        // BLADE SHAPE
-        // ====================================================================
-
-        var _tip_length;
-        var _inner_distance;
-        var _inner_spread;
+    draw_set_color(
+        _enemy.visual.color
+    );
 
 
-        // Main forward/head blade:
-        // long, but noticeably wider than before.
+    // Long forward blade.
 
-        if (i == 0)
-        {
-            _tip_length =
-                _radius * 1.50;
-
-            _inner_distance =
-                _radius * 0.50;
-
-            _inner_spread =
-                46;
-        }
-
-        // Rear/side blades:
-        // shorter than the head, but also wider.
-
-        else
-        {
-            _tip_length =
-                _radius * 1.05;
-
-            _inner_distance =
-                _radius * 0.48;
-
-            _inner_spread =
-                48;
-        }
+    scr_enemy_visual_helper_triangle_blade(
+    _x,
+    _y,
+    _angle,
+    _radius * 1.30,
+    _radius * 0.55,
+    54,
+    1
+);
 
 
-        // ====================================================================
-        // OUTER TIP
-        // ====================================================================
+// Short side blades.
 
-        var _tip_x =
-            _x
-            + lengthdir_x(
-                _tip_length,
-                _blade_angle
-            );
+scr_enemy_visual_helper_triangle_blade(
+    _x,
+    _y,
+    _angle + 120,
+    _radius * 1.08,
+    _radius * 0.53,
+    56,
+    1
+);
 
-        var _tip_y =
-            _y
-            + lengthdir_y(
-                _tip_length,
-                _blade_angle
-            );
+scr_enemy_visual_helper_triangle_blade(
+    _x,
+    _y,
+    _angle + 240,
+    _radius * 1.08,
+    _radius * 0.53,
+    56,
+    1
+);
 
-
-        // ====================================================================
-        // INNER BASE
-        // ====================================================================
-
-        var _inner_a_x =
-            _x
-            + lengthdir_x(
-                _inner_distance,
-                _blade_angle + 180 - _inner_spread
-            );
-
-        var _inner_a_y =
-            _y
-            + lengthdir_y(
-                _inner_distance,
-                _blade_angle + 180 - _inner_spread
-            );
-
-
-        var _inner_b_x =
-            _x
-            + lengthdir_x(
-                _inner_distance,
-                _blade_angle + 180 + _inner_spread
-            );
-
-        var _inner_b_y =
-            _y
-            + lengthdir_y(
-                _inner_distance,
-                _blade_angle + 180 + _inner_spread
-            );
-
-
-        // ====================================================================
-        // DRAW BLADE
-        // ====================================================================
-
-        draw_line_width(
-            _tip_x,
-            _tip_y,
-            _inner_a_x,
-            _inner_a_y,
-            2
-        );
-
-        draw_line_width(
-            _inner_a_x,
-            _inner_a_y,
-            _inner_b_x,
-            _inner_b_y,
-            2
-        );
-
-        draw_line_width(
-            _inner_b_x,
-            _inner_b_y,
-            _tip_x,
-            _tip_y,
-            2
-        );
-    }
-
-
-    // ========================================================================
-    // SMALL CENTRAL JOINT
-    // ========================================================================
 
     draw_circle(
         _x,

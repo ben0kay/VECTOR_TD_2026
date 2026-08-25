@@ -88,6 +88,7 @@
     {"id":{"name":"scr_enemy_effects","path":"scripts/scr_enemy_effects/scr_enemy_effects.yy",},},
     {"id":{"name":"scr_enemy_player_targeting","path":"scripts/scr_enemy_player_targeting/scr_enemy_player_targeting.yy",},},
     {"id":{"name":"scr_enemy_spawner","path":"scripts/scr_enemy_spawner/scr_enemy_spawner.yy",},},
+    {"id":{"name":"scr_enemy_visual_helpers","path":"scripts/scr_enemy_visual_helpers/scr_enemy_visual_helpers.yy",},},
     {"id":{"name":"scr_enemy_visual","path":"scripts/scr_enemy_visual/scr_enemy_visual.yy",},},
     {"id":{"name":"scr_enemy","path":"scripts/scr_enemy/scr_enemy.yy",},},
     {"id":{"name":"scr_energy","path":"scripts/scr_energy/scr_energy.yy",},},

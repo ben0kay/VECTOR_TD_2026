@@ -206,11 +206,13 @@ function scr_enemy_centipede_head_update(_head)
     if (!instance_exists(_head))
         return false;
 
-    if (!_head.centipede.is_head)
+    if (!_head.is_centipede_head)
         return false;
 
 
-    var _runtime = _head.centipede;
+    var _runtime =
+        _head.centipede;
+
 
     array_push(
         _runtime.trail,
@@ -222,7 +224,10 @@ function scr_enemy_centipede_head_update(_head)
 
 
     var _maximum_history =
-        (_runtime.maximum_children * _runtime.trail_stagger)
+        (
+            _runtime.maximum_children
+            * _runtime.trail_stagger
+        )
         + 5;
 
 
@@ -242,7 +247,7 @@ function scr_enemy_centipede_child_update(_child)
     if (!instance_exists(_child))
         return false;
 
-    if (!_child.centipede.is_child)
+    if (!_child.is_centipede_child)
         return false;
 
     if (_child.centipede.detached)
@@ -253,7 +258,7 @@ function scr_enemy_centipede_child_update(_child)
         _child.centipede.master;
 
 
-    // The existing brainless enemy behavior takes over when the head dies.
+    // Head destroyed: existing brainless movement takes over.
 
     if (!instance_exists(_master))
     {
