@@ -902,7 +902,15 @@ function scr_enemy_attack(_enemy)
                 if (!scr_player_damage(_target, _damage))
                     return false;
             }
+			
+			scr_particles_enemy_contact_impact(
+    _enemy,
+    _target
+);
         }
+		
+		
+		
         break;
 
 

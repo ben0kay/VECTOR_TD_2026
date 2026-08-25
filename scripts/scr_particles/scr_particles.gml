@@ -19,7 +19,8 @@ function scr_particles_initialize()
             glow: part_type_create(),
             spark: part_type_create(),
             ring: part_type_create(),
-            ember: part_type_create()
+            ember: part_type_create(),
+			contact_spark: part_type_create()
         }
     };
 
@@ -141,6 +142,75 @@ function scr_particles_initialize()
     part_type_alpha2(
         _types.spark,
         1,
+        0
+    );
+	
+	// ========================================================================
+    // CONTACT IMPACT SPARK
+    // ========================================================================
+
+    part_type_sprite(
+        _types.contact_spark,
+        s_particle_sharp,
+        false,
+        false,
+        false
+    );
+
+
+    part_type_life(
+        _types.contact_spark,
+        8,
+        14
+    );
+
+
+    part_type_size(
+        _types.contact_spark,
+        0.07,
+        0.15,
+        -0.008,
+        0
+    );
+
+
+    part_type_speed(
+        _types.contact_spark,
+        1.5,
+        4,
+        -0.18,
+        0
+    );
+
+
+    // Direction is assigned at the moment of impact because it depends
+    // on which direction the attacking enemy is facing.
+
+    part_type_direction(
+        _types.contact_spark,
+        0,
+        359,
+        0,
+        0
+    );
+
+
+    // Sharp fragments turn slightly while travelling.
+
+    part_type_orientation(
+        _types.contact_spark,
+        0,
+        359,
+        12,
+        0,
+        true
+    );
+
+
+    part_type_alpha3(
+        _types.contact_spark,
+        1,
+        0.8,
         0
     );
 
@@ -757,6 +827,196 @@ function scr_particles_explosion(
     return true;
 }
 
+/// @description Creates a directional particle burst when an enemy contact attack lands.
+
+function scr_particles_enemy_contact_impact(
+    _enemy,
+    _target
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_target))
+        return false;
+
+    if (!scr_particles_ready())
+        return false;
+
+
+    // No reason to create particles far outside the visible play area.
+
+    if (!scr_culling_check_instance(_enemy, 96))
+        return false;
+
+
+    var _particles =
+        global.vtd.particles;
+
+    var _types =
+        _particles.types;
+
+
+    // ========================================================================
+    // IMPACT DIRECTION
+    // ========================================================================
+
+    // Use the actual target direction rather than relying entirely on the
+    // enemy's draw angle. This guarantees the effect comes from the side
+    // currently striking the target.
+
+    var _attack_angle =
+        point_direction(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+
+    // ========================================================================
+    // CONTACT POSITION
+    // ========================================================================
+
+    // Start the particles at the forward edge / tip of the enemy.
+
+    var _distance =
+        _enemy.visual.radius;
+
+
+    var _impact_x =
+        _enemy.x
+        + lengthdir_x(
+            _distance,
+            _attack_angle
+        );
+
+    var _impact_y =
+        _enemy.y
+        + lengthdir_y(
+            _distance,
+            _attack_angle
+        );
+
+
+    // ========================================================================
+    // DIRECTIONAL SPARK SPRAY
+    // ========================================================================
+
+    // The enemy is travelling toward _attack_angle.
+    //
+    // Impact debris sprays mostly back toward the enemy and sideways,
+    // like fragments bouncing away from the surface it struck.
+
+    var _spray_angle =
+        _attack_angle
+        + 180;
+
+
+    part_type_direction(
+        _types.contact_spark,
+
+        _spray_angle - 55,
+        _spray_angle + 55,
+
+        0,
+        0
+    );
+
+
+    // Neutral impact colour.
+    //
+    // This keeps the effect readable regardless of enemy class colour.
+
+    part_type_color2(
+        _types.contact_spark,
+        c_white,
+        make_color_rgb(
+            255,
+            185,
+            80
+        )
+    );
+
+
+    part_particles_create(
+        _particles.system,
+        _impact_x,
+        _impact_y,
+        _types.contact_spark,
+        irandom_range(
+            5,
+            8
+        )
+    );
+
+
+    // ========================================================================
+    // SMALL CONTACT FLASH
+    // ========================================================================
+
+    part_type_color1(
+        _types.glow,
+        make_color_rgb(
+            255,
+            210,
+            120
+        )
+    );
+
+
+    part_type_size(
+        _types.glow,
+        0.07,
+        0.13,
+        -0.008,
+        0
+    );
+
+
+    part_particles_create(
+        _particles.system,
+        _impact_x,
+        _impact_y,
+        _types.glow,
+        1
+    );
+
+
+    // ========================================================================
+    // SMALL IMPACT RING
+    // ========================================================================
+
+    part_type_color1(
+        _types.ring,
+        make_color_rgb(
+            255,
+            190,
+            80
+        )
+    );
+
+
+    part_type_size(
+        _types.ring,
+        0.10,
+        0.14,
+        0.025,
+        0
+    );
+
+
+    part_particles_create(
+        _particles.system,
+        _impact_x,
+        _impact_y,
+        _types.ring,
+        1
+    );
+
+
+    return true;
+}
 
 
 
@@ -783,6 +1043,7 @@ function scr_particles_cleanup()
     part_type_destroy(_types.spark);
     part_type_destroy(_types.ring);
     part_type_destroy(_types.ember);
+	part_type_destroy(_types.contact_spark);
 
     part_system_destroy(
         _particles.system
