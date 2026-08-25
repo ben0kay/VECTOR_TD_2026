@@ -24,7 +24,7 @@ function scr_world_data_initialize()
 			    // Set to NONE when testing endless pressure.
 			    type: LevelVictoryType.COMPLETE_WAVES,
 
-			    required_waves: 4,
+			    required_waves: 6,
 			    survival_seconds: 0
 			},
 
@@ -222,95 +222,26 @@ function scr_world_data_initialize()
 				{
 				    enabled: true,
 
-				    interval_start_seconds: 4,
-				    interval_end_seconds: 1.5,
-				    scaling_seconds: 600,
+				    interval_start_seconds: 3.25,
+				    interval_end_seconds: 0.9,
+				    scaling_seconds: 1200,
 
 				    pool:
 				    [
-				        {
-				            enemy_key: "enemy_weak",
-				            weight: 100,
-				            unlock_seconds: 0
-				        },
-
-				        {
-				            enemy_key: "enemy_hunter",
-				            weight: 40,
-				            unlock_seconds: 75
-				        },
-
-				        {
-				            enemy_key: "enemy_shooter_single",
-				            weight: 30,
-				            unlock_seconds: 150
-				        },
-
-				        {
-				            enemy_key: "enemy_phaser",
-				            weight: 22,
-				            unlock_seconds: 210
-				        },
-
-				        {
-				            enemy_key: "enemy_kamikaze",
-				            weight: 18,
-				            unlock_seconds: 270
-				        },
-
-				        {
-				            enemy_key: "enemy_flyer",
-				            weight: 22,
-				            unlock_seconds: 300
-				        },
-
-				        {
-				            enemy_key: "enemy_shooter_triple",
-				            weight: 16,
-				            unlock_seconds: 360
-				        },
-
-				        {
-				            enemy_key: "enemy_splitter",
-				            weight: 14,
-				            unlock_seconds: 420
-				        },
-
-				        {
-				            enemy_key: "enemy_brute",
-				            weight: 10,
-				            unlock_seconds: 480
-				        },
-
-				        {
-				            enemy_key: "enemy_gunship",
-				            weight: 10,
-				            unlock_seconds: 540
-				        },
-
-				        {
-				            enemy_key: "enemy_transporter",
-				            weight: 7,
-				            unlock_seconds: 600
-				        },
-
-				        {
-				            enemy_key: "enemy_shield_generator",
-				            weight: 6,
-				            unlock_seconds: 660
-				        },
-
-				        {
-				            enemy_key: "enemy_siege_beam",
-				            weight: 3,
-				            unlock_seconds: 780
-				        },
-
-				        {
-				            enemy_key: "enemy_siege_rocket",
-				            weight: 2,
-				            unlock_seconds: 900
-				        }
+				        { enemy_key: "enemy_weak",            weight: 100, unlock_seconds: 0   },
+				        { enemy_key: "enemy_hunter",          weight: 45,  unlock_seconds: 60  },
+				        { enemy_key: "enemy_shooter_single",  weight: 30,  unlock_seconds: 120 },
+				        { enemy_key: "enemy_kamikaze",        weight: 16,  unlock_seconds: 180 },
+				        { enemy_key: "enemy_phaser",          weight: 12,  unlock_seconds: 240 },
+				        { enemy_key: "enemy_shooter_triple",  weight: 18,  unlock_seconds: 300 },
+				        { enemy_key: "enemy_flyer",           weight: 18,  unlock_seconds: 360 },
+				        { enemy_key: "enemy_splitter",        weight: 10,  unlock_seconds: 420 },
+				        { enemy_key: "enemy_brute",           weight: 12,  unlock_seconds: 480 },
+				        { enemy_key: "enemy_transporter",     weight: 7,   unlock_seconds: 540 },
+				        { enemy_key: "enemy_gunship",         weight: 8,   unlock_seconds: 600 },
+				        { enemy_key: "enemy_shield_generator",weight: 5,   unlock_seconds: 660 },
+				        { enemy_key: "enemy_siege_beam",      weight: 4,   unlock_seconds: 720 },
+				        { enemy_key: "enemy_siege_rocket",    weight: 4,   unlock_seconds: 780 }
 				    ]
 				},
 
@@ -319,94 +250,110 @@ function scr_world_data_initialize()
                 {
                     enabled: true,
 
-                    interval_min_seconds: 30,
-                    interval_max_seconds: 50,
+                    interval_min_seconds: 22,
+					interval_max_seconds: 38,
 
-                    scaling_start_seconds: 180,
-                    scaling_seconds: 600,
-                    count_multiplier_maximum: 2.5,
+					scaling_start_seconds: 120,
+					scaling_seconds: 900,
+					count_multiplier_maximum: 3.0,
 
                     zone_width_minimum: 0.08,
                     zone_width_maximum: 0.22,
 
                     patterns:
-                    [
-                        {
-                            key: "weak_cluster",
-                            name: "Weak Cluster",
+							[
+						{
+							key: "weak_cluster", name: "Weak Cluster", weight: 100, unlock_seconds: 0,
+							enemies: [
+							{ enemy_key: "enemy_weak", weight: 100 }
+							],
+							count_min: 6, count_max: 10, stagger_min_seconds: 0.12, stagger_max_seconds: 0.35
+						},
 
-                            weight: 100,
-                            unlock_seconds: 0,
+					    {
+					        key: "mixed_cluster", name: "Mixed Cluster", weight: 60, unlock_seconds: 120,
+					        enemies: [
+					            { enemy_key: "enemy_weak",           weight: 65 },
+					            { enemy_key: "enemy_hunter",         weight: 25 },
+					            { enemy_key: "enemy_shooter_single", weight: 10 }
+					        ],
+					        count_min: 8, count_max: 14, stagger_min_seconds: 0.10, stagger_max_seconds: 0.28
+					    },
 
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_weak",
-                                    weight: 100
-                                }
-                            ],
+					    {
+					        key: "kamikaze_cluster", name: "Kamikaze Cluster", weight: 20, unlock_seconds: 240,
+					        enemies: [
+					            { enemy_key: "enemy_kamikaze", weight: 100 }
+					        ],
+					        count_min: 3, count_max: 6, stagger_min_seconds: 0.25, stagger_max_seconds: 0.55
+					    },
 
-                            count_min: 6,
-                            count_max: 10,
+					    {
+					        key: "air_cluster", name: "Air Cluster", weight: 35, unlock_seconds: 300,
+					        enemies: [
+					            { enemy_key: "enemy_flyer", weight: 100 }
+					        ],
+					        count_min: 5, count_max: 9, stagger_min_seconds: 0.12, stagger_max_seconds: 0.26
+					    },
 
-                            stagger_min_seconds: 0.12,
-                            stagger_max_seconds: 0.35
-                        },
+					    {
+					        key: "ranged_cluster", name: "Ranged Cluster", weight: 32, unlock_seconds: 360,
+					        enemies: [
+					            { enemy_key: "enemy_shooter_single", weight: 65 },
+					            { enemy_key: "enemy_shooter_triple", weight: 35 }
+					        ],
+					        count_min: 5, count_max: 9, stagger_min_seconds: 0.18, stagger_max_seconds: 0.35
+					    },
 
-                        {
-                            key: "mixed_cluster",
-                            name: "Mixed Cluster",
+					    {
+					        key: "splitter_cluster", name: "Splitter Cluster", weight: 24, unlock_seconds: 420,
+					        enemies: [
+					            { enemy_key: "enemy_weak",     weight: 55 },
+					            { enemy_key: "enemy_splitter", weight: 45 }
+					        ],
+					        count_min: 5, count_max: 8, stagger_min_seconds: 0.20, stagger_max_seconds: 0.42
+					    },
 
-                            weight: 60,
-                            unlock_seconds: 120,
+					    {
+					        key: "heavy_cluster", name: "Heavy Cluster", weight: 18, unlock_seconds: 480,
+					        enemies: [
+					            { enemy_key: "enemy_hunter", weight: 55 },
+					            { enemy_key: "enemy_brute",  weight: 45 }
+					        ],
+					        count_min: 4, count_max: 7, stagger_min_seconds: 0.25, stagger_max_seconds: 0.50
+					    },
 
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_weak",
-                                    weight: 65
-                                },
+					    {
+					        key: "air_support_cluster", name: "Air Support Cluster", weight: 16, unlock_seconds: 540,
+					        enemies: [
+					            { enemy_key: "enemy_flyer",   weight: 70 },
+					            { enemy_key: "enemy_gunship", weight: 30 }
+					        ],
+					        count_min: 5, count_max: 8, stagger_min_seconds: 0.18, stagger_max_seconds: 0.38
+					    },
 
-                                {
-                                    enemy_key: "enemy_hunter",
-                                    weight: 25
-                                },
+					    {
+					        key: "transport_cluster", name: "Transport Cluster", weight: 12, unlock_seconds: 600,
+					        enemies: [
+					            { enemy_key: "enemy_hunter",      weight: 55 },
+					            { enemy_key: "enemy_transporter", weight: 20 },
+					            { enemy_key: "enemy_brute",       weight: 25 }
+					        ],
+					        count_min: 4, count_max: 7, stagger_min_seconds: 0.28, stagger_max_seconds: 0.55
+					    },
 
-                                {
-                                    enemy_key: "enemy_shooter_single",
-                                    weight: 10
-                                }
-                            ],
-
-                            count_min: 8,
-                            count_max: 14,
-
-                            stagger_min_seconds: 0.1,
-                            stagger_max_seconds: 0.28
-                        },
-
-                        {
-                            key: "kamikaze_cluster",
-                            name: "Kamikaze Cluster",
-
-                            weight: 20,
-                            unlock_seconds: 240,
-
-                            enemies:
-                            [
-                                {
-                                    enemy_key: "enemy_kamikaze",
-                                    weight: 100
-                                }
-                            ],
-
-                            count_min: 3,
-                            count_max: 6,
-
-                            stagger_min_seconds: 0.25,
-                            stagger_max_seconds: 0.55
-                        }
-                    ]
+					    {
+					        key: "advanced_mixed_cluster", name: "Advanced Mixed Cluster", weight: 14, unlock_seconds: 660,
+					        enemies: [
+					            { enemy_key: "enemy_hunter",         weight: 30 },
+					            { enemy_key: "enemy_shooter_triple", weight: 20 },
+					            { enemy_key: "enemy_kamikaze",       weight: 15 },
+					            { enemy_key: "enemy_splitter",       weight: 15 },
+					            { enemy_key: "enemy_flyer",          weight: 20 }
+					        ],
+					        count_min: 8, count_max: 13, stagger_min_seconds: 0.10, stagger_max_seconds: 0.25
+					    }
+					]
                 },
 
 
@@ -425,236 +372,203 @@ function scr_world_data_initialize()
     cycle_start_index: 2,
 
     definitions:
-    [
-        {
-            key: "weak_swarm",
-            name: "WEAK SWARM",
+		[
+		    {
+		        key: "weak_swarm",
+		        name: "WEAK SWARM",
 
-            groups:
-            [
-                {
-                    enemy_key: "enemy_weak",
-                    count: 24,
-                    modifiers: [],
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_weak", count: 24, modifiers: [],
+		                delay_seconds: 0, stagger_min_seconds: 0.08, stagger_max_seconds: 0.16,
+		                side: SpawnSide.INHERIT
+		            }
+		        ]
+		    },
 
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.08,
-                    stagger_max_seconds: 0.16,
+		    {
+		        key: "mixed_assault",
+		        name: "MIXED ASSAULT",
 
-                    side: SpawnSide.INHERIT
-                }
-            ]
-        },
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_weak", count: 22, modifiers: [],
+		                delay_seconds: 0, stagger_min_seconds: 0.07, stagger_max_seconds: 0.14,
+		                side: SpawnSide.INHERIT
+		            },
 
-        {
-            key: "mixed_assault",
-            name: "MIXED ASSAULT",
+		            {
+		                enemy_key: "enemy_hunter", count: 10, modifiers: [],
+		                delay_seconds: 3, stagger_min_seconds: 0.12, stagger_max_seconds: 0.22,
+		                side: SpawnSide.INHERIT
+		            },
 
-            groups:
-            [
-                {
-                    enemy_key: "enemy_weak",
-                    count: 24,
-                    modifiers: [],
+		            {
+		                enemy_key: "enemy_shooter_single", count: 5, modifiers: [],
+		                delay_seconds: 6, stagger_min_seconds: 0.18, stagger_max_seconds: 0.30,
+		                side: SpawnSide.INHERIT
+		            }
+		        ]
+		    },
 
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.07,
-                    stagger_max_seconds: 0.14,
+		    {
+		        key: "advanced_assault",
+		        name: "ADVANCED ASSAULT",
 
-                    side: SpawnSide.INHERIT
-                },
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_hunter", count: 14, modifiers: [],
+		                delay_seconds: 0, stagger_min_seconds: 0.10, stagger_max_seconds: 0.18,
+		                side: SpawnSide.INHERIT
+		            },
 
-                {
-                    enemy_key: "enemy_hunter",
-                    count: 10,
-                    modifiers: [],
+		            {
+		                enemy_key: "enemy_shooter_single", count: 10, modifiers: [],
+		                delay_seconds: 3, stagger_min_seconds: 0.15, stagger_max_seconds: 0.25,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    delay_seconds: 3,
-                    stagger_min_seconds: 0.12,
-                    stagger_max_seconds: 0.22,
+		            {
+		                enemy_key: "enemy_kamikaze", count: 7, modifiers: [],
+		                delay_seconds: 6, stagger_min_seconds: 0.20, stagger_max_seconds: 0.35,
+		                side: SpawnSide.RANDOM
+		            },
 
-                    side: SpawnSide.INHERIT
-                }
-            ]
-        },
+		            {
+		                enemy_key: "enemy_splitter", count: 4, modifiers: [],
+		                delay_seconds: 9, stagger_min_seconds: 0.28, stagger_max_seconds: 0.42,
+		                side: SpawnSide.INHERIT
+		            }
+		        ]
+		    },
 
-        {
-            key: "advanced_assault",
-            name: "ADVANCED ASSAULT",
+		    {
+		        key: "air_assault",
+		        name: "AIR ASSAULT",
 
-            groups:
-            [
-                {
-                    enemy_key: "enemy_hunter",
-                    count: 16,
-                    modifiers: [],
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_hunter", count: 12, modifiers: [],
+		                delay_seconds: 0, stagger_min_seconds: 0.10, stagger_max_seconds: 0.18,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.1,
-                    stagger_max_seconds: 0.18,
+		            {
+		                enemy_key: "enemy_shooter_triple", count: 7, modifiers: [],
+		                delay_seconds: 3, stagger_min_seconds: 0.16, stagger_max_seconds: 0.26,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    side: SpawnSide.INHERIT
-                },
+		            {
+		                enemy_key: "enemy_flyer", count: 16, modifiers: [],
+		                delay_seconds: 5, stagger_min_seconds: 0.10, stagger_max_seconds: 0.20,
+		                side: SpawnSide.RANDOM
+		            },
 
-                {
-                    enemy_key: "enemy_shooter_single",
-                    count: 10,
-                    modifiers: [],
+		            {
+		                enemy_key: "enemy_gunship", count: 3, modifiers: [],
+		                delay_seconds: 9, stagger_min_seconds: 0.35, stagger_max_seconds: 0.55,
+		                side: SpawnSide.RANDOM
+		            }
+		        ]
+		    },
 
-                    delay_seconds: 4,
-                    stagger_min_seconds: 0.15,
-                    stagger_max_seconds: 0.25,
+		    {
+		        key: "shield_assault",
+		        name: "HEAVY ASSAULT",
 
-                    side: SpawnSide.INHERIT
-                },
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_hunter", count: 14,
+		                modifiers: [ EnemyModifier.SHIELDED ],
+		                delay_seconds: 0, stagger_min_seconds: 0.10, stagger_max_seconds: 0.20,
+		                side: SpawnSide.INHERIT
+		            },
 
-                {
-                    enemy_key: "enemy_kamikaze",
-                    count: 6,
-                    modifiers: [],
+		            {
+		                enemy_key: "enemy_brute", count: 5, modifiers: [],
+		                delay_seconds: 4, stagger_min_seconds: 0.35, stagger_max_seconds: 0.55,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    delay_seconds: 8,
-                    stagger_min_seconds: 0.2,
-                    stagger_max_seconds: 0.35,
+		            {
+		                enemy_key: "enemy_splitter", count: 6,
+		                modifiers: [ EnemyModifier.SHIELDED ],
+		                delay_seconds: 7, stagger_min_seconds: 0.25, stagger_max_seconds: 0.40,
+		                side: SpawnSide.RANDOM
+		            },
 
-                    side: SpawnSide.RANDOM
-                }
-            ]
-        },
+		            {
+		                enemy_key: "enemy_transporter", count: 3, modifiers: [],
+		                delay_seconds: 11, stagger_min_seconds: 0.50, stagger_max_seconds: 0.80,
+		                side: SpawnSide.RANDOM
+		            }
+		        ]
+		    },
 
-        {
-            key: "air_assault",
-            name: "AIR ASSAULT",
+		    {
+		        key: "combined_assault",
+		        name: "COMBINED ASSAULT",
 
-            groups:
-            [
-                {
-                    enemy_key: "enemy_weak",
-                    count: 20,
-                    modifiers: [],
+		        groups:
+		        [
+		            {
+		                enemy_key: "enemy_hunter", count: 18, modifiers: [],
+		                delay_seconds: 0, stagger_min_seconds: 0.08, stagger_max_seconds: 0.16,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.08,
-                    stagger_max_seconds: 0.15,
+		            {
+		                enemy_key: "enemy_shooter_triple", count: 10, modifiers: [],
+		                delay_seconds: 3, stagger_min_seconds: 0.14, stagger_max_seconds: 0.24,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    side: SpawnSide.INHERIT
-                },
+		            {
+		                enemy_key: "enemy_flyer", count: 16, modifiers: [],
+		                delay_seconds: 5, stagger_min_seconds: 0.10, stagger_max_seconds: 0.20,
+		                side: SpawnSide.RANDOM
+		            },
 
-                {
-                    enemy_key: "enemy_flyer",
-                    count: 16,
-                    modifiers: [],
+		            {
+		                enemy_key: "enemy_gunship", count: 4, modifiers: [],
+		                delay_seconds: 8, stagger_min_seconds: 0.30, stagger_max_seconds: 0.50,
+		                side: SpawnSide.RANDOM
+		            },
 
-                    delay_seconds: 5,
-                    stagger_min_seconds: 0.12,
-                    stagger_max_seconds: 0.24,
+		            {
+		                enemy_key: "enemy_brute", count: 6,
+		                modifiers: [ EnemyModifier.SHIELDED ],
+		                delay_seconds: 10, stagger_min_seconds: 0.35, stagger_max_seconds: 0.55,
+		                side: SpawnSide.INHERIT
+		            },
 
-                    side: SpawnSide.RANDOM
-                }
-            ]
-        },
+		            {
+		                enemy_key: "enemy_transporter", count: 3, modifiers: [],
+		                delay_seconds: 13, stagger_min_seconds: 0.50, stagger_max_seconds: 0.80,
+		                side: SpawnSide.RANDOM
+		            },
 
-        {
-            key: "shield_assault",
-            name: "SHIELD ASSAULT",
+		            {
+		                enemy_key: "enemy_shield_generator", count: 2, modifiers: [],
+		                delay_seconds: 15, stagger_min_seconds: 0.80, stagger_max_seconds: 1.10,
+		                side: SpawnSide.INHERIT
+		            },
 
-            groups:
-            [
-                {
-                    enemy_key: "enemy_weak",
-                    count: 24,
-
-                    modifiers:
-                    [
-                        EnemyModifier.SHIELDED
-                    ],
-
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.08,
-                    stagger_max_seconds: 0.16,
-
-                    side: SpawnSide.INHERIT
-                },
-
-                {
-                    enemy_key: "enemy_hunter",
-                    count: 14,
-
-                    modifiers:
-                    [
-                        EnemyModifier.SHIELDED
-                    ],
-
-                    delay_seconds: 5,
-                    stagger_min_seconds: 0.12,
-                    stagger_max_seconds: 0.22,
-
-                    side: SpawnSide.INHERIT
-                }
-            ]
-        },
-
-        {
-            key: "combined_assault",
-            name: "COMBINED ASSAULT",
-
-            groups:
-            [
-                {
-                    enemy_key: "enemy_weak",
-                    count: 30,
-                    modifiers: [],
-
-                    delay_seconds: 0,
-                    stagger_min_seconds: 0.06,
-                    stagger_max_seconds: 0.12,
-
-                    side: SpawnSide.INHERIT
-                },
-
-                {
-                    enemy_key: "enemy_shooter_triple",
-                    count: 10,
-                    modifiers: [],
-
-                    delay_seconds: 4,
-                    stagger_min_seconds: 0.15,
-                    stagger_max_seconds: 0.25,
-
-                    side: SpawnSide.INHERIT
-                },
-
-                {
-                    enemy_key: "enemy_flyer",
-                    count: 16,
-                    modifiers: [],
-
-                    delay_seconds: 7,
-                    stagger_min_seconds: 0.1,
-                    stagger_max_seconds: 0.2,
-
-                    side: SpawnSide.RANDOM
-                },
-
-                {
-                    enemy_key: "enemy_splitter",
-                    count: 8,
-
-                    modifiers:
-                    [
-                        EnemyModifier.SHIELDED
-                    ],
-
-                    delay_seconds: 12,
-                    stagger_min_seconds: 0.25,
-                    stagger_max_seconds: 0.4,
-
-                    side: SpawnSide.RANDOM
-                }
-            ]
-        }
-    ]
-},
+		            {
+		                enemy_key: "enemy_siege_beam", count: 1, modifiers: [],
+		                delay_seconds: 18, stagger_min_seconds: 0, stagger_max_seconds: 0,
+		                side: SpawnSide.INHERIT
+		            }
+		        ]
+		    }
+		]
+	},
 
 
                 milestones:
