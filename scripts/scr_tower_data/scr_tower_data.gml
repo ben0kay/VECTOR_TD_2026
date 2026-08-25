@@ -49,6 +49,12 @@ function scr_tower_data_basic_ground()
                 description_long:
                     "A balanced kinetic tower that uses bullets to engage ordinary ground enemies."
             },
+			
+			build_menu:
+			{
+			order: 10
+			},
+
 
             visual:
             {
@@ -98,12 +104,12 @@ function scr_tower_data_basic_ground()
                 [{
                     resource_key: "resource_bullets",
 
-                    starting: 80,
-                    maximum: 100,
+                    starting: 200,
+                    maximum: 300,
 
                     amount_per_attack: 1,
                     request_threshold: 0.35,
-                    delivery_amount: 60
+                    delivery_amount: 150
                 }],
 
                 weapon:
@@ -322,6 +328,11 @@ function scr_tower_data_cannon()
                     "Launches heavy explosive shells that damage groups of ground enemies. It requires explosives for every attack."
             },
 
+			build_menu:
+			{
+			order: 40
+			},
+
             visual:
             {
                 color: make_color_rgb(90, 55, 25),
@@ -370,12 +381,12 @@ function scr_tower_data_cannon()
                 [{
                     resource_key: "resource_explosives",
 
-                    starting: 16,
-                    maximum: 20,
+                    starting: 75,
+                    maximum: 100,
 
                     amount_per_attack: 1,
                     request_threshold: 0.30,
-                    delivery_amount: 12
+                    delivery_amount: 50
                 }],
 
                 weapon:

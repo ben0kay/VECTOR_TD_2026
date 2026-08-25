@@ -3093,12 +3093,17 @@ function scr_hud_selection_panel_draw(_hud)
             + "  //  XP "
             + string(_selected.progression.experience)
         );
+		
+		scr_hud_tower_consumables_draw(
+		    _selected,
+		    210,
+		    _tray_top + 172
+		);
 
 
         // FUTURE:
         // attack behavior
         // overclock controls
-        // ammunition selection
         // manual targeting
     }
     else if (_selected.object_index == o_refinery)
@@ -3209,4 +3214,91 @@ function scr_hud_energy_priority_text(_priority)
     }
 
     return "UNKNOWN";
+}
+
+/// @description Draws live ammunition information for a selected tower.
+
+function scr_hud_tower_consumables_draw(
+    _tower,
+    _x,
+    _y
+)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!variable_instance_exists(_tower, "consumables"))
+        return true;
+
+    if (!is_array(_tower.consumables))
+        return true;
+
+    if (array_length(_tower.consumables) <= 0)
+        return true;
+
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        _x,
+        _y,
+        "AMMUNITION"
+    );
+
+    _y += 22;
+
+
+    for (var i = 0; i < array_length(_tower.consumables); ++i)
+    {
+        var _entry = _tower.consumables[i];
+
+        var _resource_data =
+            scr_resource_data_get(
+                _entry.resource_key
+            );
+
+        var _name = "UNKNOWN";
+        var _color = c_white;
+
+        if (scr_resource_data_valid(_resource_data))
+        {
+            _name =
+                string_upper(
+                    _resource_data.identity.name
+                );
+
+            _color =
+                _resource_data.visual.color;
+        }
+
+
+        if (_entry.current <= 0)
+            _color = c_red;
+        else if (
+            _entry.current
+            <= _entry.maximum
+            * _entry.request_threshold
+        )
+        {
+            _color = c_yellow;
+        }
+
+
+        scr_hud_label_value_draw(
+            _x,
+            _y,
+            _name,
+            string(floor(_entry.current))
+            + " / "
+            + string(floor(_entry.maximum)),
+            _color
+        );
+
+        _y += 20;
+    }
+
+
+    draw_set_color(c_white);
+
+    return true;
 }
