@@ -532,7 +532,7 @@ function scr_level_result_time_text(_seconds)
 }
 
 
-/// @description Creates the result-window button runtime.
+/// @description Creates the mission-result HUD controls.
 
 function scr_level_result_hud_create()
 {
@@ -556,21 +556,21 @@ function scr_level_result_hud_create()
             "MENU REQUIRED"
         );
 
-    var _exit =
+    var _exit_game =
         scr_hud_button_create(
-            "exit",
+            "exit_game",
             "EXIT GAME"
         );
 
 
     return
-        exit
+    {
         restart: _restart,
         next: _next,
-        menu: _menu,: _exit
+        menu: _menu,
+        exit_game: _exit_game
     };
 }
-
 
 /// @description Processes mission-result buttons.
 
@@ -638,7 +638,7 @@ function scr_level_result_hud_update(_hud)
     );
 
     scr_hud_button_bounds_set(
-        _buttons.exit,
+        _buttons.exit_game,
         _button_x,
         _button_y + ((_button_height + _button_spacing) * 3),
         _button_width,
@@ -655,7 +655,7 @@ function scr_level_result_hud_update(_hud)
     _buttons.restart.accent_color = _accent;
     _buttons.next.accent_color = _accent;
     _buttons.menu.accent_color = _accent;
-    _buttons.exit.accent_color = _accent;
+    _buttons.exit_game.accent_color = _accent;
 
 
     // Navigation buttons remain visible but disabled until their rooms
@@ -670,7 +670,7 @@ function scr_level_result_hud_update(_hud)
     _buttons.menu.enabled =
         false;
 
-    _buttons.exit.enabled =
+    _buttons.exit_game.enabled =
         _result.animation.input_ready;
 
 
@@ -685,7 +685,7 @@ function scr_level_result_hud_update(_hud)
     }
 
 
-    if (scr_hud_button_update(_buttons.exit))
+    if (scr_hud_button_update(_buttons.exit_game))
     {
         game_end();
         return true;
@@ -1214,7 +1214,7 @@ function scr_level_result_hud_draw(_hud)
     scr_hud_button_draw(_buttons.restart);
     scr_hud_button_draw(_buttons.next);
     scr_hud_button_draw(_buttons.menu);
-    scr_hud_button_draw(_buttons.exit);
+    scr_hud_button_draw(_buttons.exit_game);
 
 
     draw_set_alpha(1);
