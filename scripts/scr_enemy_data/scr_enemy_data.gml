@@ -8,21 +8,27 @@ function scr_enemy_data_initialize()
 
 
     if (!scr_enemy_data_weak()) return false;
-    if (!scr_enemy_data_hunter()) return false;
-    if (!scr_enemy_data_phaser()) return false;
+	if (!scr_enemy_data_weak_mk2()) return false;
+
+	if (!scr_enemy_data_hunter()) return false;
+	if (!scr_enemy_data_hunter_mk2()) return false;
+	if (!scr_enemy_data_phaser()) return false;
     if (!scr_enemy_data_shooter_single()) return false;
     if (!scr_enemy_data_shooter_triple()) return false;
     if (!scr_enemy_data_kamikaze()) return false;
     if (!scr_enemy_data_splitter()) return false;
     if (!scr_enemy_data_splitter_child()) return false;
+	
+	// flyers
     if (!scr_enemy_data_flyer()) return false;
+	if (!scr_enemy_data_heavy_flyer()) return false;
+	if (!scr_enemy_data_gunship()) return false;
 
 
     // Modernized original Vector enemies.
 
     if (!scr_enemy_data_brute()) return false;
     if (!scr_enemy_data_transporter()) return false;
-    if (!scr_enemy_data_gunship()) return false;
     if (!scr_enemy_data_shield_generator()) return false;
 
 
@@ -368,7 +374,7 @@ function scr_enemy_data_weak()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_weak,
-                radius: 12,
+                radius: 11,
                 color: c_yellow
             },
 
@@ -430,7 +436,7 @@ function scr_enemy_data_hunter()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_hunter,
-                radius: 12,
+                radius: 11,
                 color: c_red
             },
 
@@ -1727,6 +1733,253 @@ function scr_enemy_data_centipede_child()
 
             abilities: []
 			
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the slow CPU-sieging Heavy Flyer.
+
+function scr_enemy_data_heavy_flyer()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_heavy_flyer",
+        {
+            identity:
+            {
+                key: "enemy_heavy_flyer",
+                name: "Heavy Flyer"
+            },
+
+            behavior:
+                EnemyBehavior.STANDARD,
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_heavy_flyer,
+                radius: 34,
+                color: make_color_rgb(60, 210, 255)
+            },
+
+            vitals:
+            {
+                hp_maximum: 325,
+                shield_maximum: 100
+            },
+
+            movement:
+            {
+                speed: 0.78,
+                layer: EnemyMovementLayer.FLYING
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU,
+
+                player:
+                {
+                    enabled: false
+                }
+            },
+
+            navigation:
+            {
+                // Flying enemies ignore normal ground obstruction.
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+
+                damage: 85,
+                range: 500,
+                cooldown_seconds: 4.25,
+
+                projectile:
+                {
+                    // Deliberately large and slow.
+                    speed: 3.25,
+                    lifetime_seconds: 10,
+
+                    radius: 10,
+                    color: make_color_rgb(80, 220, 255),
+
+                    shot_count: 1,
+                    spread_degrees: 0,
+
+                    impact: ProjectileImpact.EXPLOSIVE,
+                    damage_radius: 110,
+
+                    // Uses the existing rocket projectile visual.
+                    rocket: true
+                }
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    60,
+                    12
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the Mk.II version of the Weak CPU Seeker.
+
+function scr_enemy_data_weak_mk2()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_weak_mk2",
+        {
+            identity:
+            {
+                key: "enemy_weak_mk2",
+                name: "Weak CPU Seeker Mk.II"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_weak_mk2,
+                radius: 14,
+                color: c_yellow
+            },
+
+            vitals:
+            {
+                hp_maximum: 35,
+                shield_maximum: 35
+            },
+
+            movement:
+            {
+                speed: 1.7,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 7,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    8,
+                    2
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the Mk.II version of the Building Hunter.
+
+function scr_enemy_data_hunter_mk2()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_hunter_mk2",
+        {
+            identity:
+            {
+                key: "enemy_hunter_mk2",
+                name: "Building Hunter Mk.II"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_hunter_mk2,
+                radius: 14,
+                color: c_red
+            },
+
+            vitals:
+            {
+                hp_maximum: 65,
+                shield_maximum: 40
+            },
+
+            movement:
+            {
+                speed: 1.35,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING,
+
+                player:
+                {
+                    enabled: true,
+
+                    acquire_range: 420,
+                    forget_range_multiplier: 1.3,
+                    acquire_chance: 0.30,
+
+                    require_line_of_sight: true,
+                    require_reachable: true
+                },
+
+                strategic_retarget:
+                {
+                    enabled: true,
+
+                    interval_minimum: 0.75,
+                    interval_maximum: 1.5,
+
+                    minimum_distance_advantage: 64,
+                    switch_ratio: 0.85
+                }
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 11,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    12,
+                    3
+                ),
+
+            abilities: []
         }
     );
 

@@ -2306,3 +2306,943 @@ function scr_enemy_visual_centipede_child(_enemy)
 
     return true;
 }
+
+/// @description Draws the large armoured Heavy Flyer siege aircraft.
+
+function scr_enemy_visual_heavy_flyer(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    // Heavy flyers hover slightly less dramatically than small drones.
+
+    var _hover =
+        scr_enemy_visual_hover_offset_get(
+            _enemy
+        )
+        * 0.65;
+
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y + _hover;
+
+
+    // ========================================================================
+    // GROUND SHADOW
+    // ========================================================================
+
+    var _shadow_pulse =
+        1
+        + dsin(
+            (global.vtd.tick * 0.8)
+            + real(_enemy.id)
+        )
+        * 0.025;
+
+
+    draw_set_alpha(0.24);
+    draw_set_color(c_black);
+
+    draw_ellipse(
+        _enemy.x - (_radius * 1.65 * _shadow_pulse),
+        _enemy.y + 9 - (_radius * 0.30),
+
+        _enemy.x + (_radius * 1.65 * _shadow_pulse),
+        _enemy.y + 9 + (_radius * 0.30),
+
+        false
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // LOCAL POINT HELPER VALUES
+    // ========================================================================
+
+    // Forward/backward vectors.
+
+    var _fx =
+        lengthdir_x(1, _angle);
+
+    var _fy =
+        lengthdir_y(1, _angle);
+
+    var _sx =
+        lengthdir_x(1, _angle + 90);
+
+    var _sy =
+        lengthdir_y(1, _angle + 90);
+
+
+    // ========================================================================
+    // BROAD MAIN WINGS
+    // ========================================================================
+
+    var _nose_x =
+        _x + (_fx * _radius * 1.12);
+
+    var _nose_y =
+        _y + (_fy * _radius * 1.12);
+
+
+    var _rear_x =
+        _x - (_fx * _radius * 0.82);
+
+    var _rear_y =
+        _y - (_fy * _radius * 0.82);
+
+
+    var _left_tip_x =
+        _x + (_sx * _radius * 1.95)
+        - (_fx * _radius * 0.08);
+
+    var _left_tip_y =
+        _y + (_sy * _radius * 1.95)
+        - (_fy * _radius * 0.08);
+
+
+    var _right_tip_x =
+        _x - (_sx * _radius * 1.95)
+        - (_fx * _radius * 0.08);
+
+    var _right_tip_y =
+        _y - (_sy * _radius * 1.95)
+        - (_fy * _radius * 0.08);
+
+
+    var _left_rear_x =
+        _x + (_sx * _radius * 1.10)
+        - (_fx * _radius * 0.72);
+
+    var _left_rear_y =
+        _y + (_sy * _radius * 1.10)
+        - (_fy * _radius * 0.72);
+
+
+    var _right_rear_x =
+        _x - (_sx * _radius * 1.10)
+        - (_fx * _radius * 0.72);
+
+    var _right_rear_y =
+        _y - (_sy * _radius * 1.10)
+        - (_fy * _radius * 0.72);
+
+
+    // Left outer wing.
+
+    draw_line_width(
+        _nose_x,
+        _nose_y,
+        _left_tip_x,
+        _left_tip_y,
+        3
+    );
+
+    draw_line_width(
+        _left_tip_x,
+        _left_tip_y,
+        _left_rear_x,
+        _left_rear_y,
+        3
+    );
+
+    draw_line_width(
+        _left_rear_x,
+        _left_rear_y,
+        _rear_x,
+        _rear_y,
+        3
+    );
+
+
+    // Right outer wing.
+
+    draw_line_width(
+        _nose_x,
+        _nose_y,
+        _right_tip_x,
+        _right_tip_y,
+        3
+    );
+
+    draw_line_width(
+        _right_tip_x,
+        _right_tip_y,
+        _right_rear_x,
+        _right_rear_y,
+        3
+    );
+
+    draw_line_width(
+        _right_rear_x,
+        _right_rear_y,
+        _rear_x,
+        _rear_y,
+        3
+    );
+
+
+    // ========================================================================
+    // INNER SWEPT WING ARMOUR
+    // ========================================================================
+
+    var _left_inner_x =
+        _x + (_sx * _radius * 1.20)
+        + (_fx * _radius * 0.15);
+
+    var _left_inner_y =
+        _y + (_sy * _radius * 1.20)
+        + (_fy * _radius * 0.15);
+
+
+    var _right_inner_x =
+        _x - (_sx * _radius * 1.20)
+        + (_fx * _radius * 0.15);
+
+    var _right_inner_y =
+        _y - (_sy * _radius * 1.20)
+        + (_fy * _radius * 0.15);
+
+
+    draw_line_width(
+        _left_tip_x,
+        _left_tip_y,
+        _left_inner_x,
+        _left_inner_y,
+        2
+    );
+
+    draw_line_width(
+        _left_inner_x,
+        _left_inner_y,
+        _x,
+        _y,
+        2
+    );
+
+
+    draw_line_width(
+        _right_tip_x,
+        _right_tip_y,
+        _right_inner_x,
+        _right_inner_y,
+        2
+    );
+
+    draw_line_width(
+        _right_inner_x,
+        _right_inner_y,
+        _x,
+        _y,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL ARMOURED DIAMOND
+    // ========================================================================
+
+    var _core_front_x =
+        _x + (_fx * _radius * 0.62);
+
+    var _core_front_y =
+        _y + (_fy * _radius * 0.62);
+
+
+    var _core_back_x =
+        _x - (_fx * _radius * 0.62);
+
+    var _core_back_y =
+        _y - (_fy * _radius * 0.62);
+
+
+    var _core_left_x =
+        _x + (_sx * _radius * 0.48);
+
+    var _core_left_y =
+        _y + (_sy * _radius * 0.48);
+
+
+    var _core_right_x =
+        _x - (_sx * _radius * 0.48);
+
+    var _core_right_y =
+        _y - (_sy * _radius * 0.48);
+
+
+    draw_line_width(
+        _core_front_x,
+        _core_front_y,
+        _core_left_x,
+        _core_left_y,
+        3
+    );
+
+    draw_line_width(
+        _core_left_x,
+        _core_left_y,
+        _core_back_x,
+        _core_back_y,
+        3
+    );
+
+    draw_line_width(
+        _core_back_x,
+        _core_back_y,
+        _core_right_x,
+        _core_right_y,
+        3
+    );
+
+    draw_line_width(
+        _core_right_x,
+        _core_right_y,
+        _core_front_x,
+        _core_front_y,
+        3
+    );
+
+
+    // ========================================================================
+    // UPPER / REAR SPINE
+    // ========================================================================
+
+    var _spine_front_x =
+        _x + (_fx * _radius * 0.15);
+
+    var _spine_front_y =
+        _y + (_fy * _radius * 0.15);
+
+
+    var _spine_rear_x =
+        _x - (_fx * _radius * 1.16);
+
+    var _spine_rear_y =
+        _y - (_fy * _radius * 1.16);
+
+
+    var _spine_left_x =
+        _x + (_sx * _radius * 0.27)
+        - (_fx * _radius * 0.72);
+
+    var _spine_left_y =
+        _y + (_sy * _radius * 0.27)
+        - (_fy * _radius * 0.72);
+
+
+    var _spine_right_x =
+        _x - (_sx * _radius * 0.27)
+        - (_fx * _radius * 0.72);
+
+    var _spine_right_y =
+        _y - (_sy * _radius * 0.27)
+        - (_fy * _radius * 0.72);
+
+
+    draw_line_width(
+        _spine_front_x,
+        _spine_front_y,
+        _spine_left_x,
+        _spine_left_y,
+        2
+    );
+
+    draw_line_width(
+        _spine_left_x,
+        _spine_left_y,
+        _spine_rear_x,
+        _spine_rear_y,
+        2
+    );
+
+    draw_line_width(
+        _spine_rear_x,
+        _spine_rear_y,
+        _spine_right_x,
+        _spine_right_y,
+        2
+    );
+
+    draw_line_width(
+        _spine_right_x,
+        _spine_right_y,
+        _spine_front_x,
+        _spine_front_y,
+        2
+    );
+
+
+    // ========================================================================
+    // ROCKET LAUNCHER / FORWARD WEAPON
+    // ========================================================================
+
+    var _launcher_back_x =
+        _x + (_fx * _radius * 0.25);
+
+    var _launcher_back_y =
+        _y + (_fy * _radius * 0.25);
+
+
+    var _launcher_front_x =
+        _x + (_fx * _radius * 1.35);
+
+    var _launcher_front_y =
+        _y + (_fy * _radius * 1.35);
+
+
+    draw_line_width(
+        _launcher_back_x,
+        _launcher_back_y,
+        _launcher_front_x,
+        _launcher_front_y,
+        4
+    );
+
+
+    // ========================================================================
+    // ENERGY CORE
+    // ========================================================================
+
+    var _pulse =
+        0.62
+        + dsin(
+            (global.vtd.tick * 5)
+            + real(_enemy.id)
+        )
+        * 0.18;
+
+
+    draw_set_alpha(_pulse);
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.22,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    draw_circle(
+        _x,
+        _y,
+        2,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the reinforced Mk.II version of the Weak CPU Seeker.
+
+function scr_enemy_visual_weak_mk2(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    // ========================================================================
+    // BASE MK.I SHAPE
+    // ========================================================================
+
+    scr_enemy_visual_weak(_enemy);
+
+
+    // ========================================================================
+    // REINFORCED CENTRAL ARMOUR
+    // ========================================================================
+
+    var _front_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.55,
+            _angle
+        );
+
+    var _front_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.55,
+            _angle
+        );
+
+
+    var _rear_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.55,
+            _angle + 180
+        );
+
+    var _rear_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.55,
+            _angle + 180
+        );
+
+
+    var _left_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.42,
+            _angle + 90
+        );
+
+    var _left_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.42,
+            _angle + 90
+        );
+
+
+    var _right_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.42,
+            _angle - 90
+        );
+
+    var _right_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.42,
+            _angle - 90
+        );
+
+
+    draw_set_color(_color);
+    draw_set_alpha(0.95);
+
+
+    // Central reinforcement diamond.
+
+    draw_line_width(
+        _front_x,
+        _front_y,
+        _left_x,
+        _left_y,
+        2
+    );
+
+    draw_line_width(
+        _left_x,
+        _left_y,
+        _rear_x,
+        _rear_y,
+        2
+    );
+
+    draw_line_width(
+        _rear_x,
+        _rear_y,
+        _right_x,
+        _right_y,
+        2
+    );
+
+    draw_line_width(
+        _right_x,
+        _right_y,
+        _front_x,
+        _front_y,
+        2
+    );
+
+
+    // ========================================================================
+    // INNER ARMOUR BRACES
+    // ========================================================================
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _blade_angle =
+            _angle
+            + (i * 120);
+
+
+        var _inner_x =
+            _x
+            + lengthdir_x(
+                _radius * 0.46,
+                _blade_angle
+            );
+
+        var _inner_y =
+            _y
+            + lengthdir_y(
+                _radius * 0.46,
+                _blade_angle
+            );
+
+
+        var _outer_x =
+            _x
+            + lengthdir_x(
+                _radius * 0.78,
+                _blade_angle
+            );
+
+        var _outer_y =
+            _y
+            + lengthdir_y(
+                _radius * 0.78,
+                _blade_angle
+            );
+
+
+        draw_line_width(
+            _inner_x,
+            _inner_y,
+            _outer_x,
+            _outer_y,
+            2
+        );
+    }
+
+
+    // ========================================================================
+    // HEAVIER CORE
+    // ========================================================================
+
+    draw_set_alpha(0.35);
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.28,
+        false
+    );
+
+
+    draw_set_alpha(1);
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.12,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the reinforced Mk.II version of the Building Hunter.
+
+function scr_enemy_visual_hunter_mk2(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    // ========================================================================
+    // BASE MK.I SHAPE
+    // ========================================================================
+
+    scr_enemy_visual_hunter(_enemy);
+
+
+    // ========================================================================
+    // HEAVY CENTRAL PLATING
+    // ========================================================================
+
+    var _plate_radius =
+        _radius * 0.52;
+
+
+    var _front_x =
+        _x
+        + lengthdir_x(
+            _plate_radius,
+            _angle
+        );
+
+    var _front_y =
+        _y
+        + lengthdir_y(
+            _plate_radius,
+            _angle
+        );
+
+
+    var _back_x =
+        _x
+        + lengthdir_x(
+            _plate_radius,
+            _angle + 180
+        );
+
+    var _back_y =
+        _y
+        + lengthdir_y(
+            _plate_radius,
+            _angle + 180
+        );
+
+
+    var _left_x =
+        _x
+        + lengthdir_x(
+            _plate_radius,
+            _angle + 90
+        );
+
+    var _left_y =
+        _y
+        + lengthdir_y(
+            _plate_radius,
+            _angle + 90
+        );
+
+
+    var _right_x =
+        _x
+        + lengthdir_x(
+            _plate_radius,
+            _angle - 90
+        );
+
+    var _right_y =
+        _y
+        + lengthdir_y(
+            _plate_radius,
+            _angle - 90
+        );
+
+
+    draw_set_color(_color);
+    draw_set_alpha(1);
+
+
+    draw_line_width(
+        _front_x,
+        _front_y,
+        _left_x,
+        _left_y,
+        3
+    );
+
+    draw_line_width(
+        _left_x,
+        _left_y,
+        _back_x,
+        _back_y,
+        3
+    );
+
+    draw_line_width(
+        _back_x,
+        _back_y,
+        _right_x,
+        _right_y,
+        3
+    );
+
+    draw_line_width(
+        _right_x,
+        _right_y,
+        _front_x,
+        _front_y,
+        3
+    );
+
+
+    // ========================================================================
+    // BLADE REINFORCEMENT RAILS
+    // ========================================================================
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _blade_angle =
+            _angle
+            + (i * 120);
+
+
+        var _rail_left_angle =
+            _blade_angle - 9;
+
+        var _rail_right_angle =
+            _blade_angle + 9;
+
+
+        var _inner_distance =
+            _radius * 0.50;
+
+        var _outer_distance =
+            _radius * 0.92;
+
+
+        var _inner_left_x =
+            _x
+            + lengthdir_x(
+                _inner_distance,
+                _rail_left_angle
+            );
+
+        var _inner_left_y =
+            _y
+            + lengthdir_y(
+                _inner_distance,
+                _rail_left_angle
+            );
+
+
+        var _outer_left_x =
+            _x
+            + lengthdir_x(
+                _outer_distance,
+                _rail_left_angle
+            );
+
+        var _outer_left_y =
+            _y
+            + lengthdir_y(
+                _outer_distance,
+                _rail_left_angle
+            );
+
+
+        var _inner_right_x =
+            _x
+            + lengthdir_x(
+                _inner_distance,
+                _rail_right_angle
+            );
+
+        var _inner_right_y =
+            _y
+            + lengthdir_y(
+                _inner_distance,
+                _rail_right_angle
+            );
+
+
+        var _outer_right_x =
+            _x
+            + lengthdir_x(
+                _outer_distance,
+                _rail_right_angle
+            );
+
+        var _outer_right_y =
+            _y
+            + lengthdir_y(
+                _outer_distance,
+                _rail_right_angle
+            );
+
+
+        draw_line_width(
+            _inner_left_x,
+            _inner_left_y,
+            _outer_left_x,
+            _outer_left_y,
+            2
+        );
+
+        draw_line_width(
+            _inner_right_x,
+            _inner_right_y,
+            _outer_right_x,
+            _outer_right_y,
+            2
+        );
+    }
+
+
+    // ========================================================================
+    // CORE / ARMOUR HUB
+    // ========================================================================
+
+    draw_set_alpha(0.25);
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.36,
+        false
+    );
+
+
+    draw_set_alpha(1);
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.16,
+        true
+    );
+
+
+    // Small inner white point makes the core read more clearly.
+
+    draw_set_color(c_white);
+
+    draw_circle(
+        _x,
+        _y,
+        2,
+        true
+    );
+
+
+    return true;
+}
