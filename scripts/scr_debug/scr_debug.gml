@@ -5,14 +5,20 @@ function scr_debug_menu_create()
     return
     {
         open: false,
+
         width: 760,
         height: 620,
+
         columns: 2,
         row_height: 48,
         gap: 8,
+
         scroll_row: 0,
         spawn_count: 1,
+
         shielded: false,
+        stealthed: false,
+
         color: c_aqua
     };
 }
@@ -725,27 +731,3 @@ function scr_debug_menu_draw(_hud)
     return true;
 }
 
-/// @description Creates the clickable enemy debug interface.
-
-function scr_debug_menu_create()
-{
-    return
-    {
-        open: false,
-
-        width: 760,
-        height: 620,
-
-        columns: 2,
-        row_height: 48,
-        gap: 8,
-
-        scroll_row: 0,
-        spawn_count: 1,
-
-        shielded: false,
-        stealthed: false,
-
-        color: c_aqua
-    };
-}
