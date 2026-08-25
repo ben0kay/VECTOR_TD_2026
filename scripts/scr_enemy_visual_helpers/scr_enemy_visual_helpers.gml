@@ -567,3 +567,138 @@ function scr_enemy_visual_helper_triangle_ring(
 
     return true;
 }
+
+// ============================================================================
+// LOCAL-SPACE LINE
+// ============================================================================
+
+/// @description Draws a line between two local-space points, rotated around a world-space center.
+
+function scr_enemy_visual_helper_local_line(
+    _x,
+    _y,
+    _angle,
+    _x1,
+    _y1,
+    _x2,
+    _y2,
+    _width = 1
+)
+{
+    var _cos = dcos(_angle);
+    var _sin = dsin(_angle);
+
+
+    // GameMaker direction convention:
+    // +X local = forward
+    // +Y local = right side of the craft
+
+    var _world_x1 =
+        _x
+        + (_x1 * _cos)
+        + (_y1 * _sin);
+
+    var _world_y1 =
+        _y
+        - (_x1 * _sin)
+        + (_y1 * _cos);
+
+
+    var _world_x2 =
+        _x
+        + (_x2 * _cos)
+        + (_y2 * _sin);
+
+    var _world_y2 =
+        _y
+        - (_x2 * _sin)
+        + (_y2 * _cos);
+
+
+    draw_line_width(
+        _world_x1,
+        _world_y1,
+        _world_x2,
+        _world_y2,
+        _width
+    );
+
+
+    return true;
+}
+
+// ============================================================================
+// LOCAL-SPACE POLYGON
+// ============================================================================
+
+/// @description Draws a closed polygon from local-space [x,y] points.
+
+function scr_enemy_visual_helper_local_polygon(
+    _x,
+    _y,
+    _angle,
+    _points,
+    _width = 1
+)
+{
+    var _count =
+        array_length(_points);
+
+    if (_count < 3)
+        return false;
+
+
+    var _cos =
+        dcos(_angle);
+
+    var _sin =
+        dsin(_angle);
+
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _next =
+            (i + 1) mod _count;
+
+
+        var _p1 =
+            _points[i];
+
+        var _p2 =
+            _points[_next];
+
+
+        var _x1 =
+            _x
+            + (_p1[0] * _cos)
+            + (_p1[1] * _sin);
+
+        var _y1 =
+            _y
+            - (_p1[0] * _sin)
+            + (_p1[1] * _cos);
+
+
+        var _x2 =
+            _x
+            + (_p2[0] * _cos)
+            + (_p2[1] * _sin);
+
+        var _y2 =
+            _y
+            - (_p2[0] * _sin)
+            + (_p2[1] * _cos);
+
+
+        draw_line_width(
+            _x1,
+            _y1,
+            _x2,
+            _y2,
+            _width
+        );
+    }
+
+
+    return true;
+}

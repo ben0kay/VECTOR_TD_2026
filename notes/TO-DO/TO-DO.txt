@@ -6,17 +6,21 @@ Repository:
 
 `https://github.com/ben0kay/VECTOR_TD_2026`
 
-Latest GitHub commit visible while preparing this handover:
+Latest inspected commit when this handover was written:
 
-`a177b7196680d57d2eea5b54750b00cf43245640`
+`52a1aec`
 
-Always inspect the newest GitHub push before supplying code. Do not assume this document is newer than the repository.
+Always inspect the newest GitHub push before giving code. The repository may be newer than this document.
 
-If available, also inspect the original project:
+Also request and inspect the original game when available:
 
 `VECTOR RTS TD.zip`
 
-The original game is the gameplay reference. Its old code may be messy, but its mechanics, structure, pacing, enemy behaviors and overall feel should guide this rebuild.
+Known location previously supplied:
+
+`C:/Users/Ben/GameMakerProjects/BEN VECTOR/VECTOR RTS TD.zip`
+
+The original Vector game is the gameplay reference. Its code is old and messy, but its mechanics, pacing, enemy behavior and recognizable structure should guide this rebuild.
 
 If the ZIP is unavailable in a new chat, ask the user to provide it.
 
@@ -29,70 +33,73 @@ VECTOR TD 2026 is a modern rebuild of the user’s original Vector TD.
 It should remain:
 
 - understandable to the user;
-- structurally familiar;
-- data-driven where useful;
+- structurally familiar to the original;
+- data-driven where it genuinely helps;
 - easy to expand;
-- suitable for hundreds of enemies;
-- focused on fortress defense;
-- based on MP-grid navigation;
+- capable of handling hundreds of enemies;
+- centered around fortress and tower defense;
+- based on GameMaker MP-grid navigation;
 - visually styled around vector primitives;
-- open to sprites and particle effects later.
+- open to sprites and richer particle effects later.
 
-The game combines:
+Gameplay inspiration includes the original Vector TD and selected ideas from Riftbreaker:
 
-- tower defense;
-- fortress construction;
-- player movement and shooting;
-- resource extraction;
-- logistics;
-- local energy networks;
-- enemy pressure and major waves;
-- light simulation mechanics;
-- future research and progression.
+- defend a central CPU;
+- build walls, towers and infrastructure;
+- extract and refine resources;
+- manage local energy networks;
+- survive continuous pressure and major waves;
+- move and fight as the player;
+- combine tower defense with light simulation.
 
-Do not redesign it into an overly abstract framework.
+Do not redesign the project into an overly abstract engine the user cannot follow.
 
 ---
 
-# 2. Preferred coding style
+# 2. How to work with the user
 
-Use:
+The user strongly prefers:
 
 - complete replacement functions and events;
-- direct instructions;
+- a short plain-language explanation before each function;
+- direct instructions such as “replace this function”;
 - enums and switch statements;
-- related variables grouped into structs;
-- macros where they remove genuine repetition;
-- one registration function per tower;
-- one registration function per enemy;
-- compact vertical formatting;
-- small, useful comments;
+- structs for related runtime variables;
+- compact vertical code;
+- small useful comments;
 - `// FUTURE:` hooks;
-- custom `draw_angle`;
-- custom `draw_scale` when sprites are introduced.
+- modular scripts separated by responsibility;
+- one enemy registration function per enemy;
+- one tower registration function per tower;
+- inspecting the latest push before coding.
 
-Prefer names such as:
+Important:
 
-- `GameState`
-- `LevelState`
+- The user manually copies code from chat into GameMaker.
+- Do not generate replacement project ZIPs or overwrite project files unless explicitly requested.
+- Do not repeatedly rewrite the same large function for tiny additions.
+- Look slightly ahead and implement a complete phase where practical.
+- Avoid scattering endless enemy-specific `if` checks through generic events.
+- Use fast flags or optional data only when necessary.
+- Do not introduce a new enum or architecture merely because an enemy is visually unusual.
+- Preserve the familiar original Vector style whenever a simpler implementation works.
+
+Preferred state naming:
+
+- `global.GameState`
+- `global.LevelState`
 - `PlayerState`
 - `BuildingState`
 - `EnemyState`
 
-Avoid:
+Use custom:
 
-- repeated tiny patches to the same function;
-- duplicate function names;
-- one object per tower variation;
-- one object per enemy variation;
-- unnecessary manager layers;
-- flow-field navigation;
-- unexplained large code dumps;
-- variables named `power`, because `power()` is built into GameMaker.
+- `draw_angle`
+- future `draw_scale`
 
-Use `energy` for electrical runtime data.
+Do not rely on `image_angle` for gameplay-facing rotation.
 
-Enums such as `BuildingType.POWER_NODE` remain safe.
+Do not use `power` as a runtime variable name because `power()` is a GameMaker function. Electrical runtime uses `energy`.
 
 ---
 
@@ -105,54 +112,91 @@ Enums such as `BuildingType.POWER_NODE` remain safe.
 - `global.vtd`;
 - the global tick;
 - databases;
-- major game state;
+- global game state;
 - persistent systems;
 - data initialization.
 
 ## Level runtime
 
-`o_controller_level` owns one active level through:
+`o_controller_level` owns:
 
 `global.vtd_level`
 
-This includes:
+This contains the active level’s:
 
 - elapsed time;
-- map and world data;
+- important entities;
+- world and grid;
 - navigation;
-- resources;
-- enemies and combat;
-- wave pressure;
+- inventory;
+- combat statistics;
+- pressure systems;
+- build runtime;
 - local energy networks;
-- build state;
-- level modifiers;
-- important entity references.
+- mission result;
+- level modifiers.
 
-## Generic objects
+## Main objects
 
-Current architecture uses category objects:
+Current architecture includes:
 
+- `o_controller_main`
+- `o_controller_level`
+- `o_controller_build`
+- `o_controller_energy`
+- `o_controller_fog`
+- `o_camera`
+- `o_player`
+- `o_cpu`
 - `o_building_par`
 - `o_tower`
 - `o_wall`
 - `o_miner`
 - `o_storage`
+- `o_refinery`
+- `o_utility`
 - `o_foundation`
 - `o_energy_generator`
 - `o_energy_node`
 - `o_energy_battery`
 - `o_enemy`
-- `o_projectile_tower`
-- `o_projectile_player`
-- `o_projectile_enemy`
-- `o_pickup`
+- `o_enemy_spawner`
+- projectile objects
+- cargo drones
+- pickups
+- effects
 - `o_hud_level`
 
-Variations normally come from data definitions rather than new objects.
+Variations normally come from data definitions, not separate objects.
 
-## Building inheritance
+Examples:
 
-A specialized building Step Event should normally resemble:
+- all tower types use `o_tower`;
+- all enemy types use `o_enemy`;
+- all foundation types use `o_foundation`;
+- all utility types use `o_utility`.
+
+Separate objects are used for broad categories where their events and responsibilities are meaningfully different.
+
+---
+
+# 4. Building inheritance
+
+`o_building_par` owns shared building runtime:
+
+- definition lookup;
+- identity;
+- HP;
+- construction;
+- footprint;
+- energy;
+- selection;
+- state;
+- cleanup.
+
+Specialized buildings inherit the parent events.
+
+A specialized Step Event should remain compact:
 
 ```gml
 event_inherited();
@@ -166,43 +210,13 @@ if (!BUILDING_CAN_OPERATE)
 scr_tower_update(id);
 ```
 
-Use the relevant update function for miners, storage and other categories.
+Use the corresponding update for miners, storage, refineries, utilities and foundations.
+
+Avoid duplicating generic gameplay-state checks when the inherited parent already handles them, except when the specialized event genuinely needs its own guard.
 
 ---
 
-# 4. Current implemented systems
-
-## Player and camera
-
-Implemented:
-
-- player movement;
-- player shooting;
-- custom facing;
-- square collision;
-- axis-separated movement;
-- smooth sliding along solids;
-- camera follow;
-- camera roaming;
-- zoom;
-- map-bound clamping;
-- camera shake foundation.
-
-Player movement uses:
-
-- `collision.half_width`
-- `collision.half_height`
-- `scr_player_axis_move()`
-- `scr_world_rectangle_gameplay_solid()`
-
-Player projectiles should stop on:
-
-- dead terrain;
-- resource terrain;
-- CPU;
-- ordinary buildings.
-
-Player projectiles may pass over `o_wall`.
+# 5. World and navigation
 
 ## World generation
 
@@ -211,126 +225,359 @@ Implemented:
 - grid-based world;
 - open cells;
 - dead terrain;
-- resource deposits;
-- weighted resource generation;
-- guaranteed deposits;
-- clusters;
-- veins;
-- solid terrain registration;
-- configurable world definitions.
+- resource cells;
+- clustered dead-cell generation;
+- resource veins;
+- weighted resources;
+- guaranteed resource deposits;
+- safe area around the starting CPU;
+- configurable world definitions;
+- map layers.
 
-Current terrain intentionally resembles the original game:
+Current world design intentionally resembles the original Vector:
 
 - open ground;
 - dead/unusable cells;
 - ore deposits.
 
-## Foundations
+Dead terrain:
+
+- blocks ground movement;
+- blocks ordinary projectile line of sight;
+- blocks construction;
+- does not block flying movement;
+- should eventually use efficient sprite or batched rendering.
+
+## Navigation
+
+Navigation intentionally uses GameMaker MP grids.
 
 Implemented:
 
-- `o_foundation`;
-- separate foundation occupancy;
-- placement beneath buildings;
-- dedicated `Foundations` layer;
-- approximately 15% player speed bonus;
-- approximately 5% building HP bonus when fully supported.
+- normal ground grid;
+- breach grid;
+- flying movement;
+- dead-terrain obstruction;
+- building obstruction;
+- revision tracking;
+- staggered repathing;
+- delayed blocked-route checks;
+- breach fallback;
+- phasing;
+- brainless movement;
+- player-follow repathing;
+- combat-position navigation.
 
-Possible future foundations:
+Do not reintroduce flow fields unless explicitly requested.
 
-- reinforced;
-- conductive;
-- insulated;
-- damaged;
-- corrupted;
-- decorative.
+Performance target:
 
-## Construction
+- 100–300 enemies;
+- no large placement freeze;
+- no mass same-frame path rebuilding.
+
+Use profiling before adding more IFRAMES or culling logic.
+
+---
+
+# 6. Player and camera
 
 Implemented:
 
-- placement previews;
+- player movement;
+- player shooting;
+- custom facing;
+- custom `draw_angle`;
+- square collision;
+- axis-separated movement;
+- sliding along walls and buildings;
+- HP;
+- health bar;
+- player death;
+- player death causing mission failure;
+- enemy contact damage;
+- enemy projectile damage;
+- pickups.
+
+Camera modes:
+
+- follow player;
+- roaming;
+- zoom;
+- room-bound clamping;
+- camera shake foundation.
+
+Controls:
+
+- in follow mode, arrow keys move the player;
+- in roaming mode, arrow keys move the camera.
+
+Player projectiles:
+
+- stop on dead terrain;
+- stop on ordinary buildings and CPU;
+- may pass over cheap wall buildings;
+- may eventually use more attack-area shapes and effects.
+
+Future player features:
+
+- shield;
+- respawn upgrade;
+- weapons;
+- equipment;
+- persistent progression;
+- active abilities.
+
+---
+
+# 7. Building and construction systems
+
+Implemented:
+
+- data-driven definitions;
+- category objects;
 - grid footprints;
+- placement previews;
 - reservations;
-- construction costs;
-- construction state;
-- timed construction;
+- costs;
+- construction time;
 - construction HP growth;
 - progress bars;
-- active state;
-- correct full HP for zero-time construction;
+- zero-time construction at full HP;
+- active, disabled and destroyed states;
 - selling;
-- disabling;
-- building selection;
-- building-specific HUD panels.
+- selecting buildings;
+- building-specific lower HUD panels;
+- tower range display;
+- line-of-sight checks;
+- capacity limits;
+- capacity hubs.
 
-## Resources and logistics
+Current build-limit categories:
 
-Implemented resources include:
+- tower;
+- defense;
+- economy;
+- infrastructure;
+- foundation.
+
+Current hubs:
+
+- Tower Operations Hub;
+- Defense Coordination Hub;
+- Economy Administration Hub;
+- Infrastructure Control Hub;
+- Foundation Control Hub.
+
+Destroying a hub should remove the capacity it provided.
+
+---
+
+# 8. Build HUD
+
+Implemented:
+
+- bottom horizontal build tray;
+- category tabs;
+- building cards;
+- horizontal scrolling;
+- left/right arrows;
+- hover inspector;
+- descriptions;
+- stats;
+- costs;
+- selection;
+- placement;
+- right-click cancellation;
+- dedicated Foundation category;
+- category hotkeys;
+- deterministic building-card order.
+
+Current build categories:
+
+- Towers
+- Defense
+- Extraction
+- Storage
+- Power
+- Production
+- Support
+- Foundation
+
+`B` opens or closes the build interface.
+
+Number keys switch visible categories while the build interface is open.
+
+Building order comes from optional definition data:
+
+```gml
+build_menu:
+{
+    order: 10
+}
+```
+
+Use gaps:
+
+- 10
+- 20
+- 30
+- 40
+
+Buildings without an explicit order fall to the end. Their relative order is not guaranteed.
+
+Future HUD work:
+
+- improve card preview art;
+- display locked technology;
+- research requirements;
+- category availability;
+- controller support;
+- polished iconography.
+
+---
+
+# 9. Resources, storage and logistics
+
+Current resources include:
 
 - credits;
 - carbon;
 - silicon;
-- copper.
+- copper;
+- refined carbon;
+- refined silicon;
+- refined copper.
+
+Credits are the primary construction currency.
 
 Implemented:
 
-- inventories;
+- inventory;
+- resource definitions;
+- resource types;
 - deposits;
-- miners;
 - matching miner/deposit rules;
-- storage;
-- extraction;
+- miner hoppers;
+- resource-specific storage;
+- storage destruction removing stored resources;
+- multi-resource build costs;
 - cargo reservations;
 - cargo drones;
-- delivery;
-- multi-resource cost arrays;
-- HUD resource displays.
+- miner deliveries;
+- refinery input jobs;
+- refinery output jobs;
+- HUD resource display.
 
-Credits are currently the main construction currency.
+The user wants visible logistics without excessive micromanagement.
 
-Refineries and processed resources remain deferred.
+Continue using drones where they make production chains readable.
+
+Future logistics possibilities:
+
+- larger drones;
+- drone speed upgrades;
+- drone capacity upgrades;
+- disrupted routes;
+- hostile interception;
+- priority deliveries;
+- local stockpiles.
 
 ---
 
-# 5. Local energy networks
+# 10. Refinery system
 
-The local energy foundation is implemented.
+Recently implemented:
 
-Do not replace it with one global energy pool.
+- `o_refinery`;
+- recipe database;
+- refined resources;
+- recipe selection;
+- automatic repeated production;
+- input requests;
+- cargo delivery from storage;
+- processing timer;
+- energy-per-second demand;
+- output-ready state;
+- blocked-output state;
+- output delivery to compatible storage;
+- refinery HUD panel;
+- progress display;
+- production state enum.
 
-Buildings may participate as:
+Current recipes:
 
-- generators;
-- nodes;
-- batteries;
-- consumers.
+- 100 carbon → 1 refined carbon;
+- 100 silicon → 1 refined silicon;
+- 100 copper → 1 refined copper.
+
+Current base times:
+
+- refined carbon: 30 seconds;
+- refined silicon: 45 seconds;
+- refined copper: 40 seconds.
+
+Expected production flow:
+
+1. Select a recipe.
+2. Refinery requests raw inputs.
+3. Cargo drone collects inputs from compatible storage.
+4. Drone delivers them to the refinery.
+5. Refinery processes while operational and powered.
+6. Output becomes ready.
+7. Cargo drone transports refined output to compatible storage.
+8. Automatic mode begins another batch if resources remain available.
+
+Refinery system is new and needs broader gameplay testing.
+
+Verify:
+
+- recipe selection;
+- input reservation;
+- storage loss;
+- insufficient resources;
+- disabled refinery;
+- energy loss;
+- output storage full;
+- refinery destruction;
+- drone destruction;
+- recipe switching;
+- repeated automatic batches;
+- resource HUD totals.
+
+Do not build an excessive queue system until this single automatic recipe loop is proven.
+
+---
+
+# 11. Local energy networks
+
+Energy is local, not one magical global pool.
 
 Implemented:
 
-- isolated local networks;
-- topology rebuilding;
-- network merging and splitting;
 - generators;
+- relays/nodes;
 - consumers;
 - batteries;
+- isolated networks;
+- merging;
+- splitting;
+- topology rebuilding;
+- input/output totals;
 - charging;
 - discharging;
 - internal building buffers;
 - idle demand;
 - activity demand;
-- firing costs;
-- mining costs;
-- energy supply state;
-- building enable/disable;
-- energy priority;
-- selected-building energy information;
-- top-bar input/output;
-- network overlay;
-- buffer bars;
-- deficit alerts;
-- recovery alerts;
-- battery alerts.
+- firing cost;
+- mining cost;
+- refining demand;
+- enable/disable;
+- priorities;
+- deficit and recovery notifications;
+- energy overlay;
+- selected-building energy data;
+- top-bar global totals.
 
 Priority order:
 
@@ -339,1262 +586,556 @@ Priority order:
 3. Normal
 4. Low
 
-`P` cycles the energy visualization.
+`P` cycles the energy overlay.
 
-Future energy buildings:
+The global HUD total is the sum of all local networks, not a shared supply.
+
+Future energy content:
 
 - wind turbine;
 - large solar array;
-- long-range relay;
 - compact relay;
+- long-range relay;
 - large battery;
 - fast-discharge capacitor;
-- emergency generator.
-
-Future enemy interactions:
-
-- drain energy;
-- disable nodes;
-- disrupt transmission;
-- target generators;
-- corrupt a local network.
+- emergency generator;
+- enemy energy drain;
+- node disruption;
+- generator-targeting enemies;
+- network corruption.
 
 ---
 
-# 6. Current towers
+# 12. Foundations
 
-Current tower roster includes:
+Implemented foundation building types:
 
-- basic ground tower;
-- anti-air tower;
-- minigun tower;
-- cannon tower;
-- laser tower;
-- sniper tower;
-- cryo tower;
-- stasis tower;
-- disruptor/DOT tower;
-- mortar tower;
-- anti-air rocket tower.
+- Accelerator Foundation;
+- Reinforced Foundation;
+- Shock Grid Foundation.
 
-Implemented combat features include:
+Accelerator Foundation:
 
+- player movement bonus;
+- player firing bonus;
+- building firing-speed bonus.
+
+Reinforced Foundation:
+
+- increases supported building HP;
+- may benefit player durability according to current implementation.
+
+Shock Grid Foundation:
+
+- damages ground enemies standing over it;
+- consumes activity energy;
+- creates electrical impact feedback;
+- does not target flyers.
+
+Important fixed issue:
+
+`scr_foundation_shock_update()` must cache enemy impact coordinates before calling `scr_enemy_damage()`, because damage may destroy the enemy.
+
+Foundations:
+
+- occupy their own grid layer;
+- sit beneath ordinary buildings;
+- draw on the Foundations layer;
+- use a separate capacity limit;
+- may be traversed.
+
+Future foundations:
+
+- conductive;
+- insulated;
+- shielded;
+- corrupted;
+- damaged;
+- decorative;
+- logistics-speed foundation.
+
+---
+
+# 13. Utility buildings
+
+`o_utility` currently supports:
+
+## Credit Magnet
+
+- attracts nearby physical credit pickups;
+- reduces manual collection;
+- operates in a configurable radius;
+- consumes energy.
+
+## Repairer
+
+- searches for damaged friendly structures;
+- can repair the CPU;
+- consumes activity energy;
+- draws a beam while repairing.
+
+The repair beam should remain reusable for future support systems.
+
+## Credit Uplink
+
+- produces passive credits;
+- consumes energy;
+- serves as the passive-income structure.
+
+Future utility possibilities:
+
+- shield projector;
+- radar;
+- fog revealer;
+- drone controller;
+- ammo supplier;
+- enemy debuffer;
+- logistics beacon;
+- emergency repair field.
+
+---
+
+# 14. Towers
+
+Current tower definitions:
+
+- Basic Tower
+- Anti-Air Tower
+- Minigun Tower
+- Cannon Tower
+- Laser Tower
+- Sniper Tower
+- Cryo Tower
+- Stasis Tower
+- Disruptor Tower
+- Mortar Tower
+- Anti-Air Rocket Tower
+
+Implemented tower features:
+
+- ground/flying target layers;
 - range;
-- movement-layer targeting;
 - target priorities;
+- target filters;
 - line of sight;
-- turret rotation;
-- projectile attacks;
-- hitscan/beam foundation;
-- direct damage;
-- splash damage;
-- laser damage;
-- shield multipliers;
+- rotating turrets;
 - alternating barrels;
-- status effects;
-- tower kill tracking;
-- tower ranks;
+- projectiles;
+- hitscan;
+- continuous beams;
+- splash damage;
+- damage radii;
+- homing;
+- direct impact;
+- shield multipliers;
+- kill tracking;
+- ranks;
 - small veteran bonuses;
-- range display;
-- selling;
+- energy buffers;
+- firing energy;
 - disabling;
-- energy priorities.
+- selling;
+- selection panel;
+- range display.
 
-## Enemy effects
+Effects:
 
-Current effect foundation includes:
+- Cryo applies slow and avoids already slowed targets when possible.
+- Stasis locks one target.
+- Disruptor applies persistent damage over time.
+- Laser is effective against shields and weaker against exposed HP.
+- Cannon and mortar use area damage.
+- Anti-air towers can attack flyers across dead terrain.
+
+Future tower work:
+
+- more target priorities;
+- manual target mode;
+- repair;
+- upgrades;
+- overclocking;
+- projectile interception;
+- shield generation;
+- anti-underground towers;
+- support towers;
+- specialized armour damage.
+
+---
+
+# 15. Enemy architecture
+
+One generic `o_enemy` supports the complete roster.
+
+Each enemy has its own registration function.
+
+Enemy identity remains separated into:
+
+- movement layer;
+- target policy;
+- navigation response;
+- primary behavior;
+- attack type;
+- combat movement;
+- abilities;
+- modifiers;
+- effects;
+- visuals.
+
+Avoid giant all-purpose enums.
+
+Current movement layers:
+
+- ground;
+- flying;
+- underground.
+
+Underground is foundational but not yet a full gameplay layer.
+
+Current primary behaviors:
+
+- standard;
+- brainless;
+- orbit;
+- standoff;
+- anchor beam;
+- support.
+
+Current abilities include:
+
+- phasing;
+- explosion on death;
+- splitting on death;
+- transporting enemies;
+- regeneration;
+- shielding allies.
+
+Abilities are arrays and may be combined when their update logic is compatible.
+
+Current modifiers:
+
+- shielded.
+
+Current effects:
 
 - slow;
 - stasis;
 - damage over time.
 
-Intended behavior:
+---
 
-- Cryo avoids already slowed enemies when possible.
-- Cryo may spread slowing through splash.
-- Stasis affects one target.
-- Disruptor damage persists indefinitely until the enemy dies.
+# 16. Current enemy roster
 
-## Shields
+Implemented definitions:
 
-Enemies may receive shields through:
+- Weak CPU Seeker
+- Building Hunter
+- Phaser
+- Single Shooter
+- Triple Shooter
+- Kamikaze
+- Splitter
+- Splitter Child
+- Flyer
+- Heavy Brute
+- Transporter
+- Gunship
+- Shield Generator
+- Siege Beam Platform
+- Siege Rocket Platform
+- Centipede
+- Centipede Child
 
-- their definition;
-- spawn modifiers;
-- support enemies.
+Child definitions such as:
 
-Do not create a separate shielded enemy object.
+- `enemy_splitter_child`
+- `enemy_centipede_child`
 
-Damage types currently distinguish:
+must not appear independently in:
 
-- kinetic;
-- explosive;
-- laser.
+- baseline pools;
+- cluster patterns;
+- major waves;
+- milestones.
 
-Lasers are effective against shields and weaker against exposed health.
+They are spawned only by their parent enemy.
+
+They may still appear in the automatic F1 debug database for direct testing unless debug filtering is added later.
 
 ---
 
-# 7. Current enemy architecture
+# 17. Enemy targeting
 
-One generic `o_enemy` supports all current enemy definitions.
+Implemented targeting concepts include:
 
-Every enemy should have its own registration function:
+- CPU preference;
+- closest-building preference;
+- player aggro;
+- strategic targets;
+- temporary active targets;
+- closest-building reconsideration;
+- target caching;
+- player target lock;
+- player forget range;
+- line-of-sight requirements;
+- reachability checks.
+
+Expected hunter behavior:
+
+1. Acquire a strategic building.
+2. If player is in range, visible and reachable, perform one player-target roll.
+3. On success, temporarily pursue the player.
+4. Forget the player when out of forget range, unreachable or invalid.
+5. Return to strategic building targeting.
+6. May switch to a meaningfully closer building built along its route.
+7. Avoid constant target thrashing.
+
+Flyers may ignore ground obstruction for player visibility according to their targeting rules.
+
+Large siege enemies may ignore the player entirely.
+
+---
+
+# 18. Breaching, phasing and special movement
+
+Ground enemies use ordinary MP-grid navigation first.
+
+If a target becomes unreachable:
+
+- delayed blocked-route checking occurs;
+- breach targets may be selected;
+- enemies attack blocking structures;
+- paths recover after the obstacle is destroyed.
+
+Phasing is an ability/effect-like capability, not a movement layer.
+
+Phasing enemies:
+
+- ignore buildings;
+- still respect permanent dead terrain unless explicitly designed otherwise.
+
+Brainless enemies:
+
+- move indefinitely in one direction;
+- do not target;
+- collide with terrain or entities;
+- attack on impact;
+- may destroy themselves on impact.
+
+---
+
+# 19. Combat anchors
+
+Reusable combat-position infrastructure is implemented.
+
+The Siege Beam Platform currently uses:
+
+- long-range building targeting;
+- combat-anchor selection;
+- reusable destination search;
+- validated movement space;
+- anchor roaming;
+- independent hull angle;
+- independent turret angle;
+- continuous firing while moving;
+- line-of-sight requirements;
+- fallback behavior.
+
+The hull faces movement.
+
+The turret remains aimed at the target.
+
+The enemy can:
+
+- reach a firing position;
+- fire continuously;
+- pivot;
+- move to nearby valid positions;
+- keep attacking while repositioning;
+- stop repositioning when no safe local option exists.
+
+Combat-anchor search must remain staggered and must not run every frame.
+
+Future users:
+
+- rocket siege units;
+- strafing shooters;
+- artillery;
+- support units;
+- gunships;
+- kiting enemies;
+- bosses.
+
+Avoid forcing every enemy into the combat-anchor system.
+
+---
+
+# 20. Centipede implementation
+
+The Centipede intentionally remains close to the original Vector implementation.
+
+No new `EnemyBehavior` was added.
+
+## Head
+
+`enemy_centipede_head`:
+
+- is a normal standard building-hunting enemy;
+- uses ordinary MP-grid navigation;
+- records a fixed-size breadcrumb trail;
+- spawns 5–8 children;
+- is marked with `is_centipede_head`.
+
+## Children
+
+`enemy_centipede_child`:
+
+- uses the generic `o_enemy`;
+- is marked with `is_centipede_child`;
+- follows an older head position;
+- uses a configurable frame delay;
+- performs no targeting or pathfinding while attached;
+- is independently targetable and damageable;
+- becomes brainless when the head dies;
+- continues along its last direction;
+- attacks or dies on impact according to normal brainless logic.
+
+Performance:
+
+- ordinary enemies perform only cheap boolean checks;
+- ordinary enemies do not enter Centipede update functions;
+- only the head records breadcrumbs;
+- children do not request MP-grid paths.
+
+Current Step pattern:
 
 ```gml
-function scr_enemy_data_initialize()
+if (
+    is_centipede_child
+    && scr_enemy_centipede_child_update(id)
+)
 {
-    scr_enemy_data_weak();
-    scr_enemy_data_hunter();
-    scr_enemy_data_phaser();
-
-    return true;
+    // Attached child handled.
+    exit;
 }
 ```
 
-## Current behaviors
-
-Implemented or established:
-
-- CPU targeting;
-- closest-building targeting;
-- player targeting;
-- weighted target selection;
-- retargeting;
-- breaching;
-- phasing;
-- brainless movement;
-- projectile attacks;
-- multiple shots;
-- kamikaze attacks;
-- splitting;
-- transporting enemies;
-- orbiting;
-- flying;
-- shield support;
-- permanent shields;
-- temporary shields;
-- enemy modifiers;
-- status effects;
-- primitive visuals;
-- optional sprite fallback;
-- custom facing.
-
-## Current roster
-
-Current enemy definitions include:
-
-- weak seeker;
-- building hunter;
-- phaser;
-- single shooter;
-- triple shooter;
-- kamikaze;
-- splitter;
-- splitter child;
-- flyer;
-- brute;
-- transporter;
-- gunship;
-- shield generator;
-- siege beam platform;
-- siege rocket platform.
-
-## Multiple abilities
-
-`abilities` is an array. One enemy may contain several abilities:
+After ordinary enemy gameplay:
 
 ```gml
-abilities:
-[
-    EnemyAbility.PHASING,
-    EnemyAbility.REGENERATE,
-    EnemyAbility.CONTINUOUS_BEAM
-]
+if (is_centipede_head)
+    scr_enemy_centipede_head_update(id);
 ```
 
-However, combinations must be checked for behavior compatibility.
-
-Some special update functions currently return early. For example, combining `SHIELD_ALLIES` and `CONTINUOUS_BEAM` will require those behaviors to be composed instead of one replacing the other.
-
-Long-term improvement:
-
-- passive abilities update together;
-- movement behavior is selected separately;
-- attack behavior is selected separately;
-- death abilities trigger together.
-
----
-
-# 8. New siege enemies
-
-## Siege Beam Platform
-
-Implemented:
-
-- large ground enemy;
-- slow movement;
-- high HP;
-- long attack range;
-- closest-building targeting;
-- CPU fallback;
-- continuous laser damage;
-- laser damage type;
-- independent vector appearance;
-- normal MP-grid navigation;
-- breach fallback.
-
-Its attack damage is damage-per-second.
-
-The continuous beam is intended to gain:
-
-- beam particles;
-- embers;
-- heat distortion;
-- impact sparks;
-- scorch effects;
-- sound.
-
-## Siege Rocket Platform
-
-Implemented:
-
-- large ground enemy;
-- very slow movement;
-- high HP;
-- very long attack range;
-- closest-building targeting;
-- CPU fallback;
-- slow visible rocket;
-- explosive projectile impact;
-- splash damage;
-- vector rocket body;
-- exhaust trail;
-- shockwave hook;
-- normal MP-grid navigation;
-- breach fallback.
-
-The hostile projectile system now supports optional:
-
-- `impact`;
-- `damage_radius`;
-- rocket visuals.
-
-Existing enemy projectiles remain compatible.
-
-## Required siege testing
+Current Centipede work needs testing.
 
 Verify:
 
-- both appear in the F1 debug interface;
-- both choose buildings;
-- CPU fallback works;
-- both stop at long range;
-- beam damage is gradual;
-- beam target recovery works;
-- rockets travel visibly;
-- splash hits multiple nearby buildings;
-- ordinary hostile projectiles still work;
-- breach behavior still works;
-- rewards and health feel reasonable.
+- 5–8 children spawn;
+- chain stretches correctly;
+- children follow corners;
+- children remain targetable;
+- destroying a middle child leaves the rest functional;
+- head death detaches survivors;
+- detached children use brainless collision;
+- no child requests an MP path;
+- several Centipedes do not cause unusual spikes;
+- shields and status effects remain safe;
+- wave completion handles surviving children correctly.
 
-The current statistics are starting values, not final balance.
-
----
-
-# 9. Debug interface
-
-A clickable enemy-debug interface has been implemented.
-
-Open it with:
-
-`F1`
-
-Features include:
-
-- automatic enemy database listing;
-- clickable enemy spawning;
-- automatic inclusion of new enemy definitions;
-- spawn counts of 1, 5, 10 or 25;
-- optional shield modifier;
-- CPU damage button;
-- room restart button;
-- mouse-wheel scrolling;
-- full pointer capture while open;
-- closing through F1, Escape or the X button.
-
-The enemy keyboard litter was removed from `o_controller_level`.
-
-Keep `o_controller_level` focused on actual level state rather than test controls.
-
-Future debug-interface tabs could include:
-
-- enemies;
-- resources;
-- buildings;
-- energy;
-- waves;
-- world generation;
-- effects;
-- performance;
-- modifiers.
-
-Potential future debug actions:
-
-- kill all enemies;
-- clear projectiles;
-- complete construction;
-- grant credits;
-- fill energy networks;
-- trigger a wave;
-- apply a global modifier;
-- toggle enemy AI;
-- show navigation paths;
-- show combat anchors.
+Do not add the Centipede to natural pressure until these tests pass.
 
 ---
 
-# 10. Navigation
+# 21. Enemy pressure and world data
 
-Navigation intentionally uses GameMaker’s native MP grid.
+The test world is intended as a middle-ground sandbox containing all regular content.
 
-Implemented:
+Current test-world victory:
 
-- normal ground grid;
-- breach grid;
-- flying navigation;
-- dead terrain obstacles;
-- building obstacles;
-- delayed path updates;
-- staggered repathing;
-- navigation revision tracking;
-- breach fallback;
-- phasing;
-- brainless movement.
+- complete six major waves.
 
-Do not reintroduce flow fields unless explicitly requested.
+Current pressure layers:
 
-Navigation must remain suitable for hundreds of enemies.
-
----
-
-# 11. Immediate next step — reusable combat anchors
-
-The next implementation should be a reusable combat-position system.
-
-Its first user will be the Siege Beam Platform.
-
-## Desired beam-tank behavior
-
-The enemy should behave like a tank with two independently drawn pieces:
-
-- hull;
-- turret.
-
-The hull faces movement.
-
-The turret continues facing the target.
-
-When approaching a target:
-
-1. Select the target building.
-2. Search for a useful firing position.
-3. Confirm a valid route to that position.
-4. Confirm the target remains within firing range.
-5. Determine whether a usable sideways strafe lane exists.
-6. Travel to the combat anchor.
-7. Fire continuously.
-8. Move left and right along the lane.
-9. Reverse at endpoints or unexpected obstructions.
-10. Keep the turret aimed at the target.
-11. Re-evaluate when the target or terrain changes.
-
-If no suitable strafe location exists, the enemy must still function.
-
-## Use a strafe lane, not a clear circle
-
-Do not require an entirely clear 128-pixel-radius circle.
-
-Use a line-shaped movement lane:
-
-```text
-LEFT LIMIT <------ ANCHOR ------> RIGHT LIMIT
-                         |
-                         | beam
-                         v
-                       TARGET
-```
-
-The lane is perpendicular to the direction between the anchor and target.
-
-The requested lane length should be configurable.
-
-Example:
-
-```gml
-combat_movement:
-{
-    type: EnemyCombatMovement.STRAFE,
-
-    preferred_range: 520,
-    minimum_range: 420,
-    maximum_range: 620,
-
-    preferred_lane_length: 128,
-    minimum_lane_length: 64,
-
-    speed_multiplier: 0.7,
-    arrival_tolerance: 8,
-
-    reverse_pause_minimum: 0.1,
-    reverse_pause_maximum: 0.35,
-
-    search_cooldown_seconds: 1.5
-}
-```
-
-Interpret `preferred_lane_length: 128` as total length, approximately 64 pixels on either side of the anchor.
-
-## New combat-movement enum
-
-Recommended:
-
-```gml
-enum EnemyCombatMovement
-{
-    STATIONARY,
-    STRAFE,
-    ORBIT,
-    KITE
-}
-```
-
-This is separate from:
-
-- `EnemyMovementLayer`;
-- `EnemyAbility`;
-- `EnemyAttack`.
-
-`EnemyMovementLayer` describes where an enemy travels.
-
-`EnemyCombatMovement` describes what it does while fighting.
-
-`EnemyAbility` contains optional capabilities.
-
-## Runtime structure
-
-Recommended direction:
-
-```gml
-enemy.combat_movement =
-{
-    type: EnemyCombatMovement.STRAFE,
-
-    anchor:
-    {
-        x: 0,
-        y: 0,
-        valid: false,
-        target: noone,
-        navigation_revision: -1
-    },
-
-    lane:
-    {
-        left_x: 0,
-        left_y: 0,
-        right_x: 0,
-        right_y: 0,
-
-        length: 0,
-        direction: choose(-1, 1)
-    },
-
-    search:
-    {
-        cooldown_remaining: 0,
-        failed_attempts: 0
-    }
-};
-```
-
-Visual runtime should support:
-
-```gml
-enemy.visual.hull_angle
-enemy.visual.turret_angle
-```
-
-Keep `visual.draw_angle` as a compatibility value, normally matching `hull_angle`.
-
-## Candidate search
-
-Do not scan every pixel.
-
-Sample a limited number of candidate positions around the target at useful firing distances.
-
-For every candidate:
-
-1. Convert it to a world/grid position.
-2. Reject blocked terrain.
-3. Reject occupied positions.
-4. Confirm firing range.
-5. Confirm MP-grid reachability.
-6. Calculate the perpendicular strafe lane.
-7. Sample the lane at cell-sized intervals.
-8. Shorten the lane if only part is usable.
-9. Reject it if shorter than the minimum length.
-10. Optionally test line of sight at the center and endpoints.
-11. Score the surviving candidate.
-
-Candidate scoring may prefer:
-
-- distance close to preferred range;
-- longer lane;
-- clear line of sight;
-- shorter travel distance;
-- less nearby siege-unit crowding;
-- fewer sharp route changes.
-
-Start with a small candidate count. Expand only if testing shows it is necessary.
-
-## Fallback hierarchy
-
-The system must degrade safely:
-
-1. Full preferred strafe lane.
-2. Shortened valid strafe lane.
-3. Stationary combat anchor.
-4. Existing stop-at-range behavior.
-5. Breach behavior if firing range cannot be reached.
-
-Strafing is a bonus behavior, not a requirement for attacking.
-
-## Performance rules
-
-Combat anchors must not search every frame.
-
-Search only when:
-
-- a new target is acquired;
-- the current anchor is invalid;
-- the target is destroyed;
-- the navigation revision changes;
-- the enemy becomes stuck;
-- a search cooldown expires after failure.
-
-Use staggered retries so multiple advanced enemies do not search on the same frame.
-
-Once anchored:
-
-- do not create a new MP path for every strafe step;
-- use direct short movement along the validated lane;
-- reverse at endpoints;
-- reverse when unexpectedly blocked;
-- retain normal collision checks.
-
-## Soft anchor reservations
-
-Future improvement:
-
-Combat anchors may be softly reserved.
-
-This should discourage multiple siege units from choosing exactly the same anchor without making the position a permanent solid obstacle.
-
-Other enemies must still be able to pass through.
-
-Possible data:
-
-```gml
-global.vtd_level.navigation.combat_anchors
-```
-
-Only add shared reservations after the single-enemy version works.
-
-## Line of sight
-
-If dead terrain blocks the beam, validate line of sight from:
-
-- anchor center;
-- left endpoint;
-- right endpoint.
-
-If endpoint line of sight fails, shorten that side of the lane.
-
-Do not continuously perform expensive full-line checks unless profiling shows they are affordable.
-
----
-
-# 12. Other uses for combat anchors
-
-The combat-anchor foundation should be reusable.
-
-## Advanced ranged enemies
-
-An ordinary shooter could:
-
-- locate firing cover;
-- stop at preferred range;
-- strafe during cooldown;
-- retreat when the target approaches.
-
-## Artillery
-
-An artillery enemy could:
-
-- locate a distant valid anchor;
-- deploy;
-- become stationary;
-- fire slow projectiles;
-- relocate if obstructed.
-
-Its combat movement would be `STATIONARY`, but it would still use anchor selection.
-
-## Rocket siege enemies
-
-The Siege Rocket Platform could later:
-
-- locate a long-range anchor;
-- remain stationary while loaded;
-- relocate after several shots;
-- avoid standing beside another rocket platform.
-
-## Gunships
-
-Flying enemies could use an aerial combat anchor and:
-
-- orbit it;
-- strafe around it;
-- perform attack runs;
-- ignore ground obstruction;
-- retain altitude visuals.
-
-## Shield generators
-
-Support enemies could:
-
-- find an anchor behind attackers;
-- remain within support distance;
-- avoid standing directly on the front line;
-- reposition when their supported group moves.
-
-## Healers and repair enemies
-
-A support unit could anchor near:
-
-- damaged allies;
-- siege formations;
-- shield generators;
-- priority targets.
-
-## Kiting enemies
-
-A kiting enemy could:
-
-- establish preferred distance;
-- retreat when too close;
-- approach when too far;
-- move laterally while firing.
-
-## Bosses
-
-Bosses could use:
-
-- multiple anchors;
-- phase-specific anchors;
-- arena positions;
-- scripted transitions;
-- anchor-linked abilities.
-
-## Towers and player systems
-
-The same general position-evaluation utilities may later help:
-
-- drone docking;
-- repair drones;
-- turret deployment;
-- player deployable weapons;
-- cargo waiting positions;
-- reinforcement drop zones.
-
-Do not force all of these into one enormous function. Reuse the candidate-testing foundation while allowing each behavior its own update function.
-
----
-
-# 13. Enemy behavior architecture improvement
-
-As advanced enemies grow, separate their concerns:
-
-```text
-Strategic target
-    ↓
-Navigation objective
-    ↓
-Combat anchor
-    ↓
-Combat movement
-    ↓
-Attack behavior
-    ↓
-Abilities and effects
-```
-
-Examples:
-
-- strategic target: closest building;
-- navigation objective: combat anchor;
-- combat movement: strafe;
-- attack: continuous beam;
-- ability: regeneration.
-
-This prevents one enum or ability from controlling the enemy’s entire identity.
-
-Avoid immediately rewriting every enemy.
-
-Introduce the combat-anchor foundation for the beam tank first. Generalize it only after it works.
-
----
-
-# 14. Enemy work after combat anchors
-
-Possible next enemies:
-
-- centipede head and segments;
-- underground miner hunter;
-- long-range artillery;
-- stealth attacker;
-- energy drainer;
-- tower disabler;
-- repair drone;
-- elite enemy;
-- miniboss;
-- boss.
-
-The user currently enjoys expanding the enemy roster. Continue supporting that direction while keeping new behaviors reusable.
-
----
-
-# 15. Waves and level pressure
-
-Implemented:
-
-- edge spawning;
-- baseline pressure;
+- baseline spawning;
 - clusters;
-- sequential waves;
-- handcrafted wave compositions;
-- weighted pools;
-- spawn queues;
-- grace periods;
-- difficulty scaling;
-- enemy limits;
-- queue limits;
-- content unlocks;
-- modifiers;
-- event alerts;
-- automatic waves;
-- manual debug triggers.
+- sequential major waves;
+- kill milestones;
+- timed shield modifiers.
 
-Major waves should be the primary difficulty hurdles.
+Current baseline:
 
-Baseline pressure and clusters fill the space between waves.
+- starts around one enemy every 3.25 seconds;
+- scales toward one every 0.9 seconds;
+- scales over approximately 1,200 seconds;
+- progressively unlocks advanced enemies.
 
-Future real levels should configure:
+Current cluster timing:
 
-- available enemies;
-- available towers;
-- available buildings;
+- approximately every 22–38 seconds;
+- scales in size;
+- includes weak, mixed, kamikaze, air, ranged, splitter, heavy, transport and advanced patterns.
+
+Current major-wave timing:
+
+- approximately every 140–180 seconds;
+- six authored sequential waves;
+- increasingly mixed composition;
+- later waves include shields, flyers, gunships, brutes, transporters, support and siege enemies.
+
+Current major waves:
+
+1. Weak Swarm
+2. Mixed Assault
+3. Advanced Assault
+4. Air Assault
+5. Heavy Assault
+6. Combined Assault
+
+Important:
+
+- `content.allow_all` is currently `true`;
+- explicit content arrays are therefore not restricting the test world;
+- update those arrays before using `allow_all: false` in campaign levels;
+- child enemy definitions must remain out of authored pressure pools;
+- Centipede head can be added after testing;
+- Centipede child must not be added.
+
+Future level definitions should be easy to tune in one location:
+
 - starting resources;
-- baseline pool;
-- cluster pool;
-- sequential waves;
-- modifier unlock times;
-- resource generation;
-- terrain;
+- build limits;
+- generation;
+- resource pools;
 - grace period;
-- victory conditions.
-
-Verify whether spawn modifiers are rolled individually or per group, depending on the definition’s intention.
-
----
-
-# 16. HUD
-
-Implemented:
-
-- reusable vector buttons;
-- top status bar;
-- bottom build menu;
-- category tabs;
-- scrolling building cards;
-- costs;
-- descriptions;
-- structure inspector;
-- selected-building interface;
-- tower range display;
-- target controls;
-- energy controls;
-- selling;
-- disabling;
-- alerts;
-- F1 enemy database.
-
-The bottom space is intended to support:
-
-- build menu;
-- towers;
-- miners;
-- storage;
-- refineries;
-- research;
-- unique building interfaces.
-
-Future debug UI should build on the F1 interface rather than adding new hotkeys.
+- baseline;
+- clusters;
+- major waves;
+- milestones;
+- modifiers;
+- content availability;
+- victory conditions;
+- next level.
 
 ---
 
-# 17. Performance rules
+# 22. Shields and damage
 
-The game is expected to support hundreds of enemies.
+Enemies may receive shields through:
 
-Prefer:
+- natural definition data;
+- timed or authored spawn modifiers;
+- shield-support enemies.
 
-- MP-grid navigation;
-- staggered expensive work;
-- cached targets;
-- cached anchors;
-- event-driven rebuilds;
-- short direct combat movement;
-- culling visual work;
-- bounded spawn queues;
-- limited candidate sampling.
+Do not create separate “shielded enemy” objects.
 
-Do not stagger:
+Current damage types:
 
-- collision;
-- damage;
-- projectile impact;
-- death;
-- resource transactions.
+- kinetic;
+- explosive;
+- laser;
+- electrical.
 
-Potential future optimizations:
-
-- building spatial buckets;
-- target caches;
-- combat-anchor reservations;
-- chunked world updates;
-- off-screen simulation tiers;
-- projectile pooling;
-- effect pooling.
-
-Profile before replacing a working system.
-
----
-
-# 18. Deferred or unfinished systems
-
-## Pickup cleanup
-
-A physical pickup foundation exists.
-
-Verify whether pickup functions have been moved from `scr_player` into a dedicated `scr_pickup` script.
-
-Desired pickup behavior:
-
-- small;
-- no excessive bounce;
-- subtle vector drawing;
-- player attraction;
-- clean collection;
-- expiration;
-- final flashing.
-
-Original Vector behavior included:
-
-- guaranteed kill credits;
-- chance of physical credit drops;
-- player magnetism;
-- credit-magnet building.
-
-## Production
-
-Still deferred:
-
-- refineries;
-- recipes;
-- processed materials;
-- factories;
-- production queues;
-- more advanced logistics.
-
-## Upgrades
-
-Planned:
-
-- tower veterancy;
-- overclocking;
-- level-local research;
-- upgrade building;
-- weaker persistent bonuses;
-- unlock progression.
-
-## Effects
-
-A reusable effect/particle script is planned.
-
-The user will provide particle sprites later.
-
-Planned hooks:
-
-- muzzle flashes;
-- rocket smoke;
-- explosions;
-- shockwaves;
-- beam embers;
-- beam impacts;
-- shield hits;
-- shield collapse;
-- cryo;
-- stasis;
-- construction;
-- destruction;
-- energy transfer;
-- pickups;
-- rank-up effects.
-
-Keep gameplay damage separate from visual effects.
-
----
-
-# 19. Old Vector parity still to inspect
-
-Inspect the original ZIP before selecting exact parity work.
-
-Likely remaining mechanics include:
-
-- centipede enemies;
-- underground enemies;
-- additional siege enemies;
-- elites;
-- bosses;
-- wind generators;
-- credit magnet;
-- gates;
-- repair buildings;
-- research building;
-- upgrade building;
-- refineries;
-- armour;
-- richer level definitions;
-- objectives;
-- victory and defeat flow;
-- endless mode;
-- campaign unlocks;
-- milestone events;
-- more resource uses;
-- more player drops;
-- sound and effects.
-
-The new local energy system replaces much of the original global power code while preserving and improving its gameplay purpose.
-
----
-
-# 20. Recommended work order
-
-## Immediate next phase
-
-Implement the reusable combat-anchor and strafe-lane foundation.
-
-Enable it only for the Siege Beam Platform first.
-
-Test:
-
-- anchor discovery;
-- route to anchor;
-- full lane;
-- shortened lane;
-- stationary fallback;
-- ordinary range fallback;
-- breach fallback;
-- target destruction;
-- building placement invalidation;
-- hull rotation;
-- turret tracking;
-- continuous firing while moving;
-- several beam tanks at once;
-- performance.
-
-## After combat anchors
-
-Choose from:
-
-1. Apply stationary anchors to the rocket siege enemy.
-2. Add another advanced shooter using strafing.
-3. Add soft anchor reservations.
-4. Add a support-unit anchor mode.
-5. Add centipede enemies.
-6. Add an underground miner hunter.
-7. Return to pickup cleanup.
-8. Add the credit-magnet building.
-9. Add wind generation.
-10. Add victory and failure flow.
-
-Do not begin refineries unless the user chooses to return to production gameplay.
-
----
-
-# 21. Fresh-chat checklist
-
-At the beginning of a new chat:
-
-1. Inspect the newest GitHub push.
-2. Read this handover.
-3. Ask for the original Vector ZIP if unavailable.
-4. Verify the two siege enemies.
-5. Verify the F1 debug interface.
-6. Explain the combat-anchor implementation before coding.
-7. Keep combat anchors independent from ordinary MP-grid navigation.
-8. Implement the beam tank first.
-9. Provide complete replacement functions and events.
-10. Keep code compact.
-11. Add useful future comments.
-12. Preserve `draw_angle` conventions.
-13. Preserve data-driven enemy definitions.
-14. Avoid flow fields.
-15. Avoid rewriting unrelated working systems.
-16. Test fallbacks before generalizing the feature.
-
-## Core principle
-
-Build a modern Vector TD that still feels like the user’s original game and remains understandable to its creator.
-
-Reusable systems should make new content easier to add—not make the project harder to follow.
-
-
-
-////
-
-
-# Additional continuity notes
-
-## Communication and work method
-
-When supplying code:
-
-- briefly explain what each function or event does before its code block;
-- prefer complete replacement functions/events;
-- clearly state where every function belongs;
-- state which objects, scripts or events the user must create;
-- avoid instructions such as “add this somewhere inside the function”;
-- look slightly ahead and implement related changes together;
-- avoid repeatedly replacing the same function over several tiny steps;
-- keep code compact vertically where readability permits;
-- inspect the newest GitHub push before every substantial implementation.
-
-The user normally pastes the supplied code into GameMaker and pushes it to GitHub for verification.
-
-## State naming
-
-The user prefers:
-
-```gml
-global.GameState = GameState.PLAYING;
-global.LevelState = LevelState.PLAYING;
-```
-
-Do not replace these with visually awkward nested fields such as:
-
-```gml
-global.vtd.LevelState
-```
-
-Use custom runtime fields such as:
-
-- `visual.draw_angle`;
-- future `visual.draw_scale`;
-- future `visual.hull_angle`;
-- future `visual.turret_angle`.
-
-Avoid `image_angle` and unnecessary use of GameMaker’s built-in image scaling.
-
-## Room-layer placement
-
-The intended gameplay-room layer order includes:
-
-- `Controller`
-- `Effects_Flyer`
-- `Projectiles_Flyer`
-- `Enemies_Flyer`
-- `Instances`
-- `Effects_Ground`
-- `Projectiles_Ground`
-- `Player`
-- `Enemies_Ground`
-- `Buildings`
-- `Foundations`
-- `World`
-- `Background`
-
-Placement rules:
-
-- buildings belong on `Buildings`;
-- foundations belong on `Foundations`;
-- dead cells and resource nodes belong on `World`;
-- ground enemies/projectiles/effects use their corresponding ground layers;
-- flying enemies/projectiles/effects use their corresponding flying layers;
-- the player belongs on `Player`.
-
-Do not return to spawning everything on `Instances`.
-
-## Movement layers and abilities
-
-`EnemyMovementLayer` represents physical traversal:
-
-- `GROUND`
-- `FLYING`
-- `UNDERGROUND`
-
-Phasing is an ability or effect, not a movement layer.
-
-This distinction lets towers determine whether they can attack an enemy while abilities independently modify navigation.
-
-Flying enemies should:
-
-- visibly hover;
-- ignore ground buildings and dead terrain for navigation;
-- be targetable by anti-air defenses;
-- be attackable by anti-air towers over intervening dead terrain.
-
-## Navigation decisions
-
-Keep native MP-grid navigation.
-
-The earlier flow-field experiment caused severe building-placement stalls and was intentionally abandoned.
-
-Use:
-
-- normal ground grid;
-- breach grid;
-- flying navigation;
-- staggered repathing;
-- navigation revisions;
-- cached paths where possible.
-
-Large-enemy movement was discussed. The current decision is not to build complex multi-cell-clearance navigation prematurely.
-
-Prefer enemy designs that naturally avoid corridor problems:
-
-- large siege enemies operate at range;
-- large kamikazes strike the first obstruction;
-- flyers ignore ground corridors;
-- underground enemies use another traversal layer;
-- bosses may receive bespoke movement.
-
-Only implement multi-cell path clearance when a real enemy requires it.
-
-## Target selection
-
-Enemy targeting must remain configurable.
-
-Supported or planned behaviors include:
-
-- direct CPU targeting;
-- closest-building targeting;
-- weighted selection among nearby buildings;
-- occasional player targeting;
-- phasers preferring the CPU;
-- siege enemies selecting buildings;
-- underground enemies preferring miners;
-- support enemies positioning near allied enemies;
-- breach targeting when a strategic target is blocked.
-
-Some enemies may choose among the nearest several buildings rather than always selecting the absolute closest one.
-
-Target acquisition should not perform unnecessary full-map scans every frame. Cache targets and retarget only when needed.
-
-## Hull and turret separation
-
-Advanced enemies may have two independent orientations:
-
-```gml
-visual.hull_angle
-visual.turret_angle
-```
-
-The hull faces movement.
-
-The turret faces the combat target.
-
-`visual.draw_angle` may remain as a compatibility alias for the hull angle.
-
-This is immediately relevant to the Siege Beam Platform and may later be reused by:
-
-- advanced shooters;
-- rocket platforms;
-- tanks;
-- gunships;
-- bosses;
-- mobile support units.
-
-## Enemy ability composition
-
-Enemies may contain several abilities because `abilities` is an array.
-
-However, some current special behaviors return early from `scr_enemy_update()`. Combining certain behaviors may therefore require composition work.
-
-Long-term enemy update direction:
-
-1. target selection;
-2. navigation objective;
-3. combat anchor;
-4. combat movement;
-5. attack behavior;
-6. passive ability updates;
-7. effects;
-8. death abilities.
-
-Do not assume that adding two values to the ability array automatically makes every combination function correctly.
-
-## Shields
-
-Shielding is not a unique enemy type.
-
-Any compatible enemy can receive a shield through:
-
-- its definition;
-- a spawn modifier;
-- a support shield generator;
-- future level modifiers.
-
-Natural shields and temporary support shields remain separate runtime pools.
-
-Enemy health-bar drawing should show both when applicable.
-
-## Towers and line of sight
-
-Ground towers may be blocked by dead terrain when line of sight is required.
-
-Anti-air towers should be able to engage flying targets over dead terrain because the target is airborne.
-
-The player may shoot over friendly `o_wall` structures, but player projectiles should be blocked by:
-
-- dead terrain;
-- resource terrain;
-- CPU;
-- ordinary buildings.
-
-Future projectile behaviors may independently configure:
-
-- piercing;
-- wall traversal;
-- terrain traversal;
-- splash;
-- line attacks;
-- target-position attacks.
-
-## Attack-area system
-
-The intended reusable attack shapes are:
+Current attack-area shapes:
 
 - point;
 - circle;
@@ -1602,184 +1143,503 @@ The intended reusable attack shapes are:
 - cone;
 - capsule.
 
-These should eventually support:
+Expected damage identity:
 
-- direct hits;
-- explosions;
-- shockwaves;
-- continuous beams;
-- piercing lasers;
-- flamethrowers;
-- area denial;
-- boss attacks.
+- kinetic: ordinary health damage;
+- explosive: area damage;
+- laser: strong shield damage;
+- electrical: shock-grid and future energy interactions.
 
-Gameplay collision and damage must remain independent from particles.
+Shield support remains separate from natural shields.
 
-## Level data
+HUD bars should distinguish:
 
-Each level should eventually have one relatively easy-to-edit definition containing:
+- HP;
+- natural shield;
+- temporary support shield.
 
-- starting resources;
-- maximum resources;
-- world-generation settings;
-- available buildings;
-- available towers;
-- available resources;
-- available enemies;
-- baseline pressure;
-- clusters;
-- sequential waves;
+---
+
+# 23. Fog, culling and performance
+
+Implemented:
+
+- fog of war;
+- explored state;
+- current visibility;
+- debug toggle;
+- camera-bound helpers;
+- culling helpers;
+- IFRAMES macros;
+- staggered repathing;
+- navigation revisions;
+- spawn queue limits;
+- alive and queued enemy limits.
+
+Performance lessons:
+
+- do not call expensive camera-bound constructors per static object;
+- static dead-cell drawing was previously expensive;
+- sprite rendering may be cheaper than repeated primitive construction;
+- resource-node primitive drawing can be revisited later;
+- profile before optimizing;
+- off-camera simulation must continue when gameplay requires it;
+- cull drawing, not important AI;
+- do not make every enemy scan every building every frame;
+- avoid synchronous mass path rebuilding;
+- child enemies should reuse parent movement where appropriate.
+
+Current macros include selected stagger helpers such as:
+
+- `IFRAMES_2`
+- `IFRAMES_5`
+
+Add more only after profiling demonstrates a need.
+
+---
+
+# 24. HUD and feedback
+
+Implemented:
+
+- top status bar;
+- credits;
+- resource totals;
+- energy input/output;
+- build capacities;
+- player vitals;
+- CPU integrity;
+- elapsed time;
+- bottom build tray;
+- building inspector;
+- selected-building controls;
+- tower controls;
+- refinery controls;
+- energy overlay;
+- major alerts;
+- side notifications;
+- debug menu;
+- mission result screen.
+
+Major top-center alerts should be reserved for:
+
+- major waves;
 - milestones;
-- modifier unlock times;
-- grace period;
-- scaling;
-- victory conditions.
+- CPU danger;
+- mission-critical events.
 
-The development level may temporarily expose all content.
+Side notifications should handle:
 
-Real levels should introduce towers, enemies and resources gradually.
+- tower rank-up;
+- energy lost/restored;
+- building disabled;
+- storage issues;
+- production updates;
+- routine status feedback.
 
-## Wave intentions
+Major alerts must stop drawing when the mission result screen is active.
 
-Major waves should be sequential and progressively harder.
+---
 
-Wave definitions may be handcrafted, for example:
+# 25. Mission results
 
-- 50 weak enemies;
-- 20 shooters;
-- 4 siege enemies.
+Implemented:
 
-Weighted pools remain useful for baseline pressure and some flexible wave groups.
+- victory;
+- defeat;
+- CPU destruction;
+- player death;
+- result snapshot;
+- mission time;
+- wave reached;
+- enemies defeated;
+- player kills;
+- tower kills;
+- structures built;
+- structures remaining;
+- credits earned;
+- credits remaining;
+- restart mission;
+- exit game;
+- placeholders for next mission and menu.
 
-Major waves should arrive automatically. Manual triggering belongs to the debug interface.
+Future result analytics:
 
-## Fortress and progression vision
+- damage dealt;
+- damage taken;
+- resources gathered;
+- resources refined;
+- energy generated;
+- top tower;
+- building breakdown;
+- enemy breakdown;
+- highest rank;
+- repair totals;
+- efficiency;
+- campaign rewards;
+- graphs.
 
-The game is influenced by the underlying gameplay ideas of The Riftbreaker, without attempting its graphical complexity.
+A campaign and main menu are not yet complete.
 
-Desired long-term layers include:
+---
 
-- base construction;
-- local energy distribution;
-- isolated outposts;
-- batteries;
-- mining;
-- logistics;
-- tower defense;
-- enemy pressure;
-- research;
-- persistent progression.
+# 26. Debug interface
 
-Upgrade types discussed:
+`F1` opens the clickable enemy debug database.
 
-- tower veterancy from kills;
-- tower ranks with small bonuses;
-- tower overclocking;
-- strong level-local research;
-- weaker persistent upgrades between levels.
+Implemented:
 
-Example:
+- automatic enemy definition listing;
+- spawn x1, x5, x10 or x25;
+- optional shield modifier;
+- CPU damage;
+- room restart;
+- mouse-wheel scrolling;
+- pointer capture;
+- F1/Escape/X closing.
 
-- persistent: all towers deal `1.03x` damage;
-- local research: laser towers deal 15% more shield damage.
+New enemy definitions automatically appear.
 
-## Future UI direction
-
-The bottom HUD space is reused according to context:
-
-- build database;
-- selected tower;
-- selected miner;
-- selected storage;
-- refinery interface;
-- research interface;
-- other unique building panels.
-
-Selected buildings may also show a smaller animated vector window anchored beside the world instance.
-
-The far-right inspector should support:
-
-- preview image or primitive drawing;
-- name;
-- short description;
-- long description;
-- stats;
-- multiple resource costs;
-- contextual actions.
-
-## Debug-interface direction
-
-Do not reintroduce enemy spawn hotkeys into `o_controller_level`.
-
-The F1 debug database is the foundation for future development tools.
-
-Potential tabs:
+Future debug tabs:
 
 - enemies;
 - buildings;
 - resources;
-- waves;
+- recipes;
 - energy;
-- world;
-- effects;
-- performance.
-
-The debug interface should eventually become the home for most test commands that might conflict with gameplay controls.
-
-## Fog, culling and staggered work
-
-Existing or planned helpers include:
-
-- `IFRAMES_*`;
-- `OUTSIDE_VIEW_*`;
-- instance culling;
-- fog visibility;
-- debug fog toggle;
-- staggered navigation checks.
-
-Fog of war should eventually support:
-
-- unexplored darkness;
-- explored but currently unseen terrain;
-- active visibility;
-- debugging disabled state.
-
-Culling should primarily reduce visual work. Do not disable important off-screen simulation merely because an instance is not visible.
-
-## Important historical fixes
-
-Past problems worth avoiding:
-
-- accessing struct fields before verifying they exist;
-- using GameMaker built-in function names as variables;
-- duplicating function definitions;
-- drawing runtime-only tower data inside HUD preview structs;
-- reading destroyed targets after validating them earlier in the frame;
-- releasing world grids after the grid was already destroyed during game shutdown;
-- placing Draw GUI code inside the HUD Step Event;
-- forgetting to create/register a new script asset before calling its functions.
-
-Use defensive field checks where optional data is expected.
-
-## Original project reference
-
-The old Vector project is for:
-
-- gameplay comparison;
-- enemy behavior comparison;
-- wave structure;
+- waves;
 - world generation;
-- tower ideas;
-- pickup behavior;
-- player targeting;
-- navigation;
-- overall familiarity.
+- effects;
+- performance;
+- modifiers.
 
-Do not copy old messy code verbatim unless it is genuinely the clearest solution.
+Potential debug actions:
 
-The preferred approach is:
+- kill all enemies;
+- clear projectiles;
+- trigger wave;
+- grant resources;
+- fill storage;
+- fill batteries;
+- finish construction;
+- reveal fog;
+- show paths;
+- show combat anchors;
+- toggle AI.
 
-1. inspect the old implementation;
-2. identify its gameplay intention;
-3. preserve familiar behavior;
-4. modernize the structure only as much as useful.
+---
+
+# 27. Particles and vector visuals
+
+Implemented particle/effect foundations include:
+
+- generic particle system;
+- impact effects;
+- beam effects;
+- muzzle effects;
+- shield feedback;
+- construction effects;
+- shockwaves;
+- electrical effects;
+- projectile trails;
+- enemy propulsion or wake effects.
+
+Available particle sprites include:
+
+- blur;
+- bright flame core;
+- broad flame body;
+- ember;
+- ring;
+- sharp;
+- smoke puff.
+
+Primitive vector visuals remain valid and currently suit the game.
+
+Every enemy definition supports:
+
+- a sprite if supplied;
+- a primitive draw function as fallback.
+
+Large or unusual enemies may use dedicated primitive functions without adding new behavior enums.
+
+Future visuals:
+
+- richer deaths;
+- laser embers;
+- cannon shockwaves;
+- repair particles;
+- refinery activity;
+- construction drones;
+- energy transmission;
+- fog interactions;
+- boss visuals.
+
+---
+
+# 28. Upgrades and progression direction
+
+The user wants several separate upgrade layers.
+
+## Tower ranks
+
+Already foundational:
+
+- towers track their own kills;
+- kills increase rank;
+- veteran bonuses should remain small;
+- long-lived towers become slightly stronger.
+
+## Overclocking
+
+Future local control:
+
+- stronger output;
+- increased energy demand;
+- possible heat, wear or downtime;
+- reversible during a level.
+
+## Local research
+
+Level-only upgrades from research buildings.
+
+Examples:
+
+- laser towers deal more shield damage;
+- miners extract faster;
+- batteries discharge faster;
+- towers rotate faster;
+- walls gain armour;
+- drones carry more.
+
+These reset between levels.
+
+## Persistent upgrades
+
+Small permanent bonuses researched in a lobby, campaign or meta screen.
+
+Examples:
+
+- all towers deal `1.03x` damage;
+- small construction discount;
+- slightly larger storage;
+- minor player stat improvements.
+
+Persistent bonuses should remain smaller than local research bonuses.
+
+Do not mix all upgrade types into one system.
+
+---
+
+# 29. Important unfinished systems
+
+Major systems still incomplete or needing expansion:
+
+- campaign structure;
+- main menu;
+- level selection;
+- persistent progression;
+- research buildings;
+- local research;
+- overclocking;
+- full tower upgrade UI;
+- building repair button;
+- polished sell refunds;
+- saving/loading;
+- proper campaign content restrictions;
+- biome/world variants;
+- underground enemies;
+- underground targeting;
+- wind generation;
+- more storage tiers;
+- larger energy structures;
+- bosses;
+- minibosses;
+- sound and music;
+- controller support;
+- accessibility options;
+- polished sprites;
+- advanced particle polish.
+
+---
+
+# 30. Recommended immediate work
+
+## First: test the Centipede
+
+Do not expand it before verifying the current simple implementation.
+
+Test:
+
+- spawning;
+- following;
+- corners;
+- head death;
+- child collision;
+- tower targeting;
+- performance;
+- major-wave tracking.
+
+Then add only `enemy_centipede_head` to the test-world baseline or an advanced cluster.
+
+## Second: validate refineries
+
+Perform a complete production loop:
+
+- mine raw material;
+- deliver to storage;
+- select refinery recipe;
+- deliver refinery inputs;
+- consume energy;
+- finish production;
+- deliver refined output;
+- verify HUD totals;
+- destroy storage and verify totals update.
+
+Fix only real failures discovered during this test.
+
+## Third: tune the test world
+
+After Centipede and refinery validation:
+
+- play all six waves;
+- measure mission duration;
+- watch alive/queued limits;
+- assess cluster frequency;
+- check advanced enemy unlock timing;
+- adjust counts and weights from actual play rather than guesses.
+
+## Fourth: choose the next content direction
+
+Good options:
+
+1. Underground miner-hunting enemy.
+2. Wind turbine.
+3. Additional storage tiers.
+4. Research building foundation.
+5. Tower repair button.
+6. More advanced wave compositions.
+7. Campaign/main-menu foundation.
+8. Performance profiling at 200–300 enemies.
+9. More utility buildings.
+10. New enemy roster expansion.
+
+Ask the user which direction they want before beginning a large phase.
+
+---
+
+# 31. Enemy ideas for later
+
+Potential additions compatible with the current foundation:
+
+- underground miner hunter;
+- burrowing ambusher;
+- tower disabler;
+- energy drainer;
+- relay saboteur;
+- artillery enemy;
+- stealth enemy;
+- repair drone;
+- healer;
+- armour buffer;
+- shield breaker;
+- wall climber;
+- mine layer;
+- decoy generator;
+- elite variants;
+- miniboss;
+- boss.
+
+New enemies should be assembled from existing systems wherever possible:
+
+- target type;
+- movement layer;
+- attack;
+- abilities;
+- effects;
+- combat movement;
+- modifiers;
+- primitive visual.
+
+Add unique code only for genuinely unique mechanics.
+
+---
+
+# 32. Architecture guardrails
+
+Before adding a new system, ask:
+
+1. Can existing data represent it?
+2. Is it a new behavior or merely a visual?
+3. Is it an ability that can combine with others?
+4. Is it an effect applied temporarily?
+5. Does it need a new object category?
+6. Will every enemy pay a per-frame cost?
+7. Can a fast flag avoid irrelevant function calls?
+8. Can the system be reused?
+9. Does the original Vector already contain a simpler model?
+10. Will the user understand where to edit it later?
+
+Prefer the smallest system that preserves future expansion.
+
+Do not optimize theoretical problems at the cost of readability.
+
+Do not ignore measured performance problems.
+
+---
+
+# 33. Fresh-chat checklist
+
+At the start of a new chat:
+
+1. Inspect the newest GitHub push.
+2. Read this handover.
+3. Ask for the original Vector ZIP if unavailable.
+4. Confirm what the user most recently tested.
+5. Check compile/runtime errors before adding features.
+6. Explain the intended gameplay before large implementations.
+7. Give complete replacement functions/events.
+8. Keep code compact.
+9. Preserve enums, structs and `draw_angle`.
+10. Preserve MP-grid navigation.
+11. Avoid flow fields.
+12. Keep enemy and tower definitions data-driven.
+13. Keep building categories understandable.
+14. Avoid unnecessary new behaviors and enums.
+15. Use fast flags for rare per-instance special processing.
+16. Do not add child enemies to authored spawn pools.
+17. Do not rewrite unrelated working systems.
+18. Include useful `// FUTURE:` comments.
+19. Let the user manually paste the code.
+20. Test one complete gameplay loop before expanding again.
+
+---
+
+# 34. Current handoff point
+
+Latest verified repository commit:
+
+`52a1aec`
+
+Most recent work:
+
+- test-world pressure strengthened;
+- six-wave victory configuration;
+- build-menu category hotkeys;
+- deterministic building-card ordering;
+- Centipede head and child definitions;
+- breadcrumb following;
+- boolean-gated Centipede updates;
+- child brainless fallback after head death;
+- enemy visual helpers separated from the main visual script.
+
+Immediate next action:
+
+Test the Centipede thoroughly.
+
+After it passes:
+
+- add `enemy_centipede_head` to the advanced test-world pool;
+- never add `enemy_centipede_child` directly;
+- run a full six-wave pressure test;
+- then validate the refinery production loop.

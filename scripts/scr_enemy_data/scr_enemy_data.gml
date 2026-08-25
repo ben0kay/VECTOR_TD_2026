@@ -368,7 +368,7 @@ function scr_enemy_data_weak()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_weak,
-                radius: 14,
+                radius: 12,
                 color: c_yellow
             },
 
@@ -429,7 +429,7 @@ function scr_enemy_data_hunter()
             visual:
             {
                 sprite: -1,
-                draw_function: scr_enemy_visual_triangle,
+                draw_function: scr_enemy_visual_hunter,
                 radius: 12,
                 color: c_red
             },
@@ -499,6 +499,7 @@ function scr_enemy_data_hunter()
 
     return true;
 }
+
 /// @description Registers the CPU-seeking phasing enemy.
 
 function scr_enemy_data_phaser()

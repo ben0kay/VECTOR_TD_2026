@@ -1,18 +1,17 @@
 {
   "$GMObject":"",
-  "%Name":"o_cargo_drone",
+  "%Name":"o_menu_main",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":12,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":64,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"o_cargo_drone",
+  "name":"o_menu_main",
   "overriddenProperties":[],
   "parent":{
-    "name":"entities",
-    "path":"folders/objects/entities.yy",
+    "name":"MAINMENU",
+    "path":"folders/scripts/MAINMENU.yy",
   },
   "parentObjectId":null,
   "persistent":false,

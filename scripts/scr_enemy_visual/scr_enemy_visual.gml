@@ -47,66 +47,166 @@ function scr_enemy_visual_triangle(_enemy)
     return true;
 }
 
-/// @description Draws the Weak enemy as three overlapping triangular blades.
+/// @description Draws the Weak enemy using three overlapping triangular blades.
 
 function scr_enemy_visual_weak(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    var _x =
-        _enemy.x;
+    var _x = _enemy.x;
+    var _y = _enemy.y;
 
-    var _y =
-        _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
 
-    var _radius =
-        _enemy.visual.radius;
-
-    var _angle =
-        _enemy.visual.draw_angle;
+    draw_set_color(_color);
 
 
-    draw_set_color(
-        _enemy.visual.color
+    // ========================================================================
+    // FORWARD / HEAD BLADE
+    // ========================================================================
+    //
+    // Still long, but considerably broader through the shoulders.
+
+    scr_enemy_visual_helper_triangle_blade(
+        _x,
+        _y,
+        _angle,
+
+        _radius * 1.50,   // tip length
+        _radius * 0.8,   // base distance
+        62,               // base spread
+
+        1
     );
 
 
-    // Long forward blade.
+    // ========================================================================
+    // LEFT REAR BLADE
+    // ========================================================================
+    //
+    // Shorter than the head, but much broader.
 
     scr_enemy_visual_helper_triangle_blade(
-    _x,
-    _y,
-    _angle,
-    _radius * 1.30,
-    _radius * 0.55,
-    54,
-    1
-);
+        _x,
+        _y,
+        _angle + 120,
+
+        _radius * 1.18,
+        _radius * 0.60,
+        66,
+
+        1
+    );
 
 
-// Short side blades.
+    // ========================================================================
+    // RIGHT REAR BLADE
+    // ========================================================================
 
-scr_enemy_visual_helper_triangle_blade(
-    _x,
-    _y,
-    _angle + 120,
-    _radius * 1.08,
-    _radius * 0.53,
-    56,
-    1
-);
+    scr_enemy_visual_helper_triangle_blade(
+        _x,
+        _y,
+        _angle + 240,
 
-scr_enemy_visual_helper_triangle_blade(
-    _x,
-    _y,
-    _angle + 240,
-    _radius * 1.08,
-    _radius * 0.53,
-    56,
-    1
-);
+        _radius * 1.18,
+        _radius * 0.60,
+        66,
 
+        1
+    );
+
+
+    // ========================================================================
+    // CENTRAL JOINT
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        1.5,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the Hunter enemy using three overlapping triangular blades.
+
+function scr_enemy_visual_hunter(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // FORWARD / HEAD BLADE
+    // ========================================================================
+
+    scr_enemy_visual_helper_triangle_blade(
+        _x,
+        _y,
+        _angle,
+
+        _radius * 1.50,
+        _radius * 0.80,
+        62,
+
+        1
+    );
+
+
+    // ========================================================================
+    // LEFT REAR BLADE
+    // ========================================================================
+
+    scr_enemy_visual_helper_triangle_blade(
+        _x,
+        _y,
+        _angle + 120,
+
+        _radius * 1.18,
+        _radius * 0.60,
+        66,
+
+        1
+    );
+
+
+    // ========================================================================
+    // RIGHT REAR BLADE
+    // ========================================================================
+
+    scr_enemy_visual_helper_triangle_blade(
+        _x,
+        _y,
+        _angle + 240,
+
+        _radius * 1.18,
+        _radius * 0.60,
+        66,
+
+        1
+    );
+
+
+    // ========================================================================
+    // CENTRAL JOINT
+    // ========================================================================
 
     draw_circle(
         _x,
@@ -957,105 +1057,321 @@ function scr_enemy_visual_transporter(_enemy)
     return true;
 }
 
-/// @description Draws the hovering orbiting Gunship.
+/// @description Draws the hovering orbiting Gunship as a broad swept-wing craft.
 
 function scr_enemy_visual_gunship(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
     var _hover =
         scr_enemy_visual_hover_offset_get(_enemy);
 
-    var _x = _enemy.x;
-    var _y = _enemy.y + _hover;
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y + _hover;
+
+    var _color =
+        _enemy.visual.color;
 
 
-    // Ground shadow.
+    // ========================================================================
+    // GROUND SHADOW
+    // ========================================================================
 
-    draw_set_alpha(0.2);
+    var _shadow_scale =
+        0.82
+        + sin(
+            (global.vtd.tick * 1.2)
+            + real(_enemy.id)
+        ) * 0.025;
+
+
+    draw_set_alpha(0.18);
     draw_set_color(c_black);
 
+
     draw_ellipse(
-        _enemy.x - (_radius * 0.85),
-        _enemy.y + 3,
-        _enemy.x + (_radius * 0.85),
-        _enemy.y + 11,
+        _enemy.x - (_radius * 1.45 * _shadow_scale),
+        _enemy.y + 4,
+
+        _enemy.x + (_radius * 1.45 * _shadow_scale),
+        _enemy.y + 12,
+
         false
     );
 
 
     draw_set_alpha(1);
-    draw_set_color(_enemy.visual.color);
+    draw_set_color(_color);
 
 
-    // Swept-wing airframe.
+    // ========================================================================
+    // LEFT WING
+    // ========================================================================
 
-    var _front_x =
-        _x + lengthdir_x(_radius, _angle);
-
-    var _front_y =
-        _y + lengthdir_y(_radius, _angle);
-
-    var _back_x =
-        _x + lengthdir_x(
-            _radius * 0.8,
-            _angle + 180
-        );
-
-    var _back_y =
-        _y + lengthdir_y(
-            _radius * 0.8,
-            _angle + 180
-        );
-
-    var _left_x =
-        _x + lengthdir_x(
-            _radius * 1.25,
-            _angle + 115
-        );
-
-    var _left_y =
-        _y + lengthdir_y(
-            _radius * 1.25,
-            _angle + 115
-        );
-
-    var _right_x =
-        _x + lengthdir_x(
-            _radius * 1.25,
-            _angle - 115
-        );
-
-    var _right_y =
-        _y + lengthdir_y(
-            _radius * 1.25,
-            _angle - 115
-        );
+    var _left_wing =
+    [
+        [ _radius * 0.18, -_radius * 0.24 ],
+        [ _radius * 0.48, -_radius * 0.72 ],
+        [ _radius * 0.18, -_radius * 1.10 ],
+        [ -_radius * 0.40, -_radius * 1.55 ],
+        [ -_radius * 0.72, -_radius * 1.48 ],
+        [ -_radius * 0.48, -_radius * 0.92 ],
+        [ -_radius * 0.12, -_radius * 0.38 ]
+    ];
 
 
-    draw_line_width(_front_x, _front_y, _left_x, _left_y, 2);
-    draw_line_width(_left_x, _left_y, _back_x, _back_y, 2);
-    draw_line_width(_back_x, _back_y, _right_x, _right_y, 2);
-    draw_line_width(_right_x, _right_y, _front_x, _front_y, 2);
-
-
-    // Forward weapon and engine core.
-
-    draw_line_width(
+    scr_enemy_visual_helper_local_polygon(
         _x,
         _y,
-        _front_x,
-        _front_y,
-        3
+        _angle,
+        _left_wing,
+        1
     );
 
-    draw_circle(_x, _y, 7, false);
 
-    draw_set_color(c_white);
-    draw_circle(_x, _y, 2, true);
+    // ========================================================================
+    // RIGHT WING
+    // ========================================================================
+
+    var _right_wing =
+    [
+        [ _radius * 0.18,  _radius * 0.24 ],
+        [ _radius * 0.48,  _radius * 0.72 ],
+        [ _radius * 0.18,  _radius * 1.10 ],
+        [ -_radius * 0.40,  _radius * 1.55 ],
+        [ -_radius * 0.72,  _radius * 1.48 ],
+        [ -_radius * 0.48,  _radius * 0.92 ],
+        [ -_radius * 0.12,  _radius * 0.38 ]
+    ];
+
+
+    scr_enemy_visual_helper_local_polygon(
+        _x,
+        _y,
+        _angle,
+        _right_wing,
+        1
+    );
+
+
+    // ========================================================================
+    // LEFT INNER WING STRUCTURE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+         _radius * 0.22,
+        -_radius * 0.36,
+
+        -_radius * 0.38,
+        -_radius * 1.30,
+
+        1
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.38,
+        -_radius * 1.30,
+
+        -_radius * 0.18,
+        -_radius * 0.72,
+
+        1
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.18,
+        -_radius * 0.72,
+
+         _radius * 0.22,
+        -_radius * 0.36,
+
+        1
+    );
+
+
+    // ========================================================================
+    // RIGHT INNER WING STRUCTURE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+         _radius * 0.22,
+         _radius * 0.36,
+
+        -_radius * 0.38,
+         _radius * 1.30,
+
+        1
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.38,
+         _radius * 1.30,
+
+        -_radius * 0.18,
+         _radius * 0.72,
+
+        1
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.18,
+         _radius * 0.72,
+
+         _radius * 0.22,
+         _radius * 0.36,
+
+        1
+    );
+
+
+    // ========================================================================
+    // CENTRAL FUSELAGE
+    // ========================================================================
+
+    var _body =
+    [
+        [  _radius * 1.15,  0 ],
+        [  _radius * 0.20, -_radius * 0.43 ],
+        [ -_radius * 0.72,  0 ],
+        [  _radius * 0.20,  _radius * 0.43 ]
+    ];
+
+
+    scr_enemy_visual_helper_local_polygon(
+        _x,
+        _y,
+        _angle,
+        _body,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL INNER DIAMOND
+    // ========================================================================
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.34,
+        _angle,
+        1
+    );
+
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.18,
+        _angle,
+        1
+    );
+
+
+    // ========================================================================
+    // FORWARD SPINE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        _radius * 0.18,
+        0,
+
+        _radius * 1.05,
+        0,
+
+        1
+    );
+
+
+    // ========================================================================
+    // SMALL REAR ENGINE DETAILS
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.28,
+        -_radius * 0.20,
+
+        -_radius * 0.66,
+        -_radius * 0.34,
+
+        1
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -_radius * 0.28,
+         _radius * 0.20,
+
+        -_radius * 0.66,
+         _radius * 0.34,
+
+        1
+    );
+
+
+    // ========================================================================
+    // CENTRAL CORE
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        2,
+        true
+    );
+
 
     draw_set_alpha(1);
     draw_set_color(c_white);

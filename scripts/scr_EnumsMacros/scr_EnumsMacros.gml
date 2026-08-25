@@ -216,6 +216,17 @@ enum EnergyNetworkState { OFFLINE, DEFICIT, BATTERY, BALANCED, SURPLUS }
 enum EnergyOverlayMode { OFF, NETWORKS, DETAILED }
 
 
+enum MainMenuAction
+{
+    CAMPAIGN,
+    SURVIVAL,
+    SANDBOX,
+    RESEARCH,
+    OPTIONS,
+    CHANGE_PROFILE,
+    EXIT_GAME
+}
+
 // Staggered update helpers.
 //
 // FUTURE:

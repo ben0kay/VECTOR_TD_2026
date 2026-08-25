@@ -41,6 +41,12 @@ function scr_game_initialize()
         {
             enabled: true
         }
+
+        // FUTURE:
+        // profile
+        // save data
+        // persistent upgrades
+        // campaign progress
     };
 
 
@@ -59,17 +65,18 @@ function scr_game_initialize()
     scr_resource_data_initialize();
     scr_recipe_data_initialize();
     scr_world_data_initialize();
-	scr_particles_initialize();
+    scr_particles_initialize();
 
 
     // FUTURE:
     // scr_upgrade_data_initialize();
     // scr_research_data_initialize();
     // scr_boss_data_initialize();
+    // scr_profile_system_initialize();
 
 
     global.GameState =
-        GameState.PLAYING;
+        GameState.MENU;
 
 
     show_debug_message(
@@ -79,7 +86,6 @@ function scr_game_initialize()
 
     return true;
 }
-
 /// @description Creates the runtime belonging to the current level.
 
 function scr_level_initialize()
