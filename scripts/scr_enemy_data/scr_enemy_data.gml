@@ -1604,7 +1604,7 @@ function scr_enemy_data_centipede_head()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_centipede_head,
-                radius: 18,
+                radius: 20,
                 color: make_color_rgb(110, 255, 90)
             },
 
@@ -1646,7 +1646,7 @@ function scr_enemy_data_centipede_head()
                 child_count_maximum: 8,
 
                 // Number of recorded frames separating each child.
-                trail_stagger: 20
+                trail_stagger: 11
             },
 
             rewards:
@@ -1680,7 +1680,7 @@ function scr_enemy_data_centipede_child()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_centipede_child,
-                radius: 11,
+                radius: 15,
                 color: make_color_rgb(70, 210, 80)
             },
 
