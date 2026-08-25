@@ -1,34 +1,156 @@
 /// @description Data-driven refinery recipes.
 
+/// @description Registers every production recipe.
+
 function scr_recipe_data_initialize()
 {
-    global.vtd.data.recipes = {
+    global.vtd.data.recipes =
+    {
         refined_carbon:
         {
-            identity: { key: "refined_carbon", name: "Refined Carbon" },
-            inputs: [{ resource_key: "resource_carbon", amount: 100 }],
-            outputs: [{ resource_key: "resource_refined_carbon", amount: 1 }],
-            production: { time_seconds: 30, energy_per_second: 4 }
+            identity:
+            {
+                key: "refined_carbon",
+                name: "Refined Carbon"
+            },
+
+            inputs:
+            [{
+                resource_key: "resource_carbon",
+                amount: 100
+            }],
+
+            outputs:
+            [{
+                resource_key: "resource_refined_carbon",
+                amount: 1
+            }],
+
+            production:
+            {
+                time_seconds: 30,
+                energy_per_second: 4
+            }
         },
+
 
         refined_silicon:
         {
-            identity: { key: "refined_silicon", name: "Refined Silicon" },
-            inputs: [{ resource_key: "resource_silicon", amount: 100 }],
-            outputs: [{ resource_key: "resource_refined_silicon", amount: 1 }],
-            production: { time_seconds: 45, energy_per_second: 5 }
+            identity:
+            {
+                key: "refined_silicon",
+                name: "Refined Silicon"
+            },
+
+            inputs:
+            [{
+                resource_key: "resource_silicon",
+                amount: 100
+            }],
+
+            outputs:
+            [{
+                resource_key: "resource_refined_silicon",
+                amount: 1
+            }],
+
+            production:
+            {
+                time_seconds: 45,
+                energy_per_second: 5
+            }
         },
+
 
         refined_copper:
         {
-            identity: { key: "refined_copper", name: "Refined Copper" },
-            inputs: [{ resource_key: "resource_copper", amount: 100 }],
-            outputs: [{ resource_key: "resource_refined_copper", amount: 1 }],
-            production: { time_seconds: 40, energy_per_second: 4.5 }
+            identity:
+            {
+                key: "refined_copper",
+                name: "Refined Copper"
+            },
+
+            inputs:
+            [{
+                resource_key: "resource_copper",
+                amount: 100
+            }],
+
+            outputs:
+            [{
+                resource_key: "resource_refined_copper",
+                amount: 1
+            }],
+
+            production:
+            {
+                time_seconds: 40,
+                energy_per_second: 4.5
+            }
+        },
+
+
+        bullets:
+        {
+            identity:
+            {
+                key: "bullets",
+                name: "Bullets"
+            },
+
+            inputs:
+            [{
+                resource_key: "resource_refined_copper",
+                amount: 1
+            }],
+
+            outputs:
+            [{
+                resource_key: "resource_bullets",
+                amount: 100
+            }],
+
+            production:
+            {
+                time_seconds: 10,
+                energy_per_second: 5
+            }
+        },
+
+
+        explosives:
+        {
+            identity:
+            {
+                key: "explosives",
+                name: "Explosives"
+            },
+
+            inputs:
+            [{
+                resource_key: "resource_refined_carbon",
+                amount: 1
+            }],
+
+            outputs:
+            [{
+                resource_key: "resource_explosives",
+                amount: 20
+            }],
+
+            production:
+            {
+                time_seconds: 15,
+                energy_per_second: 8
+            }
         }
     };
 
-    show_debug_message("VECTOR TD 2026 - RECIPE DATA INITIALIZED");
+
+    show_debug_message(
+        "VECTOR TD 2026 - RECIPE DATA INITIALIZED"
+    );
+
     return true;
 }
 

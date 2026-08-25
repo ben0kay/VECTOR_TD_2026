@@ -112,7 +112,7 @@ function scr_refinery_inputs_ready(_refinery)
     return true;
 }
 
-/// @description Receives production input through the legacy refinery cargo job.
+/// @description Receives production input through the shared production system.
 
 function scr_refinery_input_receive(
     _building,
@@ -125,22 +125,6 @@ function scr_refinery_input_receive(
         _resource_key,
         _amount
     );
-}
-{
-    if (!instance_exists(_refinery)) return _amount;
-    var _inputs = _refinery.production.inputs;
-
-    for (var i = 0; i < array_length(_inputs); ++i)
-    {
-        var _input = _inputs[i];
-        if (_input.resource_key != _resource_key) continue;
-
-        var _accepted = min(max(0, _amount), _input.required - _input.delivered);
-        _input.delivered += _accepted;
-        _input.assigned_drone = noone;
-        return _amount - _accepted;
-    }
-    return _amount;
 }
 
 function scr_refinery_input_requests_update(_refinery)
