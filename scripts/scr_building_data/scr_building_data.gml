@@ -1448,8 +1448,12 @@ function scr_building_data_utility_radar()
                 radar:
                 {
                     reveal_seconds: 2.5,
-                    sweep_degrees_per_second: 100,
-                    pulse_duration_seconds: 0.65,
+
+                    sweep_degrees_per_second:
+                        100,
+
+                    pulse_duration_seconds:
+                        0.65,
 
                     color:
                         make_color_rgb(
@@ -1467,7 +1471,10 @@ function scr_building_data_utility_radar()
 
                 connection_range: 320,
                 generation_per_second: 0,
-                storage_capacity: 0,
+
+                // Allows the network to refill the radar's internal buffer.
+
+                input_rate: 12,
 
                 idle_demand: 2,
                 activity_cost: 8,
