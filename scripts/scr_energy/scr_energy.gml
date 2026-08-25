@@ -213,30 +213,8 @@ function scr_energy_networks_rebuild()
 
 
     var _system = global.vtd_level.energy;
-    var _participants = [];
-    var _building_count = instance_number(o_building_par);
-
-
-    // Reset assignments and collect active participants.
-
-    for (var i = 0; i < _building_count; ++i)
-    {
-        var _building = instance_find(o_building_par, i);
-
-        if (!instance_exists(_building))
-            continue;
-
-        if (!_building.energy.participates)
-            continue;
-
-        _building.energy.network_id = -1;
-		_building.energy.connected = false;
-		_building.energy.supplied = false;
-
-
-        if (_building.BuildingState == BuildingState.ACTIVE)
-            array_push(_participants, _building);
-    }
+    var _participants =
+    scr_energy_participants_get();
 
 
     var _networks = [];
@@ -1663,4 +1641,80 @@ function scr_energy_network_alert_update(_network)
 
 
     return true;
+}
+
+/// @description Collects every active energy participant.
+
+function scr_energy_participants_get()
+{
+    var _participants = [];
+
+
+    var _building_count =
+        instance_number(o_building_par);
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
+        if (!instance_exists(_building))
+            continue;
+
+        if (!_building.energy.participates)
+            continue;
+
+
+        _building.energy.network_id = -1;
+        _building.energy.connected = false;
+        _building.energy.supplied = false;
+
+
+        if (_building.BuildingState == BuildingState.ACTIVE)
+        {
+            array_push(
+                _participants,
+                _building
+            );
+        }
+    }
+
+
+    var _foundation_count =
+        instance_number(o_foundation);
+
+    for (var i = 0; i < _foundation_count; ++i)
+    {
+        var _foundation =
+            instance_find(
+                o_foundation,
+                i
+            );
+
+        if (!instance_exists(_foundation))
+            continue;
+
+        if (!_foundation.energy.participates)
+            continue;
+
+
+        _foundation.energy.network_id = -1;
+        _foundation.energy.connected = false;
+        _foundation.energy.supplied = false;
+
+
+        if (_foundation.BuildingState == BuildingState.ACTIVE)
+        {
+            array_push(
+                _participants,
+                _foundation
+            );
+        }
+    }
+
+
+    return _participants;
 }

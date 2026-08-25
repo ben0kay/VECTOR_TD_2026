@@ -614,11 +614,31 @@ function scr_tower_update(_tower)
     var _weapon = _tower.combat.weapon;
 
 
-    _weapon.cooldown.remaining =
-        max(
-            0,
-            _weapon.cooldown.remaining - (1 / _fps)
-        );
+    var _foundation_fire_rate =
+    1;
+
+	if (
+	    variable_struct_exists(
+	        _tower.foundation,
+	        "tower_fire_rate_multiplier"
+	    )
+	)
+	{
+	    _foundation_fire_rate =
+	        _tower.foundation
+	            .tower_fire_rate_multiplier;
+	}
+
+
+	_weapon.cooldown.remaining =
+	    max(
+	        0,
+	        _weapon.cooldown.remaining
+	        - (
+	            (1 / _fps)
+	            * _foundation_fire_rate
+	        )
+	    );
 
 
     if (_weapon.trace.active)

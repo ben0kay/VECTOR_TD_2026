@@ -410,8 +410,8 @@ function scr_building_data_initialize()
 	if (!scr_building_data_energy_battery())
 	    return false;
 
-	if (!scr_building_data_foundation_basic())
-	    return false;
+	if (!scr_building_data_foundations_initialize())
+    return false;
 	
 	if (!scr_building_data_utility_initialize())
     return false;

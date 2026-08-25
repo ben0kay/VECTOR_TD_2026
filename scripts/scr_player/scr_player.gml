@@ -274,9 +274,17 @@ function scr_player_movement_update(_player)
     )
     {
         _movement.speed_multiplier =
-            _foundation.building_data
-                .foundation
-                .player_speed_multiplier;
+    scr_foundation_position_modifier_get(
+        _player.x,
+        _player.y,
+        "player_move_speed",
+        1
+    );
+
+
+_movement.speed =
+    _movement.speed_base
+    * _movement.speed_multiplier;
     }
 
 
@@ -567,12 +575,24 @@ function scr_player_combat_update(_player)
         );
 
 
-    _weapon.cooldown.remaining =
-        max(
-            0,
-            _weapon.cooldown.remaining
-            - (1 / _fps)
-        );
+    var _foundation_fire_rate =
+    scr_foundation_position_modifier_get(
+        _player.x,
+        _player.y,
+        "player_fire_rate",
+        1
+    );
+
+
+_weapon.cooldown.remaining =
+    max(
+        0,
+        _weapon.cooldown.remaining
+        - (
+            (1 / _fps)
+            * _foundation_fire_rate
+        )
+    );
 
 
     // Left-click belongs to building placement while build mode is active.
@@ -679,6 +699,14 @@ function scr_player_damage(
 
     var _remaining_damage =
         _damage.amount;
+		
+		_remaining_damage *=
+    scr_foundation_position_modifier_get(
+        _player.x,
+        _player.y,
+        "player_damage_received",
+        1
+    );
 
     var _shield =
         _player.vitals.shield;

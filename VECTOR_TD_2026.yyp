@@ -91,6 +91,7 @@
     {"id":{"name":"scr_energy","path":"scripts/scr_energy/scr_energy.yy",},},
     {"id":{"name":"scr_EnumsMacros","path":"scripts/scr_EnumsMacros/scr_EnumsMacros.yy",},},
     {"id":{"name":"scr_fog","path":"scripts/scr_fog/scr_fog.yy",},},
+    {"id":{"name":"scr_foundation_data","path":"scripts/scr_foundation_data/scr_foundation_data.yy",},},
     {"id":{"name":"scr_foundation","path":"scripts/scr_foundation/scr_foundation.yy",},},
     {"id":{"name":"scr_game","path":"scripts/scr_game/scr_game.yy",},},
     {"id":{"name":"scr_hud_alert","path":"scripts/scr_hud_alert/scr_hud_alert.yy",},},

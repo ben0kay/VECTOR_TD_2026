@@ -88,7 +88,13 @@ enum EnemyEffect { SLOW, STASIS, DAMAGE_OVER_TIME }
 // ============================================================================
 
 enum DamageSource { PLAYER, TOWER, ENEMY, ENVIRONMENT }
-enum DamageType { KINETIC, EXPLOSIVE, LASER }
+enum DamageType
+{
+    KINETIC,
+    EXPLOSIVE,
+    LASER,
+    ELECTRICAL
+}
 enum AttackAreaShape { POINT, CIRCLE, LINE, CONE, CAPSULE }
 
 
@@ -132,6 +138,12 @@ enum UtilityType
     CREDIT_MAGNET,
     REPAIRER,
     CREDIT_UPLINK
+}
+enum FoundationType
+{
+    ACCELERATOR,
+    REINFORCED,
+    SHOCK_GRID
 }
 
 

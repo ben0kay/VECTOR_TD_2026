@@ -84,8 +84,7 @@ function scr_foundation_placement_valid(
     return true;
 }
 
-
-/// @description Initializes one non-solid foundation instance.
+/// @description Initializes one non-solid data-driven foundation.
 
 function scr_foundation_initialize(_foundation)
 {
@@ -107,9 +106,21 @@ function scr_foundation_initialize(_foundation)
     if (_data.identity.type != BuildingType.FOUNDATION)
         return false;
 
+    if (
+        !variable_struct_exists(_data, "foundation")
+        || !is_struct(_data.foundation)
+    )
+    {
+        return false;
+    }
 
-    _foundation.building_data = _data;
-    _foundation.BuildingState = BuildingState.CONSTRUCTING;
+
+    _foundation.building_data =
+        _data;
+
+    _foundation.BuildingState =
+        BuildingState.CONSTRUCTING;
+
 
     _foundation.identity =
     {
@@ -118,10 +129,75 @@ function scr_foundation_initialize(_foundation)
         type: _data.identity.type
     };
 
+
     _foundation.visual =
     {
         color: _data.visual.color
     };
+
+
+    _foundation.foundation =
+    {
+        type:
+            _data.foundation.type,
+
+        modifiers:
+            variable_clone(
+                _data.foundation.modifiers
+            ),
+
+        shock:
+        {
+            enabled: false,
+            damage: 0,
+            interval_seconds: 1,
+            interval_remaining: 0,
+            color: c_yellow
+        }
+    };
+
+
+    if (
+        variable_struct_exists(
+            _data.foundation,
+            "shock"
+        )
+        && is_struct(_data.foundation.shock)
+    )
+    {
+        var _shock =
+            _data.foundation.shock;
+
+        _foundation.foundation.shock =
+        {
+            enabled:
+                _shock.enabled,
+
+            damage:
+                variable_struct_exists(_shock, "damage")
+                ? _shock.damage
+                : 0,
+
+            interval_seconds:
+                variable_struct_exists(_shock, "interval_seconds")
+                ? max(0.05, _shock.interval_seconds)
+                : 1,
+
+            interval_remaining:
+                random_range(
+                    0,
+                    variable_struct_exists(_shock, "interval_seconds")
+                    ? max(0.05, _shock.interval_seconds)
+                    : 1
+                ),
+
+            color:
+                variable_struct_exists(_shock, "color")
+                ? _shock.color
+                : c_yellow
+        };
+    }
+
 
     _foundation.footprint =
     {
@@ -146,15 +222,18 @@ function scr_foundation_initialize(_foundation)
     };
 
 
-    // Foundation tiles currently have durability for construction feedback,
-    // but ordinary enemies do not target them.
-
     _foundation.vitals =
     {
         hp:
         {
-            current: max(1, _data.vitals.hp_maximum * 0.1),
-            maximum: _data.vitals.hp_maximum
+            current:
+                max(
+                    1,
+                    _data.vitals.hp_maximum * 0.1
+                ),
+
+            maximum:
+                _data.vitals.hp_maximum
         }
     };
 
@@ -167,6 +246,16 @@ function scr_foundation_initialize(_foundation)
         hp_remaining: _data.vitals.hp_maximum * 0.9,
         complete: false
     };
+
+
+    _foundation.energy =
+        scr_energy_runtime_create(
+            _data
+        );
+
+
+    if (!is_struct(_foundation.energy))
+        return false;
 
 
     if (
@@ -199,7 +288,8 @@ function scr_foundation_initialize(_foundation)
     }
 
 
-    _foundation.footprint.reserved = true;
+    _foundation.footprint.reserved =
+        true;
 
 
     if (_foundation.construction.duration_seconds <= 0)
@@ -210,14 +300,16 @@ function scr_foundation_initialize(_foundation)
         _foundation.construction.complete = true;
         _foundation.BuildingState = BuildingState.ACTIVE;
         _foundation.vitals.hp.current = _foundation.vitals.hp.maximum;
+
+        if (_foundation.energy.participates)
+            scr_energy_topology_dirty();
     }
 
 
     return true;
 }
 
-
-/// @description Updates one foundation's construction lifecycle.
+/// @description Updates one foundation lifecycle and active behaviour.
 
 function scr_foundation_update(_foundation)
 {
@@ -251,14 +343,14 @@ function scr_foundation_update(_foundation)
             _foundation.construction.percent =
                 clamp(
                     _foundation.construction.progress_seconds
-                    / max(0.001, _foundation.construction.duration_seconds),
+                    / max(
+                        0.001,
+                        _foundation.construction.duration_seconds
+                    ),
                     0,
                     1
                 );
 
-
-            // Construction adds HP gradually without healing damage already
-            // inflicted during construction.
 
             var _percent_added =
                 _foundation.construction.percent
@@ -271,6 +363,7 @@ function scr_foundation_update(_foundation)
                     0.001,
                     1 - _previous_percent
                 );
+
 
             _foundation.vitals.hp.current =
                 min(
@@ -289,6 +382,19 @@ function scr_foundation_update(_foundation)
             {
                 _foundation.construction.complete = true;
                 _foundation.BuildingState = BuildingState.ACTIVE;
+                _foundation.vitals.hp.current = _foundation.vitals.hp.maximum;
+
+
+                if (_foundation.energy.participates)
+                    scr_energy_topology_dirty();
+
+
+                scr_particles_construction_complete(
+                    _foundation.x,
+                    _foundation.y,
+                    _foundation.visual.color
+                );
+
 
                 show_debug_message(
                     "FOUNDATION COMPLETE: "
@@ -301,10 +407,19 @@ function scr_foundation_update(_foundation)
 
         case BuildingState.ACTIVE:
         {
-            // FUTURE:
-            // powered floors
-            // repair floors
-            // environmental protection
+            switch (_foundation.foundation.type)
+            {
+                case FoundationType.SHOCK_GRID:
+                    scr_foundation_shock_update(_foundation);
+                break;
+
+                case FoundationType.ACCELERATOR:
+                case FoundationType.REINFORCED:
+                {
+                    // Passive modifiers are read by entities above the tile.
+                }
+                break;
+            }
         }
         break;
     }
@@ -474,6 +589,8 @@ function scr_foundation_cleanup(_foundation)
 
     _foundation.footprint.reserved = false;
     _foundation.footprint.cells = [];
+	if (_foundation.energy.participates)
+    scr_energy_topology_dirty();
 
     return true;
 }
@@ -525,4 +642,297 @@ function scr_foundation_building_coverage_get(_building)
 
 
     return _covered / _cell_count;
+}
+
+
+/// @description Returns the active foundation beneath one world position.
+
+function scr_foundation_at_position(_world_x, _world_y)
+{
+    var _cell =
+        scr_building_position_to_cell(
+            _world_x,
+            _world_y
+        );
+
+    var _foundation =
+        scr_foundation_at_cell(
+            _cell.x,
+            _cell.y
+        );
+
+
+    if (!instance_exists(_foundation))
+        return noone;
+
+    if (_foundation.BuildingState != BuildingState.ACTIVE)
+        return noone;
+
+
+    return _foundation;
+}
+
+
+/// @description Returns one modifier from the foundation beneath an entity.
+
+function scr_foundation_position_modifier_get(
+    _world_x,
+    _world_y,
+    _modifier_key,
+    _default = 1
+)
+{
+    var _foundation =
+        scr_foundation_at_position(
+            _world_x,
+            _world_y
+        );
+
+    if (!instance_exists(_foundation))
+        return _default;
+
+
+    var _modifiers =
+        _foundation.foundation.modifiers;
+
+    if (
+        !variable_struct_exists(
+            _modifiers,
+            _modifier_key
+        )
+    )
+    {
+        return _default;
+    }
+
+
+    return variable_struct_get(
+        _modifiers,
+        _modifier_key
+    );
+}
+
+
+/// @description Returns a coverage-weighted foundation modifier for a building.
+
+function scr_foundation_building_modifier_get(
+    _building,
+    _modifier_key
+)
+{
+    if (!instance_exists(_building))
+        return 1;
+
+    if (!is_array(_building.footprint.cells))
+        return 1;
+
+
+    var _cell_count =
+        array_length(
+            _building.footprint.cells
+        );
+
+    if (_cell_count <= 0)
+        return 1;
+
+
+    var _bonus_total =
+        0;
+
+
+    for (var i = 0; i < _cell_count; ++i)
+    {
+        var _cell =
+            _building.footprint.cells[i];
+
+        var _foundation =
+            scr_foundation_at_cell(
+                _cell.x,
+                _cell.y
+            );
+
+        if (!instance_exists(_foundation))
+            continue;
+
+        if (_foundation.BuildingState != BuildingState.ACTIVE)
+            continue;
+
+
+        var _modifiers =
+            _foundation.foundation.modifiers;
+
+        if (
+            !variable_struct_exists(
+                _modifiers,
+                _modifier_key
+            )
+        )
+        {
+            continue;
+        }
+
+
+        _bonus_total +=
+            variable_struct_get(
+                _modifiers,
+                _modifier_key
+            )
+            - 1;
+    }
+
+
+    return 1
+        + (_bonus_total / _cell_count);
+}
+
+/// @description Damages ground enemies occupying one powered Shock Grid.
+
+function scr_foundation_shock_update(_foundation)
+{
+    if (!instance_exists(_foundation))
+        return false;
+
+
+    var _shock =
+        _foundation.foundation.shock;
+
+    if (!_shock.enabled)
+        return true;
+
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    _shock.interval_remaining =
+        max(
+            0,
+            _shock.interval_remaining
+            - (1 / _fps)
+        );
+
+
+    if (_shock.interval_remaining > 0)
+        return true;
+
+
+    _shock.interval_remaining =
+        _shock.interval_seconds;
+
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _half_size =
+        _cell_size * 0.5;
+
+    var _targets = [];
+
+    var _enemy_count =
+        instance_number(o_enemy);
+
+
+    for (var i = 0; i < _enemy_count; ++i)
+    {
+        var _enemy =
+            instance_find(
+                o_enemy,
+                i
+            );
+
+        if (!instance_exists(_enemy))
+            continue;
+
+        if (_enemy.EnemyState == EnemyState.DEAD)
+            continue;
+
+        if (
+            _enemy.movement.layer
+            != EnemyMovementLayer.GROUND
+        )
+        {
+            continue;
+        }
+
+
+        var _radius =
+            _enemy.visual.radius;
+
+
+        if (
+            abs(_enemy.x - _foundation.x)
+            > _half_size + _radius
+        )
+        {
+            continue;
+        }
+
+        if (
+            abs(_enemy.y - _foundation.y)
+            > _half_size + _radius
+        )
+        {
+            continue;
+        }
+
+
+        array_push(
+            _targets,
+            _enemy
+        );
+    }
+
+
+    if (array_length(_targets) <= 0)
+        return true;
+
+
+    // One activity payment powers the complete tile discharge.
+
+    if (!scr_energy_activity_consume(_foundation))
+        return false;
+
+
+    for (var i = 0; i < array_length(_targets); ++i)
+    {
+        var _enemy =
+            _targets[i];
+
+        if (!instance_exists(_enemy))
+            continue;
+
+
+        scr_enemy_damage(
+            _enemy,
+            scr_damage_create(
+                _shock.damage,
+                _foundation,
+                DamageSource.ENVIRONMENT,
+                DamageType.ELECTRICAL
+            )
+        );
+
+
+        scr_particles_impact(
+            _enemy.x,
+            _enemy.y,
+            _shock.color,
+            3
+        );
+    }
+
+
+    scr_effect_shockwave_create(
+        _foundation.x,
+        _foundation.y,
+        _cell_size * 0.65,
+        _shock.color,
+        EnemyMovementLayer.GROUND
+    );
+
+
+    return true;
 }

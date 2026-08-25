@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_foundation_data",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_foundation_data",
+  "parent":{
+    "name":"data",
+    "path":"folders/scripts/data.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

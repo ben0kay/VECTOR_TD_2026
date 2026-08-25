@@ -120,41 +120,46 @@ function scr_building_initialize(_building)
 
 
     // ========================================================================
-    // FOUNDATION SUPPORT
-    // ========================================================================
+	// FOUNDATION SUPPORT
+	// ========================================================================
 
-    var _foundation_coverage =
-        scr_foundation_building_coverage_get(
-            _building
-        );
+	var _foundation_coverage =
+	    scr_foundation_building_coverage_get(
+	        _building
+	    );
 
-    var _foundation_multiplier =
-        1;
+	var _foundation_hp_multiplier =
+	    scr_foundation_building_modifier_get(
+	        _building,
+	        "building_hp"
+	    );
 
-
-    if (_foundation_coverage >= 1)
-    {
-        _foundation_multiplier =
-            1.05;
-    }
-
-
-    var _hp_maximum =
-        _data.vitals.hp_maximum
-        * _foundation_multiplier;
+	var _foundation_fire_rate_multiplier =
+	    scr_foundation_building_modifier_get(
+	        _building,
+	        "tower_fire_rate"
+	    );
 
 
-    _building.foundation =
-    {
-        coverage:
-            _foundation_coverage,
+	var _hp_maximum =
+	    _data.vitals.hp_maximum
+	    * _foundation_hp_multiplier;
 
-        fully_supported:
-            _foundation_coverage >= 1,
 
-        hp_multiplier:
-            _foundation_multiplier
-    };
+	_building.foundation =
+	{
+	    coverage:
+	        _foundation_coverage,
+
+	    fully_supported:
+	        _foundation_coverage >= 1,
+
+	    hp_multiplier:
+	        _foundation_hp_multiplier,
+
+	    tower_fire_rate_multiplier:
+	        _foundation_fire_rate_multiplier
+	};
 
 
     // ========================================================================

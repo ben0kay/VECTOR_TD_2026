@@ -34,10 +34,14 @@ function scr_damage_shield_multiplier(_damage_type)
 
         case DamageType.LASER:
             return 2;
+
+        case DamageType.ELECTRICAL:
+            return 1.25;
     }
 
     return 1;
 }
+
 
 /// @description Returns a damage type's effectiveness against exposed health.
 
@@ -46,9 +50,8 @@ function scr_damage_health_multiplier(_damage_type)
     switch (_damage_type)
     {
         case DamageType.KINETIC:
-            return 1;
-
         case DamageType.EXPLOSIVE:
+        case DamageType.ELECTRICAL:
             return 1;
 
         case DamageType.LASER:
