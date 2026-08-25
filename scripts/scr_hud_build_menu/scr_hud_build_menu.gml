@@ -490,15 +490,16 @@ function scr_hud_build_menu_create()
     };
 }
 
-
-/// @description Rebuilds the card list using current-level availability.
+/// @description Rebuilds and orders the card list using current-level availability.
 
 function scr_hud_build_menu_cards_rebuild(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
+
     var _menu = _hud.hud.build_menu;
+    var _entries = [];
     var _buttons = [];
 
     var _building_keys =
@@ -506,9 +507,15 @@ function scr_hud_build_menu_cards_rebuild(_hud)
             global.vtd.data.buildings
         );
 
+
+    // ========================================================================
+    // COLLECT AVAILABLE BUILDINGS
+    // ========================================================================
+
     for (var i = 0; i < array_length(_building_keys); ++i)
     {
         var _key = _building_keys[i];
+
 
         if (
             !scr_world_current_content_allowed(
@@ -519,6 +526,7 @@ function scr_hud_build_menu_cards_rebuild(_hud)
         {
             continue;
         }
+
 
         var _data =
             scr_building_data_get(_key);
@@ -534,27 +542,96 @@ function scr_hud_build_menu_cards_rebuild(_hud)
             continue;
         }
 
+
+        array_push(
+            _entries,
+            {
+                key: _key,
+                data: _data,
+                order:
+                    scr_hud_building_order_get(
+                        _data
+                    )
+            }
+        );
+    }
+
+
+    // ========================================================================
+    // SORT BY CONFIGURED MENU ORDER
+    // ========================================================================
+    // Insertion sort is appropriate here because each category contains a
+    // relatively small number of building definitions.
+
+    for (var i = 1; i < array_length(_entries); ++i)
+    {
+        var _entry = _entries[i];
+        var _position = i - 1;
+
+
+        while (
+            _position >= 0
+            && _entries[_position].order
+                > _entry.order
+        )
+        {
+            _entries[_position + 1] =
+                _entries[_position];
+
+            --_position;
+        }
+
+
+        _entries[_position + 1] =
+            _entry;
+    }
+
+
+    // ========================================================================
+    // CREATE ORDERED HUD CARDS
+    // ========================================================================
+
+    for (var i = 0; i < array_length(_entries); ++i)
+    {
+        var _entry = _entries[i];
+        var _data = _entry.data;
+
         var _button =
             scr_hud_button_create(
-                _key,
+                _entry.key,
                 _data.identity.name,
                 scr_hud_building_role_text(_data)
             );
 
-        _button.data = _key;
-        _button.accent_color = _data.visual.color;
 
-        array_push(_buttons, _button);
+        _button.data =
+            _entry.key;
+
+        _button.accent_color =
+            _data.visual.color;
+
+
+        array_push(
+            _buttons,
+            _button
+        );
     }
 
-    _menu.building_buttons = _buttons;
+
+    _menu.building_buttons =
+        _buttons;
+
 
     _menu.scroll_index =
         clamp(
             _menu.scroll_positions[_menu.category],
             0,
-            max(0, array_length(_buttons) - 1)
+            max(
+                0,
+                array_length(_buttons) - 1
+            )
         );
+
 
     return true;
 }
@@ -1876,4 +1953,25 @@ function scr_hud_build_menu_category_hotkeys_update(_hud)
 
 
     return false;
+}
+
+/// @description Returns a building's configured build-menu order.
+
+function scr_hud_building_order_get(_building_data)
+{
+    if (!is_struct(_building_data))
+        return 100000;
+
+
+    if (!variable_struct_exists(_building_data, "build_menu"))
+        return 100000;
+
+    if (!is_struct(_building_data.build_menu))
+        return 100000;
+
+    if (!variable_struct_exists(_building_data.build_menu, "order"))
+        return 100000;
+
+
+    return _building_data.build_menu.order;
 }
