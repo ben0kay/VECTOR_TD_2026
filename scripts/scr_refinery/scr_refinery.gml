@@ -112,7 +112,20 @@ function scr_refinery_inputs_ready(_refinery)
     return true;
 }
 
-function scr_refinery_input_receive(_refinery, _resource_key, _amount)
+/// @description Receives production input through the legacy refinery cargo job.
+
+function scr_refinery_input_receive(
+    _building,
+    _resource_key,
+    _amount
+)
+{
+    return scr_production_input_receive(
+        _building,
+        _resource_key,
+        _amount
+    );
+}
 {
     if (!instance_exists(_refinery)) return _amount;
     var _inputs = _refinery.production.inputs;

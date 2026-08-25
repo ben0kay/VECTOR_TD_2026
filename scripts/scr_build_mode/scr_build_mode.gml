@@ -315,6 +315,10 @@ function scr_build_mode_place(_controller)
 		case BuildingType.UTILITY:
 	    _object = o_utility;
 		break;
+		
+		case BuildingType.FABRICATOR:
+	    _object = o_fabricator;
+		break;
     }
 
 

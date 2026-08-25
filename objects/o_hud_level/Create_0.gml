@@ -104,6 +104,9 @@ hud.selection_panel =
 
 hud.refinery_controls =
     scr_hud_refinery_controls_create();
+	
+hud.fabricator_controls =
+    scr_hud_fabricator_controls_create();
 
 hud.debug_menu =
     scr_debug_menu_create();

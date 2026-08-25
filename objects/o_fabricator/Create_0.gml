@@ -1,4 +1,4 @@
-/// @description Initializes one generic data-driven refinery.
+/// @description Initializes one generic data-driven Fabricator.
 
 event_inherited();
 
@@ -9,7 +9,7 @@ if (!instance_exists(id))
 if (!scr_production_initialize(id))
 {
     show_debug_message(
-        "REFINERY ERROR - production initialization failed."
+        "FABRICATOR ERROR - production initialization failed."
     );
 
     instance_destroy();

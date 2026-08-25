@@ -1,4 +1,4 @@
-/// @description Inherits construction and processes refinery production.
+/// @description Inherits construction and processes Fabricator production.
 
 event_inherited();
 

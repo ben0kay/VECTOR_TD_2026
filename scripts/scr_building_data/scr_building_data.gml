@@ -471,6 +471,11 @@ function scr_building_data_initialize()
 	if (!scr_building_data_utility_initialize())
     return false;
 
+	if (!scr_building_data_fabricator())
+    return false;
+	
+	if (!scr_building_data_ammunition_storage())
+    return false;
 
     // FUTURE NON-TOWER BUILDINGS:
     // refinery
@@ -1617,3 +1622,199 @@ function scr_building_data_utility_shield_generator()
     return true;
 }
 
+/// @description Registers the general-purpose Fabricator.
+
+function scr_building_data_fabricator()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "fabricator_basic",
+        {
+            identity:
+            {
+                key: "fabricator_basic",
+                name: "Fabricator",
+                type: BuildingType.FABRICATOR,
+
+                description_short:
+                    "Manufactures ammunition and industrial components.",
+
+                description_long:
+                    "A flexible manufacturing facility. Select a recipe and queue production batches. Cargo drones deliver refined inputs and move completed products into compatible storage."
+            },
+
+            build_menu:
+            {
+                order: 20
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        80,
+                        175,
+                        145
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 3,
+                height_cells: 3
+            },
+
+            vitals:
+            {
+                hp_maximum: 450
+            },
+
+            construction:
+            {
+                time_seconds: 10
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 650
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.ECONOMY,
+                amount: 2
+            },
+
+            fabricator:
+            {
+                recipes:
+                [
+                    "bullets",
+                    "explosives"
+                ],
+
+                output_buffer_batches: 5,
+                drone_speed: 8,
+
+                auto_mode_starting: false,
+                process_text: "FABRICATING"
+            },
+
+            energy:
+            {
+                role: EnergyRole.CONSUMER,
+                priority: EnergyPriority.NORMAL,
+
+                connection_range: 320,
+                generation_per_second: 0,
+
+                input_rate: 20,
+
+                idle_demand: 2,
+                activity_cost: 0,
+
+                buffer:
+                {
+                    capacity: 50,
+                    starting_ratio: 0.5
+                }
+            }
+        }
+    );
+
+
+    return true;
+}
+
+/// @description Registers storage for manufactured ammunition.
+
+function scr_building_data_ammunition_storage()
+{
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "storage_ammunition",
+        {
+            identity:
+            {
+                key: "storage_ammunition",
+                name: "Ammunition Storage",
+                type: BuildingType.STORAGE,
+
+                description_short:
+                    "Stores bullets and explosives.",
+
+                description_long:
+                    "A protected ammunition depot used by Fabricators and tower-resupply drones. Destroying it also destroys its stored ammunition."
+            },
+
+            build_menu:
+            {
+                order: 40
+            },
+
+            visual:
+            {
+                color:
+                    make_color_rgb(
+                        160,
+                        120,
+                        45
+                    )
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 350
+            },
+
+            construction:
+            {
+                time_seconds: 6
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 250
+                }]
+            },
+
+            build_limit:
+            {
+                type: BuildLimitType.ECONOMY,
+                amount: 1
+            },
+
+            storage:
+            {
+                compartments:
+                [
+                    {
+                        resource_key: "resource_bullets",
+                        capacity: 2000
+                    },
+
+                    {
+                        resource_key: "resource_explosives",
+                        capacity: 400
+                    }
+                ]
+            }
+        }
+    );
+
+
+    return true;
+}

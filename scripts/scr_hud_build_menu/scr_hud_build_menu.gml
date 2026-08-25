@@ -263,6 +263,7 @@ function scr_hud_build_category_get(_building_data)
             return BuildMenuCategory.POWER;
 
         case BuildingType.REFINERY:
+		case BuildingType.FABRICATOR:
             return BuildMenuCategory.PRODUCTION;
 
         case BuildingType.SUPPORT:
@@ -351,6 +352,9 @@ function scr_hud_building_role_text(_data)
 			
 		case BuildingType.FOUNDATION:
 		return "FOUNDATION";
+		
+		case BuildingType.FABRICATOR:
+		return "MANUFACTURING";
 
         case BuildingType.TOWER:
         {

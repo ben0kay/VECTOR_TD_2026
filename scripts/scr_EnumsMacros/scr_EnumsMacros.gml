@@ -116,6 +116,7 @@ enum BuildingType
     CPU, WALL, TOWER,
     MINER,
     REFINERY,
+	FABRICATOR,
     STORAGE,
     POWER_GENERATOR,
     POWER_NODE,

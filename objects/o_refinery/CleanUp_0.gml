@@ -1,4 +1,3 @@
-/// @description Releases refinery deliveries and inherited building resources.
+/// @description Releases refinery production assignments.
 
-scr_refinery_cleanup(id);
-event_inherited();
+scr_production_cleanup(id);

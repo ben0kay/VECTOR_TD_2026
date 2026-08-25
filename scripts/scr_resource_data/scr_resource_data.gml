@@ -183,6 +183,62 @@ function scr_resource_data_initialize()
             }
         },
 		
+		bullets:
+		{
+		    identity:
+		    {
+		        key: "bullets",
+		        name: "Bullets"
+		    },
+
+		    inputs:
+		    [{
+		        resource_key: "resource_refined_copper",
+		        amount: 1
+		    }],
+
+		    outputs:
+		    [{
+		        resource_key: "resource_bullets",
+		        amount: 100
+		    }],
+
+		    production:
+		    {
+		        time_seconds: 10,
+		        energy_per_second: 5
+		    }
+		},
+
+
+		explosives:
+		{
+		    identity:
+		    {
+		        key: "explosives",
+		        name: "Explosives"
+		    },
+
+		    inputs:
+		    [{
+		        resource_key: "resource_refined_carbon",
+		        amount: 1
+		    }],
+
+		    outputs:
+		    [{
+		        resource_key: "resource_explosives",
+		        amount: 20
+		    }],
+
+		    production:
+		    {
+		        time_seconds: 15,
+		        energy_per_second: 8
+		    }
+		}
+		
+		
 		// ====================================================================
 		// AMMUNITION
 		// ====================================================================

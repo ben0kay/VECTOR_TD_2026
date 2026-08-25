@@ -469,6 +469,16 @@ function scr_hud_selection_content_draw(
             scr_hud_refinery_inspector_draw(_selected, _left, _top);
         }
         break;
+		
+		case o_fabricator:
+		{
+		    scr_hud_fabricator_inspector_draw(
+		        _selected,
+		        _left,
+		        _top
+		    );
+		}
+		break;
 
 
         default:
@@ -2719,6 +2729,16 @@ function scr_hud_selection_panel_update(_hud)
             _tray_top
         );
     }
+	
+	else if (_selected.object_index == o_fabricator)
+{
+    scr_hud_fabricator_controls_update(
+        _hud,
+        _selected,
+        _inspector_left,
+        _tray_top
+    );
+}
 
 
     _sell.enabled =
@@ -3115,6 +3135,16 @@ function scr_hud_selection_panel_draw(_hud)
             _tray_top
         );
     }
+	
+	else if (_selected.object_index == o_fabricator)
+	{
+	    scr_hud_fabricator_controls_draw(
+	        _hud,
+	        _selected,
+	        _inspector_left,
+	        _tray_top
+	    );
+	}
     else
     {
         draw_set_color(c_aqua);
