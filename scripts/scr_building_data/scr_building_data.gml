@@ -1256,7 +1256,6 @@ function scr_building_data_utility_credit_uplink()
     return true;
 }
 
-
 /// @description Registers all specialized capacity hubs.
 
 function scr_building_hub_data_initialize()
@@ -1317,6 +1316,21 @@ function scr_building_hub_data_initialize()
             c_aqua,
             BuildLimitType.INFRASTRUCTURE,
             15
+        )
+    );
+
+
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "hub_foundation",
+
+        scr_building_hub_definition_create(
+            "hub_foundation",
+            "Foundation Control Hub",
+            "Adds 100 foundation capacity.",
+            make_color_rgb(100, 150, 190),
+            BuildLimitType.FOUNDATION,
+            100
         )
     );
 

@@ -1298,14 +1298,15 @@ _right_cell_x =
         0;
 
     var _limit_width =
-        200;
+        180;
 
     var _limit_types =
     [
         BuildLimitType.TOWER,
         BuildLimitType.DEFENSE,
         BuildLimitType.ECONOMY,
-        BuildLimitType.INFRASTRUCTURE
+        BuildLimitType.INFRASTRUCTURE,
+		BuildLimitType.FOUNDATION
     ];
 
     var _limit_colors =
@@ -1313,7 +1314,8 @@ _right_cell_x =
         c_yellow,
         c_fuchsia,
         make_color_rgb(90, 210, 120),
-        c_aqua
+        c_aqua,
+		make_color_rgb(100, 150, 190)
     ];
 
 

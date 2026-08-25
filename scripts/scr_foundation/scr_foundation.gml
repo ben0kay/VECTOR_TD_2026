@@ -291,6 +291,18 @@ function scr_foundation_initialize(_foundation)
     _foundation.footprint.reserved =
         true;
 
+	// Foundation tiles participate in their own capacity pool.
+
+	if (!scr_build_limit_register(_foundation))
+	{
+	    show_debug_message(
+	        "FOUNDATION ERROR - capacity registration failed: "
+	        + _foundation.identity.key
+	    );
+
+	    return false;
+	}
+
 
     if (_foundation.construction.duration_seconds <= 0)
     {
@@ -540,57 +552,6 @@ function scr_foundation_draw(_foundation)
 
     draw_set_alpha(1);
     draw_set_color(c_white);
-
-    return true;
-}
-
-
-/// @description Releases foundation cells during destruction or room cleanup.
-
-function scr_foundation_cleanup(_foundation)
-{
-    if (!instance_exists(_foundation))
-        return false;
-
-    if (!_foundation.footprint.reserved)
-        return true;
-
-
-    if (
-        variable_global_exists("vtd_level")
-        && is_struct(global.vtd_level)
-        && global.vtd_level.world.ready
-    )
-    {
-        for (
-            var i = 0;
-            i < array_length(_foundation.footprint.cells);
-            ++i
-        )
-        {
-            var _cell =
-                _foundation.footprint.cells[i];
-
-            if (
-                scr_foundation_at_cell(_cell.x, _cell.y)
-                == _foundation
-            )
-            {
-                ds_grid_set(
-                    global.vtd_level.world.grid.foundation,
-                    _cell.x,
-                    _cell.y,
-                    noone
-                );
-            }
-        }
-    }
-
-
-    _foundation.footprint.reserved = false;
-    _foundation.footprint.cells = [];
-	if (_foundation.energy.participates)
-    scr_energy_topology_dirty();
 
     return true;
 }
@@ -932,6 +893,95 @@ function scr_foundation_shock_update(_foundation)
         _shock.color,
         EnemyMovementLayer.GROUND
     );
+
+
+    return true;
+}
+
+/// @description Releases foundation cells, capacity and energy participation.
+
+function scr_foundation_cleanup(_foundation)
+{
+    if (!instance_exists(_foundation))
+        return false;
+
+
+    if (
+        variable_instance_exists(
+            _foundation,
+            "build_limit"
+        )
+        && is_struct(_foundation.build_limit)
+    )
+    {
+        scr_build_limit_unregister(
+            _foundation
+        );
+    }
+
+
+    if (
+        variable_instance_exists(
+            _foundation,
+            "footprint"
+        )
+        && is_struct(_foundation.footprint)
+        && _foundation.footprint.reserved
+    )
+    {
+        if (
+            variable_global_exists("vtd_level")
+            && is_struct(global.vtd_level)
+            && global.vtd_level.world.ready
+        )
+        {
+            for (
+                var i = 0;
+                i < array_length(_foundation.footprint.cells);
+                ++i
+            )
+            {
+                var _cell =
+                    _foundation.footprint.cells[i];
+
+                if (
+                    scr_foundation_at_cell(
+                        _cell.x,
+                        _cell.y
+                    )
+                    == _foundation
+                )
+                {
+                    ds_grid_set(
+                        global.vtd_level.world.grid.foundation,
+                        _cell.x,
+                        _cell.y,
+                        noone
+                    );
+                }
+            }
+        }
+
+
+        _foundation.footprint.reserved =
+            false;
+
+        _foundation.footprint.cells =
+            [];
+    }
+
+
+    if (
+        variable_instance_exists(
+            _foundation,
+            "energy"
+        )
+        && is_struct(_foundation.energy)
+        && _foundation.energy.participates
+    )
+    {
+        scr_energy_topology_dirty();
+    }
 
 
     return true;

@@ -1,12 +1,12 @@
 /// @description Building-capacity and specialized hub functions.
 
-
-/// @description Returns the default capacity category for one building.
+/// @description Returns the default capacity category for building data.
 
 function scr_build_limit_default_type_get(_data)
 {
     if (!is_struct(_data))
         return BuildLimitType.NONE;
+
 
     switch (_data.identity.type)
     {
@@ -19,7 +19,7 @@ function scr_build_limit_default_type_get(_data)
         case BuildingType.MINER:
         case BuildingType.STORAGE:
         case BuildingType.REFINERY:
-		case BuildingType.UTILITY:
+        case BuildingType.UTILITY:
             return BuildLimitType.ECONOMY;
 
         case BuildingType.POWER_GENERATOR:
@@ -27,7 +27,11 @@ function scr_build_limit_default_type_get(_data)
         case BuildingType.POWER_BATTERY:
         case BuildingType.SUPPORT:
             return BuildLimitType.INFRASTRUCTURE;
+
+        case BuildingType.FOUNDATION:
+            return BuildLimitType.FOUNDATION;
     }
+
 
     return BuildLimitType.NONE;
 }
@@ -91,15 +95,24 @@ function scr_build_limit_entry_create(_base)
     };
 }
 
-
-/// @description Initializes build capacity for the current level.
+/// @description Initializes level build-capacity pools.
 
 function scr_build_limits_initialize(_world_data)
 {
-    var _base_tower = 10;
-    var _base_defense = 50;
-    var _base_economy = 10;
-    var _base_infrastructure = 20;
+    var _base_tower =
+        10;
+
+    var _base_defense =
+        50;
+
+    var _base_economy =
+        10;
+
+    var _base_infrastructure =
+        20;
+
+    var _base_foundation =
+        100;
 
 
     if (
@@ -124,22 +137,17 @@ function scr_build_limits_initialize(_world_data)
         if (variable_struct_exists(_limits, "economy"))
             _base_economy = _limits.economy;
 
-        if (
-            variable_struct_exists(
-                _limits,
-                "infrastructure"
-            )
-        )
-        {
-            _base_infrastructure =
-                _limits.infrastructure;
-        }
+        if (variable_struct_exists(_limits, "infrastructure"))
+            _base_infrastructure = _limits.infrastructure;
+
+        if (variable_struct_exists(_limits, "foundation"))
+            _base_foundation = _limits.foundation;
     }
 
 
     var _entries =
         array_create(
-            5,
+            6,
             undefined
         );
 
@@ -165,6 +173,11 @@ function scr_build_limits_initialize(_world_data)
     _entries[BuildLimitType.INFRASTRUCTURE] =
         scr_build_limit_entry_create(
             _base_infrastructure
+        );
+
+    _entries[BuildLimitType.FOUNDATION] =
+        scr_build_limit_entry_create(
+            _base_foundation
         );
 
 
@@ -553,8 +566,7 @@ function scr_build_limit_unregister(_building)
     return true;
 }
 
-
-/// @description Returns a readable capacity-category name.
+/// @description Returns the display name of one capacity category.
 
 function scr_build_limit_name(_type)
 {
@@ -571,7 +583,11 @@ function scr_build_limit_name(_type)
 
         case BuildLimitType.INFRASTRUCTURE:
             return "INFRASTRUCTURE";
+
+        case BuildLimitType.FOUNDATION:
+            return "FOUNDATION";
     }
+
 
     return "UNLIMITED";
 }

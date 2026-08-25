@@ -131,7 +131,8 @@ enum BuildLimitType
     TOWER,
     DEFENSE,
     ECONOMY,
-    INFRASTRUCTURE
+    INFRASTRUCTURE,
+	FOUNDATION
 }
 enum UtilityType
 {
