@@ -947,14 +947,18 @@ function scr_hud_top_bar_draw(_hud)
     // ========================================================================
 
     var _time_width =
-        130;
+    130;
 
-    var _cpu_width =
-        180;
+	var _cpu_width =
+	    180;
 
-    var _right_width =
-        _cpu_width
-        + _time_width;
+	var _player_width =
+	    180;
+
+	var _right_width =
+	    _player_width
+	    + _cpu_width
+	    + _time_width;
 
     var _right_x =
         _gui_width
@@ -1130,64 +1134,121 @@ function scr_hud_top_bar_draw(_hud)
 
 
     // ========================================================================
-    // CPU HEALTH — FIRST ROW, RIGHT
-    // ========================================================================
+// PLAYER HEALTH — FIRST ROW, RIGHT
+// ========================================================================
 
-    var _cpu_text =
-        "OFFLINE";
+var _player_text =
+    "OFFLINE";
 
-    var _cpu_color =
-        c_red;
+var _player_color =
+    c_red;
 
-    var _cpu =
-        global.vtd_level.entities.cpu;
-
-
-    if (instance_exists(_cpu))
-    {
-        _cpu_text =
-            string(
-                ceil(_cpu.vitals.hp.current)
-            )
-            + " / "
-            + string(
-                ceil(_cpu.vitals.hp.maximum)
-            );
+var _player =
+    global.vtd_level.entities.player;
 
 
-        var _hp_ratio =
-            _cpu.vitals.hp.current
-            / max(
-                1,
-                _cpu.vitals.hp.maximum
-            );
-
-
-        _cpu_color =
-            _hp_ratio > 0.5
-            ? c_lime
-            : (
-                _hp_ratio > 0.25
-                ? c_yellow
-                : c_red
-            );
-    }
-
-
-    var _right_cell_x =
-        _right_x;
-
-
-    _right_cell_x =
-        scr_hud_top_cell_draw(
-            _right_cell_x,
-            _cpu_width,
-            _row_height,
-            "CPU Integrity",
-            _cpu_text,
-            _cpu_color,
-            0
+if (instance_exists(_player))
+{
+    _player_text =
+        string(
+            ceil(_player.vitals.hp.current)
+        )
+        + " / "
+        + string(
+            ceil(_player.vitals.hp.maximum)
         );
+
+
+    var _player_hp_ratio =
+        _player.vitals.hp.current
+        / max(
+            1,
+            _player.vitals.hp.maximum
+        );
+
+
+    _player_color =
+        _player_hp_ratio > 0.5
+        ? c_aqua
+        : (
+            _player_hp_ratio > 0.25
+            ? c_yellow
+            : c_red
+        );
+}
+
+
+var _right_cell_x =
+    _right_x;
+
+
+_right_cell_x =
+    scr_hud_top_cell_draw(
+        _right_cell_x,
+        _player_width,
+        _row_height,
+        "Player Integrity",
+        _player_text,
+        _player_color,
+        0
+    );
+
+
+	// ========================================================================
+	// CPU HEALTH — BESIDE PLAYER HEALTH
+	// ========================================================================
+
+	var _cpu_text =
+	    "OFFLINE";
+
+	var _cpu_color =
+	    c_red;
+
+	var _cpu =
+	    global.vtd_level.entities.cpu;
+
+
+	if (instance_exists(_cpu))
+	{
+	    _cpu_text =
+	        string(
+	            ceil(_cpu.vitals.hp.current)
+	        )
+	        + " / "
+	        + string(
+	            ceil(_cpu.vitals.hp.maximum)
+	        );
+
+
+	    var _cpu_hp_ratio =
+	        _cpu.vitals.hp.current
+	        / max(
+	            1,
+	            _cpu.vitals.hp.maximum
+	        );
+
+
+	    _cpu_color =
+	        _cpu_hp_ratio > 0.5
+	        ? c_lime
+	        : (
+	            _cpu_hp_ratio > 0.25
+	            ? c_yellow
+	            : c_red
+	        );
+	}
+
+
+	_right_cell_x =
+	    scr_hud_top_cell_draw(
+	        _right_cell_x,
+	        _cpu_width,
+	        _row_height,
+	        "CPU Integrity",
+	        _cpu_text,
+	        _cpu_color,
+	        0
+	    );
 
 
     // ========================================================================

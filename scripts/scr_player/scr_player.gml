@@ -791,6 +791,15 @@ function scr_player_damage(
 
     if (_player.vitals.hp.current <= 0)
     {
+        // A future upgrade gets the first opportunity to prevent defeat.
+
+        if (scr_player_respawn_try(_player))
+            return true;
+
+
+        _player.vitals.hp.current =
+            0;
+
         _player.PlayerState =
             PlayerState.DEAD;
 
@@ -811,17 +820,15 @@ function scr_player_damage(
         );
 
 
-        // FUTURE:
-        // respawn timer
-        // player lives
-        // rescue drone
-        // level-failure rules
+        scr_level_result_resolve(
+            false,
+            "PLAYER DESTROYED"
+        );
     }
 
 
     return true;
 }
-
 
 /// @description Moves the player along one axis against square solids.
 
@@ -1201,4 +1208,24 @@ function scr_player_vitals_draw(_player)
     draw_set_color(c_white);
 
     return true;
+}
+
+/// @description Attempts to prevent player death through a future respawn source.
+
+function scr_player_respawn_try(_player)
+{
+    if (!instance_exists(_player))
+        return false;
+
+
+    // FUTURE:
+    // persistent respawn upgrade
+    // level-only extra life
+    // rescue drone
+    // respawn cooldown
+    // respawn-position selection
+    //
+    // Return true after successfully restoring the player.
+
+    return false;
 }
