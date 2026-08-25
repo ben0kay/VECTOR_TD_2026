@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_hud_energy",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_hud_energy",
+  "parent":{
+    "name":"hud",
+    "path":"folders/scripts/hud.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

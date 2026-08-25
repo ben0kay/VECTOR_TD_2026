@@ -564,11 +564,10 @@ function scr_level_result_hud_create()
 
 
     return
-    {
+        exit
         restart: _restart,
         next: _next,
-        menu: _menu,
-        exit: _exit
+        menu: _menu,: _exit
     };
 }
 
