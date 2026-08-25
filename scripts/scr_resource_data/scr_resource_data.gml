@@ -181,8 +181,49 @@ function scr_resource_data_initialize()
                 draw_function: undefined,
                 color: make_color_rgb(255, 175, 105)
             }
-        }
+        },
+		
+		// ====================================================================
+		// AMMUNITION
+		// ====================================================================
+
+		resource_bullets:
+		{
+		    identity:
+		    {
+		        key: "resource_bullets",
+		        name: "Bullets",
+		        type: ResourceType.AMMUNITION
+		    },
+
+		    visual:
+		    {
+		        sprite: -1,
+		        draw_function: undefined,
+		        color: c_yellow
+		    }
+		},
+
+
+		resource_explosives:
+		{
+		    identity:
+		    {
+		        key: "resource_explosives",
+		        name: "Explosives",
+		        type: ResourceType.AMMUNITION
+		    },
+
+		    visual:
+		    {
+		        sprite: -1,
+		        draw_function: undefined,
+		        color: c_orange
+		    }
+		}
     };
+	
+	
 
 
     show_debug_message(

@@ -33,78 +33,116 @@ function scr_tower_data_initialize()
 
 function scr_tower_data_basic_ground()
 {
-variable_struct_set(global.vtd.data.buildings, "tower_basic",
-{
-identity:
-{
-key: "tower_basic",
-name: "Basic Tower",
-type: BuildingType.TOWER,
-description_short: "Reliable general-purpose ground defense.",
-description_long: "A balanced defensive tower with dependable damage, range and firing speed against ordinary ground enemies."
-},
-
-build_menu:
-{
-order: 10
-},
-
-visual:
-{
-    color: c_aqua,
-    turret_color: c_yellow
-},
-
-footprint: { width_cells: 2, height_cells: 2 },
-vitals: { hp_maximum: 300 },
-construction: { time_seconds: 3 },
-
-economy:
-{
-    cost:
-    [{
-        resource_key: "resource_credits",
-        amount: 100
-    }]
-},
-
-tower:
-{
-    range: 280,
-    target_mode: TowerTargetMode.CLOSEST,
-    target_layer: EnemyMovementLayer.GROUND,
-    requires_line_of_sight: true,
-    draw_function: scr_tower_visual_ground,
-
-    weapon:
-    {
-        type: TowerWeaponType.PROJECTILE,
-        damage_type: DamageType.KINETIC,
-        damage: 10,
-        energy_cost: 2,
-        cooldown_seconds: 0.6,
-
-        muzzle:
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_basic",
         {
-            mode: TowerMuzzleMode.CENTER,
-            distance: 36,
-            spacing: 0
-        },
+            identity:
+            {
+                key: "tower_basic",
+                name: "Basic Tower",
+                type: BuildingType.TOWER,
 
-        projectile:
-        {
-            speed: 14,
-            lifetime_seconds: 3,
-            radius: 3,
-            color: c_yellow,
-            impact: ProjectileImpact.DIRECT,
-            damage_radius: 0
+                description_short:
+                    "Reliable general-purpose ground defense.",
+
+                description_long:
+                    "A balanced kinetic tower that uses bullets to engage ordinary ground enemies."
+            },
+
+            visual:
+            {
+                color: c_aqua,
+                turret_color: c_yellow
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 300
+            },
+
+            construction:
+            {
+                time_seconds: 3
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 100
+                }]
+            },
+
+            tower:
+            {
+                range: 280,
+
+                target_mode:
+                    TowerTargetMode.CLOSEST,
+
+                target_layer:
+                    EnemyMovementLayer.GROUND,
+
+                requires_line_of_sight: true,
+                draw_function: scr_tower_visual_ground,
+
+                consumables:
+                [{
+                    resource_key: "resource_bullets",
+
+                    starting: 80,
+                    maximum: 100,
+
+                    amount_per_attack: 1,
+                    request_threshold: 0.35,
+                    delivery_amount: 60
+                }],
+
+                weapon:
+                {
+                    type:
+                        TowerWeaponType.PROJECTILE,
+
+                    damage_type:
+                        DamageType.KINETIC,
+
+                    damage: 10,
+                    energy_cost: 2,
+                    cooldown_seconds: 0.6,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 36,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        speed: 14,
+                        lifetime_seconds: 3,
+                        radius: 3,
+                        color: c_yellow,
+
+                        impact:
+                            ProjectileImpact.DIRECT,
+
+                        damage_radius: 0
+                    }
+                }
+            }
         }
-    }
-}
-});
+    );
 
-return true;
+    return true;
 }
 
 /// @description Registers the single-barrel anti-air tower.
@@ -267,78 +305,116 @@ return true;
 
 function scr_tower_data_cannon()
 {
-variable_struct_set(global.vtd.data.buildings, "tower_cannon",
-{
-identity:
-{
-key: "tower_cannon",
-name: "Explosive Cannon",
-type: BuildingType.TOWER,
-description_short: "Heavy explosive area damage.",
-description_long: "Launches slow heavy shells that damage groups of ground enemies. Damage falls away toward the edge of each explosion."
-},
-
-build_menu:
-{
-order: 40
-},
-
-visual:
-{
-    color: make_color_rgb(90, 55, 25),
-    turret_color: c_orange
-},
-
-footprint: { width_cells: 2, height_cells: 2 },
-vitals: { hp_maximum: 360 },
-construction: { time_seconds: 0 },
-
-economy:
-{
-    cost:
-    [{
-        resource_key: "resource_credits",
-        amount: 250
-    }]
-},
-
-tower:
-{
-    range: 320,
-    target_mode: TowerTargetMode.CLOSEST,
-    target_layer: EnemyMovementLayer.GROUND,
-    requires_line_of_sight: true,
-    draw_function: scr_tower_visual_cannon,
-
-    weapon:
-    {
-        type: TowerWeaponType.PROJECTILE,
-        damage_type: DamageType.EXPLOSIVE,
-        damage: 70,
-        energy_cost: 8,
-        cooldown_seconds: 2.3,
-
-        muzzle:
+    variable_struct_set(
+        global.vtd.data.buildings,
+        "tower_cannon",
         {
-            mode: TowerMuzzleMode.CENTER,
-            distance: 40,
-            spacing: 0
-        },
+            identity:
+            {
+                key: "tower_cannon",
+                name: "Explosive Cannon",
+                type: BuildingType.TOWER,
 
-        projectile:
-        {
-            speed: 9,
-            lifetime_seconds: 5,
-            radius: 7,
-            color: c_orange,
-            impact: ProjectileImpact.EXPLOSIVE,
-            damage_radius: 96
+                description_short:
+                    "Heavy explosive area damage.",
+
+                description_long:
+                    "Launches heavy explosive shells that damage groups of ground enemies. It requires explosives for every attack."
+            },
+
+            visual:
+            {
+                color: make_color_rgb(90, 55, 25),
+                turret_color: c_orange
+            },
+
+            footprint:
+            {
+                width_cells: 2,
+                height_cells: 2
+            },
+
+            vitals:
+            {
+                hp_maximum: 360
+            },
+
+            construction:
+            {
+                time_seconds: 0
+            },
+
+            economy:
+            {
+                cost:
+                [{
+                    resource_key: "resource_credits",
+                    amount: 250
+                }]
+            },
+
+            tower:
+            {
+                range: 320,
+
+                target_mode:
+                    TowerTargetMode.CLOSEST,
+
+                target_layer:
+                    EnemyMovementLayer.GROUND,
+
+                requires_line_of_sight: true,
+                draw_function: scr_tower_visual_cannon,
+
+                consumables:
+                [{
+                    resource_key: "resource_explosives",
+
+                    starting: 16,
+                    maximum: 20,
+
+                    amount_per_attack: 1,
+                    request_threshold: 0.30,
+                    delivery_amount: 12
+                }],
+
+                weapon:
+                {
+                    type:
+                        TowerWeaponType.PROJECTILE,
+
+                    damage_type:
+                        DamageType.EXPLOSIVE,
+
+                    damage: 70,
+                    energy_cost: 8,
+                    cooldown_seconds: 2.3,
+
+                    muzzle:
+                    {
+                        mode: TowerMuzzleMode.CENTER,
+                        distance: 40,
+                        spacing: 0
+                    },
+
+                    projectile:
+                    {
+                        speed: 9,
+                        lifetime_seconds: 5,
+                        radius: 7,
+                        color: c_orange,
+
+                        impact:
+                            ProjectileImpact.EXPLOSIVE,
+
+                        damage_radius: 96
+                    }
+                }
+            }
         }
-    }
-}
-});
+    );
 
-return true;
+    return true;
 }
 
 /// @description Registers the continuous shield laser tower.

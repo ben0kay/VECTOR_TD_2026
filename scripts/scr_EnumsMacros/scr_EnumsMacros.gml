@@ -190,7 +190,7 @@ enum ProductionState
 // RESOURCES / ECONOMY
 // ============================================================================
 
-enum ResourceType { CURRENCY, RAW_MATERIAL, REFINED_MATERIAL }
+enum ResourceType { CURRENCY, RAW_MATERIAL, REFINED_MATERIAL, AMMUNITION }
 
 
 // ============================================================================
