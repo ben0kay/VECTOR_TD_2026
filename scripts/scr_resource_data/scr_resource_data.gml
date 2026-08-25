@@ -236,7 +236,7 @@ function scr_resource_data_initialize()
 		        time_seconds: 15,
 		        energy_per_second: 8
 		    }
-		}
+		},
 		
 		
 		// ====================================================================
