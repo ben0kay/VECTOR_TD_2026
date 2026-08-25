@@ -1115,7 +1115,7 @@ function scr_enemy_draw(_enemy)
                 _enemy.stealth.alpha.current
                 + _shimmer,
                 0.08,
-                0.3
+                0.2
             )
         );
 

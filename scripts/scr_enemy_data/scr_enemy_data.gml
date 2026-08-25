@@ -358,6 +358,9 @@ function scr_enemy_data_valid(_data)
 }
 
 
+
+
+
 function scr_enemy_data_weak()
 {
     variable_struct_set(
@@ -373,6 +376,8 @@ function scr_enemy_data_weak()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_weak,
                 radius: 11,
                 color: c_yellow
@@ -436,8 +441,8 @@ function scr_enemy_data_hunter()
             {
                 sprite: -1,
                 draw_function: scr_enemy_visual_hunter,
-				scale_x: 1,
-				scale_y: 1,
+ 				scale_x: 1,
+ 				scale_y: 1,
                 radius: 11,
                 color: c_red
             },
@@ -525,6 +530,8 @@ function scr_enemy_data_phaser()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_triangle,
                 radius: 14,
                 color: c_aqua
@@ -590,6 +597,8 @@ function scr_enemy_data_shooter_single()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_triangle,
                 radius: 15.5,
                 color: c_orange
@@ -662,6 +671,8 @@ function scr_enemy_data_shooter_triple()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_triangle,
                 radius: 16,
                 color: c_purple
@@ -734,6 +745,8 @@ function scr_enemy_data_kamikaze()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_kamikaze,
                 radius: 15,
                 color: c_lime
@@ -808,6 +821,8 @@ function scr_enemy_data_splitter()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_splitter,
                 radius: 24,
                 color: c_blue
@@ -886,6 +901,8 @@ function scr_enemy_data_splitter_child()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_splitter_child,
                 radius: 10,
                 color: c_aqua
@@ -953,6 +970,8 @@ function scr_enemy_data_flyer()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_flyer,
                 radius: 18,
                 color: c_aqua
@@ -961,7 +980,7 @@ function scr_enemy_data_flyer()
             vitals:
             {
                 hp_maximum: 45,
-				shield_maximum: 25
+ 				shield_maximum: 25
             },
 
             movement:
@@ -989,7 +1008,7 @@ function scr_enemy_data_flyer()
                 cooldown_seconds: 0.8
             },
 				
-			rewards:
+ 			rewards:
     scr_enemy_rewards_create(12, 2),	
 
             abilities: []
@@ -1016,6 +1035,8 @@ function scr_enemy_data_brute()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_brute,
                 radius: 28,
                 color: make_color_rgb(210, 70, 35)
@@ -1081,6 +1102,8 @@ function scr_enemy_data_transporter()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_transporter,
                 radius: 32,
                 color: make_color_rgb(190, 45, 210)
@@ -1167,12 +1190,14 @@ function scr_enemy_data_gunship()
                 name: "Orbiting Gunship"
             },
 			
-			behavior:
-	    EnemyBehavior.ORBIT,
+ 			behavior:
+ 	    EnemyBehavior.ORBIT,
 
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_gunship,
                 radius: 22,
                 color: make_color_rgb(80, 210, 255)
@@ -1263,12 +1288,14 @@ function scr_enemy_data_shield_generator()
                 name: "Shield Generator"
             },
 
-			behavior:
-			EnemyBehavior.SUPPORT,
+ 			behavior:
+ 			EnemyBehavior.SUPPORT,
 
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_shield_generator,
                 radius: 34,
                 color: make_color_rgb(255, 190, 40)
@@ -1355,12 +1382,14 @@ function scr_enemy_data_siege_beam()
                 name: "Siege Beam Platform"
             },
 
-			behavior:
+ 			behavior:
     EnemyBehavior.ANCHOR_BEAM,
 
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function:
                     scr_enemy_visual_siege_beam,
 
@@ -1505,12 +1534,14 @@ function scr_enemy_data_siege_rocket()
                 name: "Siege Rocket Platform"
             },
 				
-			behavior:
+ 			behavior:
     EnemyBehavior.STANDOFF,	
 
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_siege_rocket,
                 radius: 48,
                 color: make_color_rgb(255, 110, 40)
@@ -1611,6 +1642,8 @@ function scr_enemy_data_centipede_head()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_centipede_head,
                 radius: 20,
                 color: make_color_rgb(110, 255, 90)
@@ -1687,6 +1720,8 @@ function scr_enemy_data_centipede_child()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_centipede_child,
                 radius: 15,
                 color: make_color_rgb(70, 210, 80)
@@ -1761,6 +1796,8 @@ function scr_enemy_data_heavy_flyer()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_heavy_flyer,
                 radius: 34,
                 color: make_color_rgb(60, 210, 255)
@@ -1852,6 +1889,8 @@ function scr_enemy_data_weak_mk2()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_weak_mk2,
                 radius: 14,
                 color: c_yellow
@@ -1917,6 +1956,8 @@ function scr_enemy_data_hunter_mk2()
             visual:
             {
                 sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
                 draw_function: scr_enemy_visual_hunter_mk2,
                 radius: 14,
                 color: c_red
