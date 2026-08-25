@@ -637,6 +637,154 @@ if (_enemy.EnemyBehavior == EnemyBehavior.ORBIT)
     return true;
 }
 
+/// @description Initializes lightweight staggered processing for one enemy.
+
+function scr_enemy_performance_initialize(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    _enemy.performance =
+    {
+        lazy_factor: 7,
+
+        visibility:
+        {
+            outside_view: false,
+            fog_visible: true,
+            visible: true,
+
+            timer:
+                1 + (real(_enemy.id) mod 15),
+
+            interval_minimum: 15,
+            interval_maximum: 30
+        },
+
+        decisions:
+        {
+            due: false,
+
+            timer:
+                1 + (real(_enemy.id) mod 30),
+
+            interval_minimum: 15,
+            interval_maximum: 30
+        }
+    };
+
+
+    // The first checks are staggered by instance ID, preventing a large
+    // spawn group from performing every visibility check on one frame.
+
+    return true;
+}
+
+/// @description Updates cached enemy visibility and staggered decision timing.
+
+function scr_enemy_performance_update(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!is_struct(_enemy.performance))
+        return false;
+
+
+    var _performance =
+        _enemy.performance;
+
+    var _visibility =
+        _performance.visibility;
+
+    var _decisions =
+        _performance.decisions;
+
+
+    // Reset this one-frame signal.
+
+    _decisions.due =
+        false;
+
+
+    // ========================================================================
+    // CACHED CAMERA AND FOG VISIBILITY
+    // ========================================================================
+
+    _visibility.timer--;
+
+
+    if (_visibility.timer <= 0)
+    {
+        _visibility.outside_view =
+            !scr_culling_check_instance(
+                _enemy,
+                128
+            );
+
+        if (_visibility.outside_view)
+        {
+            // There is no reason to query the fog grid when the enemy is
+            // already outside the camera.
+
+            _visibility.fog_visible =
+                false;
+        }
+        else
+        {
+            _visibility.fog_visible =
+                scr_fog_position_visible(
+                    _enemy.x,
+                    _enemy.y
+                );
+        }
+
+
+        _visibility.visible =
+            !_visibility.outside_view
+            && _visibility.fog_visible;
+
+
+        _visibility.timer =
+            irandom_range(
+                _visibility.interval_minimum,
+                _visibility.interval_maximum
+            );
+    }
+
+
+    // ========================================================================
+    // STAGGERED NON-ESSENTIAL DECISIONS
+    // ========================================================================
+
+    _decisions.timer--;
+
+
+    if (_decisions.timer <= 0)
+    {
+        _decisions.due =
+            true;
+
+
+        var _factor =
+            _visibility.visible
+            ? 1
+            : _performance.lazy_factor;
+
+
+        _decisions.timer =
+            irandom_range(
+                _decisions.interval_minimum,
+                _decisions.interval_maximum
+            )
+            * _factor;
+    }
+
+
+    return true;
+}
+
 /// @description Returns whether an enemy currently has an ability.
 
 function scr_enemy_has_ability(
@@ -2377,17 +2525,64 @@ function scr_enemy_siege_beam_update(_enemy)
             _target
         );
 
+    var _combat =
+        _enemy.combat_movement;
+
     var _combat_data =
-        _enemy.combat_movement.data;
+        _combat.data;
+
+
+    // ========================================================================
+    // SHARED LINE-OF-SIGHT CACHE
+    // ========================================================================
+    //
+    // This runtime is only created for an enemy that actually uses it.
+
+    if (!variable_struct_exists(
+        _combat,
+        "line_of_sight"
+    ))
+    {
+        _combat.line_of_sight =
+            scr_combat_line_of_sight_cache_create(
+                8,
+                15,
+                32,
+                scr_world_line_blocked_by_dead
+            );
+    }
+
+
+    var _interval_multiplier =
+        1;
+
+
+    if (
+        variable_instance_exists(
+            _enemy,
+            "performance"
+        )
+        && is_struct(_enemy.performance)
+        && !_enemy.performance.visibility.visible
+    )
+    {
+        _interval_multiplier =
+            _enemy.performance.lazy_factor;
+    }
+
 
     var _line_clear =
-        !scr_world_line_blocked_by_dead(
-            _enemy.x,
-            _enemy.y,
-            _target.x,
-            _target.y
+        scr_combat_line_of_sight_cache_update(
+            _enemy,
+            _target,
+            _combat.line_of_sight,
+            _interval_multiplier
         );
 
+
+    // ========================================================================
+    // BEHAVIOR
+    // ========================================================================
 
     switch (_enemy.EnemyState)
     {
@@ -2406,9 +2601,6 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.MOVING:
         {
-            // The platform only establishes its firing anchor when it has
-            // both the correct range and an unobstructed beam path.
-
             if (
                 _edge_distance
                 <= _combat_data.preferred_range
@@ -2431,10 +2623,6 @@ function scr_enemy_siege_beam_update(_enemy)
             }
 
 
-            // Continue following the normal MP-grid route. This naturally
-            // lets the platform travel around dead terrain while searching
-            // for a visible firing position.
-
             scr_navigation_enemy_update(
                 _enemy
             );
@@ -2444,21 +2632,16 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
-            // Abandon the firing anchor if the target leaves maximum range
-            // or dead terrain interrupts the beam.
-
             if (
                 _edge_distance
                 > _combat_data.maximum_range
                 || !_line_clear
             )
             {
-                _enemy.combat_movement
-                    .anchor.valid =
+                _combat.anchor.valid =
                     false;
 
-                _enemy.combat_movement
-                    .destination.active =
+                _combat.destination.active =
                     false;
 
                 _enemy.EnemyState =
@@ -2473,8 +2656,7 @@ function scr_enemy_siege_beam_update(_enemy)
             }
 
 
-            // The turret tracks independently while the hull performs
-            // optional movement inside its combat anchor.
+            // Turret tracking remains independent from hull movement.
 
             var _target_angle =
                 point_direction(
@@ -2492,44 +2674,12 @@ function scr_enemy_siege_beam_update(_enemy)
                 );
 
 
-            // Valid local movement does not interrupt the continuous beam.
+            // The hull can move inside its combat anchor while firing.
 
             scr_enemy_combat_movement_update(
                 _enemy,
                 _target
             );
-
-
-            // Movement may have changed LOS this frame. Recheck before damage.
-
-            _line_clear =
-                !scr_world_line_blocked_by_dead(
-                    _enemy.x,
-                    _enemy.y,
-                    _target.x,
-                    _target.y
-                );
-
-            if (!_line_clear)
-            {
-                _enemy.combat_movement
-                    .anchor.valid =
-                    false;
-
-                _enemy.combat_movement
-                    .destination.active =
-                    false;
-
-                _enemy.EnemyState =
-                    EnemyState.MOVING;
-
-                scr_navigation_enemy_repath_request(
-                    _enemy,
-                    true
-                );
-
-                break;
-            }
 
 
             var _fps =
@@ -2556,9 +2706,8 @@ function scr_enemy_siege_beam_update(_enemy)
                 _enemy
             );
 
-            _enemy.combat_movement
-                .destination.active =
-                    false;
+            _combat.destination.active =
+                false;
         }
         break;
     }

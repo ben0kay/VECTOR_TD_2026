@@ -42,3 +42,14 @@ if (!scr_enemy_centipede_initialize(id))
     instance_destroy();
     exit;
 }
+
+
+if (!scr_enemy_performance_initialize(id))
+{
+    show_debug_message(
+        "ENEMY ERROR - performance initialization failed."
+    );
+
+    instance_destroy();
+    exit;
+}

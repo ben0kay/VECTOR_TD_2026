@@ -53,7 +53,6 @@ function scr_navigation_enemy_grid_get(_enemy)
     return -1;
 }
 
-
 /// @description Ensures an enemy has lazy-navigation runtime data.
 
 function scr_navigation_enemy_lazy_runtime_ensure(_enemy)
@@ -71,9 +70,6 @@ function scr_navigation_enemy_lazy_runtime_ensure(_enemy)
             breach_pending: false,
             breach_timer: 0,
             breach_attempts: 0,
-
-            visibility_timer:
-                real(_enemy.id) mod 10,
 
             outside_view: false
         };
@@ -100,10 +96,27 @@ function scr_navigation_enemy_repath_request(
 
 
     var _outside_view =
-        !scr_culling_check_instance(
+        false;
+
+
+    if (
+        variable_instance_exists(
             _enemy,
-            256
-        );
+            "performance"
+        )
+        && is_struct(_enemy.performance)
+    )
+    {
+        _outside_view =
+            _enemy.performance
+                .visibility
+                .outside_view;
+    }
+
+
+    _enemy.navigation.lazy.outside_view =
+        _outside_view;
+
 
     var _lazy_factor =
         _outside_view
@@ -111,11 +124,15 @@ function scr_navigation_enemy_repath_request(
         : 1;
 
 
-    _enemy.navigation.needs_path = true;
+    _enemy.navigation.needs_path =
+        true;
 
 
     if (_immediate)
     {
+        // Immediate requests are still staggered slightly so a large spawn
+        // group cannot calculate every initial path on the same frame.
+
         _enemy.navigation.repath_timer =
             (real(_enemy.id) mod 6)
             * min(2, _lazy_factor);
@@ -249,7 +266,6 @@ function scr_navigation_enemy_path_build(_enemy)
     return true;
 }
 
-
 /// @description Updates staggered native navigation and breach retries.
 
 function scr_navigation_enemy_update(_enemy)
@@ -264,30 +280,32 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
-    scr_navigation_enemy_lazy_runtime_ensure(_enemy);
+    scr_navigation_enemy_lazy_runtime_ensure(
+        _enemy
+    );
 
-    var _lazy = _enemy.navigation.lazy;
+
+    var _lazy =
+        _enemy.navigation.lazy;
 
 
-    // Camera visibility is only refreshed periodically.
-
-    _lazy.visibility_timer--;
-
-    if (_lazy.visibility_timer <= 0)
+    if (
+        variable_instance_exists(
+            _enemy,
+            "performance"
+        )
+        && is_struct(_enemy.performance)
+    )
     {
         _lazy.outside_view =
-            !scr_culling_check_instance(
-                _enemy,
-                256
-            );
-
-        _lazy.visibility_timer =
-            irandom_range(8, 12);
+            _enemy.performance
+                .visibility
+                .outside_view;
     }
 
 
-    // A building or obstacle changed. Every enemy notices immediately, but
-    // its expensive mp_grid_path call receives a randomized delay.
+    // A building or obstacle changed. Every enemy notices the revision,
+    // but the expensive mp_grid_path calculation receives a random delay.
 
     if (
         _enemy.navigation.revision_seen
@@ -303,16 +321,20 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
-    // A normal path failed. Breach-route analysis is deliberately staggered.
+    // A normal route failed. Breach analysis remains staggered.
 
     if (_lazy.breach_pending)
     {
         _lazy.breach_timer--;
 
+
         if (_lazy.breach_timer <= 0)
         {
-            _lazy.breach_pending = false;
+            _lazy.breach_pending =
+                false;
+
             _lazy.breach_attempts++;
+
 
             var _breach_started =
                 scr_navigation_enemy_breach_begin(
@@ -322,15 +344,14 @@ function scr_navigation_enemy_update(_enemy)
 
             if (!_breach_started)
             {
-                // No valid blocking building was found. Retry later instead
-                // of repeating an expensive breach scan every frame.
-
                 var _retry_factor =
                     _lazy.outside_view
                     ? _lazy.factor
                     : 1;
 
-                _lazy.breach_pending = true;
+
+                _lazy.breach_pending =
+                    true;
 
                 _lazy.breach_timer =
                     irandom_range(30, 60)
@@ -344,6 +365,7 @@ function scr_navigation_enemy_update(_enemy)
     {
         _enemy.navigation.repath_timer--;
 
+
         if (_enemy.navigation.repath_timer <= 0)
         {
             return scr_navigation_enemy_path_build(
@@ -353,17 +375,14 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
-    // Native path movement continues every frame.
+    // Native path movement must remain active every frame.
 
     _enemy.path_speed =
         _enemy.movement.speed;
 
-    if (_enemy.speed > 0)
-    {
-        _enemy.visual.draw_angle =
-            _enemy.direction;
-    }
 
+    // Visual direction is handled once by
+    // scr_enemy_visual_direction_update() while visible.
 
     return true;
 }
