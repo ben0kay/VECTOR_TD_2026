@@ -33,7 +33,7 @@ function scr_enemy_stealth_initialize(_enemy)
             remaining_seconds: 0
         },
 
-        reveal_range: 192,
+        reveal_range: 96,
         reveal_duration_seconds: 2,
 
         alpha:
@@ -224,13 +224,14 @@ function scr_enemy_stealth_update(_enemy)
         var _reveal_range =
             _stealth.reveal_range;
 
+
         var _player =
             global.vtd_level.entities.player;
 
         var _cpu =
             global.vtd_level.entities.cpu;
 
-
+		// make this an upgrade later to have player allow detection.
         if (
             instance_exists(_player)
             && point_distance(
