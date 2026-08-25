@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_enemy_data",
   "parent":{
-    "name":"data",
-    "path":"folders/scripts/data.yy",
+    "name":"data scripts",
+    "path":"folders/scripts/data scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

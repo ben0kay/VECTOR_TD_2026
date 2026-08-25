@@ -4,7 +4,10 @@
   "isCompatibility":false,
   "isDnD":false,
   "name":"scr_recipe_data",
-  "parent":{"name":"data","path":"folders/scripts/data.yy"},
+  "parent":{
+    "name":"data scripts",
+    "path":"folders/scripts/data scripts.yy",
+  },
   "resourceType":"GMScript",
-  "resourceVersion":"2.0"
+  "resourceVersion":"2.0",
 }

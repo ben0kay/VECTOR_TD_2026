@@ -1616,7 +1616,7 @@ function scr_enemy_data_centipede_head()
 
             movement:
             {
-                speed: 1.5,
+                speed: 2.5,
                 layer: EnemyMovementLayer.GROUND
             },
 
@@ -1692,7 +1692,7 @@ function scr_enemy_data_centipede_child()
 
             movement:
             {
-                speed: 1.8,
+                speed: 2.5,
                 layer: EnemyMovementLayer.GROUND,
 
                 brainless: true,

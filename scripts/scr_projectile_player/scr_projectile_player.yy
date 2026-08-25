@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_projectile_player",
   "parent":{
-    "name":"projectile",
-    "path":"folders/scripts/projectile.yy",
+    "name":"projectile scripts",
+    "path":"folders/scripts/projectile scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

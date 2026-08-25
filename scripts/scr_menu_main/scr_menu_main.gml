@@ -232,61 +232,53 @@ function scr_menu_main_action_execute(_menu, _action)
         case MainMenuAction.CAMPAIGN:
         {
             // TEMPORARY:
-            // Campaign launches the test world until campaign selection exists.
+            // Campaign launches the test world until level selection exists.
 
-            global.GameState =
-                GameState.PLAYING;
-
-            scr_menu_main_transition_begin(
+            return scr_menu_main_transition_begin(
                 _menu,
                 r_world_test
             );
         }
-        break;
 
 
         case MainMenuAction.SURVIVAL:
         {
-            scr_menu_main_message_set(
+            return scr_menu_main_message_set(
                 _menu,
                 "SURVIVAL MODE IS NOT YET AVAILABLE.",
                 c_gray
             );
         }
-        break;
 
 
         case MainMenuAction.SANDBOX:
         {
-            scr_menu_main_message_set(
+            return scr_menu_main_message_set(
                 _menu,
                 "SANDBOX MODE IS NOT YET AVAILABLE.",
                 c_gray
             );
         }
-        break;
 
 
         case MainMenuAction.RESEARCH:
         {
-            scr_menu_main_message_set(
+            return scr_menu_main_message_set(
                 _menu,
                 "RESEARCH REQUIRES A COMMANDER PROFILE.",
                 c_gray
             );
         }
-        break;
 
 
         case MainMenuAction.OPTIONS:
         {
-            scr_menu_main_message_set(
+            return scr_menu_main_message_set(
                 _menu,
                 "OPTIONS INTERFACE WILL BE ADDED LATER.",
                 c_aqua
             );
         }
-        break;
 
 
         case MainMenuAction.CHANGE_PROFILE:
@@ -294,24 +286,23 @@ function scr_menu_main_action_execute(_menu, _action)
             // FUTURE:
             // Transition to r_boot and reopen profile selection.
 
-            scr_menu_main_message_set(
+            return scr_menu_main_message_set(
                 _menu,
                 "PROFILE SELECTION WILL BE HANDLED BY r_boot.",
                 c_yellow
             );
         }
-        break;
 
 
         case MainMenuAction.EXIT_GAME:
         {
             game_end();
+            return true;
         }
-        break;
     }
 
 
-    return true;
+    return false;
 }
 
 
@@ -321,13 +312,6 @@ function scr_menu_main_update(_menu)
 {
     if (!is_struct(_menu))
         return false;
-
-
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
 
 
     _menu.intro =
@@ -353,9 +337,21 @@ function scr_menu_main_update(_menu)
 
         if (_menu.transition.alpha >= 1)
         {
-            room_goto(
-                _menu.transition.target_room
-            );
+            var _target_room =
+                _menu.transition.target_room;
+
+
+            // The menu must remain active until the fade completes.
+            // Gameplay begins immediately before entering the level room.
+
+            global.GameState =
+                GameState.PLAYING;
+
+            global.LevelState =
+                LevelState.INITIALIZING;
+
+
+            room_goto(_target_room);
         }
 
 
@@ -385,11 +381,7 @@ function scr_menu_main_update(_menu)
         mouse_check_button_pressed(mb_left);
 
 
-    for (
-        var i = 0;
-        i < array_length(_menu.buttons);
-        ++i
-    )
+    for (var i = 0; i < array_length(_menu.buttons); ++i)
     {
         var _button =
             _menu.buttons[i];
@@ -499,14 +491,15 @@ function scr_menu_main_update(_menu)
         || keyboard_check_pressed(vk_space)
     )
     {
-        var _button =
+        var _selected_button =
             _menu.buttons[_menu.selected];
 
-        if (_button.enabled)
+
+        if (_selected_button.enabled)
         {
             scr_menu_main_action_execute(
                 _menu,
-                _button.action
+                _selected_button.action
             );
         }
     }

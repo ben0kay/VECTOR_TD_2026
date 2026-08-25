@@ -4,7 +4,10 @@
   "isCompatibility":false,
   "isDnD":false,
   "name":"scr_hud_refinery",
-  "parent":{"name":"hud","path":"folders/scripts/hud.yy"},
+  "parent":{
+    "name":"hud scripts",
+    "path":"folders/scripts/hud scripts.yy",
+  },
   "resourceType":"GMScript",
-  "resourceVersion":"2.0"
+  "resourceVersion":"2.0",
 }

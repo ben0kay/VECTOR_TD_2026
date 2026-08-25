@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_enemy_effects",
   "parent":{
-    "name":"enemy",
-    "path":"folders/scripts/enemy.yy",
+    "name":"enemy scripts",
+    "path":"folders/scripts/enemy scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

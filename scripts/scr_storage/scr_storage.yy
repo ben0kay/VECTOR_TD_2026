@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_storage",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"building scripts",
+    "path":"folders/scripts/building scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

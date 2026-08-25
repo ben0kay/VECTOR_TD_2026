@@ -235,6 +235,7 @@ function scr_world_data_initialize()
 				        { enemy_key: "enemy_phaser",          weight: 12,  unlock_seconds: 240 },
 				        { enemy_key: "enemy_shooter_triple",  weight: 18,  unlock_seconds: 300 },
 				        { enemy_key: "enemy_flyer",           weight: 18,  unlock_seconds: 360 },
+						{ enemy_key: "enemy_centipede_head",  weight: 5,   unlock_seconds: 380 },
 				        { enemy_key: "enemy_splitter",        weight: 10,  unlock_seconds: 420 },
 				        { enemy_key: "enemy_brute",           weight: 12,  unlock_seconds: 480 },
 				        { enemy_key: "enemy_transporter",     weight: 7,   unlock_seconds: 540 },
