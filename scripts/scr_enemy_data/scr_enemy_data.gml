@@ -7,63 +7,40 @@ function scr_enemy_data_initialize()
     global.vtd.data.enemies = {};
 
 
-    if (!scr_enemy_data_weak())
-        return false;
-
-    if (!scr_enemy_data_hunter())
-        return false;
-
-    if (!scr_enemy_data_phaser())
-        return false;
-
-    if (!scr_enemy_data_shooter_single())
-        return false;
-
-    if (!scr_enemy_data_shooter_triple())
-        return false;
-
-    if (!scr_enemy_data_kamikaze())
-        return false;
-
-    if (!scr_enemy_data_splitter())
-        return false;
-
-    if (!scr_enemy_data_splitter_child())
-        return false;
-
-    if (!scr_enemy_data_flyer())
-        return false;
+    if (!scr_enemy_data_weak()) return false;
+    if (!scr_enemy_data_hunter()) return false;
+    if (!scr_enemy_data_phaser()) return false;
+    if (!scr_enemy_data_shooter_single()) return false;
+    if (!scr_enemy_data_shooter_triple()) return false;
+    if (!scr_enemy_data_kamikaze()) return false;
+    if (!scr_enemy_data_splitter()) return false;
+    if (!scr_enemy_data_splitter_child()) return false;
+    if (!scr_enemy_data_flyer()) return false;
 
 
     // Modernized original Vector enemies.
 
-    if (!scr_enemy_data_brute())
-        return false;
-
-    if (!scr_enemy_data_transporter())
-        return false;
-
-    if (!scr_enemy_data_gunship())
-        return false;
-
-    if (!scr_enemy_data_shield_generator())
-        return false;
+    if (!scr_enemy_data_brute()) return false;
+    if (!scr_enemy_data_transporter()) return false;
+    if (!scr_enemy_data_gunship()) return false;
+    if (!scr_enemy_data_shield_generator()) return false;
 
 
     // Heavy siege enemies.
 
-    if (!scr_enemy_data_siege_beam())
-        return false;
+    if (!scr_enemy_data_siege_beam()) return false;
+    if (!scr_enemy_data_siege_rocket()) return false;
 
-    if (!scr_enemy_data_siege_rocket())
-        return false;
+
+    // Formation enemies.
+
+    if (!scr_enemy_data_centipede_head()) return false;
+    if (!scr_enemy_data_centipede_child()) return false;
 
 
     // FUTURE:
-    // scr_enemy_data_centipede_head();
-    // scr_enemy_data_centipede_segment();
-    // scr_enemy_data_stealth();
     // scr_enemy_data_underground();
+    // scr_enemy_data_stealth();
     // scr_enemy_data_elite();
     // scr_enemy_data_boss();
 
@@ -390,8 +367,8 @@ function scr_enemy_data_weak()
             visual:
             {
                 sprite: -1,
-                draw_function: scr_enemy_visual_triangle,
-                radius: 12,
+                draw_function: scr_enemy_visual_weak,
+                radius: 14,
                 color: c_yellow
             },
 
@@ -1602,6 +1579,153 @@ function scr_enemy_data_siege_rocket()
             [
 
             ]
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the navigating Centipede head.
+
+function scr_enemy_data_centipede_head()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_centipede_head",
+        {
+            identity:
+            {
+                key: "enemy_centipede_head",
+                name: "Centipede"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_centipede_head,
+                radius: 18,
+                color: make_color_rgb(110, 255, 90)
+            },
+
+            vitals:
+            {
+                hp_maximum: 240,
+                shield_maximum: 60
+            },
+
+            movement:
+            {
+                speed: 1.5,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 25,
+                range: 6,
+                cooldown_seconds: 0.9
+            },
+
+            centipede:
+            {
+                child_key: "enemy_centipede_child",
+
+                child_count_minimum: 5,
+                child_count_maximum: 8,
+
+                // Number of recorded frames separating each child.
+                trail_stagger: 20
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    35,
+                    7
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers one Centipede child.
+
+function scr_enemy_data_centipede_child()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_centipede_child",
+        {
+            identity:
+            {
+                key: "enemy_centipede_child",
+                name: "Centipede Child"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                draw_function: scr_enemy_visual_centipede_child,
+                radius: 11,
+                color: make_color_rgb(70, 210, 80)
+            },
+
+            vitals:
+            {
+                hp_maximum: 60,
+                shield_maximum: 15
+            },
+
+            movement:
+            {
+                speed: 1.8,
+                layer: EnemyMovementLayer.GROUND,
+
+                brainless: true,
+                destroy_on_impact: true
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 10,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    5,
+                    1,
+                    0.05,
+                    0.5
+                ),
+
+            abilities: []
+			
         }
     );
 

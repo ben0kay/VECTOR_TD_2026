@@ -166,6 +166,7 @@ function scr_enemy_initialize(_enemy)
 };
 
 	_enemy.modifiers = [];
+	
 
 	if (
 	    variable_instance_exists(

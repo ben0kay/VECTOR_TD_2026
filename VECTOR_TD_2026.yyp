@@ -83,6 +83,7 @@
     {"id":{"name":"scr_enemy_abilities","path":"scripts/scr_enemy_abilities/scr_enemy_abilities.yy",},},
     {"id":{"name":"scr_enemy_advanced","path":"scripts/scr_enemy_advanced/scr_enemy_advanced.yy",},},
     {"id":{"name":"scr_enemy_behavior","path":"scripts/scr_enemy_behavior/scr_enemy_behavior.yy",},},
+    {"id":{"name":"scr_enemy_centipede","path":"scripts/scr_enemy_centipede/scr_enemy_centipede.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
     {"id":{"name":"scr_enemy_effects","path":"scripts/scr_enemy_effects/scr_enemy_effects.yy",},},
     {"id":{"name":"scr_enemy_player_targeting","path":"scripts/scr_enemy_player_targeting/scr_enemy_player_targeting.yy",},},

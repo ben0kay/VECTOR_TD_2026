@@ -47,6 +47,136 @@ function scr_enemy_visual_triangle(_enemy)
     return true;
 }
 
+/// @description Draws the Weak enemy as three overlapping triangular blades.
+
+function scr_enemy_visual_weak(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+    var _color = _enemy.visual.color;
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // THREE OVERLAPPING TRIANGULAR BLADES
+    // ========================================================================
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _blade_angle =
+            _angle
+            + (i * 120);
+
+
+        // Outer point of this blade.
+
+        var _tip_x =
+            _x
+            + lengthdir_x(
+                _radius * 1.45,
+                _blade_angle
+            );
+
+        var _tip_y =
+            _y
+            + lengthdir_y(
+                _radius * 1.45,
+                _blade_angle
+            );
+
+
+        // The two inner points sit close to the middle,
+        // but spread sideways from the blade direction.
+
+        var _inner_distance =
+            _radius * 0.42;
+
+        var _inner_spread =
+            34;
+
+
+        var _inner_a_x =
+            _x
+            + lengthdir_x(
+                _inner_distance,
+                _blade_angle + 180 - _inner_spread
+            );
+
+        var _inner_a_y =
+            _y
+            + lengthdir_y(
+                _inner_distance,
+                _blade_angle + 180 - _inner_spread
+            );
+
+
+        var _inner_b_x =
+            _x
+            + lengthdir_x(
+                _inner_distance,
+                _blade_angle + 180 + _inner_spread
+            );
+
+        var _inner_b_y =
+            _y
+            + lengthdir_y(
+                _inner_distance,
+                _blade_angle + 180 + _inner_spread
+            );
+
+
+        // Draw one long skinny triangle.
+
+        draw_line_width(
+            _tip_x,
+            _tip_y,
+            _inner_a_x,
+            _inner_a_y,
+            2
+        );
+
+        draw_line_width(
+            _inner_a_x,
+            _inner_a_y,
+            _inner_b_x,
+            _inner_b_y,
+            2
+        );
+
+        draw_line_width(
+            _inner_b_x,
+            _inner_b_y,
+            _tip_x,
+            _tip_y,
+            2
+        );
+    }
+
+
+    // ========================================================================
+    // SMALL CENTRAL JOINT
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        1.5,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
 
 /// @description Draws the rotating circular kamikaze enemy.
 
@@ -472,10 +602,10 @@ function scr_enemy_visual_hover_offset_get(_enemy)
     if (_enemy.movement.layer != EnemyMovementLayer.FLYING)
         return 0;
 
-    return -10 + sin(
-        (global.vtd.tick * 5)
+    return -12 + sin(
+        (global.vtd.tick * 1.2)
         + real(_enemy.id)
-    ) * 3;
+    ) * 1.5;
 }
 
 
@@ -502,11 +632,11 @@ function scr_enemy_visual_flyer(_enemy)
     // ========================================================================
 
     var _shadow_scale =
-        0.75
-        + sin(
-            (global.vtd.tick * 5)
-            + real(_enemy.id)
-        ) * 0.08;
+    0.75
+    + sin(
+        (global.vtd.tick * 1.2)
+        + real(_enemy.id)
+    ) * 0.03;
 
     draw_set_alpha(0.22);
     draw_set_color(c_black);
@@ -1444,6 +1574,99 @@ function scr_enemy_visual_siege_rocket(_enemy)
 
 
     draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws the Centipede head.
+
+function scr_enemy_visual_centipede_head(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+
+    draw_set_color(_enemy.visual.color);
+
+    draw_circle(
+        _enemy.x,
+        _enemy.y,
+        _radius,
+        false
+    );
+
+    draw_circle(
+        _enemy.x,
+        _enemy.y,
+        _radius * 0.5,
+        false
+    );
+
+
+    // Two forward mandibles make the head easy to identify.
+
+    draw_line_width(
+        _enemy.x,
+        _enemy.y,
+        _enemy.x + lengthdir_x(_radius * 1.35, _angle + 25),
+        _enemy.y + lengthdir_y(_radius * 1.35, _angle + 25),
+        2
+    );
+
+    draw_line_width(
+        _enemy.x,
+        _enemy.y,
+        _enemy.x + lengthdir_x(_radius * 1.35, _angle - 25),
+        _enemy.y + lengthdir_y(_radius * 1.35, _angle - 25),
+        2
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Draws one Centipede child.
+
+function scr_enemy_visual_centipede_child(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _radius = _enemy.visual.radius;
+    var _angle = _enemy.visual.draw_angle;
+
+    draw_set_color(_enemy.visual.color);
+
+    draw_circle(
+        _enemy.x,
+        _enemy.y,
+        _radius,
+        false
+    );
+
+    draw_circle(
+        _enemy.x,
+        _enemy.y,
+        _radius * 0.35,
+        true
+    );
+
+    draw_line_width(
+        _enemy.x,
+        _enemy.y,
+        _enemy.x + lengthdir_x(_radius * 0.8, _angle),
+        _enemy.y + lengthdir_y(_radius * 0.8, _angle),
+        2
+    );
+
+
     draw_set_color(c_white);
 
     return true;
