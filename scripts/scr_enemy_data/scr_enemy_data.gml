@@ -825,7 +825,7 @@ function scr_enemy_data_splitter()
                 scale_y: 1,
                 draw_function: scr_enemy_visual_splitter,
                 radius: 24,
-                color: c_blue
+                color: c_purple
             },
 
             vitals:
@@ -904,8 +904,8 @@ function scr_enemy_data_splitter_child()
                 scale_x: 1,
                 scale_y: 1,
                 draw_function: scr_enemy_visual_splitter_child,
-                radius: 10,
-                color: c_aqua
+                radius: 9,
+                color: c_purple
             },
 
             vitals:

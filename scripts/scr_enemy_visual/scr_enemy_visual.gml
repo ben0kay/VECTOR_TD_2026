@@ -539,7 +539,7 @@ function scr_enemy_health_bar_draw(_enemy)
     return true;
 }
 
-/// @description Draws the larger splitter enemy.
+/// @description Draws the large triangular Splitter enemy.
 
 function scr_enemy_visual_splitter(_enemy)
 {
@@ -547,31 +547,570 @@ function scr_enemy_visual_splitter(_enemy)
         return false;
 
 
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
+    var _radius =
+        _enemy.visual.radius;
 
-    var _front_x = _enemy.x + lengthdir_x(_radius, _angle);
-    var _front_y = _enemy.y + lengthdir_y(_radius, _angle);
+    var _angle =
+        _enemy.visual.draw_angle;
 
-    var _right_x = _enemy.x + lengthdir_x(_radius, _angle - 90);
-    var _right_y = _enemy.y + lengthdir_y(_radius, _angle - 90);
+    var _x =
+        _enemy.x;
 
-    var _back_x = _enemy.x + lengthdir_x(_radius, _angle + 180);
-    var _back_y = _enemy.y + lengthdir_y(_radius, _angle + 180);
+    var _y =
+        _enemy.y;
 
-    var _left_x = _enemy.x + lengthdir_x(_radius, _angle + 90);
-    var _left_y = _enemy.y + lengthdir_y(_radius, _angle + 90);
+    var _color =
+        _enemy.visual.color;
 
 
-    draw_set_color(_enemy.visual.color);
+    draw_set_color(_color);
+    draw_set_alpha(1);
 
-    draw_line_width(_front_x, _front_y, _right_x, _right_y, 3);
-    draw_line_width(_right_x, _right_y, _back_x, _back_y, 3);
-    draw_line_width(_back_x, _back_y, _left_x, _left_y, 3);
-    draw_line_width(_left_x, _left_y, _front_x, _front_y, 3);
 
-    draw_line_width(_front_x, _front_y, _back_x, _back_y, 2);
-    draw_line_width(_left_x, _left_y, _right_x, _right_y, 2);
+    // ========================================================================
+    // OUTER TRIANGULAR HULL
+    // ========================================================================
+
+    // Forward nose.
+    var _nose_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.15,
+            _angle
+        );
+
+    var _nose_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.15,
+            _angle
+        );
+
+
+    // Swept upper-rear point.
+    var _upper_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.00,
+            _angle + 138
+        );
+
+    var _upper_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.00,
+            _angle + 138
+        );
+
+
+    // Swept lower-rear point.
+    var _lower_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.00,
+            _angle - 138
+        );
+
+    var _lower_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.00,
+            _angle - 138
+        );
+
+
+    draw_line_width(
+        _nose_x,
+        _nose_y,
+        _upper_x,
+        _upper_y,
+        3
+    );
+
+    draw_line_width(
+        _upper_x,
+        _upper_y,
+        _lower_x,
+        _lower_y,
+        3
+    );
+
+    draw_line_width(
+        _lower_x,
+        _lower_y,
+        _nose_x,
+        _nose_y,
+        3
+    );
+
+
+    // ========================================================================
+    // OUTER ARMOUR FINS
+    // ========================================================================
+
+    var _nose_inner_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.72,
+            _angle
+        );
+
+    var _nose_inner_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.72,
+            _angle
+        );
+
+
+    var _upper_tip_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.20,
+            _angle + 150
+        );
+
+    var _upper_tip_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.20,
+            _angle + 150
+        );
+
+
+    var _lower_tip_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.20,
+            _angle - 150
+        );
+
+    var _lower_tip_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.20,
+            _angle - 150
+        );
+
+
+    // Upper swept blade.
+    draw_line_width(
+        _upper_x,
+        _upper_y,
+        _upper_tip_x,
+        _upper_tip_y,
+        3
+    );
+
+    draw_line_width(
+        _upper_tip_x,
+        _upper_tip_y,
+        _nose_inner_x,
+        _nose_inner_y,
+        2
+    );
+
+
+    // Lower swept blade.
+    draw_line_width(
+        _lower_x,
+        _lower_y,
+        _lower_tip_x,
+        _lower_tip_y,
+        3
+    );
+
+    draw_line_width(
+        _lower_tip_x,
+        _lower_tip_y,
+        _nose_inner_x,
+        _nose_inner_y,
+        2
+    );
+
+
+    // ========================================================================
+    // INNER TRIANGULAR ARMOUR
+    // ========================================================================
+
+    var _inner_front_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.56,
+            _angle
+        );
+
+    var _inner_front_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.56,
+            _angle
+        );
+
+
+    var _inner_upper_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.48,
+            _angle + 135
+        );
+
+    var _inner_upper_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.48,
+            _angle + 135
+        );
+
+
+    var _inner_lower_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.48,
+            _angle - 135
+        );
+
+    var _inner_lower_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.48,
+            _angle - 135
+        );
+
+
+    draw_line_width(
+        _inner_front_x,
+        _inner_front_y,
+        _inner_upper_x,
+        _inner_upper_y,
+        2
+    );
+
+    draw_line_width(
+        _inner_upper_x,
+        _inner_upper_y,
+        _inner_lower_x,
+        _inner_lower_y,
+        2
+    );
+
+    draw_line_width(
+        _inner_lower_x,
+        _inner_lower_y,
+        _inner_front_x,
+        _inner_front_y,
+        2
+    );
+
+
+    // ========================================================================
+    // INNER ARMOUR RAILS
+    // ========================================================================
+
+    var _rail_upper_a_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.70,
+            _angle + 155
+        );
+
+    var _rail_upper_a_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.70,
+            _angle + 155
+        );
+
+
+    var _rail_upper_b_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.80,
+            _angle + 115
+        );
+
+    var _rail_upper_b_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.80,
+            _angle + 115
+        );
+
+
+    var _rail_lower_a_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.70,
+            _angle - 155
+        );
+
+    var _rail_lower_a_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.70,
+            _angle - 155
+        );
+
+
+    var _rail_lower_b_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.80,
+            _angle - 115
+        );
+
+    var _rail_lower_b_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.80,
+            _angle - 115
+        );
+
+
+    draw_line_width(
+        _rail_upper_a_x,
+        _rail_upper_a_y,
+        _rail_upper_b_x,
+        _rail_upper_b_y,
+        2
+    );
+
+    draw_line_width(
+        _rail_lower_a_x,
+        _rail_lower_a_y,
+        _rail_lower_b_x,
+        _rail_lower_b_y,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL SPLIT CORE
+    // ========================================================================
+
+    var _core_front_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.27,
+            _angle
+        );
+
+    var _core_front_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.27,
+            _angle
+        );
+
+
+    var _core_upper_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.23,
+            _angle + 135
+        );
+
+    var _core_upper_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.23,
+            _angle + 135
+        );
+
+
+    var _core_lower_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.23,
+            _angle - 135
+        );
+
+    var _core_lower_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.23,
+            _angle - 135
+        );
+
+
+    draw_line_width(
+        _core_front_x,
+        _core_front_y,
+        _core_upper_x,
+        _core_upper_y,
+        3
+    );
+
+    draw_line_width(
+        _core_upper_x,
+        _core_upper_y,
+        _core_lower_x,
+        _core_lower_y,
+        3
+    );
+
+    draw_line_width(
+        _core_lower_x,
+        _core_lower_y,
+        _core_front_x,
+        _core_front_y,
+        3
+    );
+
+
+    // ========================================================================
+    // FOUR SPLIT NODES
+    // ========================================================================
+
+    var _node_distance =
+        _radius * 0.48;
+
+    var _node_size =
+        max(
+            1.5,
+            _radius * 0.07
+        );
+
+
+    for (var i = 0; i < 4; ++i)
+    {
+        var _node_angle =
+            _angle
+            + (i * 90);
+
+        var _node_x =
+            _x
+            + lengthdir_x(
+                _node_distance,
+                _node_angle
+            );
+
+        var _node_y =
+            _y
+            + lengthdir_y(
+                _node_distance,
+                _node_angle
+            );
+
+
+        var _node_front_x =
+            _node_x
+            + lengthdir_x(
+                _node_size,
+                _node_angle
+            );
+
+        var _node_front_y =
+            _node_y
+            + lengthdir_y(
+                _node_size,
+                _node_angle
+            );
+
+
+        var _node_left_x =
+            _node_x
+            + lengthdir_x(
+                _node_size,
+                _node_angle + 90
+            );
+
+        var _node_left_y =
+            _node_y
+            + lengthdir_y(
+                _node_size,
+                _node_angle + 90
+            );
+
+
+        var _node_back_x =
+            _node_x
+            + lengthdir_x(
+                _node_size,
+                _node_angle + 180
+            );
+
+        var _node_back_y =
+            _node_y
+            + lengthdir_y(
+                _node_size,
+                _node_angle + 180
+            );
+
+
+        var _node_right_x =
+            _node_x
+            + lengthdir_x(
+                _node_size,
+                _node_angle - 90
+            );
+
+        var _node_right_y =
+            _node_y
+            + lengthdir_y(
+                _node_size,
+                _node_angle - 90
+            );
+
+
+        draw_line(
+            _node_front_x,
+            _node_front_y,
+            _node_left_x,
+            _node_left_y
+        );
+
+        draw_line(
+            _node_left_x,
+            _node_left_y,
+            _node_back_x,
+            _node_back_y
+        );
+
+        draw_line(
+            _node_back_x,
+            _node_back_y,
+            _node_right_x,
+            _node_right_y
+        );
+
+        draw_line(
+            _node_right_x,
+            _node_right_y,
+            _node_front_x,
+            _node_front_y
+        );
+    }
+
+
+    // ========================================================================
+    // CENTRAL GLOW
+    // ========================================================================
+
+    var _pulse =
+        0.45
+        + sin(
+            (global.vtd.tick * 4)
+            + real(_enemy.id)
+        )
+        * 0.15;
+
+
+    draw_set_alpha(_pulse);
+
+    draw_circle(
+        _x,
+        _y,
+        max(
+            2,
+            _radius * 0.12
+        ),
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
 
     return true;
