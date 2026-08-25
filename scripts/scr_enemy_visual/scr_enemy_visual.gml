@@ -1839,7 +1839,7 @@ function scr_enemy_visual_siege_rocket(_enemy)
     return true;
 }
 
-/// @description Draws the Centipede head.
+/// @description Draws the Centipede head as an angular armoured square unit.
 
 function scr_enemy_visual_centipede_head(_enemy)
 {
@@ -1847,42 +1847,291 @@ function scr_enemy_visual_centipede_head(_enemy)
         return false;
 
 
-    var _radius = _enemy.visual.radius;
-    var _angle = _enemy.visual.draw_angle;
+    var _x =
+        _enemy.x;
 
-    draw_set_color(_enemy.visual.color);
+    var _y =
+        _enemy.y;
 
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // OUTER ARMOURED CHASSIS
+    // ========================================================================
+
+    scr_enemy_visual_helper_square(
+        _x,
+        _y,
         _radius,
-        false
+        _angle,
+        2
     );
+
+
+    // ========================================================================
+    // INNER DIAMOND CORE
+    // ========================================================================
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.52,
+        _angle,
+        1
+    );
+
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.22,
+        _angle,
+        1
+    );
+
+
+    // ========================================================================
+    // FORWARD ARMOURED WEDGE
+    // ========================================================================
+
+    var _front_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.32,
+            _angle
+        );
+
+    var _front_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.32,
+            _angle
+        );
+
+
+    var _front_left_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.72,
+            _angle + 42
+        );
+
+    var _front_left_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.72,
+            _angle + 42
+        );
+
+
+    var _front_right_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.72,
+            _angle - 42
+        );
+
+    var _front_right_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.72,
+            _angle - 42
+        );
+
+
+    scr_enemy_visual_helper_triangle(
+        _front_x,
+        _front_y,
+
+        _front_left_x,
+        _front_left_y,
+
+        _front_right_x,
+        _front_right_y,
+
+        2
+    );
+
+
+    // ========================================================================
+    // MANDIBLES
+    // ========================================================================
+
+    var _mandible_left_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.55,
+            _angle + 22
+        );
+
+    var _mandible_left_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.55,
+            _angle + 22
+        );
+
+
+    var _mandible_right_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.55,
+            _angle - 22
+        );
+
+    var _mandible_right_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.55,
+            _angle - 22
+        );
+
+
+    draw_line_width(
+        _front_left_x,
+        _front_left_y,
+        _mandible_left_x,
+        _mandible_left_y,
+        2
+    );
+
+
+    draw_line_width(
+        _front_right_x,
+        _front_right_y,
+        _mandible_right_x,
+        _mandible_right_y,
+        2
+    );
+
+
+    // Small inward hooks.
+
+    draw_line_width(
+        _mandible_left_x,
+        _mandible_left_y,
+
+        _x + lengthdir_x(
+            _radius * 1.32,
+            _angle + 8
+        ),
+
+        _y + lengthdir_y(
+            _radius * 1.32,
+            _angle + 8
+        ),
+
+        1
+    );
+
+
+    draw_line_width(
+        _mandible_right_x,
+        _mandible_right_y,
+
+        _x + lengthdir_x(
+            _radius * 1.32,
+            _angle - 8
+        ),
+
+        _y + lengthdir_y(
+            _radius * 1.32,
+            _angle - 8
+        ),
+
+        1
+    );
+
+
+    // ========================================================================
+    // SIDE ARMOUR FINS
+    // ========================================================================
+
+    for (var _side = -1; _side <= 1; _side += 2)
+    {
+        var _side_angle =
+            _angle
+            + (_side * 90);
+
+
+        var _inner_x =
+            _x
+            + lengthdir_x(
+                _radius * 0.72,
+                _side_angle
+            );
+
+        var _inner_y =
+            _y
+            + lengthdir_y(
+                _radius * 0.72,
+                _side_angle
+            );
+
+
+        var _outer_x =
+            _x
+            + lengthdir_x(
+                _radius * 1.22,
+                _side_angle
+            );
+
+        var _outer_y =
+            _y
+            + lengthdir_y(
+                _radius * 1.22,
+                _side_angle
+            );
+
+
+        draw_line_width(
+            _inner_x,
+            _inner_y,
+            _outer_x,
+            _outer_y,
+            2
+        );
+
+
+        draw_line_width(
+            _outer_x,
+            _outer_y,
+
+            _x + lengthdir_x(
+                _radius * 0.72,
+                _side_angle + 35
+            ),
+
+            _y + lengthdir_y(
+                _radius * 0.72,
+                _side_angle + 35
+            ),
+
+            1
+        );
+    }
+
+
+    // ========================================================================
+    // CENTRAL ENERGY POINT
+    // ========================================================================
 
     draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius * 0.5,
-        false
-    );
-
-
-    // Two forward mandibles make the head easy to identify.
-
-    draw_line_width(
-        _enemy.x,
-        _enemy.y,
-        _enemy.x + lengthdir_x(_radius * 1.35, _angle + 25),
-        _enemy.y + lengthdir_y(_radius * 1.35, _angle + 25),
-        2
-    );
-
-    draw_line_width(
-        _enemy.x,
-        _enemy.y,
-        _enemy.x + lengthdir_x(_radius * 1.35, _angle - 25),
-        _enemy.y + lengthdir_y(_radius * 1.35, _angle - 25),
-        2
+        _x,
+        _y,
+        2,
+        true
     );
 
 

@@ -23,8 +23,11 @@ function scr_game_initialize()
 
         settings:
         {
-            view_width: 1366,
-            view_height: 768,
+            // Shared internal resolution used by menus, gameplay and HUD.
+
+            view_width: 1920,
+            view_height: 1080,
+
             grid_cell_size: 32
         },
 
@@ -47,6 +50,7 @@ function scr_game_initialize()
         // save data
         // persistent upgrades
         // campaign progress
+        // display and graphics settings
     };
 
 
@@ -86,6 +90,7 @@ function scr_game_initialize()
 
     return true;
 }
+
 /// @description Creates the runtime belonging to the current level.
 
 function scr_level_initialize()
