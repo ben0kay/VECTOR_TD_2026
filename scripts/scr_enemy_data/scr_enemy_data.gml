@@ -2106,7 +2106,7 @@ function scr_enemy_data_sniper()
                 type: EnemyAttack.PROJECTILE,
 
                 damage: 20,
-                range: 700,
+                range: 640,
                 cooldown_seconds: 3.5,
 
                 projectile:
