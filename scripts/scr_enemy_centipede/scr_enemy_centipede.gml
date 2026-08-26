@@ -6,11 +6,6 @@ function scr_enemy_centipede_initialize(_enemy)
         return false;
 
 
-    // Fast Step-event flags.
-    // Ordinary enemies leave both false forever.
-
-    _enemy.is_centipede_head = false;
-    _enemy.is_centipede_child = false;
 
 
     _enemy.centipede =

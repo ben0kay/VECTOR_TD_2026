@@ -837,7 +837,221 @@ function scr_enemy_initialize(_enemy)
                 0
         };
     }
+	
+	
+	// ========================================================================
+	// OPTIONAL UNIQUE ENEMY EVENTS
+	// ========================================================================
 
+	_enemy.has_unique =
+	    variable_struct_exists(
+	        _data,
+	        "unique"
+	    );
+
+
+	_enemy.unique =
+	{
+	    create_event:
+	    {
+	        start:
+	            undefined
+	    },
+
+	    step_event:
+	    {
+	        start:
+	            undefined,
+
+	        finish:
+	            undefined,
+
+	        handled:
+	            false
+	    },
+
+	    draw_event:
+	    {
+	        start:
+	            undefined,
+
+	        finish:
+	            undefined,
+
+	        handled:
+	            false
+	    }
+	};
+
+
+	if (_enemy.has_unique)
+	{
+	    if (!is_struct(_data.unique))
+	    {
+	        show_debug_message(
+	            "ENEMY UNIQUE ERROR - unique data must be a struct: "
+	            + _enemy.identity.key
+	        );
+
+	        return false;
+	    }
+
+
+	    var _unique_data =
+	        _data.unique;
+
+
+	    // ========================================================================
+	    // CREATE EVENT
+	    // ========================================================================
+
+	    if (
+	        variable_struct_exists(
+	            _unique_data,
+	            "create_event"
+	        )
+	    )
+	    {
+	        if (!is_struct(_unique_data.create_event))
+	        {
+	            show_debug_message(
+	                "ENEMY UNIQUE ERROR - create_event must be a struct: "
+	                + _enemy.identity.key
+	            );
+
+	            return false;
+	        }
+
+
+	        if (
+	            variable_struct_exists(
+	                _unique_data.create_event,
+	                "start"
+	            )
+	        )
+	        {
+	            _enemy.unique.create_event.start =
+	                _unique_data.create_event.start;
+	        }
+	    }
+
+
+	    // ========================================================================
+	    // STEP EVENT
+	    // ========================================================================
+
+	    if (
+	        variable_struct_exists(
+	            _unique_data,
+	            "step_event"
+	        )
+	    )
+	    {
+	        if (!is_struct(_unique_data.step_event))
+	        {
+	            show_debug_message(
+	                "ENEMY UNIQUE ERROR - step_event must be a struct: "
+	                + _enemy.identity.key
+	            );
+
+	            return false;
+	        }
+
+
+	        if (
+	            variable_struct_exists(
+	                _unique_data.step_event,
+	                "start"
+	            )
+	        )
+	        {
+	            _enemy.unique.step_event.start =
+	                _unique_data.step_event.start;
+	        }
+
+	        if (
+	            variable_struct_exists(
+	                _unique_data.step_event,
+	                "finish"
+	            )
+	        )
+	        {
+	            _enemy.unique.step_event.finish =
+	                _unique_data.step_event.finish;
+	        }
+	    }
+
+
+	    // ========================================================================
+	    // DRAW EVENT
+	    // ========================================================================
+
+	    if (
+	        variable_struct_exists(
+	            _unique_data,
+	            "draw_event"
+	        )
+	    )
+	    {
+	        if (!is_struct(_unique_data.draw_event))
+	        {
+	            show_debug_message(
+	                "ENEMY UNIQUE ERROR - draw_event must be a struct: "
+	                + _enemy.identity.key
+	            );
+
+	            return false;
+	        }
+
+
+	        if (
+	            variable_struct_exists(
+	                _unique_data.draw_event,
+	                "start"
+	            )
+	        )
+	        {
+	            _enemy.unique.draw_event.start =
+	                _unique_data.draw_event.start;
+	        }
+
+	        if (
+	            variable_struct_exists(
+	                _unique_data.draw_event,
+	                "finish"
+	            )
+	        )
+	        {
+	            _enemy.unique.draw_event.finish =
+	                _unique_data.draw_event.finish;
+	        }
+	    }
+
+
+	    // ========================================================================
+	    // RUN UNIQUE CREATE EVENT
+	    // ========================================================================
+
+	    if (
+	        _enemy.unique.create_event.start
+	        != undefined
+	    )
+	    {
+	        if (
+	            !_enemy.unique.create_event.start(
+	                _enemy
+	            )
+	        )
+	        {
+	            show_debug_message(
+	                "ENEMY UNIQUE ERROR - Create Event failed: "
+	                + _enemy.identity.key
+	            );
+
+	            return false;
+	        }
+	    }
+	}
 
     // ========================================================================
     // INITIAL TARGET
@@ -3407,3 +3621,4 @@ function scr_enemy_attack_line_of_sight_clear(
         _interval_multiplier
     );
 }
+

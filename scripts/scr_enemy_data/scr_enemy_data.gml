@@ -19,6 +19,7 @@ function scr_enemy_data_initialize()
     if (!scr_enemy_data_kamikaze()) return false;
     if (!scr_enemy_data_splitter()) return false;
     if (!scr_enemy_data_splitter_child()) return false;
+	if (!scr_enemy_data_berserker()) return false;
 	
 	// flyers
     if (!scr_enemy_data_flyer()) return false;
@@ -1679,156 +1680,6 @@ function scr_enemy_data_siege_rocket()
     return true;
 }
 
-/// @description Registers the navigating Centipede head.
-
-function scr_enemy_data_centipede_head()
-{
-    variable_struct_set(
-        global.vtd.data.enemies,
-        "enemy_centipede_head",
-        {
-            identity:
-            {
-                key: "enemy_centipede_head",
-                name: "Centipede"
-            },
-
-            visual:
-            {
-                sprite: -1,
-                scale_x: 1,
-                scale_y: 1,
-                draw_function: scr_enemy_visual_centipede_head,
-                radius: 20,
-                color: make_color_rgb(110, 255, 90)
-            },
-
-            vitals:
-            {
-                hp_maximum: 240,
-                shield_maximum: 60
-            },
-
-            movement:
-            {
-                speed: 2.5,
-                layer: EnemyMovementLayer.GROUND
-            },
-
-            targeting:
-            {
-                target_type: EnemyTarget.BUILDING
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.BREACH
-            },
-
-            attack:
-            {
-                type: EnemyAttack.CONTACT,
-                damage: 25,
-                range: 6,
-                cooldown_seconds: 0.9
-            },
-
-            centipede:
-            {
-                child_key: "enemy_centipede_child",
-
-                child_count_minimum: 5,
-                child_count_maximum: 8,
-
-                // Number of recorded frames separating each child.
-                trail_stagger: 11
-            },
-
-            rewards:
-                scr_enemy_rewards_create(
-                    35,
-                    7
-                ),
-
-            abilities: []
-        }
-    );
-
-    return true;
-}
-
-/// @description Registers one Centipede child.
-
-function scr_enemy_data_centipede_child()
-{
-    variable_struct_set(
-        global.vtd.data.enemies,
-        "enemy_centipede_child",
-        {
-            identity:
-            {
-                key: "enemy_centipede_child",
-                name: "Centipede Child"
-            },
-
-            visual:
-            {
-                sprite: -1,
-                scale_x: 1,
-                scale_y: 1,
-                draw_function: scr_enemy_visual_centipede_child,
-                radius: 15,
-                color: make_color_rgb(70, 210, 80)
-            },
-
-            vitals:
-            {
-                hp_maximum: 60,
-                shield_maximum: 15
-            },
-
-            movement:
-            {
-                speed: 2.5,
-                layer: EnemyMovementLayer.GROUND,
-
-                brainless: true,
-                destroy_on_impact: true
-            },
-
-            targeting:
-            {
-                target_type: EnemyTarget.BUILDING
-            },
-
-            navigation:
-            {
-                blocked_action: EnemyBlockedAction.WAIT
-            },
-
-            attack:
-            {
-                type: EnemyAttack.CONTACT,
-                damage: 10,
-                range: 4,
-                cooldown_seconds: 1
-            },
-
-            rewards:
-                scr_enemy_rewards_create(
-                    5,
-                    1,
-                    0.05,
-                    0.5
-                ),
-
-            abilities: []
-			
-        }
-    );
-
-    return true;
-}
 
 /// @description Registers the slow CPU-sieging Heavy Flyer.
 
@@ -2215,6 +2066,125 @@ function scr_enemy_data_sniper()
             abilities: []
         }
     );
+
+    return true;
+}
+
+/// @description Registers the Berserker enemy.
+
+function scr_enemy_data_berserker()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_berserker",
+        {
+            identity:
+            {
+                key: "enemy_berserker",
+                name: "Berserker"
+            },
+
+            behavior:
+                EnemyBehavior.STANDARD,
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+
+                // Placeholder until the Berserker receives a unique visual.
+
+                draw_function:
+                    scr_enemy_visual_beserker,
+
+                radius: 14,
+                color: make_color_rgb(255, 55, 25)
+            },
+
+            vitals:
+            {
+                hp_maximum: 100,
+                shield_maximum: 0
+            },
+
+            movement:
+            {
+                speed: 1.25,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type:
+                    EnemyTarget.BUILDING,
+
+                player:
+                {
+                    enabled: true,
+
+                    acquire_range: 420,
+                    forget_range_multiplier: 1.3,
+                    acquire_chance: 0.40,
+
+                    require_line_of_sight: true,
+                    require_reachable: true
+                },
+
+                strategic_retarget:
+                {
+                    enabled: true,
+                    scan_range: 896,
+
+                    interval_minimum: 0.75,
+                    interval_maximum: 1.5,
+
+                    minimum_distance_advantage: 64,
+                    switch_ratio: 0.85
+                }
+            },
+
+            navigation:
+            {
+                blocked_action:
+                    EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type:
+                    EnemyAttack.CONTACT,
+
+                damage: 12,
+                range: 4,
+                cooldown_seconds: 0.8
+            },
+
+            unique:
+			{
+			    step_event:
+			    {
+			        start:
+			            scr_enemy_unique_berserker_update
+			    },
+
+			    berserker:
+			    {
+			        maximum_speed_multiplier: 2.5,
+			        curve_power: 1.5
+			    }
+			},
+
+            rewards:
+                scr_enemy_rewards_create(
+                    16,
+                    4
+                ),
+
+            abilities: []
+        }
+    );
+
 
     return true;
 }

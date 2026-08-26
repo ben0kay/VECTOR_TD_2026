@@ -1,4 +1,4 @@
-/// @description Processes one generic enemy with staggered optional updates.
+/// @description Processes one generic enemy with optional unique events.
 
 if (!GAMEPLAY_ACTIVE)
     exit;
@@ -19,8 +19,6 @@ var _decision_due =
 // ============================================================================
 // ACTIVE STATUS EFFECTS
 // ============================================================================
-//
-// Inactive effects no longer enter the complete effects function every frame.
 
 var _effects_active =
     effects.slow.active
@@ -45,9 +43,6 @@ else
 // ============================================================================
 // STEALTH
 // ============================================================================
-//
-// Ordinary enemies completely skip stealth processing. Stealth timers continue
-// accurately every frame whenever stealth is genuinely relevant.
 
 var _stealth_active =
     stealth.modifier
@@ -66,114 +61,43 @@ if (_stealth_active)
 
 
 // ============================================================================
-// CENTIPEDE CHILD
+// UNIQUE OR ORDINARY STEP
 // ============================================================================
+//
+// This is the only unique-enemy check performed by o_enemy's Step event.
 
-if (
-    is_centipede_child
-    && scr_enemy_centipede_child_update(id)
-)
+if (has_unique)
 {
-    if (!instance_exists(id))
-        exit;
-
-
-    var _child_shield_active =
-        vitals.shield.hit_flash > 0
-        || (
-            is_struct(vitals.shield.support)
-            && vitals.shield.support.enabled
-        );
-
-
-    if (_child_shield_active)
-        scr_enemy_shield_update(id);
-
-
-    if (_visible)
-        scr_particles_enemy_update(id);
-
-
-    exit;
-}
-
-
-// ============================================================================
-// PLAYER TARGETING AND STRATEGIC RETARGETING
-// ============================================================================
-//
-// Active player pursuits remain responsive every frame.
-// An enemy that is not pursuing the player only performs its player-acquisition
-// roll on its staggered decision frame.
-//
-// Strategic building-retarget timers continue every frame so hunters can still
-// notice a newly placed closer building at their configured interval.
-
-var _player_target_active =
-    variable_struct_exists(
-        targeting,
-        "player"
+    if (
+        !scr_enemy_unique_step_event(
+            id,
+            _visible,
+            _decision_due
+        )
     )
-    && targeting.player.active;
+    {
+        show_debug_message(
+            "ENEMY UNIQUE ERROR - Step Event failed: "
+            + identity.key
+        );
+    }
 
 
-if (_player_target_active || _decision_due)
-{
-    scr_enemy_player_targeting_update(id);
+    exit;
 }
-else
-{
-    scr_enemy_strategic_retarget_update(id);
-}
+
+
+scr_enemy_step_event_gameplay(
+    id,
+    _decision_due
+);
 
 
 if (!instance_exists(id))
     exit;
 
 
-// ============================================================================
-// PRIMARY GAMEPLAY
-// ============================================================================
-//
-// Movement, active attacks and behavior state continue every frame.
-
-scr_enemy_update(id);
-
-if (!instance_exists(id))
-    exit;
-
-
-// Only Centipede heads record breadcrumbs.
-
-if (is_centipede_head)
-    scr_enemy_centipede_head_update(id);
-
-
-// ============================================================================
-// OPTIONAL VISUAL WORK
-// ============================================================================
-
-if (_visible)
-{
-    scr_enemy_visual_direction_update(id);
-    scr_particles_enemy_update(id);
-}
-
-
-// ============================================================================
-// ACTIVE SHIELD TIMERS
-// ============================================================================
-//
-// Shield timers remain accurate when active. Enemies without shield activity
-// do not enter the full shield update function.
-
-var _shield_active =
-    vitals.shield.hit_flash > 0
-    || (
-        is_struct(vitals.shield.support)
-        && vitals.shield.support.enabled
-    );
-
-
-if (_shield_active)
-    scr_enemy_shield_update(id);
+scr_enemy_step_event_finish(
+    id,
+    _visible
+);
