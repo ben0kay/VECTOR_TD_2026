@@ -155,6 +155,38 @@ function scr_level_initialize()
             grid_flying: -1
         },
 
+
+		spatial_collision:
+		{
+		    settings:
+		    {
+		        // Main spatial-grid tuning value.
+		        cell_size: 256,
+
+		        // Starting safety radius before enemies register.
+		        // This increases automatically when larger enemies appear.
+		        initial_enemy_radius: 32,
+
+		        // Extra coverage used by spatial queries.
+		        query_padding: 4,
+
+		        debug_draw: false
+		    },
+
+		    runtime:
+		    {
+		        ready: false,
+
+		        columns: 0,
+		        rows: 0,
+
+		        enemy_grid: -1,
+
+		        maximum_enemy_radius: 32
+		    }
+		},
+		
+		
         entities:
         {
             player: noone,
@@ -293,6 +325,19 @@ function scr_level_initialize()
 
         return false;
     }
+	
+	// ========================================================================
+	// ENEMY SPATIAL COLLISION
+	// ========================================================================
+
+	if (!scr_spatial_collision_initialize())
+	{
+	    show_debug_message(
+	        "LEVEL ERROR - spatial collision initialization failed."
+	    );
+
+	    return false;
+	}
 
 
     global.LevelState = LevelState.PLAYING;
