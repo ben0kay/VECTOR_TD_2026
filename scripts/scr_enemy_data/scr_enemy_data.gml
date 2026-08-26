@@ -2096,7 +2096,7 @@ function scr_enemy_data_berserker()
                 // Placeholder until the Berserker receives a unique visual.
 
                 draw_function:
-                    scr_enemy_visual_beserker,
+                    scr_enemy_visual_berserker,
 
                 radius: 14,
                 color: make_color_rgb(255, 55, 25)
