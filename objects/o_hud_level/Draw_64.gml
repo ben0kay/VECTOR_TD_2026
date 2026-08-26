@@ -1,17 +1,12 @@
 /// @description Draws the gameplay HUD and mission-result overlay.
 
-if (!variable_global_exists("vtd_level"))
-    exit;
-
-if (!is_struct(global.vtd_level))
-    exit;
-
+if (!variable_global_exists("vtd_level")) exit;
+if (!is_struct(global.vtd_level)) exit;
 
 draw_set_alpha(1);
 draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
-
 
 var _result_active =
     variable_struct_exists(
@@ -19,7 +14,6 @@ var _result_active =
         "result"
     )
     && global.vtd_level.result.active;
-
 
 if (_result_active)
 {
@@ -34,18 +28,16 @@ if (_result_active)
     exit;
 }
 
-
 scr_hud_top_bar_draw(id);
 scr_hud_resource_feedback_draw(id);
-
 scr_hud_bottom_bar_draw(id);
 
+scr_hud_minimap_draw(id);
 
 var _has_selection =
     instance_exists(
         hud.selection.target
     );
-
 
 if (
     !hud.build_menu.open
@@ -55,8 +47,10 @@ if (
     scr_hud_pressure_draw(id);
 }
 
-
-if (_has_selection && !hud.build_menu.open)
+if (
+    _has_selection
+    && !hud.build_menu.open
+)
 {
     scr_hud_selection_panel_draw(id);
 }
@@ -65,16 +59,12 @@ else
     scr_hud_build_menu_draw(id);
 }
 
-
 scr_hud_wave_warning_draw(id);
 scr_hud_notification_draw(id);
 scr_hud_alert_draw(id);
 
-
 // Debug interface remains above normal gameplay HUD elements.
-
 scr_debug_menu_draw(id);
-
 
 draw_set_alpha(1);
 draw_set_color(c_white);

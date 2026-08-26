@@ -702,14 +702,10 @@ function scr_hud_build_menu_close(_hud)
 
 
 /// @description Returns whether the pointer belongs to the level HUD.
-
 function scr_hud_pointer_blocks_world()
 {
-    if (!variable_global_exists("vtd_level"))
-        return false;
-
-    if (!is_struct(global.vtd_level))
-        return false;
+    if (!variable_global_exists("vtd_level")) return false;
+    if (!is_struct(global.vtd_level)) return false;
 
     if (
         !variable_struct_exists(
@@ -721,16 +717,12 @@ function scr_hud_pointer_blocks_world()
         return false;
     }
 
-
     var _hud =
         global.vtd_level.entities.hud;
 
-    if (!instance_exists(_hud))
-        return false;
-
+    if (!instance_exists(_hud)) return false;
 
     // The debug overlay captures the complete pointer while open.
-
     if (
         variable_struct_exists(
             _hud.hud,
@@ -742,6 +734,10 @@ function scr_hud_pointer_blocks_world()
         return true;
     }
 
+    if (scr_hud_minimap_pointer_over(_hud))
+    {
+        return true;
+    }
 
     var _mouse_x =
         device_mouse_x_to_gui(0);
@@ -774,12 +770,10 @@ function scr_hud_pointer_blocks_world()
         _mouse_x >= _inspector_left
         && _mouse_y >= _inspector_top;
 
-
     return
         _inside_tray
         || _inside_inspector;
 }
-
 /// @description Changes the selected build category.
 
 function scr_hud_build_menu_category_set(
