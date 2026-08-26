@@ -6,7 +6,7 @@
 // ============================================================================
 
 enum GameState { BOOT, MENU, PLAYING, PAUSED, GAME_OVER }
-enum LevelState { INITIALIZING, PLAYING, COMPLETE, FAILED, EXITING }
+enum LevelState { INITIALIZING, CHASSIS_SELECT, PLAYING, COMPLETE, FAILED, EXITING }
 enum LevelVictoryType
 {
     NONE,
