@@ -1,0 +1,1 @@
+move enemy LOS requirement outside of combat_movement
