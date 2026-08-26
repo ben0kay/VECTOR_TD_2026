@@ -1,0 +1,11 @@
+{
+  "$GMNotes":"v1",
+  "%Name":"immediateTODO",
+  "name":"immediateTODO",
+  "parent":{
+    "name":"VECTOR_TD_2026",
+    "path":"VECTOR_TD_2026.yyp",
+  },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
+}

@@ -36,6 +36,7 @@
   },
   "name":"VECTOR_TD_2026",
   "resources":[
+    {"id":{"name":"immediateTODO","path":"notes/immediateTODO/immediateTODO.yy",},},
     {"id":{"name":"RESOURCE TODO","path":"notes/RESOURCE TODO/RESOURCE TODO.yy",},},
     {"id":{"name":"TO-DO","path":"notes/TO-DO/TO-DO.yy",},},
     {"id":{"name":"o_building_par","path":"objects/o_building_par/o_building_par.yy",},},

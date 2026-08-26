@@ -1370,7 +1370,7 @@ function scr_enemy_data_shield_generator()
     return true;
 }
 
-/// @description Registers the continuous-beam siege enemy.
+/// @description Registers the mobile continuous-beam siege platform.
 
 function scr_enemy_data_siege_beam()
 {
@@ -1384,18 +1384,20 @@ function scr_enemy_data_siege_beam()
                 name: "Siege Beam Platform"
             },
 
- 			behavior:
-    EnemyBehavior.ANCHOR_BEAM,
+            behavior:
+                EnemyBehavior.ANCHOR_BEAM,
 
             visual:
             {
                 sprite: -1,
                 scale_x: 1,
                 scale_y: 1,
+
                 draw_function:
                     scr_enemy_visual_siege_beam,
 
                 radius: 44,
+
                 color:
                     make_color_rgb(
                         220,
@@ -1421,8 +1423,6 @@ function scr_enemy_data_siege_beam()
                 target_type:
                     EnemyTarget.BUILDING,
 
-                // Siege platforms remain committed to structures.
-
                 player:
                 {
                     enabled: false
@@ -1435,24 +1435,30 @@ function scr_enemy_data_siege_beam()
                     EnemyBlockedAction.BREACH
             },
 
-            // Damage is measured per second.
-
             attack:
-{
-    // Continuous-beam damage is measured per second.
+            {
+                // Continuous-beam damage is measured per second.
 
-    type:
-        EnemyAttack.CONTINUOUS_BEAM,
+                type:
+                    EnemyAttack.CONTINUOUS_BEAM,
 
-    damage:
-        24,
+                damage: 24,
+                range: 620,
+                cooldown_seconds: 0,
 
-    range:
-        620,
+                line_of_sight:
+                {
+                    required: true,
 
-    cooldown_seconds:
-        0
-},
+                    interval_minimum: 8,
+                    interval_maximum: 15,
+
+                    movement_refresh_distance: 32,
+
+                    blocked_function:
+                        scr_world_line_blocked_by_dead
+                }
+            },
 
             combat_movement:
             {
@@ -1464,7 +1470,6 @@ function scr_enemy_data_siege_beam()
                 maximum_range: 620,
 
                 anchor_radius: 128,
-
                 speed_multiplier: 0.8,
 
                 hull_turn_speed: 1.8,
@@ -1484,6 +1489,9 @@ function scr_enemy_data_siege_beam()
                     candidate_attempts: 9,
                     arrival_tolerance: 5,
 
+                    // This checks whether a possible roaming destination
+                    // preserves LOS. It is movement-specific data.
+
                     require_line_of_sight: true
                 }
             },
@@ -1494,10 +1502,7 @@ function scr_enemy_data_siege_beam()
                     24
                 ),
 
-            abilities:
-            [
-			
-            ],
+            abilities: [],
 
             ability_data:
             {
@@ -1522,7 +1527,7 @@ function scr_enemy_data_siege_beam()
     return true;
 }
 
-/// @description Registers the explosive-rocket siege enemy.
+/// @description Registers the long-range siege rocket platform.
 
 function scr_enemy_data_siege_rocket()
 {
@@ -1535,16 +1540,19 @@ function scr_enemy_data_siege_rocket()
                 key: "enemy_siege_rocket",
                 name: "Siege Rocket Platform"
             },
-				
- 			behavior:
-    EnemyBehavior.STANDOFF,	
+
+            behavior:
+                EnemyBehavior.STANDOFF,
 
             visual:
             {
                 sprite: -1,
                 scale_x: 1,
                 scale_y: 1,
-                draw_function: scr_enemy_visual_siege_rocket,
+
+                draw_function:
+                    scr_enemy_visual_siege_rocket,
+
                 radius: 48,
                 color: make_color_rgb(255, 110, 40)
             },
@@ -1563,7 +1571,8 @@ function scr_enemy_data_siege_rocket()
 
             targeting:
             {
-                target_type: EnemyTarget.BUILDING,
+                target_type:
+                    EnemyTarget.BUILDING,
 
                 player:
                 {
@@ -1573,15 +1582,34 @@ function scr_enemy_data_siege_rocket()
 
             navigation:
             {
-                blocked_action: EnemyBlockedAction.BREACH
+                blocked_action:
+                    EnemyBlockedAction.BREACH
             },
 
             attack:
             {
-                type: EnemyAttack.PROJECTILE,
+                type:
+                    EnemyAttack.PROJECTILE,
+
                 damage: 135,
                 range: 720,
                 cooldown_seconds: 5,
+
+                line_of_sight:
+                {
+                    required: true,
+
+                    interval_minimum: 8,
+                    interval_maximum: 15,
+
+                    movement_refresh_distance: 32,
+
+                    blocked_function:
+                        scr_world_line_blocked_by_dead
+
+                    // FUTURE:
+                    // Weapons can supply different obstruction functions.
+                },
 
                 projectile:
                 {
@@ -1594,7 +1622,9 @@ function scr_enemy_data_siege_rocket()
                     shot_count: 1,
                     spread_degrees: 0,
 
-                    impact: ProjectileImpact.EXPLOSIVE,
+                    impact:
+                        ProjectileImpact.EXPLOSIVE,
+
                     damage_radius: 150,
                     rocket: true
                 }
@@ -1602,13 +1632,12 @@ function scr_enemy_data_siege_rocket()
 
             combat_movement:
             {
-                type: EnemyCombatMovement.STATIONARY,
+                type:
+                    EnemyCombatMovement.STATIONARY,
 
                 preferred_range: 620,
                 minimum_range: 400,
-                maximum_range: 720,
-
-                requires_line_of_sight: true
+                maximum_range: 720
             },
 
             rewards:
@@ -1617,10 +1646,7 @@ function scr_enemy_data_siege_rocket()
                     30
                 ),
 
-            abilities:
-            [
-
-            ]
+            abilities: []
         }
     );
 
@@ -2047,14 +2073,17 @@ function scr_enemy_data_sniper()
             },
 
             behavior:
-                EnemyBehavior.STANDARD,
+                EnemyBehavior.STANDOFF,
 
             visual:
             {
                 sprite: -1,
                 scale_x: 1,
                 scale_y: 1,
-                draw_function: scr_enemy_visual_sniper,
+
+                draw_function:
+                    scr_enemy_visual_sniper,
+
                 radius: 14,
                 color: make_color_rgb(255, 70, 70)
             },
@@ -2073,7 +2102,8 @@ function scr_enemy_data_sniper()
 
             targeting:
             {
-                target_type: EnemyTarget.BUILDING,
+                target_type:
+                    EnemyTarget.BUILDING,
 
                 // Snipers never deliberately acquire the player.
 
@@ -2082,11 +2112,11 @@ function scr_enemy_data_sniper()
                     enabled: false
                 },
 
-                // Periodically reconsider which building is worth attacking.
-
                 strategic_retarget:
                 {
                     enabled: true,
+
+                    scan_range: 896,
 
                     interval_minimum: 1,
                     interval_maximum: 2,
@@ -2098,16 +2128,31 @@ function scr_enemy_data_sniper()
 
             navigation:
             {
-                blocked_action: EnemyBlockedAction.BREACH
+                blocked_action:
+                    EnemyBlockedAction.BREACH
             },
 
             attack:
             {
-                type: EnemyAttack.PROJECTILE,
+                type:
+                    EnemyAttack.PROJECTILE,
 
                 damage: 20,
                 range: 640,
                 cooldown_seconds: 3.5,
+
+                line_of_sight:
+                {
+                    required: true,
+
+                    interval_minimum: 8,
+                    interval_maximum: 15,
+
+                    movement_refresh_distance: 32,
+
+                    blocked_function:
+                        scr_world_line_blocked_by_dead
+                },
 
                 projectile:
                 {
@@ -2120,6 +2165,19 @@ function scr_enemy_data_sniper()
                     shot_count: 1,
                     spread_degrees: 0
                 }
+            },
+
+            combat_movement:
+            {
+                type:
+                    EnemyCombatMovement.STATIONARY,
+
+                // Stop after reaching 560 range with clear LOS.
+                // Resume approaching beyond the weapon's 640 range.
+
+                preferred_range: 620,
+                minimum_range: 0,
+                maximum_range: 640
             },
 
             rewards:

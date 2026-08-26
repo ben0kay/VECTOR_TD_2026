@@ -2606,58 +2606,12 @@ function scr_enemy_siege_beam_update(_enemy)
     var _combat_data =
         _combat.data;
 
-
-    // ========================================================================
-    // SHARED LINE-OF-SIGHT CACHE
-    // ========================================================================
-    //
-    // This runtime is only created for an enemy that actually uses it.
-
-    if (!variable_struct_exists(
-        _combat,
-        "line_of_sight"
-    ))
-    {
-        _combat.line_of_sight =
-            scr_combat_line_of_sight_cache_create(
-                8,
-                15,
-                32,
-                scr_world_line_blocked_by_dead
-            );
-    }
-
-
-    var _interval_multiplier =
-        1;
-
-
-    if (
-        variable_instance_exists(
-            _enemy,
-            "performance"
-        )
-        && is_struct(_enemy.performance)
-        && !_enemy.performance.visibility.visible
-    )
-    {
-        _interval_multiplier =
-            _enemy.performance.lazy_factor;
-    }
-
-
     var _line_clear =
-        scr_combat_line_of_sight_cache_update(
+        scr_enemy_attack_line_of_sight_clear(
             _enemy,
-            _target,
-            _combat.line_of_sight,
-            _interval_multiplier
+            _target
         );
 
-
-    // ========================================================================
-    // BEHAVIOR
-    // ========================================================================
 
     switch (_enemy.EnemyState)
     {
@@ -2678,7 +2632,7 @@ function scr_enemy_siege_beam_update(_enemy)
         {
             if (
                 _edge_distance
-                <= _combat_data.preferred_range
+                    <= _combat_data.preferred_range
                 && _line_clear
             )
             {
@@ -2689,10 +2643,22 @@ function scr_enemy_siege_beam_update(_enemy)
                 _enemy.EnemyState =
                     EnemyState.ATTACKING;
 
-                scr_enemy_combat_anchor_begin(
-                    _enemy,
-                    _target
-                );
+
+                if (
+                    !scr_enemy_combat_anchor_begin(
+                        _enemy,
+                        _target
+                    )
+                )
+                {
+                    show_debug_message(
+                        "ENEMY COMBAT ERROR - siege beam anchor failed: "
+                        + _enemy.identity.key
+                    );
+
+                    return false;
+                }
+
 
                 break;
             }
@@ -2707,9 +2673,16 @@ function scr_enemy_siege_beam_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
+            _line_clear =
+                scr_enemy_attack_line_of_sight_clear(
+                    _enemy,
+                    _target
+                );
+
+
             if (
                 _edge_distance
-                > _combat_data.maximum_range
+                    > _combat_data.maximum_range
                 || !_line_clear
             )
             {
@@ -2749,7 +2722,8 @@ function scr_enemy_siege_beam_update(_enemy)
                 );
 
 
-            // The hull can move inside its combat anchor while firing.
+            // The beam platform may roam inside its combat anchor while
+            // continuing to attack.
 
             scr_enemy_combat_movement_update(
                 _enemy,
@@ -2764,12 +2738,22 @@ function scr_enemy_siege_beam_update(_enemy)
                 );
 
 
-            scr_enemy_damage_target(
-                _enemy,
-                _target,
-                _enemy.attack.damage / _fps,
-                DamageType.LASER
-            );
+            if (
+                !scr_enemy_damage_target(
+                    _enemy,
+                    _target,
+                    _enemy.attack.damage / _fps,
+                    DamageType.LASER
+                )
+            )
+            {
+                show_debug_message(
+                    "ENEMY ATTACK ERROR - siege beam damage failed: "
+                    + _enemy.identity.key
+                );
+
+                return false;
+            }
         }
         break;
 
@@ -2789,4 +2773,405 @@ function scr_enemy_siege_beam_update(_enemy)
 
 
     return true;
+}
+
+/// @description Creates an optional cached line-of-sight runtime for one attack.
+
+function scr_enemy_attack_line_of_sight_cache_create(
+    _interval_minimum = 8,
+    _interval_maximum = 15,
+    _movement_refresh_distance = 32,
+    _blocked_function = scr_world_line_blocked_by_dead
+)
+{
+    var _interval_minimum_final =
+        max(
+            1,
+            floor(_interval_minimum)
+        );
+
+    var _interval_maximum_final =
+        max(
+            _interval_minimum_final,
+            floor(_interval_maximum)
+        );
+
+
+    return
+    {
+        clear: false,
+        initialized: false,
+
+        timer: 0,
+
+        interval:
+        {
+            minimum:
+                _interval_minimum_final,
+
+            maximum:
+                _interval_maximum_final
+        },
+
+        movement_refresh_distance:
+            max(
+                0,
+                _movement_refresh_distance
+            ),
+
+        blocked_function:
+            _blocked_function,
+
+        target: noone,
+
+        source_position:
+        {
+            x: 0,
+            y: 0
+        },
+
+        target_position:
+        {
+            x: 0,
+            y: 0
+        },
+
+        navigation_revision: -1
+    };
+}
+
+
+/// @description Refreshes and returns one cached attack line-of-sight result.
+
+function scr_enemy_attack_line_of_sight_cache_update(
+    _enemy,
+    _target,
+    _cache,
+    _interval_multiplier = 1
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_target))
+        return false;
+
+    if (!is_struct(_cache))
+    {
+        show_debug_message(
+            "ENEMY ATTACK LOS ERROR - invalid cache supplied."
+        );
+
+        return false;
+    }
+
+
+    _cache.timer--;
+
+
+    var _refresh_distance =
+        _cache.movement_refresh_distance;
+
+    var _refresh_distance_squared =
+        _refresh_distance
+        * _refresh_distance;
+
+
+    // ========================================================================
+    // ENEMY MOVEMENT
+    // ========================================================================
+
+    var _enemy_move_x =
+        _enemy.x
+        - _cache.source_position.x;
+
+    var _enemy_move_y =
+        _enemy.y
+        - _cache.source_position.y;
+
+    var _enemy_moved =
+        (
+            (_enemy_move_x * _enemy_move_x)
+            + (_enemy_move_y * _enemy_move_y)
+        )
+        >= _refresh_distance_squared;
+
+
+    // ========================================================================
+    // TARGET MOVEMENT
+    // ========================================================================
+
+    var _target_move_x =
+        _target.x
+        - _cache.target_position.x;
+
+    var _target_move_y =
+        _target.y
+        - _cache.target_position.y;
+
+    var _target_moved =
+        (
+            (_target_move_x * _target_move_x)
+            + (_target_move_y * _target_move_y)
+        )
+        >= _refresh_distance_squared;
+
+
+    // ========================================================================
+    // WORLD CHANGES
+    // ========================================================================
+
+    var _navigation_revision =
+        global.vtd_level.navigation.revision;
+
+    var _navigation_changed =
+        _cache.navigation_revision
+        != _navigation_revision;
+
+
+    // ========================================================================
+    // REFRESH DECISION
+    // ========================================================================
+
+    var _refresh =
+        !_cache.initialized
+        || _cache.timer <= 0
+        || _cache.target != _target
+        || _enemy_moved
+        || _target_moved
+        || _navigation_changed;
+
+
+    if (!_refresh)
+        return _cache.clear;
+
+
+    var _blocked =
+        _cache.blocked_function(
+            _enemy.x,
+            _enemy.y,
+            _target.x,
+            _target.y
+        );
+
+
+    _cache.clear =
+        !_blocked;
+
+    _cache.initialized =
+        true;
+
+    _cache.target =
+        _target;
+
+    _cache.source_position.x =
+        _enemy.x;
+
+    _cache.source_position.y =
+        _enemy.y;
+
+    _cache.target_position.x =
+        _target.x;
+
+    _cache.target_position.y =
+        _target.y;
+
+    _cache.navigation_revision =
+        _navigation_revision;
+
+
+    _cache.timer =
+        irandom_range(
+            _cache.interval.minimum,
+            _cache.interval.maximum
+        )
+        * max(
+            1,
+            _interval_multiplier
+        );
+
+
+    return _cache.clear;
+}
+
+
+/// @description Returns whether an enemy's attack has clear sight of its target.
+
+function scr_enemy_attack_line_of_sight_clear(
+    _enemy,
+    _target
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    if (!instance_exists(_target))
+        return false;
+
+    if (
+        !variable_instance_exists(
+            _enemy,
+            "enemy_data"
+        )
+        || !is_struct(_enemy.enemy_data)
+        || !variable_struct_exists(
+            _enemy.enemy_data,
+            "attack"
+        )
+        || !is_struct(_enemy.enemy_data.attack)
+    )
+    {
+        show_debug_message(
+            "ENEMY ATTACK LOS ERROR - attack definition is missing: "
+            + string(_enemy.id)
+        );
+
+        return false;
+    }
+
+
+    var _attack_data =
+        _enemy.enemy_data.attack;
+
+
+    // LOS is optional. Most enemies stop here without creating any cache.
+
+    if (
+        !variable_struct_exists(
+            _attack_data,
+            "line_of_sight"
+        )
+    )
+    {
+        return true;
+    }
+
+
+    var _line_data =
+        _attack_data.line_of_sight;
+
+
+    if (!is_struct(_line_data))
+    {
+        show_debug_message(
+            "ENEMY ATTACK LOS ERROR - line_of_sight must be a struct: "
+            + _enemy.identity.key
+        );
+
+        return false;
+    }
+
+    if (
+        !variable_struct_exists(
+            _line_data,
+            "required"
+        )
+    )
+    {
+        show_debug_message(
+            "ENEMY ATTACK LOS ERROR - required field is missing: "
+            + _enemy.identity.key
+        );
+
+        return false;
+    }
+
+
+    if (!_line_data.required)
+        return true;
+
+
+    // Only an enemy whose attack requires LOS creates this optional runtime.
+
+    if (
+        !variable_struct_exists(
+            _enemy.attack,
+            "line_of_sight_cache"
+        )
+    )
+    {
+        var _interval_minimum =
+            variable_struct_exists(
+                _line_data,
+                "interval_minimum"
+            )
+            ? _line_data.interval_minimum
+            : 8;
+
+        var _interval_maximum =
+            variable_struct_exists(
+                _line_data,
+                "interval_maximum"
+            )
+            ? _line_data.interval_maximum
+            : 15;
+
+        var _movement_refresh_distance =
+            variable_struct_exists(
+                _line_data,
+                "movement_refresh_distance"
+            )
+            ? _line_data.movement_refresh_distance
+            : 32;
+
+        var _blocked_function =
+            variable_struct_exists(
+                _line_data,
+                "blocked_function"
+            )
+            ? _line_data.blocked_function
+            : scr_world_line_blocked_by_dead;
+
+
+        _enemy.attack.line_of_sight_cache =
+            scr_enemy_attack_line_of_sight_cache_create(
+                _interval_minimum,
+                _interval_maximum,
+                _movement_refresh_distance,
+                _blocked_function
+            );
+    }
+
+
+    if (
+        !is_struct(
+            _enemy.attack.line_of_sight_cache
+        )
+    )
+    {
+        show_debug_message(
+            "ENEMY ATTACK LOS ERROR - cache creation failed: "
+            + _enemy.identity.key
+        );
+
+        return false;
+    }
+
+
+    var _interval_multiplier =
+        1;
+
+
+    // Enemies outside the visible area may refresh less often.
+
+    if (
+        variable_instance_exists(
+            _enemy,
+            "performance"
+        )
+        && is_struct(_enemy.performance)
+        && !_enemy.performance.visibility.visible
+    )
+    {
+        _interval_multiplier =
+            _enemy.performance.lazy_factor;
+    }
+
+
+    return scr_enemy_attack_line_of_sight_cache_update(
+        _enemy,
+        _target,
+        _enemy.attack.line_of_sight_cache,
+        _interval_multiplier
+    );
 }

@@ -1,0 +1,9 @@
+
+
+berserker enemy - speed up as gets damaged
+
+MINIMAP
+
+Add rotation time to towers
+
+implement player foundation for different player objects, like heavy, or fast
