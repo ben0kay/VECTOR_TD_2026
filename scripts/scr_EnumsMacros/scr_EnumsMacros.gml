@@ -53,8 +53,8 @@ enum PlayerMainFire
 {
     PULSE,
     AUTOCANNON,
-    REPAIR_BOLT,
-    SUPPORT_BEAM
+    ARC,
+    BEAM
 }
 
 

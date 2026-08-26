@@ -591,27 +591,46 @@ function scr_hud_chassis_select_draw(_hud)
             _data.description
         );
 
-        draw_set_color(c_ltgray);
+        var _secondary_name =
+		    "COMBAT BURST";
 
-        draw_text(
-            _card.x + 22,
-            _card.y + _card.height - 58,
+		switch (_data.alternate_ability)
+		{
+		    case PlayerAlternateAbility.ROCKET:
+		    {
+		        _secondary_name =
+		            "ROCKET";
+		    }
+		    break;
 
-            "PRIMARY: PULSE"
-            + "\nSECONDARY: "
-            + (
-                _data.alternate_ability
-                == PlayerAlternateAbility.ROCKET
-                ? "ROCKET"
-                : _data.alternate_ability
-                    == PlayerAlternateAbility.REPAIR
-                ? "REPAIR"
-                : _data.alternate_ability
-                    == PlayerAlternateAbility.COMMAND_PULSE
-                ? "COMMAND PULSE"
-                : "COMBAT BURST"
-            )
-        );
+
+		    case PlayerAlternateAbility.REPAIR:
+		    {
+		        _secondary_name =
+		            "REPAIR";
+		    }
+		    break;
+
+
+		    case PlayerAlternateAbility.COMMAND_PULSE:
+		    {
+		        _secondary_name =
+		            "COMMAND PULSE";
+		    }
+		    break;
+		}
+
+
+		draw_set_color(c_ltgray);
+
+		draw_text(
+		    _card.x + 22,
+		    _card.y + _card.height - 58,
+
+		    "PRIMARY: PULSE"
+		    + "\nSECONDARY: "
+		    + _secondary_name
+		);
 
         draw_set_halign(fa_right);
         draw_set_valign(fa_bottom);

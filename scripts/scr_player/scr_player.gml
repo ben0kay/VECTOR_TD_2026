@@ -120,7 +120,14 @@ function scr_player_initialize(_player)
         }
     };
 
+	// ========================================================================
+	// CHASSIS / STATS
+	// ========================================================================
 
+	_player.chassis =
+	    scr_player_chassis_runtime_create();
+
+		
     global.vtd_level.entities.player =
         _player;
 

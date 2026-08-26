@@ -3,17 +3,6 @@
 if (!variable_global_exists("vtd_level")) exit;
 if (!is_struct(global.vtd_level)) exit;
 
-scr_hud_alert_update(id);
-scr_hud_notification_update(id);
-scr_hud_resource_feedback_update(id);
-
-if (
-    variable_struct_exists(
-        global.vtd_level,
-        "result"
-    )
-    && global.vtd_level.result.active
-)
 
 if (
     global.LevelState
@@ -23,6 +12,20 @@ if (
     scr_hud_chassis_select_update(id);
     exit;
 }
+
+
+scr_hud_alert_update(id);
+scr_hud_notification_update(id);
+scr_hud_resource_feedback_update(id);
+
+
+if (
+    variable_struct_exists(
+        global.vtd_level,
+        "result"
+    )
+    && global.vtd_level.result.active
+)
 {
     hud.selection.target =
         noone;
@@ -38,6 +41,7 @@ if (
     exit;
 }
 
+
 if (
     instance_exists(hud.selection.target)
     && hud.selection.target.BuildingState
@@ -47,6 +51,7 @@ if (
     hud.selection.target =
         noone;
 }
+
 
 scr_debug_menu_update(id);
 
