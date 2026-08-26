@@ -1,4 +1,6 @@
-/// @description Releases level HUD references and alerts.
+/// @description Releases level HUD references and cached surfaces.
+
+scr_hud_minimap_static_terrain_destroy(id);
 
 hud.alerts.queue = [];
 hud.alerts.active = undefined;

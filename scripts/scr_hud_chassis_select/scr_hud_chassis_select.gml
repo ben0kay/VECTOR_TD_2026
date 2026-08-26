@@ -585,11 +585,13 @@ function scr_hud_chassis_select_draw(_hud)
 
         draw_set_color(c_white);
 
-        draw_text(
-            _card.x + 118,
-            _card.y + 56,
-            _data.description
-        );
+        draw_text_ext(
+		    _card.x + 118,
+		    _card.y + 56,
+		    _data.description,
+		    18,
+		    _card.width - 140
+		);
 
         var _secondary_name =
 		    "COMBAT BURST";

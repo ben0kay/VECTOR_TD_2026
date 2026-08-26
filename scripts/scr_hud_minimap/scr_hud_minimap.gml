@@ -25,6 +25,15 @@ function scr_hud_minimap_create()
 
         color: c_aqua,
         background_alpha: 0.88,
+		
+		static_terrain:
+        {
+            surface: -1,
+            dirty: true,
+            scale: 0,
+            width: 0,
+            height: 0
+        },
 
         controls:
         {
@@ -363,6 +372,8 @@ function scr_hud_minimap_update(_hud)
                     _map.range_minimum,
                     _map.range_maximum
                 );
+				
+			_map.static_terrain.dirty = true;
 
             return true;
         }
@@ -383,6 +394,8 @@ function scr_hud_minimap_update(_hud)
                     _map.range_minimum,
                     _map.range_maximum
                 );
+				
+				_map.static_terrain.dirty = true;
 
             return true;
         }
@@ -447,6 +460,7 @@ function scr_hud_minimap_update(_hud)
                 8,
                 _gui_width - _map.width - 8
             );
+			
 
         _map.y =
             clamp(
@@ -467,6 +481,295 @@ function scr_hud_minimap_update(_hud)
         _map.dragging =
             false;
     }
+
+    return true;
+}
+
+/// @description Frees the minimap cached static-terrain surface.
+function scr_hud_minimap_static_terrain_destroy(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    var _terrain =
+        _hud.hud.minimap.static_terrain;
+
+    if (surface_exists(_terrain.surface))
+    {
+        surface_free(_terrain.surface);
+    }
+
+    _terrain.surface =
+        -1;
+
+    _terrain.dirty =
+        true;
+
+    _terrain.scale =
+        0;
+
+    _terrain.width =
+        0;
+
+    _terrain.height =
+        0;
+
+    return true;
+}
+
+
+/// @description Rebuilds the static dead-terrain minimap surface.
+function scr_hud_minimap_static_terrain_rebuild(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    var _map =
+        _hud.hud.minimap;
+
+    var _terrain =
+        _map.static_terrain;
+
+    var _map_width =
+        _map.width
+        - (_map.padding * 2);
+
+    var _map_height =
+        _map.height
+        - _map.header_height
+        - (_map.padding * 2);
+
+    var _scale =
+        min(
+            _map_width,
+            _map_height
+        )
+        / (_map.range * 2);
+
+    var _surface_width =
+        max(
+            1,
+            ceil(
+                global.vtd_level.map.width
+                * _scale
+            )
+        );
+
+    var _surface_height =
+        max(
+            1,
+            ceil(
+                global.vtd_level.map.height
+                * _scale
+            )
+        );
+
+    var _surface_valid =
+        surface_exists(_terrain.surface)
+        && _terrain.width == _surface_width
+        && _terrain.height == _surface_height;
+
+    if (!_surface_valid)
+    {
+        if (surface_exists(_terrain.surface))
+        {
+            surface_free(_terrain.surface);
+        }
+
+        _terrain.surface =
+            surface_create(
+                _surface_width,
+                _surface_height
+            );
+
+        _terrain.width =
+            _surface_width;
+
+        _terrain.height =
+            _surface_height;
+    }
+
+    if (!surface_exists(_terrain.surface))
+        return false;
+
+
+    surface_set_target(_terrain.surface);
+
+    draw_clear_alpha(
+        c_black,
+        0
+    );
+
+    draw_set_alpha(0.8);
+    draw_set_color(
+        make_color_rgb(
+            55,
+            65,
+            70
+        )
+    );
+
+    var _dead_cell_count =
+        instance_number(o_dead_cell);
+
+    for (
+        var i = 0;
+        i < _dead_cell_count;
+        ++i
+    )
+    {
+        var _dead_cell =
+            instance_find(
+                o_dead_cell,
+                i
+            );
+
+        if (!instance_exists(_dead_cell))
+            continue;
+
+        var _x =
+            floor(
+                _dead_cell.x
+                * _scale
+            );
+
+        var _y =
+            floor(
+                _dead_cell.y
+                * _scale
+            );
+
+        draw_rectangle(
+            _x - 2,
+            _y - 2,
+            _x + 2,
+            _y + 2,
+            false
+        );
+    }
+
+    surface_reset_target();
+
+    _terrain.scale =
+        _scale;
+
+    _terrain.dirty =
+        false;
+
+    return true;
+}
+
+
+/// @description Draws the visible player-centred crop of cached static terrain.
+function scr_hud_minimap_static_terrain_draw(
+    _hud,
+    _player,
+    _map_left,
+    _map_top,
+    _map_width,
+    _map_height
+)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    if (!instance_exists(_player))
+        return false;
+
+    var _map =
+        _hud.hud.minimap;
+
+    var _terrain =
+        _map.static_terrain;
+
+    if (
+        _terrain.dirty
+        || !surface_exists(_terrain.surface)
+    )
+    {
+        if (
+            !scr_hud_minimap_static_terrain_rebuild(
+                _hud
+            )
+        )
+        {
+            return false;
+        }
+    }
+
+    var _source_x =
+        floor(
+            (_player.x * _terrain.scale)
+            - (_map_width * 0.5)
+        );
+
+    var _source_y =
+        floor(
+            (_player.y * _terrain.scale)
+            - (_map_height * 0.5)
+        );
+
+    var _source_left =
+        clamp(
+            _source_x,
+            0,
+            _terrain.width
+        );
+
+    var _source_top =
+        clamp(
+            _source_y,
+            0,
+            _terrain.height
+        );
+
+    var _source_right =
+        clamp(
+            _source_x + _map_width,
+            0,
+            _terrain.width
+        );
+
+    var _source_bottom =
+        clamp(
+            _source_y + _map_height,
+            0,
+            _terrain.height
+        );
+
+    var _source_width =
+        _source_right
+        - _source_left;
+
+    var _source_height =
+        _source_bottom
+        - _source_top;
+
+    if (
+        _source_width <= 0
+        || _source_height <= 0
+    )
+    {
+        return true;
+    }
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    draw_surface_part(
+        _terrain.surface,
+
+        _source_left,
+        _source_top,
+        _source_width,
+        _source_height,
+
+        _map_left
+        + (_source_left - _source_x),
+
+        _map_top
+        + (_source_top - _source_y)
+    );
 
     return true;
 }
@@ -698,70 +1001,14 @@ function scr_hud_minimap_draw(_hud)
 
     if (instance_exists(_player))
     {
-        // ====================================================================
-        // DEAD WORLD CELLS
-        // ====================================================================
-
-        var _dead_cell_color =
-            make_color_rgb(
-                55,
-                65,
-                70
-            );
-
-        var _dead_cell_count =
-            instance_number(o_dead_cell);
-
-        for (
-            var i = 0;
-            i < _dead_cell_count;
-            ++i
-        )
-        {
-            var _dead_cell =
-                instance_find(
-                    o_dead_cell,
-                    i
-                );
-
-            if (!instance_exists(_dead_cell)) continue;
-
-            if (
-                point_distance(
-                    _player.x,
-                    _player.y,
-                    _dead_cell.x,
-                    _dead_cell.y
-                )
-                > _map.range
-            )
-            {
-                continue;
-            }
-
-            var _dead_cell_position =
-                scr_hud_minimap_world_to_gui(
-                    _map,
-                    _center_x,
-                    _center_y,
-                    _dead_cell.x,
-                    _dead_cell.y,
-                    _player.x,
-                    _player.y
-                );
-
-            draw_set_alpha(0.8);
-            draw_set_color(_dead_cell_color);
-
-            draw_rectangle(
-                _dead_cell_position.x - 2,
-                _dead_cell_position.y - 2,
-                _dead_cell_position.x + 2,
-                _dead_cell_position.y + 2,
-                false
-            );
-        }
-
+        scr_hud_minimap_static_terrain_draw(
+	    _hud,
+	    _player,
+	    _map_left,
+	    _map_top,
+	    _map_width,
+	    _map_height
+	);
         // ====================================================================
         // BUILDINGS
         // ====================================================================
@@ -992,3 +1239,4 @@ function scr_hud_minimap_draw(_hud)
 
     return true;
 }
+
