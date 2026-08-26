@@ -31,6 +31,32 @@ enum SpawnSide { TOP, RIGHT, BOTTOM, LEFT, RANDOM, INHERIT }
 // ============================================================================
 
 enum PlayerState { ACTIVE, STUNNED, DEAD }
+enum PlayerChassis
+{
+    NONE,
+    ASSAULT,
+    HEAVY,
+    ENGINEER,
+    SUPPORT
+}
+
+enum PlayerAlternateAbility
+{
+    NONE,
+    COMBAT_BURST,
+    ROCKET,
+    REPAIR,
+    COMMAND_PULSE
+}
+
+enum PlayerMainFire
+{
+    PULSE,
+    AUTOCANNON,
+    REPAIR_BOLT,
+    SUPPORT_BEAM
+}
+
 
 
 // ============================================================================

@@ -14,6 +14,21 @@ var _result_active =
         "result"
     )
     && global.vtd_level.result.active;
+	
+	if (
+    global.LevelState
+    == LevelState.CHASSIS_SELECT
+)
+{
+    scr_hud_chassis_select_draw(id);
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    exit;
+}
 
 if (_result_active)
 {

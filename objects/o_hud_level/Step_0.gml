@@ -14,6 +14,15 @@ if (
     )
     && global.vtd_level.result.active
 )
+
+if (
+    global.LevelState
+    == LevelState.CHASSIS_SELECT
+)
+{
+    scr_hud_chassis_select_update(id);
+    exit;
+}
 {
     hud.selection.target =
         noone;

@@ -6,33 +6,6 @@
 ///
 /// Add these beside your existing PlayerState enum in scr_EnumsMacros.
 
-enum PlayerChassis
-{
-    NONE,
-    ASSAULT,
-    HEAVY,
-    ENGINEER,
-    SUPPORT
-}
-
-enum PlayerAlternateAbility
-{
-    NONE,
-    COMBAT_BURST,
-    ROCKET,
-    REPAIR,
-    COMMAND_PULSE
-}
-
-enum PlayerMainFire
-{
-    PULSE,
-    AUTOCANNON,
-    REPAIR_BOLT,
-    SUPPORT_BEAM
-}
-
-
 /// ============================================================================
 /// CHASSIS DATA
 /// ============================================================================

@@ -340,7 +340,7 @@ function scr_level_initialize()
 	}
 
 
-    global.LevelState = LevelState.PLAYING;
+    global.LevelState = LevelState.CHASSIS_SELECT;
 
 
     show_debug_message(

@@ -1,4 +1,4 @@
-/// @description Updates gameplay time, victory checks and mission resolution.
+/// @description Updates gameplay time, chassis selection and mission resolution.
 
 switch (global.LevelState)
 {
@@ -9,9 +9,18 @@ switch (global.LevelState)
     break;
 
 
+    case LevelState.CHASSIS_SELECT:
+    {
+        // The HUD owns chassis-selection input.
+        // Gameplay time and enemy pressure remain paused here.
+    }
+    break;
+
+
     case LevelState.PLAYING:
     {
         global.vtd_level.time.frames++;
+
         global.vtd_level.time.seconds =
             global.vtd_level.time.frames
             / max(
@@ -27,9 +36,6 @@ switch (global.LevelState)
     case LevelState.COMPLETE:
     case LevelState.FAILED:
     {
-        // Gameplay systems stop through GAMEPLAY_ACTIVE, while the result
-        // animation and interface continue updating.
-
         scr_level_result_update();
     }
     break;

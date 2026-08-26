@@ -114,6 +114,7 @@
     {"id":{"name":"scr_game","path":"scripts/scr_game/scr_game.yy",},},
     {"id":{"name":"scr_hud_alert","path":"scripts/scr_hud_alert/scr_hud_alert.yy",},},
     {"id":{"name":"scr_hud_build_menu","path":"scripts/scr_hud_build_menu/scr_hud_build_menu.yy",},},
+    {"id":{"name":"scr_hud_chassis_select","path":"scripts/scr_hud_chassis_select/scr_hud_chassis_select.yy",},},
     {"id":{"name":"scr_hud_energy","path":"scripts/scr_hud_energy/scr_hud_energy.yy",},},
     {"id":{"name":"scr_hud_fabricator","path":"scripts/scr_hud_fabricator/scr_hud_fabricator.yy",},},
     {"id":{"name":"scr_hud_minimap","path":"scripts/scr_hud_minimap/scr_hud_minimap.yy",},},

@@ -79,6 +79,9 @@ hud =
 
 hud.minimap =
     scr_hud_minimap_create();
+	
+hud.chassis_select =
+    scr_hud_chassis_select_create();
 
 hud.build_menu =
     scr_hud_build_menu_create();
