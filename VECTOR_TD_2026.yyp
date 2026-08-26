@@ -130,6 +130,7 @@
     {"id":{"name":"scr_particles","path":"scripts/scr_particles/scr_particles.yy",},},
     {"id":{"name":"scr_pickup","path":"scripts/scr_pickup/scr_pickup.yy",},},
     {"id":{"name":"scr_player_chassis","path":"scripts/scr_player_chassis/scr_player_chassis.yy",},},
+    {"id":{"name":"scr_player_visual","path":"scripts/scr_player_visual/scr_player_visual.yy",},},
     {"id":{"name":"scr_player","path":"scripts/scr_player/scr_player.yy",},},
     {"id":{"name":"scr_production","path":"scripts/scr_production/scr_production.yy",},},
     {"id":{"name":"scr_projectile_enemy","path":"scripts/scr_projectile_enemy/scr_projectile_enemy.yy",},},

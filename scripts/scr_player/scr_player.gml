@@ -416,6 +416,10 @@ function scr_player_update(_player)
             scr_player_combat_update(
                 _player
             );
+			
+			scr_player_alternate_ability_update(
+			    _player
+			);
 
 
             // FUTURE:
@@ -473,90 +477,6 @@ function scr_player_update(_player)
         break;
     }
 
-
-    return true;
-}
-
-/// @description Draws the player and their vitals.
-
-function scr_player_draw(_player)
-{
-    if (!instance_exists(_player))
-        return false;
-
-
-    var _visual =
-        _player.visual;
-
-    var _draw_color =
-        c_white;
-
-
-    if (_player.vitals.feedback.hit_flash > 0)
-    {
-        _draw_color =
-            merge_color(
-                c_white,
-                c_red,
-                _player.vitals.feedback.hit_flash
-            );
-    }
-
-
-    if (_player.sprite_index != -1)
-    {
-        draw_sprite_ext(
-            _player.sprite_index,
-            _player.image_index,
-            _player.x,
-            _player.y,
-            1,
-            1,
-            _visual.draw_angle,
-            _draw_color,
-            1
-        );
-    }
-    else
-    {
-        draw_set_color(
-            _player.vitals.feedback.hit_flash > 0
-            ? c_red
-            : _visual.color
-        );
-
-        draw_circle(
-            _player.x,
-            _player.y,
-            _visual.radius,
-            false
-        );
-
-        draw_line_width(
-            _player.x,
-            _player.y,
-            _player.x
-                + lengthdir_x(
-                    _visual.radius + 10,
-                    _visual.draw_angle
-                ),
-            _player.y
-                + lengthdir_y(
-                    _visual.radius + 10,
-                    _visual.draw_angle
-                ),
-            3
-        );
-    }
-
-
-    scr_player_vitals_draw(
-        _player
-    );
-
-
-    draw_set_alpha(1);
-    draw_set_color(c_white);
 
     return true;
 }
@@ -1263,4 +1183,51 @@ function scr_player_respawn_try(_player)
     // Return true after successfully restoring the player.
 
     return false;
+}
+
+/// @description Handles the player's chassis-specific secondary ability input.
+function scr_player_alternate_ability_update(_player)
+{
+    if (!instance_exists(_player))
+        return false;
+
+    if (!mouse_check_button_pressed(mb_middle))
+        return true;
+
+
+    switch (_player.chassis.alternate_ability)
+    {
+        case PlayerAlternateAbility.COMBAT_BURST:
+        {
+            // FUTURE:
+            // Assault secondary ability.
+        }
+        break;
+
+
+        case PlayerAlternateAbility.ROCKET:
+        {
+            // FUTURE:
+            // Heavy secondary ability.
+        }
+        break;
+
+
+        case PlayerAlternateAbility.REPAIR:
+        {
+            // FUTURE:
+            // Engineer secondary ability.
+        }
+        break;
+
+
+        case PlayerAlternateAbility.COMMAND_PULSE:
+        {
+            // FUTURE:
+            // Support secondary ability.
+        }
+        break;
+    }
+
+    return true;
 }
