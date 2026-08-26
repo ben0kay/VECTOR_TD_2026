@@ -317,36 +317,66 @@ function scr_level_cleanup()
         return false;
 
 
-    global.LevelState = LevelState.EXITING;
+    global.LevelState =
+        LevelState.EXITING;
 
 
+    // Release level-owned runtime grids.
+
+    scr_spatial_collision_cleanup();
     scr_world_cleanup();
 
 
-    var _navigation = global.vtd_level.navigation;
+    var _navigation =
+        global.vtd_level.navigation;
+
 
     if (_navigation.ready)
     {
         if (_navigation.grid_ground >= 0)
-            mp_grid_destroy(_navigation.grid_ground);
+        {
+            mp_grid_destroy(
+                _navigation.grid_ground
+            );
+        }
 
         if (_navigation.grid_breach >= 0)
-            mp_grid_destroy(_navigation.grid_breach);
+        {
+            mp_grid_destroy(
+                _navigation.grid_breach
+            );
+        }
 
         if (_navigation.grid_flying >= 0)
-            mp_grid_destroy(_navigation.grid_flying);
+        {
+            mp_grid_destroy(
+                _navigation.grid_flying
+            );
+        }
 
 
-        _navigation.grid_ground = -1;
-        _navigation.grid_breach = -1;
-        _navigation.grid_flying = -1;
-        _navigation.ready = false;
+        _navigation.grid_ground =
+            -1;
+
+        _navigation.grid_breach =
+            -1;
+
+        _navigation.grid_flying =
+            -1;
+
+        _navigation.ready =
+            false;
     }
 
 
-    global.vtd_level = undefined;
+    global.vtd_level =
+        undefined;
 
-    show_debug_message("VECTOR TD 2026 - LEVEL CLEANED UP");
+
+    show_debug_message(
+        "VECTOR TD 2026 - LEVEL CLEANED UP"
+    );
+
 
     return true;
 }

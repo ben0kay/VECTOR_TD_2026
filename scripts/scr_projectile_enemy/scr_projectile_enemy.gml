@@ -249,6 +249,87 @@ function scr_projectile_enemy_hit_find(
     return _result.target;
 }
 
+/// @description Returns the squared distance from a point to a line segment.
+
+function scr_point_segment_distance_squared(
+    _point_x,
+    _point_y,
+    _start_x,
+    _start_y,
+    _end_x,
+    _end_y
+)
+{
+    var _segment_x =
+        _end_x - _start_x;
+
+    var _segment_y =
+        _end_y - _start_y;
+
+    var _length_squared =
+        (_segment_x * _segment_x)
+        + (_segment_y * _segment_y);
+
+
+    // The segment has no length, so compare against its starting point.
+
+    if (_length_squared <= 0)
+    {
+        var _difference_x =
+            _point_x - _start_x;
+
+        var _difference_y =
+            _point_y - _start_y;
+
+
+        return (
+            (_difference_x * _difference_x)
+            + (_difference_y * _difference_y)
+        );
+    }
+
+
+    // Find the closest position along the segment.
+    // Zero is the start and one is the end.
+
+    var _amount =
+        (
+            ((_point_x - _start_x) * _segment_x)
+            + ((_point_y - _start_y) * _segment_y)
+        )
+        / _length_squared;
+
+
+    _amount =
+        clamp(
+            _amount,
+            0,
+            1
+        );
+
+
+    var _closest_x =
+        _start_x
+        + (_segment_x * _amount);
+
+    var _closest_y =
+        _start_y
+        + (_segment_y * _amount);
+
+
+    var _distance_x =
+        _point_x - _closest_x;
+
+    var _distance_y =
+        _point_y - _closest_y;
+
+
+    return (
+        (_distance_x * _distance_x)
+        + (_distance_y * _distance_y)
+    );
+}
+
 
 /// @description Applies projectile damage according to the impacted object type.
 

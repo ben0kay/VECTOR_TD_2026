@@ -141,7 +141,7 @@ function scr_projectile_tower_initialize(_projectile)
     return true;
 }
 
-/// @description Finds the closest valid enemy crossed by a projectile segment.
+/// @description Finds the earliest valid enemy crossed by a tower projectile.
 
 function scr_projectile_tower_enemy_find(
     _projectile,
@@ -151,72 +151,18 @@ function scr_projectile_tower_enemy_find(
     _end_y
 )
 {
-    var _result = noone;
-    var _best_distance = infinity;
-    var _count = instance_number(o_enemy);
+    if (!instance_exists(_projectile))
+        return undefined;
 
 
-    for (var i = 0; i < _count; ++i)
-    {
-        var _enemy = instance_find(o_enemy, i);
-
-        if (!instance_exists(_enemy))
-            continue;
-
-        if (_enemy.EnemyState == EnemyState.DEAD)
-            continue;
-
-        if (
-            _enemy.movement.layer
-            != _projectile.combat.target_layer
-        )
-        {
-            continue;
-        }
-
-
-        var _collision_radius =
-            _projectile.visual.radius
-            + _enemy.visual.radius;
-
-        var _distance_squared =
-            scr_point_segment_distance_squared(
-                _enemy.x,
-                _enemy.y,
-                _start_x,
-                _start_y,
-                _end_x,
-                _end_y
-            );
-
-
-        if (
-            _distance_squared
-            > _collision_radius * _collision_radius
-        )
-        {
-            continue;
-        }
-
-
-        var _distance =
-            point_distance(
-                _start_x,
-                _start_y,
-                _enemy.x,
-                _enemy.y
-            );
-
-
-        if (_distance < _best_distance)
-        {
-            _best_distance = _distance;
-            _result = _enemy;
-        }
-    }
-
-
-    return _result;
+    return scr_spatial_enemy_segment_find(
+        _start_x,
+        _start_y,
+        _end_x,
+        _end_y,
+        _projectile.visual.radius,
+        _projectile.combat.target_layer
+    );
 }
 
 
@@ -475,8 +421,8 @@ function scr_projectile_tower_update(_projectile)
     // FIXED TARGET-POSITION PROJECTILE
     // ========================================================================
     //
-    // Used by Mortar shells. These travel toward their original destination
-    // and do not collide with unrelated enemies along the way.
+    // Mortar shells travel toward their original destination and do not
+    // collide with unrelated enemies along the way.
 
     if (
         _projectile.movement.type
@@ -560,7 +506,7 @@ function scr_projectile_tower_update(_projectile)
         );
 
 
-    var _enemy =
+    var _enemy_hit =
         scr_projectile_tower_enemy_find(
             _projectile,
             _start_x,
@@ -570,19 +516,29 @@ function scr_projectile_tower_update(_projectile)
         );
 
 
-    if (instance_exists(_enemy))
+    if (is_struct(_enemy_hit))
     {
-        _projectile.x =
-            _enemy.x;
-
-        _projectile.y =
-            _enemy.y;
+        var _enemy =
+            _enemy_hit.enemy;
 
 
-        scr_projectile_tower_impact(
-            _projectile,
-            _enemy
-        );
+        if (instance_exists(_enemy))
+        {
+            // Preserve your existing impact behavior by resolving the
+            // projectile at the direct target's position.
+
+            _projectile.x =
+                _enemy.x;
+
+            _projectile.y =
+                _enemy.y;
+
+
+            scr_projectile_tower_impact(
+                _projectile,
+                _enemy
+            );
+        }
 
 
         instance_destroy(

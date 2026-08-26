@@ -136,7 +136,7 @@ function scr_projectile_player_initialize(
 
 /// @description Returns the squared distance from a point to a line segment.
 
-function scr_point_segment_distance_squared(
+function scr_point_istance_squared(
     _point_x,
     _point_y,
     _start_x,
@@ -210,8 +210,7 @@ function scr_point_segment_distance_squared(
     );
 }
 
-
-/// @description Finds an enemy crossed by one projectile movement segment.
+/// @description Finds an enemy crossed by one player-projectile segment.
 
 function scr_projectile_player_enemy_find(
     _projectile,
@@ -222,98 +221,19 @@ function scr_projectile_player_enemy_find(
 )
 {
     if (!instance_exists(_projectile))
-        return noone;
+        return undefined;
 
 
-    var _enemy_count =
-        instance_number(
-            o_enemy
-        );
-
-    var _closest_enemy =
-        noone;
-
-    var _closest_distance =
-        infinity;
-
-
-    for (
-        var i = 0;
-        i < _enemy_count;
-        ++i
-    )
-    {
-        var _enemy =
-            instance_find(
-                o_enemy,
-                i
-            );
-
-
-        if (!instance_exists(_enemy))
-            continue;
-
-        if (
-            _enemy.EnemyState
-            == EnemyState.DEAD
-        )
-        {
-            continue;
-        }
-
-
-        var _collision_radius =
-            _projectile.visual.radius
-            + _enemy.visual.radius;
-
-        var _distance_squared =
-            scr_point_segment_distance_squared(
-                _enemy.x,
-                _enemy.y,
-                _start_x,
-                _start_y,
-                _end_x,
-                _end_y
-            );
-
-
-        if (
-            _distance_squared
-            > _collision_radius
-                * _collision_radius
-        )
-        {
-            continue;
-        }
-
-
-        var _travel_distance =
-            point_distance(
-                _start_x,
-                _start_y,
-                _enemy.x,
-                _enemy.y
-            );
-
-
-        if (
-            _travel_distance
-            < _closest_distance
-        )
-        {
-            _closest_distance =
-                _travel_distance;
-
-            _closest_enemy =
-                _enemy;
-        }
-    }
-
-
-    return _closest_enemy;
+    return scr_spatial_enemy_segment_find(
+        _start_x,
+        _start_y,
+        _end_x,
+        _end_y,
+        _projectile.visual.radius
+    );
 }
 
-/// @description Updates one player projectile with ordered solid collision.
+/// @description Updates one player projectile with spatial swept collision.
 
 function scr_projectile_player_update(_projectile)
 {
@@ -364,6 +284,31 @@ function scr_projectile_player_update(_projectile)
         );
 
 
+    // One spatial query for the complete movement segment.
+
+    var _enemy_hit =
+        scr_projectile_player_enemy_find(
+            _projectile,
+            _start_x,
+            _start_y,
+            _end_x,
+            _end_y
+        );
+
+    var _enemy_hit_amount =
+        infinity;
+
+
+    if (is_struct(_enemy_hit))
+    {
+        _enemy_hit_amount =
+            _enemy_hit.amount;
+    }
+
+
+    // Solid collision remains stepped because walls intentionally allow
+    // player projectiles through while other gameplay solids stop them.
+
     var _distance =
         point_distance(
             _start_x,
@@ -377,13 +322,12 @@ function scr_projectile_player_update(_projectile)
             1,
             ceil(
                 _distance
-                / max(1, _projectile.visual.radius)
+                / max(
+                    1,
+                    _projectile.visual.radius
+                )
             )
         );
-
-
-    var _previous_x = _start_x;
-    var _previous_y = _start_y;
 
 
     for (var i = 1; i <= _steps; ++i)
@@ -406,9 +350,6 @@ function scr_projectile_player_update(_projectile)
             );
 
 
-        // Ordinary buildings, CPU and terrain block player shots.
-        // Basic walls intentionally allow player projectiles through.
-
         if (
             scr_world_circle_gameplay_solid(
                 _check_x,
@@ -419,58 +360,57 @@ function scr_projectile_player_update(_projectile)
         )
         {
             // FUTURE:
-            // solid impact sparks
-            // terrain hit particles
+            // terrain impact particles
             // ricochet weapons
+            // destructible terrain
 
             instance_destroy(_projectile);
             return true;
         }
 
 
-        var _enemy =
-            scr_projectile_player_enemy_find(
-                _projectile,
-                _previous_x,
-                _previous_y,
-                _check_x,
-                _check_y
-            );
-
-
-        if (instance_exists(_enemy))
+        if (
+            is_struct(_enemy_hit)
+            && _enemy_hit_amount <= _progress
+        )
         {
-            var _damage =
-                scr_damage_create(
-                    _projectile.combat.damage,
-                    _projectile.combat.owner,
-                    DamageSource.PLAYER
+            var _enemy =
+                _enemy_hit.enemy;
+
+
+            if (instance_exists(_enemy))
+            {
+                var _damage =
+                    scr_damage_create(
+                        _projectile.combat.damage,
+                        _projectile.combat.owner,
+                        DamageSource.PLAYER
+                    );
+
+
+                scr_enemy_damage(
+                    _enemy,
+                    _damage
                 );
-
-
-            scr_enemy_damage(
-                _enemy,
-                _damage
-            );
+            }
 
 
             // FUTURE:
-            // enemy impact effect
-            // piercing projectiles
+            // enemy impact particles
+            // piercing ammunition
             // explosive player weapons
 
             instance_destroy(_projectile);
             return true;
         }
-
-
-        _previous_x = _check_x;
-        _previous_y = _check_y;
     }
 
 
-    _projectile.x = _end_x;
-    _projectile.y = _end_y;
+    _projectile.x =
+        _end_x;
+
+    _projectile.y =
+        _end_y;
 
 
     return true;
