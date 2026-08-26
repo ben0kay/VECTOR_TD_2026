@@ -8,3 +8,5 @@ if (global.LevelState != LevelState.PLAYING)
 
 
 scr_enemy_spawner_update(id);
+
+scr_enemy_transport_release_queue_update();

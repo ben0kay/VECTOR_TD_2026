@@ -1,5 +1,4 @@
-/// @description Releases one Transporter's configured enemy cargo.
-
+/// @description Queues one Transporter's configured enemy cargo for staggered release.
 function scr_enemy_transport_release(_enemy)
 {
     if (!instance_exists(_enemy))
@@ -28,20 +27,48 @@ function scr_enemy_transport_release(_enemy)
 
 
     // ========================================================================
-    // COUNT COMPLETE CARGO
+    // COMPLETE THE CARGO ROLLS ONCE
     // ========================================================================
+    //
+    // The stored result is used both for the total formation spacing and for
+    // the actual release queue. This avoids rolling each cargo amount twice.
+
+    var _cargo_count =
+        array_length(
+            _transport.cargo
+        );
+
+    var _cargo_counts =
+        array_create(
+            _cargo_count,
+            0
+        );
 
     var _total_cargo = 0;
 
-    for (var i = 0; i < array_length(_transport.cargo); ++i)
+    for (var i = 0; i < _cargo_count; ++i)
     {
-        var _cargo = _transport.cargo[i];
+        var _cargo =
+            _transport.cargo[i];
+
+        var _count =
+            irandom_range(
+                max(
+                    0,
+                    floor(_cargo.count_min)
+                ),
+
+                max(
+                    0,
+                    floor(_cargo.count_max)
+                )
+            );
+
+        _cargo_counts[i] =
+            _count;
 
         _total_cargo +=
-            irandom_range(
-                max(0, floor(_cargo.count_min)),
-                max(0, floor(_cargo.count_max))
-            );
+            _count;
     }
 
     if (_total_cargo <= 0)
@@ -49,20 +76,45 @@ function scr_enemy_transport_release(_enemy)
 
 
     // ========================================================================
-    // RELEASE CARGO
+    // GET / CREATE THE LEVEL RUNTIME QUEUE
     // ========================================================================
+
+    if (
+        !variable_struct_exists(
+            global.vtd_level,
+            "transport_release_queue"
+        )
+    )
+    {
+        global.vtd_level.transport_release_queue =
+            [];
+    }
+
+    var _queue =
+        global.vtd_level.transport_release_queue;
+
+    var _current_frame =
+        global.vtd_level.time.frames;
+
+    // Kept here deliberately: this is universal ability behaviour, not
+    // transporter definition data. One child releases every 3 frames.
+    var _release_interval_frames =
+        3;
 
     var _released = 0;
 
-    for (var i = 0; i < array_length(_transport.cargo); ++i)
+
+    // ========================================================================
+    // QUEUE CARGO
+    // ========================================================================
+
+    for (var i = 0; i < _cargo_count; ++i)
     {
-        var _cargo = _transport.cargo[i];
+        var _cargo =
+            _transport.cargo[i];
 
         var _count =
-            irandom_range(
-                max(0, floor(_cargo.count_min)),
-                max(0, floor(_cargo.count_max))
-            );
+            _cargo_counts[i];
 
         var _child_modifiers = [];
 
@@ -74,11 +126,11 @@ function scr_enemy_transport_release(_enemy)
                 );
         }
 
-
         for (var j = 0; j < _count; ++j)
         {
             var _angle =
-                (_released / max(1, _total_cargo)) * 360;
+                (_released / _total_cargo)
+                * 360;
 
             var _distance =
                 random_range(
@@ -89,7 +141,11 @@ function scr_enemy_transport_release(_enemy)
             var _spawn_x =
                 clamp(
                     _enemy.x
-                    + lengthdir_x(_distance, _angle),
+                    + lengthdir_x(
+                        _distance,
+                        _angle
+                    ),
+
                     32,
                     room_width - 32
                 );
@@ -97,7 +153,11 @@ function scr_enemy_transport_release(_enemy)
             var _spawn_y =
                 clamp(
                     _enemy.y
-                    + lengthdir_y(_distance, _angle),
+                    + lengthdir_y(
+                        _distance,
+                        _angle
+                    ),
+
                     32,
                     room_height - 32
                 );
@@ -116,41 +176,128 @@ function scr_enemy_transport_release(_enemy)
                 )
             )
             {
-                _spawn_x = _enemy.x;
-                _spawn_y = _enemy.y;
+                _spawn_x =
+                    _enemy.x;
+
+                _spawn_y =
+                    _enemy.y;
             }
 
 
-            scr_enemy_spawn(
-		    _cargo.enemy_key,
-		    _spawn_x,
-		    _spawn_y,
-		    _angle,
-		    _child_modifiers,
-		    _enemy.major_wave_number
-		);
+            array_push(
+                _queue,
+                {
+                    release_frame:
+                        _current_frame
+                        + (
+                            _released
+                            * _release_interval_frames
+                        ),
+
+                    enemy_key:
+                        _cargo.enemy_key,
+
+                    x:
+                        _spawn_x,
+
+                    y:
+                        _spawn_y,
+
+                    angle:
+                        _angle,
+
+                    modifiers:
+                        _child_modifiers,
+
+                    major_wave_number:
+                        _enemy.major_wave_number
+                }
+            );
 
             _released++;
         }
     }
 
+    global.vtd_level.transport_release_queue =
+        _queue;
+
+
+    // The carrier's destruction effect still happens immediately.
 
     scr_effect_shockwave_create(
         _enemy.x,
         _enemy.y,
         _transport.spawn_radius + 20,
         _enemy.visual.color,
-		_enemy.movement.layer
+        _enemy.movement.layer
     );
 
+    return true;
+}
 
-    // FUTURE:
-    // opening transport panels
-    // cargo launch particles
-    // configurable release-on-arrival
-    // mixed cargo formations
-    // cargo capacity affected by modifiers
+/// @description Releases transport cargo whose scheduled frame has arrived.
+function scr_enemy_transport_release_queue_update()
+{
+    if (!variable_global_exists("vtd_level"))
+        return false;
 
+    if (!is_struct(global.vtd_level))
+        return false;
+
+    if (
+        !variable_struct_exists(
+            global.vtd_level,
+            "transport_release_queue"
+        )
+    )
+    {
+        return true;
+    }
+
+    var _queue =
+        global.vtd_level.transport_release_queue;
+
+    if (array_length(_queue) <= 0)
+        return true;
+
+    var _current_frame =
+        global.vtd_level.time.frames;
+
+    for (
+        var i = array_length(_queue) - 1;
+        i >= 0;
+        --i
+    )
+    {
+        var _release =
+            _queue[i];
+
+        if (
+            _release.release_frame
+            > _current_frame
+        )
+        {
+            continue;
+        }
+
+        scr_enemy_spawn(
+            _release.enemy_key,
+            _release.x,
+            _release.y,
+            _release.angle,
+            _release.modifiers,
+            _release.major_wave_number
+        );
+
+        array_delete(
+            _queue,
+            i,
+            1
+        );
+    }
+
+    global.vtd_level.transport_release_queue =
+        _queue;
 
     return true;
 }

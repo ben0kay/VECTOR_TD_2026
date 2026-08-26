@@ -12,7 +12,6 @@ switch (global.LevelState)
     case LevelState.PLAYING:
     {
         global.vtd_level.time.frames++;
-
         global.vtd_level.time.seconds =
             global.vtd_level.time.frames
             / max(
