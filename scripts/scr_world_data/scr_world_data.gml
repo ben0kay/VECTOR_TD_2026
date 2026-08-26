@@ -206,7 +206,7 @@ function scr_world_data_initialize()
 				            modifier: EnemyModifier.SHIELDED,
 
 				            // Testing values. Proper levels can unlock this much later.
-				            unlock_seconds: 120,
+				            unlock_seconds: 300,
 
 				            chance_start: 0.05,
 				            chance_maximum: 0.35,
@@ -237,6 +237,7 @@ function scr_world_data_initialize()
 				        { enemy_key: "enemy_flyer",           weight: 18,  unlock_seconds: 360 },
 						{ enemy_key: "enemy_centipede_head",  weight: 5,   unlock_seconds: 380 },
 				        { enemy_key: "enemy_splitter",        weight: 10,  unlock_seconds: 420 },
+						{ enemy_key: "enemy_sniper",          weight: 5,   unlock_seconds: 450 },
 				        { enemy_key: "enemy_brute",           weight: 12,  unlock_seconds: 480 },
 				        { enemy_key: "enemy_transporter",     weight: 7,   unlock_seconds: 540 },
 				        { enemy_key: "enemy_gunship",         weight: 8,   unlock_seconds: 600 },

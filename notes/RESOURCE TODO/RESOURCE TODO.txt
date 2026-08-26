@@ -1,0 +1,673 @@
+# VECTOR TD 2026 — RESOURCE & MANUFACTURING PLAN
+
+## Core direction
+
+VECTOR TD uses a semi-realistic industrial economy presented with fast, readable arcade rules.
+
+The fortress begins with simple credit-based construction. As a level progresses, mining, refining and fabrication unlock more powerful structures, ammunition and technology.
+
+The economy has four layers:
+
+1. Raw resources are mined.
+2. Refineries process raw resources.
+3. Fabricators manufacture components and consumables.
+4. Towers and buildings consume those materials.
+
+The system should provide simulation depth without requiring excessive micromanagement.
+
+---
+
+## Resource tiers
+
+### Universal currency
+
+#### Credits
+
+The universal construction currency.
+
+Used by:
+
+- Every building and tower
+- Repairs
+- Upgrades
+- Research
+- Services and special actions
+
+Early structures can cost only Credits. More advanced structures require Credits plus resources or components.
+
+---
+
+## Foundational raw resources
+
+### Carbon
+
+Primary structural resource.
+
+Used for:
+
+- Walls
+- Foundations
+- Storage buildings
+- Armour
+- Structural frames
+- Plating
+
+Processed into:
+
+- Carbon Composite
+
+---
+
+### Copper
+
+Primary conductive resource.
+
+Used for:
+
+- Power cables
+- Energy nodes
+- Motors
+- Weapon coils
+- Ammunition
+- Basic electronics
+
+Processed into:
+
+- Conductive Alloy
+
+---
+
+### Silicon
+
+Primary computational resource.
+
+Used for:
+
+- Targeting systems
+- Radar
+- Automation
+- Research
+- Advanced tower control
+- Processing equipment
+
+Processed into:
+
+- Silicon Wafers
+
+---
+
+### Lithium
+
+Primary energy-storage resource.
+
+Used for:
+
+- Batteries
+- Building energy buffers
+- Shield systems
+- Drones
+- High-energy weapons
+- Emergency power reserves
+
+Processed into:
+
+- Lithium Cells
+
+---
+
+### Ferrite Ore
+
+Iron-rich magnetic ore used for machinery and electromagnetic systems.
+
+Used for:
+
+- Turret mechanisms
+- Motors
+- Generators
+- Transformers
+- Heavy ammunition
+- Magnetic weapons
+
+Processed into:
+
+- Ferrite Cores
+
+Ferrite is based on real magnetic iron materials but is simplified for the arcade setting.
+
+---
+
+### Vectorite
+
+A rare crystalline material formed where physical infrastructure, energy and hostile digital corruption intersect.
+
+Vectorite is the primary late-game ore.
+
+Used for:
+
+- Ion weapons
+- Advanced shields
+- Anti-phasing technology
+- Quantum processing
+- Teleportation
+- Extreme energy storage
+- Endgame buildings
+- CPU upgrades
+- Campaign research
+
+Processed into:
+
+- Stabilized Vectorite
+
+Vectorite should be rare, visually distinctive and introduced in later levels.
+
+---
+
+## Refined materials
+
+The refinery converts raw resources into standardized industrial materials.
+
+Suggested baseline recipes:
+
+| Recipe | Input | Output | Time |
+|---|---:|---:|---:|
+| Carbon Composite | 100 Carbon | 1 | 25 sec |
+| Conductive Alloy | 100 Copper | 1 | 30 sec |
+| Silicon Wafer | 100 Silicon | 1 | 35 sec |
+| Lithium Cell | 100 Lithium | 1 | 40 sec |
+| Ferrite Core | 100 Ferrite Ore | 1 | 35 sec |
+| Stabilized Vectorite | 100 Vectorite | 1 | 90 sec |
+
+These conversion values are starting balance values and can be changed per recipe later.
+
+Vectorite processing should:
+
+- Take considerably longer
+- Consume substantial energy
+- Possibly require an advanced refinery
+- Produce a major alert or notification when completed
+
+---
+
+## Fabricated components
+
+The fabricator combines refined materials into construction components.
+
+### Light Plating
+
+Ingredients:
+
+- 1 Carbon Composite
+- 1 Conductive Alloy
+
+Used for:
+
+- Standard towers
+- Storage buildings
+- Drones
+- Light defensive structures
+- Ammunition production
+
+---
+
+### Heavy Plating
+
+Ingredients:
+
+- 2 Carbon Composite
+- 1 Ferrite Core
+
+Used for:
+
+- Heavy towers
+- Reinforced walls
+- Artillery
+- Large generators
+- Shield generators
+- High-end buildings
+
+---
+
+### Ammunition Casing
+
+Ingredients:
+
+- 1 Conductive Alloy
+- 1 Ferrite Core
+
+Output:
+
+- Multiple casings per batch
+
+Used for:
+
+- Bullets
+- Cannon shells
+- Rockets
+- Other physical ammunition
+
+Casings should be shared between ammunition recipes and some weapon construction recipes.
+
+---
+
+### Precision Components
+
+Ingredients:
+
+- 1 Silicon Wafer
+- 1 Conductive Alloy
+
+Used for:
+
+- Radar
+- Sniper towers
+- Tracking systems
+- Repair systems
+- Advanced targeting
+- Automated production
+
+---
+
+### Energy Assembly
+
+Ingredients:
+
+- 1 Lithium Cell
+- 1 Conductive Alloy
+
+Used for:
+
+- Batteries
+- Shield systems
+- Laser towers
+- Energy buffers
+- Drones
+- Energy ammunition
+
+---
+
+### Reactor Casing
+
+Ingredients:
+
+- 1 Heavy Plating
+- 1 Ferrite Core
+- 1 Energy Assembly
+
+Used for:
+
+- Advanced generators
+- Large batteries
+- Ion cannons
+- Endgame energy weapons
+- Major utility buildings
+
+---
+
+### Vector Core
+
+Ingredients:
+
+- 1 Stabilized Vectorite
+- 1 Energy Assembly
+- 1 Precision Component
+
+Used for:
+
+- Ion cannons
+- Anti-phasing towers
+- Teleportation systems
+- Quantum research
+- Advanced CPU technology
+- Endgame support buildings
+
+---
+
+## Ammunition recipes
+
+### Bullet Batch
+
+Ingredients:
+
+- Ammunition Casings
+- Ferrite material
+
+Output:
+
+- 200 Bullets
+
+Used by:
+
+- Basic towers
+- Minigun towers
+- Kinetic weapons
+
+---
+
+### Explosives Batch
+
+Ingredients:
+
+- Ammunition Casings
+- Carbon Composite
+
+Output:
+
+- 50 Explosives
+
+Used by:
+
+- Cannon towers
+- Rocket towers
+- Artillery
+- Explosive defensive systems
+
+---
+
+### Cannon Shell Batch
+
+Ingredients:
+
+- Ammunition Casings
+- Explosives
+- Ferrite Core
+
+Output:
+
+- 20 Cannon Shells
+
+Optional future separation if generic Explosives becomes too broad.
+
+---
+
+### Ion Charge
+
+Ingredients:
+
+- Stabilized Vectorite
+- Energy Assembly
+- Reactor Casing
+
+Output:
+
+- A small number of Ion Charges
+
+Used by:
+
+- Ion cannons
+- Major anti-siege weapons
+- Endgame defensive structures
+
+Ion Charges should be expensive but extremely powerful.
+
+---
+
+## Building cost rules
+
+### Early game
+
+Use Credits only or Credits plus a small amount of raw material.
+
+Examples:
+
+- Basic tower
+- Basic wall
+- Standard foundation
+- Basic miner
+- Basic storage
+
+### Mid game
+
+Use Credits plus raw resources or one refined material.
+
+Examples:
+
+- Minigun
+- Cannon
+- Radar
+- Battery
+- Repair station
+- Shield generator
+- Refinery
+
+### Late game
+
+Use Credits plus several fabricated components.
+
+Examples:
+
+- Artillery
+- Advanced shield generator
+- Large battery
+- Advanced refinery
+- Fabricator upgrades
+- Ion cannon
+
+### Endgame
+
+Use Credits, fabricated components and Vectorite technology.
+
+Examples:
+
+- Ion cannon
+- Quantum targeting array
+- Anti-phasing field
+- Teleportation relay
+- Fortress-wide shield
+- CPU superstructure upgrades
+
+Ordinary buildings should avoid requiring more than three different ingredients.
+
+---
+
+## Example tower costs
+
+| Tower | Example cost |
+|---|---|
+| Basic Tower | 150 Credits |
+| Anti-Air Tower | 200 Credits + 50 Silicon |
+| Minigun Tower | 250 Credits + 100 Copper + 50 Ferrite Ore |
+| Cannon Tower | 325 Credits + 1 Ammunition Casing |
+| Cryo Tower | 350 Credits + 100 Lithium + 50 Silicon |
+| DOT Tower | 350 Credits + 100 Carbon + 50 Silicon |
+| Stasis Tower | 450 Credits + 1 Silicon Wafer + 1 Lithium Cell |
+| Laser Tower | 500 Credits + 1 Energy Assembly + 1 Silicon Wafer |
+| Sniper Tower | 500 Credits + 1 Precision Component + 1 Ferrite Core |
+| Rocket Tower | 650 Credits + 1 Heavy Plating + 1 Precision Component |
+| Artillery | 900 Credits + 2 Heavy Plating + 1 Reactor Casing |
+| Ion Cannon | 2,500 Credits + 2 Reactor Casings + 2 Vector Cores |
+
+---
+
+## Example defensive and utility costs
+
+| Building | Example cost |
+|---|---|
+| Basic Wall | 25 Credits |
+| Reinforced Wall | 75 Credits + 50 Carbon |
+| Gate | 125 Credits + 50 Carbon + 25 Ferrite Ore |
+| Radar | 350 Credits + 100 Silicon + 50 Copper |
+| Repair Station | 400 Credits + 100 Copper + 100 Ferrite Ore |
+| Credit Magnet | 300 Credits + 50 Copper + 50 Silicon |
+| Shield Generator | 750 Credits + 1 Energy Assembly + 1 Silicon Wafer |
+| Advanced Shield Generator | 1,500 Credits + 1 Reactor Casing + 1 Vector Core |
+
+---
+
+## Example energy-building costs
+
+| Building | Example cost |
+|---|---|
+| Basic Generator | 250 Credits + 75 Copper |
+| Energy Node | 75 Credits + 25 Copper |
+| Relay | 125 Credits + 50 Copper + 25 Silicon |
+| Battery | 300 Credits + 100 Lithium + 50 Copper |
+| Large Battery | 700 Credits + 2 Energy Assemblies |
+| Advanced Generator | 1,000 Credits + 1 Reactor Casing |
+| Vector Reactor | 2,500 Credits + 2 Reactor Casings + 2 Vector Cores |
+
+---
+
+## Example industrial-building costs
+
+| Building | Example cost |
+|---|---|
+| Basic Miner | 200 Credits |
+| Advanced Miner | 500 Credits + 1 Ferrite Core |
+| Resource Storage | 150 Credits + 50 Carbon |
+| Ammunition Storage | 225 Credits + 50 Carbon + 50 Ferrite Ore |
+| Refinery | 750 Credits + 200 Carbon + 100 Copper |
+| Fabricator | 1,000 Credits + 1 Light Plating + 1 Precision Component |
+| Advanced Refinery | 1,750 Credits + 2 Heavy Plating + 1 Reactor Casing |
+| Advanced Fabricator | 2,000 Credits + 2 Precision Components + 1 Reactor Casing |
+
+---
+
+## Example foundation costs
+
+These are placed frequently and should remain inexpensive.
+
+| Foundation | Example cost per tile |
+|---|---|
+| Standard Foundation | 10 Credits |
+| Speed Foundation | 20 Credits + 5 Copper |
+| Sturdy Foundation | 20 Credits + 5 Carbon |
+| Electrical Foundation | 35 Credits + 10 Copper + 5 Lithium |
+| Vector Foundation | 100 Credits + a small amount of Vectorite |
+
+The Vector Foundation could provide powerful late-game bonuses such as:
+
+- Faster energy transfer
+- Larger building energy buffers
+- Faster shield regeneration
+- Anti-phasing protection
+- Improved tower fire rate
+
+---
+
+## Recommended resource flow
+
+```text
+MINING
+Carbon
+Copper
+Silicon
+Lithium
+Ferrite Ore
+Vectorite
+    ↓
+REFINING
+Carbon Composite
+Conductive Alloy
+Silicon Wafer
+Lithium Cell
+Ferrite Core
+Stabilized Vectorite
+    ↓
+FABRICATION
+Light Plating
+Heavy Plating
+Ammunition Casings
+Precision Components
+Energy Assemblies
+Reactor Casings
+Vector Cores
+    ↓
+CONSUMABLES
+Bullets
+Explosives
+Cannon Shells
+Ion Charges
+    ↓
+FORTRESS
+Towers
+Power networks
+Industry
+Shields
+Support systems
+Endgame weapons
+```
+
+---
+
+## Storage approach
+
+Each raw resource retains its own dedicated storage building.
+
+For now, a resource’s storage can hold both its raw and refined forms separately:
+
+```text
+Silicon Storage
+- Raw Silicon
+- Silicon Wafers
+```
+
+Shared industrial storage can hold fabricated components:
+
+```text
+Component Storage
+- Plating
+- Casings
+- Precision Components
+- Energy Assemblies
+- Reactor Casings
+- Vector Cores
+```
+
+Ammunition Storage holds:
+
+- Bullets
+- Explosives
+- Cannon shells
+- Ion Charges
+
+This avoids requiring a separate building for every individual component.
+
+---
+
+## Gameplay progression
+
+### Early level
+
+- Mine common resources
+- Construct basic defenses using Credits
+- Establish storage and energy
+- Survive baseline enemies
+
+### Developing fortress
+
+- Build refineries
+- Introduce material costs
+- Produce ammunition
+- Establish batteries and local energy networks
+- Build specialized towers
+
+### Advanced fortress
+
+- Construct fabricators
+- Manufacture plating, casings and precision components
+- Support shields, artillery and advanced industry
+- Manage drones and material delivery
+
+### Late game
+
+- Locate and mine Vectorite
+- Protect Vectorite operations
+- Build advanced processing infrastructure
+- Manufacture Vector Cores and Ion Charges
+- Deploy endgame defenses
+
+---
+
+## Design guardrails
+
+- Credits remain useful throughout the entire game.
+- Basic defenses must never require a fully developed factory chain.
+- Raw resources support common construction.
+- Refined materials support specialized buildings.
+- Fabricated components support advanced technology.
+- Vectorite supports rare and transformative technology.
+- Avoid creating components without multiple meaningful uses.
+- Avoid giving ordinary buildings overly complicated recipes.
+- Production chains should create strategic decisions, not repetitive busywork.
+- Every resource should have a recognizable color, icon and gameplay identity.
+- Exact costs remain data-driven and adjustable per building, recipe and level.

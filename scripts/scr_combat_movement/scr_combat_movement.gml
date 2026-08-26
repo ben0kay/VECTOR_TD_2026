@@ -742,8 +742,7 @@ function scr_enemy_strategic_target_set(_enemy, _target)
     return true;
 }
 
-
-/// @description Updates an enemy's cached strategic building target.
+/// @description Periodically switches to a meaningfully closer nearby building.
 
 function scr_enemy_strategic_retarget_update(
     _enemy,
@@ -764,6 +763,10 @@ function scr_enemy_strategic_retarget_update(
     if (!_data.enabled)
         return true;
 
+
+    // Do not change the strategic objective while temporarily pursuing
+    // the player or attacking a breach target.
+
     if (
         _enemy.targeting.player.active
         || instance_exists(_enemy.targeting.breach)
@@ -778,6 +781,7 @@ function scr_enemy_strategic_retarget_update(
             1,
             game_get_speed(gamespeed_fps)
         );
+
 
     _runtime.remaining =
         max(
@@ -800,26 +804,28 @@ function scr_enemy_strategic_retarget_update(
     var _current =
         _enemy.targeting.strategic;
 
+
+    // Only inspect buildings inside this enemy's local scan circle.
+    // Global recovery remains the responsibility of scr_enemy_target_acquire()
+    // when the enemy genuinely has no valid strategic target.
+
     var _candidate =
         scr_enemy_closest_building_get(
-            _enemy
+            _enemy,
+            _data.scan_range
         );
 
 
-    // Building hunters fall back to the CPU when no ordinary building exists.
+    // Nothing nearby means the enemy continues toward its cached objective.
+    // Do not trigger an unnecessary full-map search here.
 
     if (!instance_exists(_candidate))
-    {
-        _candidate =
-            global.vtd_level.entities.cpu;
-    }
+        return true;
 
 
-    if (!instance_exists(_candidate))
-        return false;
-
-
-    // An invalid target is replaced immediately.
+    // An invalid cached target can be replaced immediately by the nearby
+    // candidate. If there is no nearby candidate, scr_enemy_update() will
+    // perform the ordinary global target recovery.
 
     if (!instance_exists(_current))
     {
@@ -827,6 +833,17 @@ function scr_enemy_strategic_retarget_update(
             _enemy,
             _candidate
         );
+
+
+        _enemy.EnemyState =
+            EnemyState.MOVING;
+
+
+        scr_navigation_enemy_repath_request(
+            _enemy,
+            true
+        );
+
 
         return true;
     }
@@ -864,6 +881,8 @@ function scr_enemy_strategic_retarget_update(
         * _data.switch_ratio;
 
 
+    // Avoid target jitter. The nearby building must be substantially closer.
+
     if (!_fixed_advantage && !_ratio_advantage)
         return true;
 
@@ -876,6 +895,7 @@ function scr_enemy_strategic_retarget_update(
 
     _enemy.EnemyState =
         EnemyState.MOVING;
+
 
     scr_navigation_enemy_repath_request(
         _enemy,

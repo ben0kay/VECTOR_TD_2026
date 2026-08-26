@@ -15,6 +15,7 @@ function scr_enemy_data_initialize()
 	if (!scr_enemy_data_phaser()) return false;
     if (!scr_enemy_data_shooter_single()) return false;
     if (!scr_enemy_data_shooter_triple()) return false;
+	if (!scr_enemy_data_sniper()) return false;
     if (!scr_enemy_data_kamikaze()) return false;
     if (!scr_enemy_data_splitter()) return false;
     if (!scr_enemy_data_splitter_child()) return false;
@@ -478,6 +479,7 @@ function scr_enemy_data_hunter()
                 strategic_retarget:
                 {
                     enabled: true,
+					scan_range: 896,
 
                     interval_minimum: 0.75,
                     interval_maximum: 1.5,
@@ -1994,6 +1996,7 @@ function scr_enemy_data_hunter_mk2()
                 strategic_retarget:
                 {
                     enabled: true,
+					scan_range: 896,
 
                     interval_minimum: 0.75,
                     interval_maximum: 1.5,
@@ -2020,6 +2023,109 @@ function scr_enemy_data_hunter_mk2()
                 scr_enemy_rewards_create(
                     12,
                     3
+                ),
+
+            abilities: []
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the long-range building Sniper.
+
+function scr_enemy_data_sniper()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_sniper",
+        {
+            identity:
+            {
+                key: "enemy_sniper",
+                name: "Sniper"
+            },
+
+            behavior:
+                EnemyBehavior.STANDARD,
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+                draw_function: scr_enemy_visual_sniper,
+                radius: 14,
+                color: make_color_rgb(255, 70, 70)
+            },
+
+            vitals:
+            {
+                hp_maximum: 32,
+                shield_maximum: 20
+            },
+
+            movement:
+            {
+                speed: 1.25,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.BUILDING,
+
+                // Snipers never deliberately acquire the player.
+
+                player:
+                {
+                    enabled: false
+                },
+
+                // Periodically reconsider which building is worth attacking.
+
+                strategic_retarget:
+                {
+                    enabled: true,
+
+                    interval_minimum: 1,
+                    interval_maximum: 2,
+
+                    minimum_distance_advantage: 96,
+                    switch_ratio: 0.80
+                }
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.PROJECTILE,
+
+                damage: 20,
+                range: 700,
+                cooldown_seconds: 3.5,
+
+                projectile:
+                {
+                    speed: 22,
+                    lifetime_seconds: 6,
+
+                    radius: 2.5,
+                    color: make_color_rgb(255, 90, 90),
+
+                    shot_count: 1,
+                    spread_degrees: 0
+                }
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    18,
+                    4
                 ),
 
             abilities: []

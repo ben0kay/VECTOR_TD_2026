@@ -110,6 +110,8 @@ function scr_enemy_advanced_initialize(_enemy)
 	{
 	    enabled: false,
 
+		scan_range: 896,	
+		
 	    interval_minimum: 0.75,
 	    interval_maximum: 1.5,
 

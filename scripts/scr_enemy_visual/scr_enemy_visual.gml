@@ -3779,3 +3779,298 @@ function scr_enemy_visual_hunter_mk2(_enemy)
 
     return true;
 }
+
+/// @description Draws the long-range Sniper enemy.
+
+function scr_enemy_visual_sniper(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    draw_set_color(_color);
+    draw_set_alpha(1);
+
+
+    // ========================================================================
+    // MAIN NARROW HULL
+    // ========================================================================
+
+    var _front_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.05,
+            _angle
+        );
+
+    var _front_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.05,
+            _angle
+        );
+
+
+    var _rear_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.85,
+            _angle + 180
+        );
+
+    var _rear_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.85,
+            _angle + 180
+        );
+
+
+    var _upper_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.58,
+            _angle + 115
+        );
+
+    var _upper_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.58,
+            _angle + 115
+        );
+
+
+    var _lower_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.58,
+            _angle - 115
+        );
+
+    var _lower_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.58,
+            _angle - 115
+        );
+
+
+    draw_line_width(
+        _front_x,
+        _front_y,
+        _upper_x,
+        _upper_y,
+        2
+    );
+
+    draw_line_width(
+        _upper_x,
+        _upper_y,
+        _rear_x,
+        _rear_y,
+        2
+    );
+
+    draw_line_width(
+        _rear_x,
+        _rear_y,
+        _lower_x,
+        _lower_y,
+        2
+    );
+
+    draw_line_width(
+        _lower_x,
+        _lower_y,
+        _front_x,
+        _front_y,
+        2
+    );
+
+
+    // ========================================================================
+    // LONG SNIPER BARREL
+    // ========================================================================
+
+    var _barrel_start_x =
+        _x
+        + lengthdir_x(
+            _radius * 0.35,
+            _angle
+        );
+
+    var _barrel_start_y =
+        _y
+        + lengthdir_y(
+            _radius * 0.35,
+            _angle
+        );
+
+
+    var _barrel_end_x =
+        _x
+        + lengthdir_x(
+            _radius * 1.65,
+            _angle
+        );
+
+    var _barrel_end_y =
+        _y
+        + lengthdir_y(
+            _radius * 1.65,
+            _angle
+        );
+
+
+    draw_line_width(
+        _barrel_start_x,
+        _barrel_start_y,
+        _barrel_end_x,
+        _barrel_end_y,
+        3
+    );
+
+
+    // Small muzzle fork.
+
+    var _muzzle_left_x =
+        _barrel_end_x
+        + lengthdir_x(
+            _radius * 0.22,
+            _angle + 135
+        );
+
+    var _muzzle_left_y =
+        _barrel_end_y
+        + lengthdir_y(
+            _radius * 0.22,
+            _angle + 135
+        );
+
+
+    var _muzzle_right_x =
+        _barrel_end_x
+        + lengthdir_x(
+            _radius * 0.22,
+            _angle - 135
+        );
+
+    var _muzzle_right_y =
+        _barrel_end_y
+        + lengthdir_y(
+            _radius * 0.22,
+            _angle - 135
+        );
+
+
+    draw_line(
+        _muzzle_left_x,
+        _muzzle_left_y,
+        _barrel_end_x,
+        _barrel_end_y
+    );
+
+    draw_line(
+        _barrel_end_x,
+        _barrel_end_y,
+        _muzzle_right_x,
+        _muzzle_right_y
+    );
+
+
+    // ========================================================================
+    // REAR STABILIZER FINS
+    // ========================================================================
+
+    var _rear_upper_x =
+        _rear_x
+        + lengthdir_x(
+            _radius * 0.50,
+            _angle + 70
+        );
+
+    var _rear_upper_y =
+        _rear_y
+        + lengthdir_y(
+            _radius * 0.50,
+            _angle + 70
+        );
+
+
+    var _rear_lower_x =
+        _rear_x
+        + lengthdir_x(
+            _radius * 0.50,
+            _angle - 70
+        );
+
+    var _rear_lower_y =
+        _rear_y
+        + lengthdir_y(
+            _radius * 0.50,
+            _angle - 70
+        );
+
+
+    draw_line_width(
+        _rear_x,
+        _rear_y,
+        _rear_upper_x,
+        _rear_upper_y,
+        2
+    );
+
+    draw_line_width(
+        _rear_x,
+        _rear_y,
+        _rear_lower_x,
+        _rear_lower_y,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL SCOPE / CORE
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.25,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    draw_circle(
+        _x,
+        _y,
+        1.5,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+
+    return true;
+}

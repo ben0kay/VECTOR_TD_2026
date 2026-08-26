@@ -1527,46 +1527,121 @@ function scr_enemy_building_target_valid(_building)
     return _building.vitals.hp.current > 0;
 }
 
-/// @description Returns the closest valid building to an enemy.
+/// @description Returns the closest valid building, optionally inside a local scan range.
 
-function scr_enemy_closest_building_get(_enemy)
+function scr_enemy_closest_building_get(
+    _enemy,
+    _scan_range = -1
+)
 {
     if (!instance_exists(_enemy))
         return noone;
 
 
     var _closest = noone;
-    var _closest_distance = infinity;
-    var _building_count = instance_number(o_building_par);
+    var _closest_distance_squared = infinity;
+
+
+    // ========================================================================
+    // LOCAL COLLISION-CIRCLE SEARCH
+    // ========================================================================
+
+    if (_scan_range > 0)
+    {
+        var _buildings = ds_list_create();
+
+        var _building_count =
+            collision_circle_list(
+                _enemy.x,
+                _enemy.y,
+                _scan_range,
+                o_building_par,
+                false,
+                true,
+                _buildings,
+                false
+            );
+
+
+        for (var i = 0; i < _building_count; ++i)
+        {
+            var _building = _buildings[| i];
+
+            if (!scr_enemy_building_target_valid(_building))
+                continue;
+
+
+            var _difference_x =
+                _building.x - _enemy.x;
+
+            var _difference_y =
+                _building.y - _enemy.y;
+
+            var _distance_squared =
+                (_difference_x * _difference_x)
+                + (_difference_y * _difference_y);
+
+
+            if (_distance_squared < _closest_distance_squared)
+            {
+                _closest = _building;
+
+                _closest_distance_squared =
+                    _distance_squared;
+            }
+        }
+
+
+        ds_list_destroy(_buildings);
+
+        return _closest;
+    }
+
+
+    // ========================================================================
+    // FULL-MAP FALLBACK SEARCH
+    // ========================================================================
+
+    var _building_count =
+        instance_number(o_building_par);
 
 
     for (var i = 0; i < _building_count; ++i)
     {
-        var _building = instance_find(o_building_par, i);
+        var _building =
+            instance_find(
+                o_building_par,
+                i
+            );
+
 
         if (!scr_enemy_building_target_valid(_building))
             continue;
 
 
-        var _distance = point_distance(
-            _enemy.x,
-            _enemy.y,
-            _building.x,
-            _building.y
-        );
+        var _difference_x =
+            _building.x - _enemy.x;
+
+        var _difference_y =
+            _building.y - _enemy.y;
+
+        var _distance_squared =
+            (_difference_x * _difference_x)
+            + (_difference_y * _difference_y);
 
 
-        if (_distance < _closest_distance)
+        if (_distance_squared < _closest_distance_squared)
         {
             _closest = _building;
-            _closest_distance = _distance;
+
+            _closest_distance_squared =
+                _distance_squared;
         }
     }
 
 
     return _closest;
 }
-
 
 /// @description Returns the distance from an explosion to a target's nearest edge.
 
