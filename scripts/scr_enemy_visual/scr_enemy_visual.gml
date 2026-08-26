@@ -4389,3 +4389,142 @@ function scr_enemy_visual_berserker(_enemy)
 
     return true;
 }
+
+/// @description Draws the heavy cargo-carrying Transporter MK2.
+
+function scr_enemy_visual_transporter_mk2(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _angle =
+        _enemy.visual.draw_angle;
+
+    var _color =
+        _enemy.visual.color;
+
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // OUTER HEAVY CARGO FRAME
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        _radius,
+        6,
+        _angle + 30,
+        3
+    );
+
+
+    // ========================================================================
+    // INNER REINFORCEMENT FRAME
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        _radius * 0.72,
+        6,
+        _angle,
+        2
+    );
+
+
+    // ========================================================================
+    // STRUCTURAL SUPPORTS
+    // ========================================================================
+
+    scr_enemy_visual_helper_spokes(
+        _x,
+        _y,
+        _radius * 0.40,
+        _radius * 0.92,
+        6,
+        _angle + 30,
+        2
+    );
+
+
+    // ========================================================================
+    // CARGO PODS
+    // ========================================================================
+
+    for (var i = 0; i < 6; ++i)
+    {
+        var _pod_angle =
+            _angle
+            + 30
+            + (i * 60);
+
+        var _pod_x =
+            _x
+            + lengthdir_x(
+                _radius * 0.68,
+                _pod_angle
+            );
+
+        var _pod_y =
+            _y
+            + lengthdir_y(
+                _radius * 0.68,
+                _pod_angle
+            );
+
+
+        draw_circle(
+            _pod_x,
+            _pod_y,
+            7,
+            false
+        );
+
+
+        draw_circle(
+            _pod_x,
+            _pod_y,
+            3,
+            false
+        );
+    }
+
+
+    // ========================================================================
+    // CENTRAL COMMAND CORE
+    // ========================================================================
+
+    scr_enemy_visual_helper_double_ring(
+        _x,
+        _y,
+        _radius * 0.34,
+        _radius * 0.20
+    );
+
+
+    // Small rotating inner reactor markers.
+
+    scr_enemy_visual_helper_radial_dots(
+        _x,
+        _y,
+        _radius * 0.27,
+        2.5,
+        6,
+        -_angle,
+        true
+    );
+
+
+    draw_set_color(c_white);
+
+    return true;
+}

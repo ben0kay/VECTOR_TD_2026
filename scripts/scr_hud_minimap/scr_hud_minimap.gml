@@ -305,7 +305,7 @@ function scr_hud_minimap_update(_hud)
 
     if (!_map.visible) return true;
 	
-	scr_hud_minimap_radar_update(id);
+	scr_hud_minimap_radar_update(_hud);
 
     // ========================================================================
     // CONTROL BOUNDS

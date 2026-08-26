@@ -31,6 +31,7 @@ function scr_enemy_data_initialize()
 
     if (!scr_enemy_data_brute()) return false;
     if (!scr_enemy_data_transporter()) return false;
+	if (!scr_enemy_data_transporter_mk2()) return false;
     if (!scr_enemy_data_shield_generator()) return false;
 
 
@@ -2381,6 +2382,94 @@ function scr_enemy_data_centipede_child()
         }
     );
 
+
+    return true;
+}
+
+/// @description Registers the heavy ground enemy Transporter MK2.
+
+function scr_enemy_data_transporter_mk2()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_transporter_mk2",
+        {
+            identity:
+            {
+                key: "enemy_transporter_mk2",
+                name: "Ground Transporter MK2"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+                draw_function: scr_enemy_visual_transporter_mk2,
+                radius: 44,
+                color: make_color_rgb(220, 65, 235)
+            },
+
+            vitals:
+            {
+                hp_maximum: 1200,
+                shield_maximum: 350
+            },
+
+            movement:
+            {
+                speed: 0.55,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 40,
+                range: 10,
+                cooldown_seconds: 1.4
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    25,
+                    20
+                ),
+
+            abilities:
+            [
+                EnemyAbility.TRANSPORT_ENEMIES
+            ],
+
+            ability_data:
+            {
+                transport:
+                {
+                    spawn_radius: 52,
+
+                    cargo:
+                    [
+                        {
+                            enemy_key: "enemy_hunter_mk2",
+                            count_min: 10,
+                            count_max: 14,
+                            inherit_modifiers: true
+                        }
+                    ]
+                }
+            }
+        }
+    );
 
     return true;
 }

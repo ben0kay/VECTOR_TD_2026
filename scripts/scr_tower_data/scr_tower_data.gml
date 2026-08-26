@@ -90,7 +90,7 @@ function scr_tower_data_basic_ground()
             tower:
             {
                 range: 280,
-				turn_speed_degrees_per_second: 60,
+				turn_speed_degrees_per_second: 360,
 				fire_angle_tolerance_degrees: 2,
                 target_mode:
                     TowerTargetMode.CLOSEST,
@@ -547,6 +547,8 @@ economy:
 tower:
 {
     range: 768,
+	turn_speed_degrees_per_second: 480,
+	fire_angle_tolerance_degrees: 2,
     target_mode: TowerTargetMode.HIGHEST_HP,
     target_layer: EnemyMovementLayer.GROUND,
     requires_line_of_sight: true,
@@ -922,6 +924,8 @@ economy:
 tower:
 {
     range: 560,
+	turn_speed_degrees_per_second: 180,
+	fire_angle_tolerance_degrees: 4,
     target_mode: TowerTargetMode.FURTHEST,
     target_layer: EnemyMovementLayer.GROUND,
     target_filter: TowerTargetFilter.ANY,

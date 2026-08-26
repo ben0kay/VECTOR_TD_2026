@@ -24,7 +24,7 @@
     {"$GMFolder":"","%Name":"unique","folderPath":"folders/scripts/enemy scripts/unique.yy","name":"unique","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"group1","folderPath":"folders/scripts/group1.yy","name":"group1","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"effects","folderPath":"folders/scripts/effects.yy","name":"effects","resourceType":"GMFolder","resourceVersion":"2.0",},
-    {"$GMFolder":"","%Name":"hud scripts","folderPath":"folders/scripts/hud scripts.yy","name":"hud scripts","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"hud scripts","folderPath":"folders/scripts/group1/hud scripts.yy","name":"hud scripts","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"MAINMENU","folderPath":"folders/scripts/MAINMENU.yy","name":"MAINMENU","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"misc","folderPath":"folders/scripts/misc.yy","name":"misc","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"player","folderPath":"folders/scripts/player.yy","name":"player","resourceType":"GMFolder","resourceVersion":"2.0",},
