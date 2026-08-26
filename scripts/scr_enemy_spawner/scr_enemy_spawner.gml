@@ -1,12 +1,16 @@
 /// @description Data-driven baseline, cluster, wave, and milestone spawning.
 
-
-/// @description Returns whether pressure configuration contains core data.
+/// @description Validates one world's enemy-pressure definition.
 
 function scr_enemy_spawner_data_valid(_data)
 {
     if (!is_struct(_data))
         return false;
+
+
+    // ========================================================================
+    // ROOT DATA
+    // ========================================================================
 
     if (!variable_struct_exists(_data, "enabled"))
         return false;
@@ -15,6 +19,12 @@ function scr_enemy_spawner_data_valid(_data)
         return false;
 
     if (!variable_struct_exists(_data, "maximum_spawns_per_step"))
+        return false;
+
+    if (!variable_struct_exists(_data, "maximum_alive_enemies"))
+        return false;
+
+    if (!variable_struct_exists(_data, "maximum_queued_enemies"))
         return false;
 
     if (!variable_struct_exists(_data, "baseline"))
@@ -29,6 +39,26 @@ function scr_enemy_spawner_data_valid(_data)
     if (!variable_struct_exists(_data, "milestones"))
         return false;
 
+    if (!variable_struct_exists(_data, "modifiers"))
+        return false;
+
+
+    if (_data.grace_seconds < 0)
+        return false;
+
+    if (_data.maximum_spawns_per_step <= 0)
+        return false;
+
+    if (_data.maximum_alive_enemies <= 0)
+        return false;
+
+    if (_data.maximum_queued_enemies <= 0)
+        return false;
+
+
+    // ========================================================================
+    // REQUIRED SECTIONS
+    // ========================================================================
 
     if (!is_struct(_data.baseline))
         return false;
@@ -39,56 +69,259 @@ function scr_enemy_spawner_data_valid(_data)
     if (!is_struct(_data.waves))
         return false;
 
+    if (!is_struct(_data.modifiers))
+        return false;
+
     if (!is_array(_data.milestones))
         return false;
 
-    if (_data.grace_seconds < 0)
+
+    // ========================================================================
+    // BASELINE
+    // ========================================================================
+
+    if (!variable_struct_exists(_data.baseline, "pool"))
         return false;
-
-    if (_data.maximum_spawns_per_step <= 0)
-        return false;
-	
-	if (!variable_struct_exists(_data, "maximum_alive_enemies"))
-    return false;
-
-	if (!variable_struct_exists(_data, "maximum_queued_enemies"))
-    return false;
-	
-	if (_data.maximum_alive_enemies <= 0)
-    return false;
-
-	if (_data.maximum_queued_enemies <= 0)
-    return false;
-	
-	if (!variable_struct_exists(_data.waves, "warning_seconds"))
-    return false;
-
-	if (_data.waves.warning_seconds < 0)
-    return false;
 
     if (!is_array(_data.baseline.pool))
         return false;
 
-    if (!is_array(_data.clusters.patterns))
+    if (!variable_struct_exists(
+        _data.baseline,
+        "weight_shift_seconds"
+    ))
+    {
+        return false;
+    }
+
+    if (!variable_struct_exists(
+        _data.baseline,
+        "weight_shift_strength"
+    ))
+    {
+        return false;
+    }
+
+    if (_data.baseline.weight_shift_seconds <= 0)
+        return false;
+
+    if (_data.baseline.weight_shift_strength < 0)
+        return false;
+
+
+    // ========================================================================
+    // CLUSTER CONFIGURATION
+    // ========================================================================
+
+    var _clusters =
+        _data.clusters;
+
+
+    if (!variable_struct_exists(_clusters, "enabled"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "interval_min_seconds"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "interval_max_seconds"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "scaling_start_seconds"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "scaling_seconds"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "count_multiplier_maximum"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "zone_width_minimum"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "zone_width_maximum"))
+        return false;
+
+    if (!variable_struct_exists(_clusters, "patterns"))
+        return false;
+
+    if (!is_array(_clusters.patterns))
+        return false;
+
+
+    if (_clusters.interval_min_seconds < 0)
+        return false;
+
+    if (
+        _clusters.interval_max_seconds
+        < _clusters.interval_min_seconds
+    )
+    {
+        return false;
+    }
+
+    if (_clusters.scaling_start_seconds < 0)
+        return false;
+
+    if (_clusters.scaling_seconds <= 0)
+        return false;
+
+    if (_clusters.count_multiplier_maximum <= 0)
+        return false;
+
+    if (_clusters.zone_width_minimum < 0)
+        return false;
+
+    if (
+        _clusters.zone_width_maximum
+        < _clusters.zone_width_minimum
+    )
+    {
+        return false;
+    }
+
+
+    // ========================================================================
+    // CLUSTER PATTERNS
+    // ========================================================================
+
+    for (
+        var i = 0;
+        i < array_length(_clusters.patterns);
+        ++i
+    )
+    {
+        var _pattern =
+            _clusters.patterns[i];
+
+        if (!is_struct(_pattern))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "key"))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "name"))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "weight"))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "unlock_seconds"))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "count_min"))
+            return false;
+
+        if (!variable_struct_exists(_pattern, "count_max"))
+            return false;
+
+        if (!variable_struct_exists(
+            _pattern,
+            "stagger_min_seconds"
+        ))
+        {
+            return false;
+        }
+
+        if (!variable_struct_exists(
+            _pattern,
+            "stagger_max_seconds"
+        ))
+        {
+            return false;
+        }
+
+
+        if (_pattern.weight <= 0)
+            return false;
+
+        if (_pattern.unlock_seconds < 0)
+            return false;
+
+        if (_pattern.count_min < 0)
+            return false;
+
+        if (_pattern.count_max < _pattern.count_min)
+            return false;
+
+        if (_pattern.stagger_min_seconds < 0)
+            return false;
+
+        if (
+            _pattern.stagger_max_seconds
+            < _pattern.stagger_min_seconds
+        )
+        {
+            return false;
+        }
+
+
+        var _dynamic =
+            variable_struct_exists(
+                _pattern,
+                "dynamic"
+            )
+            && _pattern.dynamic;
+
+
+        if (_dynamic)
+        {
+            if (!variable_struct_exists(
+                _pattern,
+                "later_enemy_bias_strength"
+            ))
+            {
+                return false;
+            }
+
+            if (_pattern.later_enemy_bias_strength < 0)
+                return false;
+        }
+        else
+        {
+            if (!variable_struct_exists(_pattern, "enemies"))
+                return false;
+
+            if (!is_array(_pattern.enemies))
+                return false;
+
+            if (array_length(_pattern.enemies) <= 0)
+                return false;
+        }
+    }
+
+
+    // ========================================================================
+    // WAVES
+    // ========================================================================
+
+    if (!variable_struct_exists(_data.waves, "definitions"))
         return false;
 
     if (!is_array(_data.waves.definitions))
         return false;
-	
-	if (!variable_struct_exists(_data, "modifiers"))
-    return false;
 
-	if (!is_struct(_data.modifiers))
-	    return false;
+    if (!variable_struct_exists(_data.waves, "warning_seconds"))
+        return false;
 
-	if (!is_array(_data.modifiers.definitions))
-	    return false;
+    if (_data.waves.warning_seconds < 0)
+        return false;
 
-	if (!variable_struct_exists(_data.waves, "cycle_start_index"))
-	    return false;
+    if (!variable_struct_exists(_data.waves, "cycle_start_index"))
+        return false;
 
-	if (_data.waves.cycle_start_index < 0)
-	    return false;
+    if (_data.waves.cycle_start_index < 0)
+        return false;
+
+
+    // ========================================================================
+    // MODIFIERS
+    // ========================================================================
+
+    if (!variable_struct_exists(_data.modifiers, "definitions"))
+        return false;
+
+    if (!is_array(_data.modifiers.definitions))
+        return false;
 
 
     return true;
@@ -163,25 +396,150 @@ function scr_enemy_spawner_step_seconds()
     );
 }
 
-
-/// @description Returns one weighted entry unlocked at the current time.
+/// @description Returns one weighted entry with optional post-unlock balancing.
 
 function scr_enemy_spawner_weighted_entry_get(
     _entries,
-    _elapsed_seconds
+    _elapsed_seconds,
+    _weight_shift_seconds = 0,
+    _weight_shift_strength = 0
 )
 {
     if (!is_array(_entries))
         return undefined;
 
+    if (array_length(_entries) <= 0)
+        return undefined;
+
 
     var _available = [];
-    var _total_weight = 0;
+    var _available_total_weight = 0;
+
+    var _entry_count =
+        array_length(_entries);
+
+    var _dynamic_weights =
+        _weight_shift_seconds > 0
+        && _weight_shift_strength > 0;
 
 
-    for (var i = 0; i < array_length(_entries); ++i)
+    // ========================================================================
+    // CALCULATE COMPLETE POOL INFORMATION
+    // ========================================================================
+
+    var _latest_unlock_seconds = 0;
+
+    var _pool_weight_total = 0;
+    var _pool_weight_count = 0;
+
+
+    if (_dynamic_weights)
     {
-        var _entry = _entries[i];
+        for (var i = 0; i < _entry_count; ++i)
+        {
+            var _entry =
+                _entries[i];
+
+            if (!is_struct(_entry))
+                continue;
+
+            if (!variable_struct_exists(_entry, "weight"))
+                continue;
+
+            if (_entry.weight <= 0)
+                continue;
+
+
+            var _unlock_seconds = 0;
+
+            if (variable_struct_exists(
+                _entry,
+                "unlock_seconds"
+            ))
+            {
+                _unlock_seconds =
+                    max(
+                        0,
+                        _entry.unlock_seconds
+                    );
+            }
+
+
+            _latest_unlock_seconds =
+                max(
+                    _latest_unlock_seconds,
+                    _unlock_seconds
+                );
+
+
+            _pool_weight_total +=
+                _entry.weight;
+
+            _pool_weight_count++;
+        }
+    }
+
+
+    // ========================================================================
+    // POST-UNLOCK BALANCE PROGRESS
+    // ========================================================================
+
+    var _balance_progress = 0;
+
+    var _average_weight = 0;
+
+
+    if (
+        _dynamic_weights
+        && _pool_weight_count > 0
+    )
+    {
+        _average_weight =
+            _pool_weight_total
+            / _pool_weight_count;
+
+
+        // Balancing begins only when the final pool entry has unlocked.
+
+        var _time_progress =
+            clamp(
+                (
+                    _elapsed_seconds
+                    - _latest_unlock_seconds
+                )
+                / _weight_shift_seconds,
+                0,
+                1
+            );
+
+
+        // Strength controls how closely the final weights approach average:
+        //
+        // strength 1 = 50%
+        // strength 2 = 75%
+        // strength 3 = 87.5%
+
+        var _maximum_balance =
+            1 - power(
+                0.5,
+                _weight_shift_strength
+            );
+
+
+        _balance_progress =
+            _time_progress
+            * _maximum_balance;
+    }
+
+
+    // ========================================================================
+    // COLLECT UNLOCKED ENTRIES
+    // ========================================================================
+
+    for (var i = 0; i < _entry_count; ++i)
+    {
+        var _entry =
+            _entries[i];
 
         if (!is_struct(_entry))
             continue;
@@ -195,37 +553,95 @@ function scr_enemy_spawner_weighted_entry_get(
 
         var _unlock_seconds = 0;
 
-        if (variable_struct_exists(_entry, "unlock_seconds"))
-            _unlock_seconds = _entry.unlock_seconds;
+        if (variable_struct_exists(
+            _entry,
+            "unlock_seconds"
+        ))
+        {
+            _unlock_seconds =
+                max(
+                    0,
+                    _entry.unlock_seconds
+                );
+        }
 
 
         if (_elapsed_seconds < _unlock_seconds)
             continue;
 
 
-        array_push(_available, _entry);
-        _total_weight += _entry.weight;
+        var _effective_weight =
+            _entry.weight;
+
+
+        // Once every enemy has unlocked, gradually move each configured
+        // weight toward the complete pool's average weight.
+        //
+        // Common enemies decrease.
+        // Uncommon enemies increase.
+        // Configured rarity remains partially preserved.
+
+        if (_dynamic_weights)
+        {
+            _effective_weight =
+                lerp(
+                    _entry.weight,
+                    _average_weight,
+                    _balance_progress
+                );
+        }
+
+
+        array_push(
+            _available,
+            {
+                entry: _entry,
+                weight: _effective_weight
+            }
+        );
+
+
+        _available_total_weight +=
+            _effective_weight;
     }
 
 
     if (array_length(_available) <= 0)
         return undefined;
 
+    if (_available_total_weight <= 0)
+        return undefined;
 
-    var _roll = random(_total_weight);
-    var _running_weight = 0;
+
+    // ========================================================================
+    // WEIGHTED SELECTION
+    // ========================================================================
+
+    var _roll =
+        random(
+            _available_total_weight
+        );
+
+    var _running_weight =
+        0;
 
 
     for (var i = 0; i < array_length(_available); ++i)
     {
-        _running_weight += _available[i].weight;
+        _running_weight +=
+            _available[i].weight;
+
 
         if (_roll < _running_weight)
-            return _available[i];
+            return _available[i].entry;
     }
 
 
-    return _available[0];
+    // Floating-point safety fallback.
+
+    return _available[
+        array_length(_available) - 1
+    ].entry;
 }
 
 
@@ -712,8 +1128,7 @@ function scr_enemy_spawner_queue_update(
     return true;
 }
 
-
-/// @description Updates continuous baseline pressure.
+/// @description Updates continuous baseline enemy pressure.
 
 function scr_enemy_spawner_baseline_update(
     _spawner,
@@ -731,7 +1146,9 @@ function scr_enemy_spawner_baseline_update(
         return true;
 
 
-    _runtime.timer -= _step_seconds;
+    _runtime.timer -=
+        _step_seconds;
+
 
     if (_runtime.timer > 0)
         return true;
@@ -744,8 +1161,12 @@ function scr_enemy_spawner_baseline_update(
         instance_number(o_enemy);
 
     var _queue_count =
-        array_length(_spawner.spawner.queue);
+        array_length(
+            _spawner.spawner.queue
+        );
 
+
+    // Delay baseline spawning while either safety limit is full.
 
     if (
         _alive_count
@@ -759,60 +1180,79 @@ function scr_enemy_spawner_baseline_update(
     }
 
 
-    var _progress = clamp(
-        _spawner.spawner.time.active_seconds
-        / max(0.001, _data.scaling_seconds),
-        0,
-        1
-    );
+    // ========================================================================
+    // BASELINE INTERVAL PROGRESSION
+    // ========================================================================
+
+    var _progress =
+        clamp(
+            _spawner.spawner.time.active_seconds
+            / max(
+                0.001,
+                _data.scaling_seconds
+            ),
+            0,
+            1
+        );
 
 
-    _runtime.current_interval = lerp(
-        _data.interval_start_seconds,
-        _data.interval_end_seconds,
-        _progress
-    );
+    _runtime.current_interval =
+        lerp(
+            _data.interval_start_seconds,
+            _data.interval_end_seconds,
+            _progress
+        );
 
+
+    // ========================================================================
+    // DYNAMIC ENEMY SELECTION
+    // ========================================================================
 
     var _entry =
         scr_enemy_spawner_weighted_entry_get(
             _data.pool,
-            _spawner.spawner.time.active_seconds
+            _spawner.spawner.time.active_seconds,
+            _data.weight_shift_seconds,
+            _data.weight_shift_strength
         );
 
 
     if (
-    !is_undefined(_entry)
-    && scr_world_current_content_allowed(
-        WorldContentType.ENEMY,
-        _entry.enemy_key
+        !is_undefined(_entry)
+        && scr_world_current_content_allowed(
+            WorldContentType.ENEMY,
+            _entry.enemy_key
+        )
     )
-	)
-	{
-	    array_push(
-	        _spawner.spawner.queue,
-	        {
-	            enemy_key: _entry.enemy_key,
+    {
+        array_push(
+            _spawner.spawner.queue,
+            {
+                enemy_key:
+                    _entry.enemy_key,
 
-	            modifiers:
-	                scr_enemy_spawner_modifiers_get(
-	                    _spawner,
-	                    _entry
-	                ),
+                modifiers:
+                    scr_enemy_spawner_modifiers_get(
+                        _spawner,
+                        _entry
+                    ),
 
-	            delay_seconds: 0,
+                delay_seconds: 0,
 
-	            side:
-	                scr_enemy_spawner_side_get(),
+                side:
+                    scr_enemy_spawner_side_get(),
 
-	            edge_ratio:
-	                random_range(0.05, 0.95),
+                edge_ratio:
+                    random_range(
+                        0.05,
+                        0.95
+                    ),
 
-	            source_name: "BASELINE",
-	            failed_attempts: 0
-	        }
-	    );
-	}
+                source_name: "BASELINE",
+                failed_attempts: 0
+            }
+        );
+    }
 
 
     _runtime.timer =
@@ -822,25 +1262,35 @@ function scr_enemy_spawner_baseline_update(
     return true;
 }
 
-/// @description Updates random localized enemy clusters.
+/// @description Updates authored and dynamically generated enemy clusters.
 
 function scr_enemy_spawner_cluster_update(
     _spawner,
     _step_seconds
 )
 {
-    var _data = _spawner.spawner.data.clusters;
-    var _runtime = _spawner.spawner.clusters;
+    var _data =
+        _spawner.spawner.data.clusters;
+
+    var _runtime =
+        _spawner.spawner.clusters;
+
 
     if (!_data.enabled)
         return true;
 
 
-    _runtime.timer -= _step_seconds;
+    _runtime.timer -=
+        _step_seconds;
+
 
     if (_runtime.timer > 0)
         return true;
 
+
+    // ========================================================================
+    // SELECT AUTHORED PATTERN OR DYNAMIC TEMPLATE
+    // ========================================================================
 
     var _pattern =
         scr_enemy_spawner_weighted_entry_get(
@@ -851,61 +1301,109 @@ function scr_enemy_spawner_cluster_update(
 
     if (!is_undefined(_pattern))
     {
-        var _scaling_progress = clamp(
-            (
-                _spawner.spawner.time.active_seconds
-                - _data.scaling_start_seconds
-            )
-            / max(0.001, _data.scaling_seconds),
-            0,
-            1
-        );
-
-        var _multiplier = lerp(
-            1,
-            _data.count_multiplier_maximum,
-            _scaling_progress
-        );
-
-        var _side =
-            scr_enemy_spawner_side_get();
-
-        var _zone_center =
-            random_range(0.12, 0.88);
-
-        var _zone_width =
-            random_range(
-                _data.zone_width_minimum,
-                _data.zone_width_maximum
+        var _scaling_progress =
+            clamp(
+                (
+                    _spawner.spawner.time.active_seconds
+                    - _data.scaling_start_seconds
+                )
+                / max(
+                    0.001,
+                    _data.scaling_seconds
+                ),
+                0,
+                1
             );
 
 
-        scr_enemy_spawner_group_queue(
-            _spawner,
-            _pattern.enemies,
-
-            _pattern.count_min * _multiplier,
-            _pattern.count_max * _multiplier,
-
-            _pattern.stagger_min_seconds,
-            _pattern.stagger_max_seconds,
-
-            _side,
-            _zone_center,
-            _zone_width,
-
-            _pattern.name
-        );
+        var _count_multiplier =
+            lerp(
+                1,
+                _data.count_multiplier_maximum,
+                _scaling_progress
+            );
 
 
-        _runtime.last_name = _pattern.name;
+        var _dynamic =
+            variable_struct_exists(
+                _pattern,
+                "dynamic"
+            )
+            && _pattern.dynamic;
+
+
+        var _enemy_pool = [];
+
+
+        if (_dynamic)
+        {
+            _enemy_pool =
+                scr_enemy_spawner_dynamic_cluster_pool_create(
+                    _spawner,
+                    _pattern
+                );
+        }
+        else
+        {
+            _enemy_pool =
+                _pattern.enemies;
+        }
+
+
+        if (array_length(_enemy_pool) > 0)
+        {
+            var _side =
+                scr_enemy_spawner_side_get();
+
+            var _zone_center =
+                random_range(
+                    0.12,
+                    0.88
+                );
+
+            var _zone_width =
+                random_range(
+                    _data.zone_width_minimum,
+                    _data.zone_width_maximum
+                );
+
+
+            var _queued =
+                scr_enemy_spawner_group_queue(
+                    _spawner,
+                    _enemy_pool,
+
+                    _pattern.count_min
+                        * _count_multiplier,
+
+                    _pattern.count_max
+                        * _count_multiplier,
+
+                    _pattern.stagger_min_seconds,
+                    _pattern.stagger_max_seconds,
+
+                    _side,
+                    _zone_center,
+                    _zone_width,
+
+                    _pattern.name
+                );
+
+
+            if (_queued)
+            {
+                _runtime.last_name =
+                    _pattern.name;
+            }
+        }
     }
 
 
-    _runtime.timer = random_range(
-        _data.interval_min_seconds,
-        _data.interval_max_seconds
-    );
+    _runtime.timer =
+        random_range(
+            _data.interval_min_seconds,
+            _data.interval_max_seconds
+        );
 
 
     return true;
@@ -1768,4 +2266,197 @@ function scr_enemy_spawn_edge(
         undefined,
         _spawn_modifiers
     );
+}
+
+/// @description Creates an unlocked weighted enemy pool for a dynamic cluster.
+
+function scr_enemy_spawner_dynamic_cluster_pool_create(
+    _spawner,
+    _pattern
+)
+{
+    var _result = [];
+
+
+    if (!instance_exists(_spawner))
+        return _result;
+
+    if (!is_struct(_pattern))
+        return _result;
+
+
+    var _pressure =
+        _spawner.spawner.data;
+
+    var _clusters =
+        _pressure.clusters;
+
+    var _baseline_pool =
+        _pressure.baseline.pool;
+
+    var _elapsed =
+        _spawner.spawner.time.active_seconds;
+
+
+    if (!is_array(_baseline_pool))
+        return _result;
+
+    if (array_length(_baseline_pool) <= 0)
+        return _result;
+
+
+    // ========================================================================
+    // DYNAMIC CLUSTER PROGRESSION
+    // ========================================================================
+
+    var _progress =
+        clamp(
+            (
+                _elapsed
+                - _clusters.scaling_start_seconds
+            )
+            / max(
+                0.001,
+                _clusters.scaling_seconds
+            ),
+            0,
+            1
+        );
+
+
+    var _bias_strength =
+        max(
+            0,
+            _pattern.later_enemy_bias_strength
+        );
+
+    var _pool_count =
+        array_length(_baseline_pool);
+
+
+    // ========================================================================
+    // BUILD THE CURRENTLY AVAILABLE POOL
+    // ========================================================================
+
+    for (var i = 0; i < _pool_count; ++i)
+    {
+        var _entry =
+            _baseline_pool[i];
+
+        if (!is_struct(_entry))
+            continue;
+
+        if (!variable_struct_exists(_entry, "enemy_key"))
+            continue;
+
+        if (!variable_struct_exists(_entry, "weight"))
+            continue;
+
+        if (_entry.weight <= 0)
+            continue;
+
+
+        var _unlock_seconds = 0;
+
+        if (variable_struct_exists(
+            _entry,
+            "unlock_seconds"
+        ))
+        {
+            _unlock_seconds =
+                max(
+                    0,
+                    _entry.unlock_seconds
+                );
+        }
+
+
+        // Dynamic clusters never select locked enemies.
+
+        if (_elapsed < _unlock_seconds)
+            continue;
+
+
+        if (
+            !scr_world_current_content_allowed(
+                WorldContentType.ENEMY,
+                _entry.enemy_key
+            )
+        )
+        {
+            continue;
+        }
+
+
+        var _enemy_data =
+            scr_enemy_data_get(
+                _entry.enemy_key
+            );
+
+        if (!scr_enemy_data_valid(_enemy_data))
+            continue;
+
+
+        // Pool position supplies a lightweight difficulty approximation.
+        // Earlier entries retain their original weight.
+        // Later entries gain a gradual weight bonus as pressure scales.
+
+        var _tier =
+            i
+            / max(
+                1,
+                _pool_count - 1
+            );
+
+        var _later_multiplier =
+            power(
+                2,
+                _tier
+                * _progress
+                * _bias_strength
+            );
+
+
+        var _generated_entry =
+        {
+            enemy_key:
+                _entry.enemy_key,
+
+            weight:
+                _entry.weight
+                * _later_multiplier,
+
+            // This generated pool already performed its unlock check.
+            unlock_seconds: 0
+        };
+
+
+        // Preserve any guaranteed modifiers configured on the baseline entry.
+
+        if (
+            variable_struct_exists(
+                _entry,
+                "modifiers"
+            )
+            && is_array(_entry.modifiers)
+        )
+        {
+            variable_struct_set(
+                _generated_entry,
+                "modifiers",
+                scr_enemy_modifiers_copy(
+                    _entry.modifiers
+                )
+            );
+        }
+
+
+        array_push(
+            _result,
+            _generated_entry
+        );
+    }
+
+
+    return _result;
 }

@@ -225,26 +225,31 @@ function scr_world_data_initialize()
 				    interval_start_seconds: 3.25,
 				    interval_end_seconds: 0.9,
 				    scaling_seconds: 1200,
+					weight_shift_seconds: 300,
+					weight_shift_strength: 2,
 
 				    pool:
 				    [
-				        { enemy_key: "enemy_weak",            weight: 100, unlock_seconds: 0   },
-				        { enemy_key: "enemy_hunter",          weight: 45,  unlock_seconds: 60  },
-				        { enemy_key: "enemy_shooter_single",  weight: 30,  unlock_seconds: 120 },
-				        { enemy_key: "enemy_kamikaze",        weight: 16,  unlock_seconds: 180 },
-				        { enemy_key: "enemy_phaser",          weight: 12,  unlock_seconds: 240 },
-				        { enemy_key: "enemy_shooter_triple",  weight: 18,  unlock_seconds: 300 },
-				        { enemy_key: "enemy_flyer",           weight: 18,  unlock_seconds: 360 },
-						{ enemy_key: "enemy_centipede_head",  weight: 5,   unlock_seconds: 380 },
-				        { enemy_key: "enemy_splitter",        weight: 10,  unlock_seconds: 420 },
-						{ enemy_key: "enemy_sniper",          weight: 5,   unlock_seconds: 450 },
-				        { enemy_key: "enemy_brute",           weight: 12,  unlock_seconds: 480 },
-				        { enemy_key: "enemy_transporter",     weight: 7,   unlock_seconds: 540 },
-				        { enemy_key: "enemy_gunship",         weight: 8,   unlock_seconds: 600 },
-				        { enemy_key: "enemy_shield_generator",weight: 5,   unlock_seconds: 660 },
-				        { enemy_key: "enemy_siege_beam",      weight: 4,   unlock_seconds: 720 },
-				        { enemy_key: "enemy_siege_rocket",    weight: 4,   unlock_seconds: 780 }
-				    ]
+			    { enemy_key: "enemy_weak",             weight: 70, unlock_seconds: 0   },
+			    { enemy_key: "enemy_hunter",           weight: 45, unlock_seconds: 24  },
+			    { enemy_key: "enemy_shooter_single",   weight: 30, unlock_seconds: 48  },
+			    { enemy_key: "enemy_kamikaze",         weight: 16, unlock_seconds: 72  },
+			    { enemy_key: "enemy_phaser",           weight: 12, unlock_seconds: 96  },
+			    { enemy_key: "enemy_shooter_triple",   weight: 18, unlock_seconds: 120 },
+			    { enemy_key: "enemy_flyer",            weight: 18, unlock_seconds: 144 },
+			    { enemy_key: "enemy_centipede_head",   weight: 5,  unlock_seconds: 152 },
+			    { enemy_key: "enemy_splitter",         weight: 10, unlock_seconds: 168 },
+			    { enemy_key: "enemy_sniper",           weight: 5,  unlock_seconds: 180 },
+			    { enemy_key: "enemy_brute",            weight: 12, unlock_seconds: 192 },
+			    { enemy_key: "enemy_weak_mk2",         weight: 10, unlock_seconds: 200 },
+			    { enemy_key: "enemy_hunter_mk2",       weight: 10, unlock_seconds: 204 },
+			    { enemy_key: "enemy_transporter",      weight: 7,  unlock_seconds: 216 },
+			    { enemy_key: "enemy_gunship",          weight: 8,  unlock_seconds: 240 },
+			    { enemy_key: "enemy_shield_generator", weight: 5,  unlock_seconds: 264 },
+			    { enemy_key: "enemy_siege_beam",       weight: 4,  unlock_seconds: 288 },
+			    { enemy_key: "enemy_siege_rocket",     weight: 4,  unlock_seconds: 312 },
+			    { enemy_key: "enemy_heavy_flyer",      weight: 3,  unlock_seconds: 360 }
+			]
 				},
 
 
@@ -259,11 +264,28 @@ function scr_world_data_initialize()
 					scaling_seconds: 900,
 					count_multiplier_maximum: 3.0,
 
-                    zone_width_minimum: 0.08,
+                    zone_width_minimum: 0.1,
                     zone_width_maximum: 0.22,
 
                     patterns:
 							[
+						{
+						    key: "dynamic_cluster",
+						    name: "Adaptive Cluster",
+
+						    dynamic: true,
+
+						    weight: 200,
+						    unlock_seconds: 0,
+
+						    count_min: 10,
+						    count_max: 15,
+
+						    stagger_min_seconds: 0.10,
+						    stagger_max_seconds: 0.30,
+
+						    later_enemy_bias_strength: 1.5
+						},
 						{
 							key: "weak_cluster", name: "Weak Cluster", weight: 100, unlock_seconds: 0,
 							enemies: [
@@ -360,7 +382,7 @@ function scr_world_data_initialize()
 
 
                 waves:
-{
+	{
     enabled: true,
     warning_seconds: 8,
 
@@ -574,74 +596,39 @@ function scr_world_data_initialize()
 
 
                 milestones:
-                [
-                    {
-                        key: "first_blood",
-                        name: "FIRST BLOOD RESPONSE",
+				[
+				    {
+				        key: "first_blood",
+				        name: "FIRST BLOOD RESPONSE",
+				        trigger_kills: 50,
+				        enemies: [
+				            { enemy_key: "enemy_weak",   weight: 70 },
+				            { enemy_key: "enemy_hunter", weight: 30 }
+				        ],
+				        count_min: 36,
+				        count_max: 42,
+				        stagger_min_seconds: 0.08,
+				        stagger_max_seconds: 0.18
+				    },
 
-                        trigger_kills: 25,
-
-                        enemies:
-                        [
-                            {
-                                enemy_key: "enemy_weak",
-                                weight: 70
-                            },
-
-                            {
-                                enemy_key: "enemy_hunter",
-                                weight: 30
-                            }
-                        ],
-
-                        count_min: 18,
-                        count_max: 24,
-
-                        stagger_min_seconds: 0.08,
-                        stagger_max_seconds: 0.18
-                    },
-
-                    {
-                        key: "century_harvest",
-                        name: "THE CENTURY HARVEST",
-
-                        trigger_kills: 100,
-
-                        enemies:
-                        [
-                            {
-                                enemy_key: "enemy_weak",
-                                weight: 45
-                            },
-
-                            {
-                                enemy_key: "enemy_hunter",
-                                weight: 20
-                            },
-
-                            {
-                                enemy_key: "enemy_shooter_triple",
-                                weight: 15
-                            },
-
-                            {
-                                enemy_key: "enemy_kamikaze",
-                                weight: 10
-                            },
-
-                            {
-                                enemy_key: "enemy_splitter",
-                                weight: 10
-                            }
-                        ],
-
-                        count_min: 40,
-                        count_max: 55,
-
-                        stagger_min_seconds: 0.05,
-                        stagger_max_seconds: 0.14
-                    }
-                ]
+				    {
+				        key: "century_harvest",
+				        name: "THE 3.CENTURY HARVEST",
+				        trigger_kills: 300,
+				        enemies: [
+				            { enemy_key: "enemy_weak",           weight: 45 },
+				            { enemy_key: "enemy_hunter",         weight: 20 },
+				            { enemy_key: "enemy_shooter_triple", weight: 15 },
+				            { enemy_key: "enemy_kamikaze",       weight: 10 },
+							{ enemy_key: "enemy_sniper",         weight: 10 },
+				            { enemy_key: "enemy_splitter",       weight: 10 }
+				        ],
+				        count_min: 100,
+				        count_max: 150,
+				        stagger_min_seconds: 0.08,
+				        stagger_max_seconds: 0.14
+				    }
+				]
             }
 
 
