@@ -1,0 +1,402 @@
+
+
+Add rotation time to towers
+
+implement player foundation for different player objects, like heavy, or fast
+
+# VECTOR TD — FUTURE IDEAS / DESIGN BACKLOG
+
+Condensed collection of gameplay, enemy, tower, economy, world, progression, UI, and simulation ideas. These are concepts rather than confirmed features.
+
+---
+
+## ENEMIES / ENEMY AI
+
+### Enemy Orders
+Enemies can spawn with an additional tactical order such as RUSH, SABOTAGE, SUPPRESS, HUNT, ESCORT, or SCAVENGE. This lets the same enemy definition behave differently between attacks without needing another enemy type.
+
+### Revenge Targeting
+Certain enemies can temporarily prioritize the tower/player that has caused them significant damage. Particularly suitable for aggressive heavies and elites.
+
+### Berserker Enemy
+Heavy enemy that becomes increasingly dangerous as its HP falls. Low health could increase movement speed, attack speed, damage, or aggression.
+
+### Burrower Enemy
+Uses the UNDERGROUND movement layer. Travels underground where most towers cannot attack it, but periodically surfaces and becomes vulnerable.
+
+### Tower Hacker
+Special enemy that attacks towers by temporarily disabling or disrupting them rather than simply damaging them. Could force the player to protect important support towers.
+
+### Mimic / Adaptive Enemy
+Temporarily develops resistance to whatever damage type has recently hurt it most. Encourages mixed defenses instead of relying completely on one weapon type.
+
+### Coward Enemy
+Attempts to retreat toward a heavy, shield unit, or safer position after taking significant damage. Makes enemies appear smarter without complicated AI.
+
+### Signal Node Enemy
+Purple support enemy that strengthens nearby enemies and/or periodically calls reinforcements. Individually weak but becomes an important priority target.
+
+### Repair Enemy
+Support unit that repairs nearby damaged mechanical enemies. Killing support units before the heavies becomes strategically important.
+
+### Salvager Enemy
+Collects wreckage from destroyed enemies and becomes progressively stronger. Ignoring one for too long could allow it to transform into a dangerous heavy unit.
+
+### Kidnapper Enemy
+Captures vulnerable drones or other valuable units and attempts to escape the map rather than destroy them. Killing it before escape recovers the captured unit.
+
+### Demolition Enemy
+Specialized BREACH unit that attempts to identify structurally important walls or defensive chokepoints instead of simply attacking the first obstruction.
+
+### Recon Enemy
+Attempts to penetrate the base, scan defenses, and escape rather than attack the CPU. If it successfully transmits its information, future enemy forces become better adapted to the player's defenses.
+
+### Enemy Confidence
+Enemy squads can perform occasional high-level evaluations of defenses. A weak squad facing overwhelming resistance might redirect toward economy or another objective rather than committing suicide.
+
+### Enemy Threat Memory
+Enemy forces remember successful routes, weak defensive areas, or locations discovered by scouts. Future attacks can gradually become more likely to exploit those areas.
+
+### Enemy Strategic Targeting
+Choose objectives when a squad spawns instead of constantly performing expensive strategic calculations. The squad then executes that objective until something significant changes.
+
+### Enemy Morale
+Squads have a shared morale value affected by losses, commander deaths, or destruction of important units. Different enemy types respond differently to low morale: retreating, slowing, becoming enraged, etc.
+
+### Enemy Commanders
+Certain waves contain command units that provide behavioural or combat bonuses to their squad. Destroying the commander changes the behaviour/effectiveness of the surviving formation.
+
+### Enemy Formation Controllers
+Groups can have a lightweight controller that encourages loose formations around an anchor unit. Shield generators, heavies, shooters, and support enemies can therefore naturally operate together.
+
+### Shield Formations
+Shield/support enemies position around vulnerable ranged units and heavies. The player may need to break the protective formation before efficiently killing its core units.
+
+### Feint Squads
+Small forces intentionally attack one area to draw attention while the primary assault arrives somewhere else.
+
+### Heavy Siege Deployment
+Siege enemies visibly deploy before firing: stop, extend anchors, enter siege mode, then gain access to their long-range weapon. Repositioning requires undeploying first, giving the player readable warning windows.
+
+### Enemy Technology Escalation
+The enemy faction gains technology as the game progresses: shields, advanced targeting, phasing, improved weapons, etc. The opposition feels like a civilization progressing alongside the player.
+
+### Difficulty Changes Enemy Doctrine
+Higher difficulties improve enemy coordination and objective selection rather than merely multiplying HP/damage. Siege units stay behind heavies, scouts gather intelligence, hunters attack infrastructure, etc.
+
+---
+
+## ENEMY / WAVE DIRECTOR
+
+### Threat Budget
+Instead of constructing every attack manually, enemies have threat costs and the director receives a budget. It can dynamically assemble varied forces while milestone events remain handcrafted.
+
+### Adaptive Enemy Composition
+Periodically analyze the player's defense composition and gradually alter future enemy weights. Heavy wall usage encourages siege/phasers, excessive AA encourages more ground attacks, compact fortresses encourage artillery, etc.
+
+### Baseline + Adaptive + Milestone Waves
+Combine normal pressure spawning, player-defense adaptation, and handcrafted milestone attacks. This keeps normal gameplay unpredictable while retaining memorable scripted events.
+
+### Deliberate Quiet Periods
+The director occasionally reduces pressure instead of constantly attacking. Quiet periods allow expansion while also creating tension because the player knows another attack is coming.
+
+### Fake Attacks
+Send a convincing small assault from one direction followed by the real attack elsewhere. Punishes moving all attention/resources toward the first threat.
+
+### Siege Warnings
+Major siege formations are announced before arrival with direction and ETA. This creates tension while remaining fair and gives the player time to reinforce the threatened area.
+
+### Multiple Simultaneous Objectives
+Different enemy groups can attack different objectives at once: siege in the north, hunters hitting economy in the east, scout escaping south, etc. This gives the player's physical location much more importance.
+
+### Migration Events
+Large neutral/hostile groups occasionally cross the map without targeting the player. Leaving them alone is safe, while attacking them voluntarily creates a dangerous fight in exchange for valuable loot.
+
+### Economy / Signature Based Pressure
+Large industrial bases gradually attract more enemy attention. Rapid economic expansion therefore provides greater production while increasing long-term pressure.
+
+---
+
+## BOSSES
+
+### Modular Bosses
+Bosses consist of individually destructible systems such as engines, sensors, launch bays, weapons, shield generators, and the core. Destroying components changes how the boss behaves.
+
+### Terrain-Breaking Boss
+A massive boss can physically smash through defensive walls or terrain and leave a permanent opening. Following enemies can exploit the route it creates.
+
+### Carrier Boss
+Large enemy continuously launches smaller enemies. Destroying individual launch bays reduces its spawning capability before the core is killed.
+
+### Retreating Boss
+Some bosses attempt to escape when badly damaged. If they survive, they can return in a later encounter with damage, repairs, or new upgrades, creating continuity between battles.
+
+---
+
+## TOWERS / WEAPONS
+
+### Railgun Tower
+Fires a projectile/hitscan line that penetrates multiple enemies. Damage can decrease with each penetration, rewarding positioning enemies into long lines.
+
+### Tesla Tower
+Lightning chains between nearby enemies. Dense enemy groups become particularly vulnerable and tower placement affects how effectively chains propagate.
+
+### Gravity Tower
+Low/no direct damage support tower that periodically pulls enemies together. Combines extremely well with mortars, cannons, railguns, and area damage.
+
+### Repulsor Tower
+Pushes enemies away from defenses. Heavy enemies can resist knockback while lighter enemies can be pushed away from walls or CPU.
+
+### Marker Tower
+Paints priority enemies and causes them to receive increased damage from other weapons. Particularly useful against bosses, heavies, siege units, and support enemies.
+
+### Energy Amplifier
+Support structure increases nearby tower performance while increasing their energy consumption. Creates powerful defensive clusters with infrastructure costs.
+
+### Tower Overdrive
+Player temporarily overdrives a tower for increased fire rate/range/damage at the cost of much higher energy consumption and heat. Excessive use causes temporary overheating/offline time.
+
+### Tower Veterancy
+Towers gain small bonuses through combat experience. Veteran towers become valuable assets whose destruction matters beyond replacement cost.
+
+### Tower Modules
+Towers have limited module slots rather than only linear upgrades. Examples include AP ammunition, cooling systems, range optics, targeting computers, etc.
+
+### Tower Fire Policies
+Expand targeting controls with HOLD FIRE, CONSERVE ENERGY, FOCUS FIRE, ONLY ARMOURED, ONLY UNSHIELDED, etc. Gives the player more control over expensive/specialized weapons.
+
+### Hold Fire
+Allow individual towers to stop firing. Particularly useful for preventing artillery or sniper towers wasting expensive attacks on insignificant targets.
+
+### Minimum Engagement Range
+Certain artillery weapons cannot attack enemies directly beside themselves. Creates natural weaknesses and encourages layered defenses.
+
+### Specialist Ammunition
+Most towers remain energy based, but extremely powerful weapons can consume manufactured ammunition. This connects industry directly to high-end defense.
+
+### Tower Cross-Support
+Compatible towers can share information or create bonuses. Radar improves targeting, multiple lasers improve shield stripping, AA shares tracking data, etc.
+
+---
+
+## PLAYER
+
+### Manual Target Designation
+Player marks an enemy as a priority target. Nearby compatible towers temporarily focus that enemy, giving the player direct influence over automated defenses.
+
+### Battlefield Scanner Pulse
+Player emits a scan that temporarily reveals cloaked enemies, enemy intentions, resource information, damaged buildings, targeting lines, or other tactical information.
+
+### Player Deployables
+Temporary battlefield equipment such as EMP mines, target beacons, temporary shields, repair fields, or decoys. These supplement permanent tower construction.
+
+### Decoy Beacon
+Temporary device that attracts enemies capable of being fooled by it. Can redirect a dangerous assault away from important infrastructure.
+
+### Emergency Repair Beam
+Player can manually repair damaged structures. Repairing means temporarily giving up direct combat, creating a meaningful battlefield decision.
+
+### Player Command Aura
+Towers near the player receive a small command-link bonus such as improved tracking, targeting, or accuracy. Entering dangerous areas therefore provides a strategic reward.
+
+### Player Reconstruction
+Player death does not immediately end the TD game. The CPU reconstructs the player ship after a delay, temporarily removing the player's ability to personally intervene.
+
+---
+
+## CPU / BASE
+
+### CPU Emergency Protocols
+CPU behaviour changes as its health falls. Low health can redirect power from economy toward defenses, activate emergency weapons, or trigger a last-stand state.
+
+### CPU Modules
+CPU has a limited number of upgrade slots such as Defense Processor, Logistics Processor, Energy Processor, etc. The chosen modules define the strategic specialization of the base.
+
+### CPU Processing Capacity
+Advanced systems consume computational capacity in addition to electricity. Radar, targeting networks, drones, and automation could contribute to CPU LOAD, creating another highly thematic infrastructure resource.
+
+### CPU Firewall Layers
+Instead of one simple health bar, attackers progressively breach firewall/defense layers before exposing the core. Each layer can visually and mechanically represent the base approaching destruction.
+
+---
+
+## POWER / INFRASTRUCTURE
+
+### Power Grid Disruption
+Special enemies can disrupt power hubs/relays instead of merely damaging them. Losing one relay could temporarily shut down an entire defensive cluster.
+
+### Emergency Batteries
+Battery structures store surplus energy and temporarily power defenses after generation is destroyed or overloaded. Creates redundancy and makes power-grid design meaningful.
+
+### Physical Power Network
+Power structures could eventually form visible connections between generators, relays, batteries, and consumers. Damaging key infrastructure creates localized outages.
+
+---
+
+## RESOURCES / ECONOMY
+
+### Combat-Relevant Resource Nodes
+Unmined deposits can provide local battlefield effects. Crystals might improve shields, uranium boost energy weapons, volatile deposits can explode, etc., creating a choice between mining and preserving them.
+
+### Ore Quality
+Deposits have different purity levels. High-quality deposits provide better yields or extraction rates, making some resource areas strategically more valuable.
+
+### Deep Deposits
+Exhausted deposits can later be reopened using advanced deep-mining technology. Previously abandoned territory becomes economically relevant again.
+
+### Resource Prospecting
+Some deposits initially appear as UNKNOWN MINERAL SIGNALS. The player must scan/prospect them before learning their contents.
+
+### Refinery Specialization
+Refineries can remain general-purpose or specialize in particular materials for increased throughput. Specialization creates economic planning without requiring huge complexity.
+
+### Production Queues
+Refineries/fabricators support configurable production queues and optional repeating orders. Allows the player to automate industrial priorities.
+
+### Strategic Stockpiles
+Stored resources exist in actual storage infrastructure. Concentrating everything in one warehouse is efficient but creates a dangerous single point of failure.
+
+### Emergency Resource Conversion
+CPU can perform extremely inefficient emergency material conversion/fabrication. It is economically terrible but may save the player during a desperate defense.
+
+### Lightweight Logistics
+Resources automatically transfer between nearby mines, storage, refineries, etc. through logistics radius/network connections rather than requiring Factorio-style conveyor belts.
+
+---
+
+## CONSTRUCTION / BUILDINGS
+
+### Construction Time
+Buildings progress through foundation, frame, systems, and online states instead of appearing instantly. Enemies can attack vulnerable unfinished structures.
+
+### Construction Drones
+CPU/fabrication hubs dispatch small vector drones that visually construct buildings. Additional construction infrastructure can increase simultaneous building capacity.
+
+### Building Damage States
+Buildings visually change as HP falls with sparks, broken geometry, flickering lights, and critical warnings. Vector graphics make these effects inexpensive and readable.
+
+### Salvage / Dismantling
+Player can dismantle unwanted buildings for partial resource refunds. Emergency dismantling can happen faster but returns fewer materials.
+
+---
+
+## WORLD / PROCEDURAL GENERATION
+
+### Map Archetypes
+Generated maps receive strategic identities such as Fortress, Open Field, Resource Rich, Fractured, Dead World, Infested, etc. Generation parameters change substantially between archetypes.
+
+### Natural Defensive Terrain
+Procedural generation deliberately creates occasional partial chokepoints. The player can complete them with a few walls, rewarding recognition of useful terrain.
+
+### Resource Geography
+Different resources prefer different terrain/location rules. Common resources may be safe while rare resources appear in exposed or dangerous regions.
+
+### Exploration / Unknown Regions
+Some map areas begin unexplored. Player movement, scanners, or radar reveal terrain, deposits, and threats.
+
+### Dormant Enemy Structures
+Maps can contain inactive enemy nests/outposts. Destroy them early for rewards or leave them alone and risk activation later.
+
+### Map Traits
+Each generated sector receives modifiers such as MINERAL RICH, LOW SOLAR OUTPUT, HOSTILE ECOLOGY, HIGH ENEMY ACTIVITY, etc. Traits alter strategy while reusing existing systems.
+
+### Ancient / Neutral Structures
+Procedural maps occasionally contain abandoned reactors, defense platforms, signal arrays, mining complexes, or alien structures. Capturing/repairing them provides unique advantages.
+
+### Destructible Terrain
+Certain dead terrain can be destroyed by powerful explosives/siege weapons. Combat can therefore permanently create new enemy routes or firing lanes.
+
+### Environmental Hazards
+Maps can experience electromagnetic storms, solar flares, radiation, unstable ground, meteor impacts, or visibility interference. Telegraph dangerous events so they create strategy rather than random punishment.
+
+---
+
+## RADAR / INFORMATION WARFARE
+
+### Radar Intelligence
+Radar provides increasingly detailed information about incoming enemies. Without radar the player may only see UNKNOWN HOSTILE SIGNALS; advanced radar identifies enemy types, counts, direction, and ETA.
+
+### Enemy Jammers
+Jammer enemies corrupt radar information while inside operational range. Destroying them restores accurate battlefield intelligence.
+
+### False Radar Contacts
+Advanced enemies can generate fake contacts. The player must identify which incoming signals are genuine.
+
+### Tactical Overlay
+A key toggles a schematic view showing tower ranges, enemy paths, power connections, targeting lines, objectives, and threat directions without permanently cluttering normal gameplay.
+
+---
+
+## WRECKAGE / BATTLEFIELD PERSISTENCE
+
+### Enemy Wreckage
+Large destroyed enemies can leave temporary wrecks that block movement, provide salvage, or alter firing lanes. A dead brute in a chokepoint might temporarily become part of the player's defenses.
+
+### Wreck Harvesting
+After major battles, salvage drones can collect battlefield debris. The player must choose between investing time/resources into salvage or immediately repairing defenses.
+
+### Enemy-Specific Salvage
+Different enemy technologies produce different materials. Mechanical enemies provide metals, shield units provide crystals/electronics, and bosses provide rare technology.
+
+### Persistent Battlefield Damage
+Wrecks, impact marks, destroyed terrain, depleted deposits, and damaged structures remain visible. The battlefield gradually tells the history of the match.
+
+---
+
+## RESEARCH / TECHNOLOGY
+
+### Research Through Observation
+Some technologies unlock by encountering, scanning, or killing relevant enemy types. Studying phasers could eventually unlock phase detection rather than simply purchasing it from a generic research tree.
+
+### Captured Technology
+Rare enemy components unlock alternate tower modules, weapons, defenses, or upgrades. Fighting unusual enemies therefore contributes directly to progression.
+
+### Technology Branches
+Research branches into BALLISTICS, ENERGY, CONTROL, DEFENSE, INDUSTRY, etc. Limited resources prevent immediately researching everything and encourage different builds.
+
+### Campaign Persistence
+Completing maps allows selected technologies, discoveries, or bonuses to carry forward while the physical base resets. Provides long-term progression without eliminating individual-map challenge.
+
+---
+
+## VISUAL / AUDIO / ATMOSPHERE
+
+### Reactive Vector Damage
+Damaged enemies/buildings lose pieces of geometry, flicker, spark, distort, or leave trails. Keeps the vector style while making combat much more visually responsive.
+
+### Enemy Communications
+Display occasional intercepted network messages such as ROUTE RECALCULATION, SIEGE LINK ESTABLISHED, or ASSAULT SIGNAL RECEIVED. Underlying AI behaviour becomes part of the game's atmosphere.
+
+### Reactive Music
+Music intensity follows threat level. Calm layers play during construction, percussion enters during combat, additional layers appear during major attacks, and special cues accompany siege/boss events.
+
+### Tactical Target Lines
+Scanner/tactical mode can briefly visualize enemy intentions using thin vector lines from enemies toward their selected CPU/building/player targets.
+
+---
+
+## BASE SIGNATURE / ENEMY AWARENESS
+
+### Base Signature
+Mining, refining, generators, radar, heavy weapons, and other industrial activity produce a detectable signal. Larger and more advanced bases naturally attract greater enemy attention.
+
+### Enemy Awareness Levels
+Signature contributes to states such as UNDETECTED, LOW, ELEVATED, HIGH, and CRITICAL enemy awareness. Higher awareness influences attack budgets, enemy technology, reconnaissance, and special events.
+
+### Signal Dampeners
+Expensive structures consume large amounts of energy to reduce base signature. The player can choose between maximizing industrial output or investing resources into remaining less detectable.
+
+### Expansion Risk / Reward
+Economic expansion becomes inherently dangerous: more mining creates more resources, resources enable industry, industry creates signature, signature attracts stronger attacks, and stronger attacks provide better salvage/technology.
+
+---
+
+## BIG SYSTEM INTERACTION GOAL
+
+The strongest direction is to make systems affect one another rather than creating isolated mechanics.
+
+A possible core relationship:
+
+**EXPLORE → DISCOVER → MINE → REFINE → BUILD → CONSUME POWER → CREATE SIGNATURE → ATTRACT ENEMIES → DEFEND → SALVAGE → RESEARCH → EXPAND**
+
+The objective is for simple modular systems to combine into unpredictable situations. New enemies, towers, buildings, resources, map traits, and technologies should ideally plug into this loop rather than requiring completely separate gameplay systems.

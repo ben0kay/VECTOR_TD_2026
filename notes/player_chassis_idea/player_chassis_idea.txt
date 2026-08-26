@@ -1,0 +1,217 @@
+# VECTOR TD — PLAYER CHASSIS / CLASSES
+
+Player chooses a chassis at the beginning of a level.
+
+Chassis should create clearly different gameplay roles without becoming an overly complicated RPG class system.
+
+Persistent player upgrades and local level upgrades can further specialize each chassis.
+
+Main idea: **the chassis determines what the player is naturally good at, while upgrades determine how they develop it.**
+
+---
+
+## ASSAULT
+
+Direct combat-focused chassis.
+
+Designed for players who want to personally contribute heavily to killing enemies and intercepting dangerous groups before they reach the base.
+
+**Strengths:**
+- High weapon damage
+- Good fire rate / weapon performance
+- Good movement speed
+- Good general combat capability
+
+**Weaknesses:**
+- Poor repair ability
+- Poor building/support capability
+- Average durability
+
+**Gameplay:**
+Spend most of the level fighting enemies, hunting priority targets, intercepting siege units, and supporting towers with direct firepower.
+
+Relies more heavily on repair towers/drones and automated base infrastructure for maintenance.
+
+---
+
+## HEAVY
+
+Frontline combat/tank chassis.
+
+Designed for players who want to physically hold dangerous defensive positions and survive large enemy attacks.
+
+**Strengths:**
+- Very high hull / HP
+- High armour
+- Strong shields
+- Good combat capability
+
+**Weaknesses:**
+- Slow movement
+- Slow acceleration
+- Poor repair capability
+- Cannot respond across the map as quickly as Assault
+
+**Gameplay:**
+Move to the most dangerous defensive front and stay there.
+
+Excellent for fighting large groups at close range, protecting damaged defenses, and surviving situations that would force other chassis to retreat.
+
+Relies heavily on automated repair infrastructure.
+
+---
+
+## ENGINEER
+
+Base maintenance and infrastructure chassis.
+
+Designed for players who enjoy personally maintaining, repairing, mining, and supporting their base rather than maximizing direct combat power.
+
+**Strengths:**
+- Very fast repairs
+- Better building interaction
+- Good mining capability
+- Good mobility
+- Strong infrastructure utility
+
+**Weaknesses:**
+- Lower weapon damage
+- Lower combat durability
+- Poorer direct combat than Assault or Heavy
+
+**Gameplay:**
+Move around the base repairing walls, towers and infrastructure while helping wherever necessary.
+
+Can still fight enemies, but its main advantage comes from keeping the player's defenses operational.
+
+An Engineer player can rely less heavily on dedicated repair towers because they can personally perform much of that role.
+
+---
+
+## SUPPORT
+
+Battlefield support / tower assistance chassis.
+
+Unlike Engineer, which directly repairs and maintains buildings, Support improves the performance of operational defenses.
+
+**Strengths:**
+- Balanced combat ability
+- Balanced durability
+- Strong tower support
+- Good battlefield utility
+
+**Weaknesses:**
+- Less direct damage than Assault
+- Less durability than Heavy
+- Worse repairs than Engineer
+
+**Possible defining feature:**
+
+**COMMAND LINK**
+
+Towers within a radius around the Support player receive small bonuses such as improved fire rate, targeting, range, or energy efficiency.
+
+Keep the bonus relatively simple rather than creating many complicated abilities.
+
+**Gameplay:**
+Move between defensive fronts depending on where the largest attack is occurring.
+
+The player's location becomes strategically important because defenses perform better while Support is nearby.
+
+---
+
+## POSSIBLE LATER CLASS — SCOUT
+
+Not necessary for the initial implementation.
+
+Fast reconnaissance/exploration chassis that could become more useful as radar, scanning, procedural exploration, and resource discovery systems expand.
+
+**Strengths:**
+- Very high movement speed
+- Very high acceleration
+- Improved radar/scanner
+- Good exploration capability
+
+**Weaknesses:**
+- Low HP
+- Weak direct combat
+- Poor repairs
+
+**Gameplay:**
+Explore the map, locate resources, reveal incoming threats, hunt enemy scouts, and rapidly respond to distant problems.
+
+---
+
+# INITIAL CLASS SET
+
+Recommended initial implementation:
+
+**ASSAULT**
+> I kill things.
+
+**HEAVY**
+> I hold the line.
+
+**ENGINEER**
+> I keep the base alive.
+
+**SUPPORT**
+> I make the defenses stronger.
+
+Possible later addition:
+
+**SCOUT**
+> I control mobility and information.
+
+---
+
+# DESIGN RULE
+
+Avoid creating many slightly different chassis such as Heavy / Tank / Armoured / Juggernaut.
+
+Each chassis should exist because it produces a noticeably different way of playing the level.
+
+The major trade-off should be **player time and responsibility**, not just stats.
+
+For example:
+
+**ASSAULT / HEAVY**
+Player spends more time fighting.
+Base needs more automated repair/support infrastructure.
+
+**ENGINEER**
+Player personally handles much more maintenance.
+Can spend less on automated repair infrastructure.
+
+**SUPPORT**
+Player moves toward important defensive fronts to strengthen tower performance.
+
+This allows base design and player chassis choice to affect each other.
+
+---
+
+# UPGRADES
+
+Chassis provides the baseline identity.
+
+Persistent upgrades provide long-term progression.
+
+Local level upgrades provide temporary specialization during an individual level.
+
+Example:
+
+Two players can both select ASSAULT but develop completely differently through upgrades.
+
+One could specialize into:
+- High fire rate
+- Movement
+- Energy weapons
+
+Another could specialize into:
+- Heavy damage
+- Shields
+- Explosives
+
+They remain ASSAULT chassis, but their upgrade choices create different builds.
+
+The chassis should therefore provide a **strong starting identity without determining the player's entire build.**

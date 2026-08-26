@@ -1,7 +1,7 @@
 {
   "$GMNotes":"v1",
-  "%Name":"TO-DO",
-  "name":"TO-DO",
+  "%Name":"player_chassis_idea",
+  "name":"player_chassis_idea",
   "parent":{
     "name":"NOTES",
     "path":"folders/NOTES.yy",

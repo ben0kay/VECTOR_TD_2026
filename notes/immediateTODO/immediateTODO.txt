@@ -1,5 +1,0 @@
-
-
-Add rotation time to towers
-
-implement player foundation for different player objects, like heavy, or fast
