@@ -416,7 +416,7 @@ function scr_enemy_data_weak()
             },
 
             rewards:
-            scr_enemy_rewards_create(5, 1),
+            scr_enemy_rewards_create(2, 1),
 
             abilities: []
         }
@@ -505,7 +505,7 @@ function scr_enemy_data_hunter()
 
             rewards:
                 scr_enemy_rewards_create(
-                    8,
+                    3,
                     2
                 ),
 
@@ -571,7 +571,7 @@ function scr_enemy_data_phaser()
             },
 		
             rewards:
-            scr_enemy_rewards_create(12, 2),
+            scr_enemy_rewards_create(6, 2),
 
             abilities:
             [
@@ -661,7 +661,7 @@ function scr_enemy_data_shooter_single()
             },
 			
             rewards:
-            scr_enemy_rewards_create(10, 2),	
+            scr_enemy_rewards_create(6, 2),	
 
             abilities: []
         }
@@ -748,7 +748,7 @@ function scr_enemy_data_shooter_triple()
             },
 
             rewards:
-            scr_enemy_rewards_create(16, 3),
+            scr_enemy_rewards_create(10, 3),
 
             abilities: []
         }
@@ -821,7 +821,7 @@ function scr_enemy_data_kamikaze()
             },
 
             rewards:
-            scr_enemy_rewards_create(12, 2),
+            scr_enemy_rewards_create(8, 2),
 
             abilities:
             [
@@ -901,7 +901,7 @@ function scr_enemy_data_splitter()
             },
 			
             rewards:
-            scr_enemy_rewards_create(18, 4),	
+            scr_enemy_rewards_create(10, 4),	
 
             abilities:
             [
@@ -1038,7 +1038,7 @@ function scr_enemy_data_flyer()
             },
 				
  			rewards:
-    scr_enemy_rewards_create(12, 2),	
+    scr_enemy_rewards_create(3, 2),	
 
             abilities: []
         }
@@ -1103,7 +1103,7 @@ function scr_enemy_data_brute()
 
             rewards:
                 scr_enemy_rewards_create(
-                    35,
+                    20,
                     7
                 ),
 
@@ -1170,7 +1170,7 @@ function scr_enemy_data_transporter()
 
             rewards:
                 scr_enemy_rewards_create(
-                    50,
+                    20,
                     10
                 ),
 
@@ -2179,6 +2179,202 @@ function scr_enemy_data_berserker()
                 scr_enemy_rewards_create(
                     16,
                     4
+                ),
+
+            abilities: []
+        }
+    );
+
+
+    return true;
+}
+
+/// @description Registers the Centipede head.
+
+function scr_enemy_data_centipede_head()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_centipede_head",
+        {
+            identity:
+            {
+                key: "enemy_centipede_head",
+                name: "Centipede"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+
+                draw_function:
+                    scr_enemy_visual_centipede_head,
+
+                radius: 20,
+                color: make_color_rgb(110, 255, 90)
+            },
+
+            vitals:
+            {
+                hp_maximum: 240,
+                shield_maximum: 60
+            },
+
+            movement:
+            {
+                speed: 2.5,
+                layer: EnemyMovementLayer.GROUND
+            },
+
+            targeting:
+            {
+                target_type:
+                    EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action:
+                    EnemyBlockedAction.BREACH
+            },
+
+            attack:
+            {
+                type:
+                    EnemyAttack.CONTACT,
+
+                damage: 25,
+                range: 6,
+                cooldown_seconds: 0.9
+            },
+
+            unique:
+            {
+                create_event:
+                {
+                    start:
+                        scr_enemy_unique_centipede_create
+                },
+
+                step_event:
+                {
+                    finish:
+                        scr_enemy_unique_centipede_step_finish
+                },
+
+                centipede:
+                {
+                    child_key:
+                        "enemy_centipede_child",
+
+                    child_count_minimum: 5,
+                    child_count_maximum: 8,
+
+                    trail_stagger: 11
+                }
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    35,
+                    7
+                ),
+
+            abilities: []
+        }
+    );
+
+
+    return true;
+}
+
+/// @description Registers one Centipede child segment.
+
+function scr_enemy_data_centipede_child()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_centipede_child",
+        {
+            identity:
+            {
+                key: "enemy_centipede_child",
+                name: "Centipede Child"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+
+                draw_function:
+                    scr_enemy_visual_centipede_child,
+
+                radius: 15,
+                color: make_color_rgb(70, 210, 80)
+            },
+
+            vitals:
+            {
+                hp_maximum: 60,
+                shield_maximum: 15
+            },
+
+            movement:
+            {
+                speed: 2.5,
+                layer: EnemyMovementLayer.GROUND,
+
+                brainless: true,
+                destroy_on_impact: true
+            },
+
+            targeting:
+            {
+                target_type:
+                    EnemyTarget.BUILDING
+            },
+
+            navigation:
+            {
+                blocked_action:
+                    EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type:
+                    EnemyAttack.CONTACT,
+
+                damage: 10,
+                range: 4,
+                cooldown_seconds: 1
+            },
+
+            unique:
+            {
+                create_event:
+                {
+                    start:
+                        scr_enemy_unique_centipede_create
+                },
+
+                step_event:
+                {
+                    start:
+                        scr_enemy_unique_centipede_step_start
+                }
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    5,
+                    1,
+                    0.05,
+                    0.5
                 ),
 
             abilities: []

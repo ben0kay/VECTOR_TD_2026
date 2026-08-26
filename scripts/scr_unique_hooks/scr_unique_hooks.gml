@@ -1,124 +1,18 @@
-/// @description Processes ordinary targeting, movement and attacking.
-
-function scr_enemy_step_event_gameplay(
-    _enemy,
-    _decision_due
-)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    // ========================================================================
-    // PLAYER TARGETING AND STRATEGIC RETARGETING
-    // ========================================================================
-
-    var _player_target_active =
-        variable_struct_exists(
-            _enemy.targeting,
-            "player"
-        )
-        && _enemy.targeting.player.active;
-
-
-    if (
-        _player_target_active
-        || _decision_due
-    )
-    {
-        scr_enemy_player_targeting_update(
-            _enemy
-        );
-    }
-    else
-    {
-        scr_enemy_strategic_retarget_update(
-            _enemy
-        );
-    }
-
-
-    if (!instance_exists(_enemy))
-        return true;
-
-
-    // ========================================================================
-    // PRIMARY GAMEPLAY
-    // ========================================================================
-
-    scr_enemy_update(
-        _enemy
-    );
-
-
-    return true;
-}
-
-
-/// @description Finishes one enemy Step with optional visual and shield work.
-
-function scr_enemy_step_event_finish(
-    _enemy,
-    _visible
-)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    if (_visible)
-    {
-        scr_enemy_visual_direction_update(
-            _enemy
-        );
-
-        scr_particles_enemy_update(
-            _enemy
-        );
-    }
-
-
-    var _shield_active =
-        _enemy.vitals.shield.hit_flash > 0
-        || (
-            is_struct(
-                _enemy.vitals.shield.support
-            )
-            && _enemy.vitals.shield.support.enabled
-        );
-
-
-    if (_shield_active)
-    {
-        scr_enemy_shield_update(
-            _enemy
-        );
-    }
-
-
-    return true;
-}
-
 
 /// @description Processes one enemy through its configured unique Step hooks.
-
 function scr_enemy_unique_step_event(
     _enemy,
     _visible,
     _decision_due
 )
 {
-    if (!instance_exists(_enemy))
-        return false;
-
+    if (!instance_exists(_enemy)) return false;
 
     var _step_event =
         _enemy.unique.step_event;
 
-
     _step_event.handled =
         false;
-
 
     // ========================================================================
     // UNIQUE STEP START
@@ -136,11 +30,8 @@ function scr_enemy_unique_step_event(
             return false;
         }
 
-
-        if (!instance_exists(_enemy))
-            return true;
+        if (!instance_exists(_enemy)) return true;
     }
-
 
     // ========================================================================
     // NORMAL GAMEPLAY
@@ -161,11 +52,8 @@ function scr_enemy_unique_step_event(
             return false;
         }
 
-
-        if (!instance_exists(_enemy))
-            return true;
+        if (!instance_exists(_enemy)) return true;
     }
-
 
     // ========================================================================
     // UNIQUE STEP FINISH
@@ -183,11 +71,12 @@ function scr_enemy_unique_step_event(
             return false;
         }
 
-
-        if (!instance_exists(_enemy))
-            return true;
+        if (!instance_exists(_enemy)) return true;
     }
 
+    // ========================================================================
+    // SHARED STEP FINISH
+    // ========================================================================
 
     return scr_enemy_step_event_finish(
         _enemy,

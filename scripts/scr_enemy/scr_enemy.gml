@@ -3622,3 +3622,104 @@ function scr_enemy_attack_line_of_sight_clear(
     );
 }
 
+
+/// @description Processes ordinary targeting, movement and attacking.
+
+function scr_enemy_step_event_gameplay(
+    _enemy,
+    _decision_due
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    // ========================================================================
+    // PLAYER TARGETING AND STRATEGIC RETARGETING
+    // ========================================================================
+
+    var _player_target_active =
+        variable_struct_exists(
+            _enemy.targeting,
+            "player"
+        )
+        && _enemy.targeting.player.active;
+
+
+    if (
+        _player_target_active
+        || _decision_due
+    )
+    {
+        scr_enemy_player_targeting_update(
+            _enemy
+        );
+    }
+    else
+    {
+        scr_enemy_strategic_retarget_update(
+            _enemy
+        );
+    }
+
+
+    if (!instance_exists(_enemy))
+        return true;
+
+
+    // ========================================================================
+    // PRIMARY GAMEPLAY
+    // ========================================================================
+
+    scr_enemy_update(
+        _enemy
+    );
+
+
+    return true;
+}
+
+
+/// @description Finishes one enemy Step with optional visual and shield work.
+
+function scr_enemy_step_event_finish(
+    _enemy,
+    _visible
+)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+
+    if (_visible)
+    {
+        scr_enemy_visual_direction_update(
+            _enemy
+        );
+
+        scr_particles_enemy_update(
+            _enemy
+        );
+    }
+
+
+    var _shield_active =
+        _enemy.vitals.shield.hit_flash > 0
+        || (
+            is_struct(
+                _enemy.vitals.shield.support
+            )
+            && _enemy.vitals.shield.support.enabled
+        );
+
+
+    if (_shield_active)
+    {
+        scr_enemy_shield_update(
+            _enemy
+        );
+    }
+
+
+    return true;
+}

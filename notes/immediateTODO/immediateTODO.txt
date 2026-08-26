@@ -1,7 +1,4 @@
 
-
-berserker enemy - speed up as gets damaged
-
 MINIMAP
 
 Add rotation time to towers
