@@ -1,5 +1,4 @@
 
-MINIMAP
 
 Add rotation time to towers
 

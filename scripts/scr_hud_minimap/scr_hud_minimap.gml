@@ -16,7 +16,7 @@ function scr_hud_minimap_create()
 
         range: 1600,
         range_minimum: 600,
-        range_maximum: 5000,
+        range_maximum: 2500,
         zoom_factor: 1.25,
 
         dragging: false,
