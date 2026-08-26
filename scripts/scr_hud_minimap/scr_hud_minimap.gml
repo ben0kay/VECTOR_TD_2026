@@ -665,7 +665,7 @@ function scr_hud_minimap_draw(_hud)
         );
     }
 
-    draw_set_alpha(0.45);
+    draw_set_alpha(0.4);
     draw_set_color(_map.color);
 
     draw_circle(
@@ -698,51 +698,73 @@ function scr_hud_minimap_draw(_hud)
 
     if (instance_exists(_player))
     {
-        var _enemy_count =
-            instance_number(o_enemy);
+        // ====================================================================
+        // DEAD WORLD CELLS
+        // ====================================================================
+
+        var _dead_cell_color =
+            make_color_rgb(
+                55,
+                65,
+                70
+            );
+
+        var _dead_cell_count =
+            instance_number(o_dead_cell);
 
         for (
             var i = 0;
-            i < _enemy_count;
+            i < _dead_cell_count;
             ++i
         )
         {
-            var _enemy =
+            var _dead_cell =
                 instance_find(
-                    o_enemy,
+                    o_dead_cell,
                     i
                 );
 
-            if (!instance_exists(_enemy)) continue;
+            if (!instance_exists(_dead_cell)) continue;
 
-            var _enemy_distance =
+            if (
                 point_distance(
                     _player.x,
                     _player.y,
-                    _enemy.x,
-                    _enemy.y
-                );
+                    _dead_cell.x,
+                    _dead_cell.y
+                )
+                > _map.range
+            )
+            {
+                continue;
+            }
 
-            if (_enemy_distance > _map.range) continue;
-
-            var _enemy_position =
+            var _dead_cell_position =
                 scr_hud_minimap_world_to_gui(
                     _map,
                     _center_x,
                     _center_y,
-                    _enemy.x,
-                    _enemy.y,
+                    _dead_cell.x,
+                    _dead_cell.y,
                     _player.x,
                     _player.y
                 );
 
-            scr_hud_minimap_marker_draw(
-                _enemy_position.x,
-                _enemy_position.y,
-                c_red,
-                3
+            draw_set_alpha(0.8);
+            draw_set_color(_dead_cell_color);
+
+            draw_rectangle(
+                _dead_cell_position.x - 2,
+                _dead_cell_position.y - 2,
+                _dead_cell_position.x + 2,
+                _dead_cell_position.y + 2,
+                false
             );
         }
+
+        // ====================================================================
+        // BUILDINGS
+        // ====================================================================
 
         var _building_count =
             instance_number(o_building_par);
@@ -769,15 +791,18 @@ function scr_hud_minimap_draw(_hud)
                 continue;
             }
 
-            var _building_distance =
+            if (
                 point_distance(
                     _player.x,
                     _player.y,
                     _building.x,
                     _building.y
-                );
-
-            if (_building_distance > _map.range) continue;
+                )
+                > _map.range
+            )
+            {
+                continue;
+            }
 
             var _building_position =
                 scr_hud_minimap_world_to_gui(
@@ -790,40 +815,146 @@ function scr_hud_minimap_draw(_hud)
                     _player.y
                 );
 
-            // Later this becomes the building data's minimap_color.
-            scr_hud_minimap_marker_draw(
-                _building_position.x,
-                _building_position.y,
-                c_lime,
-                3
+            draw_set_alpha(1);
+            draw_set_color(c_lime);
+
+            draw_rectangle(
+                _building_position.x - 3,
+                _building_position.y - 3,
+                _building_position.x + 3,
+                _building_position.y + 3,
+                false
+            );
+
+            draw_set_alpha(0.5);
+            draw_set_color(c_aqua);
+
+            draw_rectangle(
+                _building_position.x - 4,
+                _building_position.y - 4,
+                _building_position.x + 4,
+                _building_position.y + 4,
+                true
             );
         }
 
-        // Player is always at the centre of the map.
+        // ====================================================================
+        // ENEMIES
+        // ====================================================================
+        //
+        // Layered translucent circles create a soft vector-radar dot:
+        // fading edge -> brighter inner ring -> solid red core.
+
+        var _enemy_count =
+            instance_number(o_enemy);
+
+        for (
+            var i = 0;
+            i < _enemy_count;
+            ++i
+        )
+        {
+            var _enemy =
+                instance_find(
+                    o_enemy,
+                    i
+                );
+
+            if (!instance_exists(_enemy)) continue;
+
+            if (
+                point_distance(
+                    _player.x,
+                    _player.y,
+                    _enemy.x,
+                    _enemy.y
+                )
+                > _map.range
+            )
+            {
+                continue;
+            }
+
+            var _enemy_position =
+                scr_hud_minimap_world_to_gui(
+                    _map,
+                    _center_x,
+                    _center_y,
+                    _enemy.x,
+                    _enemy.y,
+                    _player.x,
+                    _player.y
+                );
+
+            draw_set_color(c_red);
+
+            draw_set_alpha(0.08);
+            draw_circle(
+                _enemy_position.x,
+                _enemy_position.y,
+                7,
+                false
+            );
+
+            draw_set_alpha(0.18);
+            draw_circle(
+                _enemy_position.x,
+                _enemy_position.y,
+                5,
+                false
+            );
+
+            draw_set_alpha(0.45);
+            draw_circle(
+                _enemy_position.x,
+                _enemy_position.y,
+                3,
+                false
+            );
+
+            draw_set_alpha(1);
+            draw_circle(
+                _enemy_position.x,
+                _enemy_position.y,
+                1.5,
+                false
+            );
+        }
+
+        // ====================================================================
+        // PLAYER
+        // ====================================================================
+
+        draw_set_alpha(0.18);
+        draw_set_color(c_aqua);
+
+        draw_rectangle(
+            _center_x - 8,
+            _center_y - 8,
+            _center_x + 8,
+            _center_y + 8,
+            false
+        );
+
         draw_set_alpha(1);
         draw_set_color(c_aqua);
 
-        draw_circle(
-            _center_x,
-            _center_y,
-            5,
+        draw_rectangle(
+            _center_x - 4,
+            _center_y - 4,
+            _center_x + 4,
+            _center_y + 4,
+            false
+        );
+
+        draw_set_color(c_white);
+
+        draw_rectangle(
+            _center_x - 5,
+            _center_y - 5,
+            _center_x + 5,
+            _center_y + 5,
             true
-        );
-
-        draw_line_width(
-            _center_x - 8,
-            _center_y,
-            _center_x + 8,
-            _center_y,
-            2
-        );
-
-        draw_line_width(
-            _center_x,
-            _center_y - 8,
-            _center_x,
-            _center_y + 8,
-            2
         );
     }
     else
