@@ -90,7 +90,8 @@ function scr_tower_data_basic_ground()
             tower:
             {
                 range: 280,
-
+				turn_speed_degrees_per_second: 60,
+				fire_angle_tolerance_degrees: 2,
                 target_mode:
                     TowerTargetMode.CLOSEST,
 

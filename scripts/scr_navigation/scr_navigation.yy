@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_navigation",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"enemy scripts",
+    "path":"folders/scripts/enemy scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

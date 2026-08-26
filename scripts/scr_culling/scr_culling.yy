@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_culling",
   "parent":{
-    "name":"scripts",
-    "path":"folders/scripts.yy",
+    "name":"misc",
+    "path":"folders/scripts/misc.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

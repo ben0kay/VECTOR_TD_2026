@@ -105,6 +105,44 @@ function scr_tower_initialize(_tower)
     if (variable_struct_exists(_data, "draw_function"))
         _tower.visual.draw_function = _data.draw_function;
 
+	
+	// ========================================================================
+	// AIMING
+	// ========================================================================
+
+	var _turn_speed_degrees_per_second =
+	    360;
+
+	var _fire_angle_tolerance_degrees =
+	    3;
+
+	if (
+	    variable_struct_exists(
+	        _data,
+	        "turn_speed_degrees_per_second"
+	    )
+	)
+	{
+	    _turn_speed_degrees_per_second =
+	        max(
+	            0,
+	            _data.turn_speed_degrees_per_second
+	        );
+	}
+
+	if (
+	    variable_struct_exists(
+	        _data,
+	        "fire_angle_tolerance_degrees"
+	    )
+	)
+	{
+	    _fire_angle_tolerance_degrees =
+	        max(
+	            0,
+	            _data.fire_angle_tolerance_degrees
+	        );
+	}
 
     // ========================================================================
     // TARGETING
@@ -126,7 +164,18 @@ function scr_tower_initialize(_tower)
         mode: _data.target_mode,
         layer: _data.target_layer,
         filter: _target_filter,
-        requires_line_of_sight: _requires_line_of_sight
+        requires_line_of_sight: _requires_line_of_sight,
+        aim:
+        {
+            turn_speed_degrees_per_second:
+                _turn_speed_degrees_per_second,
+
+            fire_angle_tolerance_degrees:
+                _fire_angle_tolerance_degrees,
+
+            aligned: true
+        }
+		
     };
 
 
@@ -239,8 +288,85 @@ function scr_tower_initialize(_tower)
     return true;
 }
 
+/// @description Turns one tower toward its target using the shortest angle path.
+function scr_tower_aim_update(
+    _tower,
+    _target_x,
+    _target_y
+)
+{
+    if (!instance_exists(_tower))
+        return false;
 
+    var _aim =
+        _tower.targeting.aim;
 
+    var _target_angle =
+        point_direction(
+            _tower.x,
+            _tower.y,
+            _target_x,
+            _target_y
+        );
+
+    var _current_angle =
+        _tower.visual.draw_angle;
+
+    // Produces a shortest-path signed difference from -180 to 180.
+    // This prevents a turret at 359 degrees from rotating almost a
+    // complete circle to reach a target at 1 degree.
+
+    var _angle_difference =
+        (
+            (
+                _target_angle
+                - _current_angle
+                + 540
+            )
+            mod 360
+        )
+        - 180;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    var _turn_step =
+        _aim.turn_speed_degrees_per_second
+        / _fps;
+
+    _tower.visual.draw_angle =
+        (
+            _current_angle
+            + clamp(
+                _angle_difference,
+                -_turn_step,
+                _turn_step
+            )
+            + 360
+        )
+        mod 360;
+
+    _aim.aligned =
+        abs(
+            (
+                (
+                    _target_angle
+                    - _tower.visual.draw_angle
+                    + 540
+                )
+                mod 360
+            )
+            - 180
+        )
+        <= _aim.fire_angle_tolerance_degrees;
+
+    return true;
+}
+
+/// @description Updates one active tower's cooldown, target, aim, and firing.
 function scr_tower_update(_tower)
 {
     if (!instance_exists(_tower))
@@ -249,82 +375,109 @@ function scr_tower_update(_tower)
     if (_tower.BuildingState != BuildingState.ACTIVE)
         return true;
 
-    var _fps = max(1, game_get_speed(gamespeed_fps));
-    var _weapon = _tower.combat.weapon;
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
 
+    var _weapon =
+        _tower.combat.weapon;
 
     var _foundation_fire_rate =
-    1;
+        1;
 
-	if (
-	    variable_struct_exists(
-	        _tower.foundation,
-	        "tower_fire_rate_multiplier"
-	    )
-	)
-	{
-	    _foundation_fire_rate =
-	        _tower.foundation
-	            .tower_fire_rate_multiplier;
-	}
+    if (
+        variable_struct_exists(
+            _tower.foundation,
+            "tower_fire_rate_multiplier"
+        )
+    )
+    {
+        _foundation_fire_rate =
+            _tower.foundation
+                .tower_fire_rate_multiplier;
+    }
 
-
-	_weapon.cooldown.remaining =
-	    max(
-	        0,
-	        _weapon.cooldown.remaining
-	        - (
-	            (1 / _fps)
-	            * _foundation_fire_rate
-	        )
-	    );
-
+    _weapon.cooldown.remaining =
+        max(
+            0,
+            _weapon.cooldown.remaining
+            - (
+                (1 / _fps)
+                * _foundation_fire_rate
+            )
+        );
 
     if (_weapon.trace.active)
     {
         _weapon.trace.remaining =
             max(
                 0,
-                _weapon.trace.remaining - (1 / _fps)
+                _weapon.trace.remaining
+                - (1 / _fps)
             );
 
         if (_weapon.trace.remaining <= 0)
             _weapon.trace.active = false;
     }
 
-
-    if (!scr_tower_target_valid(_tower, _tower.targeting.target))
-        _tower.targeting.target = noone;
-
+    if (
+        !scr_tower_target_valid(
+            _tower,
+            _tower.targeting.target
+        )
+    )
+    {
+        _tower.targeting.target =
+            noone;
+    }
 
     // Searches remain staggered between tower instances.
 
     if (
-        !instance_exists(_tower.targeting.target)
+        !instance_exists(
+            _tower.targeting.target
+        )
         && IFRAMES_5
     )
     {
         _tower.targeting.target =
-            scr_tower_target_acquire(_tower);
+            scr_tower_target_acquire(
+                _tower
+            );
     }
 
+    if (
+        !instance_exists(
+            _tower.targeting.target
+        )
+    )
+    {
+        _tower.targeting.aim.aligned =
+            false;
 
-    if (!instance_exists(_tower.targeting.target))
         return true;
+    }
 
-
-    _tower.visual.draw_angle =
-        point_direction(
-            _tower.x,
-            _tower.y,
+    if (
+        !scr_tower_aim_update(
+            _tower,
             _tower.targeting.target.x,
             _tower.targeting.target.y
-        );
+        )
+    )
+    {
+        return false;
+    }
 
-
-    if (_weapon.cooldown.remaining <= 0)
+    if (
+        _tower.targeting.aim.aligned
+        && _weapon.cooldown.remaining <= 0
+    )
+    {
         scr_tower_fire(_tower);
-
+    }
 
     return true;
 }

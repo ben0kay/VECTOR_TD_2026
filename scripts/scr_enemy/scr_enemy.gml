@@ -178,6 +178,68 @@ function scr_enemy_initialize(_enemy)
             _data.visual.color
     };
 
+	// ========================================================================
+	// MINIMAP
+	// ========================================================================
+	//
+	// Colour always comes from _enemy.visual.color.
+	// Definitions only control marker size and radar-contact fade duration.
+
+	var _minimap_size =
+	    1.5;
+
+	var _minimap_fade_time =
+	    4;
+
+	if (
+	    variable_struct_exists(
+	        _data,
+	        "minimap"
+	    )
+	    && is_struct(_data.minimap)
+	)
+	{
+	    if (
+	        variable_struct_exists(
+	            _data.minimap,
+	            "size"
+	        )
+	    )
+	    {
+	        _minimap_size =
+	            max(
+	                0.5,
+	                _data.minimap.size
+	            );
+	    }
+
+	    if (
+	        variable_struct_exists(
+	            _data.minimap,
+	            "fade_time"
+	        )
+	    )
+	    {
+	        _minimap_fade_time =
+	            max(
+	                0.1,
+	                _data.minimap.fade_time
+	            );
+	    }
+	}
+
+	_enemy.minimap =
+	{
+	    size:
+	        _minimap_size,
+
+	    fade_time:
+	        _minimap_fade_time,
+
+	    contact_remaining:
+	        0
+	};
+
 
     // ========================================================================
     // VITALS

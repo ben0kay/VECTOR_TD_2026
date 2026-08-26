@@ -35,6 +35,14 @@ function scr_hud_minimap_create()
             height: 0
         },
 
+		radar:
+        {
+            sweep_angle: 0,
+            previous_sweep_angle: 0,
+
+            sweep_degrees_per_second: 90
+        },
+		
         controls:
         {
             zoom_in:
@@ -296,6 +304,8 @@ function scr_hud_minimap_update(_hud)
     }
 
     if (!_map.visible) return true;
+	
+	scr_hud_minimap_radar_update(id);
 
     // ========================================================================
     // CONTROL BOUNDS
@@ -1085,15 +1095,24 @@ function scr_hud_minimap_draw(_hud)
             );
         }
 
+                // ====================================================================
+        // ENEMIES / RADAR CONTACTS
         // ====================================================================
-        // ENEMIES
-        // ====================================================================
-        //
-        // Layered translucent circles create a soft vector-radar dot:
-        // fading edge -> brighter inner ring -> solid red core.
 
         var _enemy_count =
             instance_number(o_enemy);
+
+        var _radar =
+            _map.radar;
+
+        var _fps =
+            max(
+                1,
+                game_get_speed(gamespeed_fps)
+            );
+
+        var _delta_seconds =
+            1 / _fps;
 
         for (
             var i = 0;
@@ -1107,16 +1126,62 @@ function scr_hud_minimap_draw(_hud)
                     i
                 );
 
-            if (!instance_exists(_enemy)) continue;
+            if (!instance_exists(_enemy))
+                continue;
 
             if (
+                !variable_instance_exists(
+                    _enemy,
+                    "minimap"
+                )
+            )
+            {
+                continue;
+            }
+
+            var _enemy_minimap =
+                _enemy.minimap;
+
+            _enemy_minimap.contact_remaining =
+                max(
+                    0,
+                    _enemy_minimap.contact_remaining
+                    - _delta_seconds
+                );
+
+            var _distance =
                 point_distance(
                     _player.x,
                     _player.y,
                     _enemy.x,
                     _enemy.y
+                );
+
+            if (_distance > _map.range)
+                continue;
+
+            var _enemy_angle =
+                point_direction(
+                    _player.x,
+                    _player.y,
+                    _enemy.x,
+                    _enemy.y
+                );
+
+            if (
+                scr_hud_minimap_radar_sweep_crossed(
+                    _radar.previous_sweep_angle,
+                    _radar.sweep_angle,
+                    _enemy_angle
                 )
-                > _map.range
+            )
+            {
+                _enemy_minimap.contact_remaining =
+                    _enemy_minimap.fade_time;
+            }
+
+            if (
+                _enemy_minimap.contact_remaining <= 0
             )
             {
                 continue;
@@ -1133,40 +1198,100 @@ function scr_hud_minimap_draw(_hud)
                     _player.y
                 );
 
-            draw_set_color(c_red);
+            var _fade_alpha =
+                clamp(
+                    _enemy_minimap.contact_remaining
+                    / _enemy_minimap.fade_time,
+                    0,
+                    1
+                );
 
-            draw_set_alpha(0.08);
+            var _dot_size =
+                _enemy_minimap.size;
+
+            draw_set_color(
+                _enemy.visual.color
+            );
+
+            draw_set_alpha(
+                0.08
+                * _fade_alpha
+            );
+
             draw_circle(
                 _enemy_position.x,
                 _enemy_position.y,
-                7,
+                _dot_size * 4.67,
                 false
             );
 
-            draw_set_alpha(0.18);
+            draw_set_alpha(
+                0.18
+                * _fade_alpha
+            );
+
             draw_circle(
                 _enemy_position.x,
                 _enemy_position.y,
-                5,
+                _dot_size * 3.33,
                 false
             );
 
-            draw_set_alpha(0.45);
+            draw_set_alpha(
+                0.45
+                * _fade_alpha
+            );
+
             draw_circle(
                 _enemy_position.x,
                 _enemy_position.y,
-                3,
+                _dot_size * 2,
                 false
             );
 
-            draw_set_alpha(1);
+            draw_set_alpha(_fade_alpha);
+
             draw_circle(
                 _enemy_position.x,
                 _enemy_position.y,
-                1.5,
+                _dot_size,
                 false
             );
         }
+
+
+        // ====================================================================
+        // RADAR SWEEP LINE
+        // ====================================================================
+
+        var _sweep_radius =
+            min(
+                _map_width,
+                _map_height
+            )
+            * 0.5;
+
+        draw_set_alpha(0.72);
+        draw_set_color(_map.color);
+
+        draw_line_width(
+            _center_x,
+            _center_y,
+
+            _center_x
+            + lengthdir_x(
+                _sweep_radius,
+                _radar.sweep_angle
+            ),
+
+            _center_y
+            + lengthdir_y(
+                _sweep_radius,
+                _radar.sweep_angle
+            ),
+
+            2
+        );
 
         // ====================================================================
         // PLAYER
@@ -1240,3 +1365,60 @@ function scr_hud_minimap_draw(_hud)
     return true;
 }
 
+/// @description Advances the minimap enemy-contact radar sweep.
+function scr_hud_minimap_radar_update(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    var _radar =
+        _hud.hud.minimap.radar;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    _radar.previous_sweep_angle =
+        _radar.sweep_angle;
+
+    _radar.sweep_angle =
+        (
+            _radar.sweep_angle
+            + (
+                _radar.sweep_degrees_per_second
+                / _fps
+            )
+        )
+        mod 360;
+
+    return true;
+}
+
+
+/// @description Returns whether a clockwise radar sweep crossed one angle.
+function scr_hud_minimap_radar_sweep_crossed(
+    _start_angle,
+    _end_angle,
+    _target_angle
+)
+{
+    var _travelled =
+        (
+            _end_angle
+            - _start_angle
+            + 360
+        )
+        mod 360;
+
+    var _target_offset =
+        (
+            _target_angle
+            - _start_angle
+            + 360
+        )
+        mod 360;
+
+    return _target_offset <= _travelled;
+}

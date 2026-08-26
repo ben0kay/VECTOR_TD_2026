@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_foundation_data",
   "parent":{
-    "name":"data scripts",
-    "path":"folders/scripts/data scripts.yy",
+    "name":"init scripts",
+    "path":"folders/scripts/init scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
