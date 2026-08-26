@@ -37,7 +37,27 @@ function scr_enemy_behavior_standard_update(_enemy)
 
         case EnemyState.MOVING:
         {
-            if (_edge_distance <= _enemy.attack.range)
+            var _attack_position_valid =
+                _edge_distance
+                <= _enemy.attack.range;
+
+
+            // Non-LOS enemies never call the LOS function.
+
+            if (
+                _attack_position_valid
+                && _enemy.attack.requires_line_of_sight
+            )
+            {
+                _attack_position_valid =
+                    scr_enemy_attack_line_of_sight_clear(
+                        _enemy,
+                        _target
+                    );
+            }
+
+
+            if (_attack_position_valid)
             {
                 scr_navigation_enemy_stop(
                     _enemy
@@ -68,7 +88,27 @@ function scr_enemy_behavior_standard_update(_enemy)
                 );
 
 
-            if (_edge_distance > _enemy.attack.range)
+            var _attack_position_valid =
+                _edge_distance
+                <= _enemy.attack.range;
+
+
+            // Non-LOS enemies never call the LOS function.
+
+            if (
+                _attack_position_valid
+                && _enemy.attack.requires_line_of_sight
+            )
+            {
+                _attack_position_valid =
+                    scr_enemy_attack_line_of_sight_clear(
+                        _enemy,
+                        _target
+                    );
+            }
+
+
+            if (!_attack_position_valid)
             {
                 _enemy.EnemyState =
                     EnemyState.MOVING;

@@ -634,6 +634,19 @@ function scr_enemy_data_shooter_single()
                 damage: 4,
                 range: 240,
                 cooldown_seconds: 1.2,
+				
+				line_of_sight:
+			{
+			    required: true,
+
+			    interval_minimum: 8,
+			    interval_maximum: 15,
+
+			    movement_refresh_distance: 32,
+
+			    blocked_function:
+			        scr_world_line_blocked_by_dead
+			},
 
                 projectile:
                 {
@@ -708,6 +721,19 @@ function scr_enemy_data_shooter_triple()
                 damage: 4,
                 range: 260,
                 cooldown_seconds: 1.5,
+				
+				line_of_sight:
+			{
+			    required: true,
+
+			    interval_minimum: 8,
+			    interval_maximum: 15,
+
+			    movement_refresh_distance: 32,
+
+			    blocked_function:
+			        scr_world_line_blocked_by_dead
+			},
 
                 projectile:
                 {

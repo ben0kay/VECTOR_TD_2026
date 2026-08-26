@@ -1,6 +1,5 @@
 /// @description Generic data-driven enemy behaviour.
 
-
 /// @description Initializes one generic enemy from its data definition.
 
 function scr_enemy_initialize(_enemy)
@@ -10,27 +9,41 @@ function scr_enemy_initialize(_enemy)
 
     if (!variable_instance_exists(_enemy, "enemy_key"))
     {
-        show_debug_message("ENEMY ERROR - enemy_key was not supplied.");
-        return false;
-    }
-
-
-    var _data = scr_enemy_data_get(_enemy.enemy_key);
-
-    if (!scr_enemy_data_valid(_data))
-    {
         show_debug_message(
-            "ENEMY ERROR - invalid definition: " + string(_enemy.enemy_key)
+            "ENEMY ERROR - enemy_key was not supplied."
         );
 
         return false;
     }
 
 
-    _enemy.enemy_data = _data;
-	
-    _enemy.EnemyState = EnemyState.SPAWNING;
+    var _data =
+        scr_enemy_data_get(
+            _enemy.enemy_key
+        );
 
+
+    if (!scr_enemy_data_valid(_data))
+    {
+        show_debug_message(
+            "ENEMY ERROR - invalid definition: "
+            + string(_enemy.enemy_key)
+        );
+
+        return false;
+    }
+
+
+    _enemy.enemy_data =
+        _data;
+
+    _enemy.EnemyState =
+        EnemyState.SPAWNING;
+
+
+    // ========================================================================
+    // IDENTITY
+    // ========================================================================
 
     _enemy.identity =
     {
@@ -38,601 +51,820 @@ function scr_enemy_initialize(_enemy)
         name: _data.identity.name
     };
 
-	_enemy.rewards =
-	{
-	    experience:
-	        _data.rewards.experience,
-
-	    resources: [],
-
-	    physical_drop:
-	    {
-	        enabled: false,
-	        resource_key: "",
-	        chance: 0,
-	        amount: 0
-	    }
-	};
-
-
-	for (var i = 0; i < array_length(_data.rewards.resources); ++i)
-	{
-	    var _reward =
-	        _data.rewards.resources[i];
-
-	    array_push(
-	        _enemy.rewards.resources,
-	        {
-	            resource_key: _reward.resource_key,
-	            amount: _reward.amount,
-	            chance: _reward.chance
-	        }
-	    );
-	}
-
-
-	if (
-	    variable_struct_exists(
-	        _data.rewards,
-	        "physical_drop"
-	    )
-	    && is_struct(_data.rewards.physical_drop)
-	)
-	{
-	    var _drop =
-	        _data.rewards.physical_drop;
-
-	    _enemy.rewards.physical_drop =
-	    {
-	        enabled: _drop.enabled,
-	        resource_key: _drop.resource_key,
-	        chance: _drop.chance,
-	        amount: _drop.amount
-	    };
-	}
-
-
-	for (
-	    var i = 0;
-	    i < array_length(_data.rewards.resources);
-	    ++i
-	)
-	{
-	    var _reward =
-	        _data.rewards.resources[i];
-
-	    array_push(
-	        _enemy.rewards.resources,
-	        {
-	            resource_key:
-	                _reward.resource_key,
-
-	            amount:
-	                _reward.amount,
-
-	            chance:
-	                _reward.chance
-	        }
-	    );
-	}	
 
     // ========================================================================
-	// VISUAL
-	// ========================================================================
+    // REWARDS
+    // ========================================================================
 
-	var _scale_x = 1;
-	var _scale_y = 1;
+    _enemy.rewards =
+    {
+        experience:
+            _data.rewards.experience,
 
-	if (variable_struct_exists(_data.visual, "scale_x"))
-	    _scale_x = _data.visual.scale_x;
+        resources: [],
 
-	if (variable_struct_exists(_data.visual, "scale_y"))
-	    _scale_y = _data.visual.scale_y;
+        physical_drop:
+        {
+            enabled: false,
+            resource_key: "",
+            chance: 0,
+            amount: 0
+        }
+    };
 
 
-	_enemy.visual =
-	{
-	    sprite: _data.visual.sprite,
-	    draw_function: _data.visual.draw_function,
+    for (
+        var i = 0;
+        i < array_length(_data.rewards.resources);
+        ++i
+    )
+    {
+        var _reward =
+            _data.rewards.resources[i];
 
-	    draw_angle: 0,
+        array_push(
+            _enemy.rewards.resources,
+            {
+                resource_key:
+                    _reward.resource_key,
 
-	    scale_x: _scale_x,
-	    scale_y: _scale_y,
+                amount:
+                    _reward.amount,
 
-	    radius: _data.visual.radius,
-	    color: _data.visual.color
-	};
+                chance:
+                    _reward.chance
+            }
+        );
+    }
 
+
+    if (
+        variable_struct_exists(
+            _data.rewards,
+            "physical_drop"
+        )
+        && is_struct(
+            _data.rewards.physical_drop
+        )
+    )
+    {
+        var _drop =
+            _data.rewards.physical_drop;
+
+        _enemy.rewards.physical_drop =
+        {
+            enabled: _drop.enabled,
+            resource_key: _drop.resource_key,
+            chance: _drop.chance,
+            amount: _drop.amount
+        };
+    }
+
+
+    // ========================================================================
+    // VISUAL
+    // ========================================================================
+
+    var _scale_x =
+        1;
+
+    var _scale_y =
+        1;
+
+
+    if (
+        variable_struct_exists(
+            _data.visual,
+            "scale_x"
+        )
+    )
+    {
+        _scale_x =
+            _data.visual.scale_x;
+    }
+
+    if (
+        variable_struct_exists(
+            _data.visual,
+            "scale_y"
+        )
+    )
+    {
+        _scale_y =
+            _data.visual.scale_y;
+    }
+
+
+    _enemy.visual =
+    {
+        sprite:
+            _data.visual.sprite,
+
+        draw_function:
+            _data.visual.draw_function,
+
+        draw_angle: 0,
+
+        scale_x:
+            _scale_x,
+
+        scale_y:
+            _scale_y,
+
+        radius:
+            _data.visual.radius,
+
+        color:
+            _data.visual.color
+    };
+
+
+    // ========================================================================
+    // VITALS
+    // ========================================================================
 
     _enemy.vitals =
     {
         hp:
         {
-            current: _data.vitals.hp_maximum,
-            maximum: _data.vitals.hp_maximum
+            current:
+                _data.vitals.hp_maximum,
+
+            maximum:
+                _data.vitals.hp_maximum
         }
     };
-	
-	_enemy.vitals.shield =
-{
-    enabled: false,
-    current: 0,
-    maximum: _data.vitals.shield_maximum,
 
-    color:
-        make_color_rgb(
-            255,
-            110,
-            120
-        ),
 
-    hit_flash: 0,
-
-    // Temporary shields granted by support enemies.
-    // This remains separate from the enemy's natural shield.
-
-    support:
+    _enemy.vitals.shield =
     {
         enabled: false,
         current: 0,
-        maximum: 0,
-        source: noone,
-        remaining_seconds: 0,
-        color: c_yellow,
-        hit_flash: 0
+
+        maximum:
+            _data.vitals.shield_maximum,
+
+        color:
+            make_color_rgb(
+                255,
+                110,
+                120
+            ),
+
+        hit_flash: 0,
+
+        // Temporary shields granted by support enemies.
+        // This remains separate from the enemy's natural shield.
+
+        support:
+        {
+            enabled: false,
+            current: 0,
+            maximum: 0,
+
+            source:
+                noone,
+
+            remaining_seconds: 0,
+
+            color:
+                c_yellow,
+
+            hit_flash: 0
+        }
+    };
+
+
+    // ========================================================================
+    // MODIFIERS
+    // ========================================================================
+
+    _enemy.modifiers =
+        [];
+
+
+    if (
+        variable_instance_exists(
+            _enemy,
+            "spawn_modifiers"
+        )
+    )
+    {
+        _enemy.modifiers =
+            scr_enemy_modifiers_copy(
+                _enemy.spawn_modifiers
+            );
     }
-};
-
-	_enemy.modifiers = [];
-	
-
-	if (
-	    variable_instance_exists(
-	        _enemy,
-	        "spawn_modifiers"
-	    )
-	)
-	{
-	    _enemy.modifiers =
-	        scr_enemy_modifiers_copy(
-	            _enemy.spawn_modifiers
-	        );
-	}
 
 
-	// Activate the runtime effects supplied by each modifier.
+    // Activate the runtime effects supplied by each modifier.
 
-	for (
-	    var i = 0;
-	    i < array_length(_enemy.modifiers);
-	    ++i
-	)
-	{
-	    switch (_enemy.modifiers[i])
-	    {
-	        case EnemyModifier.SHIELDED:
-	        {
-	            if (_enemy.vitals.shield.maximum > 0)
-	            {
-	                _enemy.vitals.shield.enabled = true;
+    for (
+        var i = 0;
+        i < array_length(_enemy.modifiers);
+        ++i
+    )
+    {
+        switch (_enemy.modifiers[i])
+        {
+            case EnemyModifier.SHIELDED:
+            {
+                if (_enemy.vitals.shield.maximum > 0)
+                {
+                    _enemy.vitals.shield.enabled =
+                        true;
 
-	                _enemy.vitals.shield.current =
-	                    _enemy.vitals.shield.maximum;
-	            }
-	        }
-	        break;
-	    }
-	}
+                    _enemy.vitals.shield.current =
+                        _enemy.vitals.shield.maximum;
+                }
+            }
+            break;
+        }
+    }
 
 
-	if (
-	    variable_struct_exists(
-	        _data.visual,
-	        "shield_color"
-	    )
-	)
-	{
-	    _enemy.vitals.shield.color =
-	        _data.visual.shield_color;
-	}
+    if (
+        variable_struct_exists(
+            _data.visual,
+            "shield_color"
+        )
+    )
+    {
+        _enemy.vitals.shield.color =
+            _data.visual.shield_color;
+    }
 
+
+    // ========================================================================
+    // MOVEMENT
+    // ========================================================================
 
     var _brainless =
-    false;
+        false;
 
-var _destroy_on_impact =
-    false;
-
-
-if (variable_struct_exists(_data.movement, "brainless"))
-{
-    _brainless =
-        _data.movement.brainless;
-}
-
-if (variable_struct_exists(_data.movement, "destroy_on_impact"))
-{
-    _destroy_on_impact =
-        _data.movement.destroy_on_impact;
-}
+    var _destroy_on_impact =
+        false;
 
 
-var _initial_direction =
-    random(360);
+    if (
+        variable_struct_exists(
+            _data.movement,
+            "brainless"
+        )
+    )
+    {
+        _brainless =
+            _data.movement.brainless;
+    }
 
-if (variable_instance_exists(_enemy, "spawn_direction"))
-{
-    _initial_direction =
-        _enemy.spawn_direction;
-}
-
-
-_enemy.movement =
-{
-    speed: _data.movement.speed,
-    layer: _data.movement.layer,
-
-    brainless: _brainless,
-    direction: _initial_direction,
-
-    destroy_on_impact:
-        _destroy_on_impact
-};
-
-
-_enemy.movement.speed_base =
-    _data.movement.speed;
+    if (
+        variable_struct_exists(
+            _data.movement,
+            "destroy_on_impact"
+        )
+    )
+    {
+        _destroy_on_impact =
+            _data.movement.destroy_on_impact;
+    }
 
 
-// ========================================================================
-// PRIMARY BEHAVIOR
-// ========================================================================
-
-_enemy.EnemyBehavior =
-    EnemyBehavior.STANDARD;
+    var _initial_direction =
+        random(360);
 
 
-// Existing brainless definitions remain compatible automatically.
+    if (
+        variable_instance_exists(
+            _enemy,
+            "spawn_direction"
+        )
+    )
+    {
+        _initial_direction =
+            _enemy.spawn_direction;
+    }
 
-if (_brainless)
-{
+
+    _enemy.movement =
+    {
+        speed:
+            _data.movement.speed,
+
+        speed_base:
+            _data.movement.speed,
+
+        layer:
+            _data.movement.layer,
+
+        brainless:
+            _brainless,
+
+        direction:
+            _initial_direction,
+
+        destroy_on_impact:
+            _destroy_on_impact
+    };
+
+
+    // ========================================================================
+    // PRIMARY BEHAVIOR
+    // ========================================================================
+
     _enemy.EnemyBehavior =
-        EnemyBehavior.BRAINLESS;
-}
+        EnemyBehavior.STANDARD;
 
 
-// New and specialized definitions explicitly select their behavior.
+    // Existing brainless definitions remain compatible automatically.
 
-if (variable_struct_exists(_data, "behavior"))
-{
-    _enemy.EnemyBehavior =
-        _data.behavior;
-}
+    if (_brainless)
+    {
+        _enemy.EnemyBehavior =
+            EnemyBehavior.BRAINLESS;
+    }
 
 
-_enemy.visual.draw_angle =
-    _initial_direction;
+    // Specialized definitions explicitly select their behavior.
 
-	// ========================================================================
-	// STATUS EFFECTS
-	// ========================================================================
+    if (
+        variable_struct_exists(
+            _data,
+            "behavior"
+        )
+    )
+    {
+        _enemy.EnemyBehavior =
+            _data.behavior;
+    }
 
-	_enemy.effects =
-	{
-	    slow:
-	    {
-	        active: false,
-	        multiplier: 1,
-	        remaining_seconds: 0,
-	        source: noone
-	    },
 
-	    stasis:
-	    {
-	        active: false,
-	        remaining_seconds: 0,
-	        source: noone
-	    },
+    _enemy.visual.draw_angle =
+        _initial_direction;
 
-	    damage_over_time:
-	    {
-	        active: false,
-	        damage: 0,
-	        interval_seconds: 1,
-	        interval_remaining: 0,
-	        remaining_seconds: 0,
-	        damage_type: DamageType.KINETIC,
-	        source: noone
-	    }
-	};
 
-	_enemy.movement.speed_base =
-	    _data.movement.speed;
+    // ========================================================================
+    // STATUS EFFECTS
+    // ========================================================================
 
-    _enemy.visual.draw_angle = _initial_direction;
+    _enemy.effects =
+    {
+        slow:
+        {
+            active: false,
+            multiplier: 1,
+            remaining_seconds: 0,
+            source: noone
+        },
 
+        stasis:
+        {
+            active: false,
+            remaining_seconds: 0,
+            source: noone
+        },
+
+        damage_over_time:
+        {
+            active: false,
+            damage: 0,
+
+            interval_seconds: 1,
+            interval_remaining: 0,
+            remaining_seconds: 0,
+
+            damage_type:
+                DamageType.KINETIC,
+
+            source:
+                noone
+        }
+    };
+
+
+    // ========================================================================
+    // TARGETING
+    // ========================================================================
 
     _enemy.targeting =
     {
         target: noone,
         strategic: noone,
         breach: noone,
-        target_type: _data.targeting.target_type
+
+        target_type:
+            _data.targeting.target_type
     };
 
+
+    // ========================================================================
+    // NAVIGATION
+    // ========================================================================
 
     _enemy.navigation =
     {
         path_id: -1,
-        needs_path: !_brainless,
-        repath_timer: real(_enemy.id) mod 4,
+
+        needs_path:
+            !_brainless,
+
+        repath_timer:
+            real(_enemy.id) mod 4,
+
         revision_seen: -1,
         reachable: true,
-        blocked_action: _data.navigation.blocked_action
+
+        blocked_action:
+            _data.navigation.blocked_action
     };
 
 
     // Brainless enemies never allocate a GameMaker path.
 
     if (!_brainless)
-        _enemy.navigation.path_id = path_add();
-
-
-    _enemy.attack =
     {
-        type: _data.attack.type,
-        damage: _data.attack.damage,
-        range: _data.attack.range,
-
-        cooldown:
-        {
-            duration: _data.attack.cooldown_seconds,
-            remaining: 0
-        },
-
-        projectile: undefined
-    };
-
-
-    if (_enemy.attack.type == EnemyAttack.PROJECTILE)
-	{
-	    var _projectile =
-	        _data.attack.projectile;
-
-	    _enemy.attack.projectile =
-	    {
-	        speed:
-	            _projectile.speed,
-
-	        lifetime_seconds:
-	            _projectile.lifetime_seconds,
-
-	        radius:
-	            _projectile.radius,
-
-	        color:
-	            _projectile.color,
-
-	        shot_count:
-	            _projectile.shot_count,
-
-	        spread_degrees:
-	            _projectile.spread_degrees,
-
-	        impact:
-	            variable_struct_exists(
-	                _projectile,
-	                "impact"
-	            )
-	            ? _projectile.impact
-	            : ProjectileImpact.DIRECT,
-
-	        damage_radius:
-	            variable_struct_exists(
-	                _projectile,
-	                "damage_radius"
-	            )
-	            ? _projectile.damage_radius
-	            : 0,
-
-	        rocket:
-	            variable_struct_exists(
-	                _projectile,
-	                "rocket"
-	            )
-	            ? _projectile.rocket
-	            : false
-	    };
-	}
-	
-	// ========================================================================
-	// ABILITIES
-	// ========================================================================
-
-	// Copy the definition array into an independent runtime array.
-
-	_enemy.abilities = [];
-
-	for (
-	    var i = 0;
-	    i < array_length(_data.abilities);
-	    ++i
-	)
-	{
-	    array_push(
-	        _enemy.abilities,
-	        _data.abilities[i]
-	    );
-	}
+        _enemy.navigation.path_id =
+            path_add();
+    }
 
 
     // ========================================================================
-	// ABILITY RUNTIME
-	// ========================================================================
+    // ATTACK LINE OF SIGHT
+    // ========================================================================
+    //
+    // The existence of the optional line_of_sight struct enables attack LOS.
+    // Enemies without the struct never call LOS checks or allocate an LOS cache.
 
-	_enemy.ability_runtime =
-	{
-	    explosion: undefined,
-	    split: undefined,
-	    transport: undefined,
-	    orbit: undefined,
-	    support_shield: undefined
-	};
-
-
-	if (
-	    scr_enemy_has_ability(
-	        _enemy,
-	        EnemyAbility.EXPLODE_ON_DEATH
-	    )
-	)
-	{
-	    var _explosion =
-	        _data.ability_data.explosion;
-
-	    _enemy.ability_runtime.explosion =
-	    {
-	        damage: _explosion.damage,
-	        radius: _explosion.radius,
-	        triggered: false
-	    };
-	}
+    var _requires_line_of_sight =
+        variable_struct_exists(
+            _data.attack,
+            "line_of_sight"
+        );
 
 
-	if (
-	    scr_enemy_has_ability(
-	        _enemy,
-	        EnemyAbility.SPLIT_ON_DEATH
-	    )
-	)
-	{
-	    var _split =
-	        _data.ability_data.split;
-
-	    _enemy.ability_runtime.split =
-	    {
-	        enemy_key: _split.enemy_key,
-	        count: _split.count,
-	        spawn_distance: _split.spawn_distance,
-	        angle_offset: _split.angle_offset,
-	        triggered: false
-	    };
-	}
-
-
-	if (
-	    scr_enemy_has_ability(
-	        _enemy,
-	        EnemyAbility.TRANSPORT_ENEMIES
-	    )
-	)
-	{
-	    var _transport =
-	        _data.ability_data.transport;
-
-	    _enemy.ability_runtime.transport =
-	    {
-	        cargo: _transport.cargo,
-	        spawn_radius: _transport.spawn_radius,
-	        triggered: false
-	    };
-	}
-
-
-// ========================================================================
-// ORBIT BEHAVIOR RUNTIME
-// ========================================================================
-
-if (_enemy.EnemyBehavior == EnemyBehavior.ORBIT)
-{
     if (
-        !variable_struct_exists(_data, "ability_data")
-        || !is_struct(_data.ability_data)
-        || !variable_struct_exists(_data.ability_data, "orbit")
-        || !is_struct(_data.ability_data.orbit)
+        _requires_line_of_sight
+        && !is_struct(
+            _data.attack.line_of_sight
+        )
     )
     {
         show_debug_message(
-            "ENEMY ERROR - orbit behavior data missing: "
-            + _enemy.identity.key
+            "ENEMY ERROR - attack line_of_sight must be a struct: "
+            + _data.identity.key
         );
 
         return false;
     }
 
 
-    var _orbit =
-        _data.ability_data.orbit;
+    // ========================================================================
+    // ATTACK
+    // ========================================================================
 
-    _enemy.ability_runtime.orbit =
+    _enemy.attack =
     {
-        radius:
-            _orbit.radius,
+        type:
+            _data.attack.type,
 
-        angular_speed:
-            _orbit.angular_speed,
+        damage:
+            _data.attack.damage,
 
-        entry_tolerance:
-            _orbit.entry_tolerance,
+        range:
+            _data.attack.range,
 
-        angle:
-            random(360),
+        requires_line_of_sight:
+            _requires_line_of_sight,
 
-        active:
-            false
+        cooldown:
+        {
+            duration:
+                _data.attack.cooldown_seconds,
+
+            remaining: 0
+        },
+
+        projectile:
+            undefined
     };
 
 
-    if (instance_exists(_enemy.targeting.target))
-    {
-        _enemy.ability_runtime.orbit.angle =
-            point_direction(
-                _enemy.targeting.target.x,
-                _enemy.targeting.target.y,
-                _enemy.x,
-                _enemy.y
-            );
-    }
-}
-	
-	if (
-    scr_enemy_has_ability(
-        _enemy,
-        EnemyAbility.SHIELD_ALLIES
+    if (
+        _enemy.attack.type
+        == EnemyAttack.PROJECTILE
     )
-)
-{
-    var _support =
-        _data.ability_data.support_shield;
-
-    _enemy.ability_runtime.support_shield =
     {
-        standoff_range: _support.standoff_range,
-        field_radius: _support.field_radius,
-        shield_capacity: _support.shield_capacity,
-        recharge_per_pulse: _support.recharge_per_pulse,
-        pulse_seconds: _support.pulse_seconds,
-        linger_seconds: _support.linger_seconds,
-        maximum_target_radius: _support.maximum_target_radius,
-        color: _support.color,
-        pulse_remaining: 0
-    };
-}
+        var _projectile =
+            _data.attack.projectile;
 
+
+        _enemy.attack.projectile =
+        {
+            speed:
+                _projectile.speed,
+
+            lifetime_seconds:
+                _projectile.lifetime_seconds,
+
+            radius:
+                _projectile.radius,
+
+            color:
+                _projectile.color,
+
+            shot_count:
+                _projectile.shot_count,
+
+            spread_degrees:
+                _projectile.spread_degrees,
+
+            impact:
+                variable_struct_exists(
+                    _projectile,
+                    "impact"
+                )
+                ? _projectile.impact
+                : ProjectileImpact.DIRECT,
+
+            damage_radius:
+                variable_struct_exists(
+                    _projectile,
+                    "damage_radius"
+                )
+                ? _projectile.damage_radius
+                : 0,
+
+            rocket:
+                variable_struct_exists(
+                    _projectile,
+                    "rocket"
+                )
+                ? _projectile.rocket
+                : false
+        };
+    }
+
+
+    // ========================================================================
+    // ABILITIES
+    // ========================================================================
+    //
+    // Copy the definition array into an independent runtime array.
+
+    _enemy.abilities =
+        [];
+
+
+    for (
+        var i = 0;
+        i < array_length(_data.abilities);
+        ++i
+    )
+    {
+        array_push(
+            _enemy.abilities,
+            _data.abilities[i]
+        );
+    }
+
+
+    // ========================================================================
+    // ABILITY RUNTIME
+    // ========================================================================
+
+    _enemy.ability_runtime =
+    {
+        explosion: undefined,
+        split: undefined,
+        transport: undefined,
+        orbit: undefined,
+        support_shield: undefined
+    };
+
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.EXPLODE_ON_DEATH
+        )
+    )
+    {
+        var _explosion =
+            _data.ability_data.explosion;
+
+        _enemy.ability_runtime.explosion =
+        {
+            damage:
+                _explosion.damage,
+
+            radius:
+                _explosion.radius,
+
+            triggered:
+                false
+        };
+    }
+
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.SPLIT_ON_DEATH
+        )
+    )
+    {
+        var _split =
+            _data.ability_data.split;
+
+        _enemy.ability_runtime.split =
+        {
+            enemy_key:
+                _split.enemy_key,
+
+            count:
+                _split.count,
+
+            spawn_distance:
+                _split.spawn_distance,
+
+            angle_offset:
+                _split.angle_offset,
+
+            triggered:
+                false
+        };
+    }
+
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.TRANSPORT_ENEMIES
+        )
+    )
+    {
+        var _transport =
+            _data.ability_data.transport;
+
+        _enemy.ability_runtime.transport =
+        {
+            cargo:
+                _transport.cargo,
+
+            spawn_radius:
+                _transport.spawn_radius,
+
+            triggered:
+                false
+        };
+    }
+
+
+    // ========================================================================
+    // ORBIT BEHAVIOR RUNTIME
+    // ========================================================================
+
+    if (
+        _enemy.EnemyBehavior
+        == EnemyBehavior.ORBIT
+    )
+    {
+        if (
+            !variable_struct_exists(
+                _data,
+                "ability_data"
+            )
+            || !is_struct(
+                _data.ability_data
+            )
+            || !variable_struct_exists(
+                _data.ability_data,
+                "orbit"
+            )
+            || !is_struct(
+                _data.ability_data.orbit
+            )
+        )
+        {
+            show_debug_message(
+                "ENEMY ERROR - orbit behavior data missing: "
+                + _enemy.identity.key
+            );
+
+            return false;
+        }
+
+
+        var _orbit =
+            _data.ability_data.orbit;
+
+        _enemy.ability_runtime.orbit =
+        {
+            radius:
+                _orbit.radius,
+
+            angular_speed:
+                _orbit.angular_speed,
+
+            entry_tolerance:
+                _orbit.entry_tolerance,
+
+            angle:
+                random(360),
+
+            active:
+                false
+        };
+
+
+        if (
+            instance_exists(
+                _enemy.targeting.target
+            )
+        )
+        {
+            _enemy.ability_runtime.orbit.angle =
+                point_direction(
+                    _enemy.targeting.target.x,
+                    _enemy.targeting.target.y,
+                    _enemy.x,
+                    _enemy.y
+                );
+        }
+    }
+
+
+    // ========================================================================
+    // SUPPORT SHIELD RUNTIME
+    // ========================================================================
+
+    if (
+        scr_enemy_has_ability(
+            _enemy,
+            EnemyAbility.SHIELD_ALLIES
+        )
+    )
+    {
+        var _support =
+            _data.ability_data.support_shield;
+
+        _enemy.ability_runtime.support_shield =
+        {
+            standoff_range:
+                _support.standoff_range,
+
+            field_radius:
+                _support.field_radius,
+
+            shield_capacity:
+                _support.shield_capacity,
+
+            recharge_per_pulse:
+                _support.recharge_per_pulse,
+
+            pulse_seconds:
+                _support.pulse_seconds,
+
+            linger_seconds:
+                _support.linger_seconds,
+
+            maximum_target_radius:
+                _support.maximum_target_radius,
+
+            color:
+                _support.color,
+
+            pulse_remaining:
+                0
+        };
+    }
+
+
+    // ========================================================================
+    // INITIAL TARGET
+    // ========================================================================
 
     if (_brainless)
     {
-        _enemy.EnemyState = EnemyState.MOVING;
+        _enemy.EnemyState =
+            EnemyState.MOVING;
     }
     else
     {
-        _enemy.targeting.strategic = scr_enemy_target_acquire(_enemy);
-        _enemy.targeting.target = _enemy.targeting.strategic;
+        _enemy.targeting.strategic =
+            scr_enemy_target_acquire(
+                _enemy
+            );
+
+        _enemy.targeting.target =
+            _enemy.targeting.strategic;
     }
 
 
-    show_debug_message("ENEMY CREATED: " + _enemy.identity.name);
+    show_debug_message(
+        "ENEMY CREATED: "
+        + _enemy.identity.name
+    );
+
 
     return true;
 }
