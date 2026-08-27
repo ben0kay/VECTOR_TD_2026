@@ -827,6 +827,141 @@ function scr_particles_construction_complete(
     return true;
 }
 
+/// @description Emits a small outward fabrication-spark spray from a construction scan line.
+
+function scr_particles_construction_scan_emit(
+    _building,
+    _left,
+    _right,
+    _scan_y
+)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (!scr_particles_ready())
+        return false;
+
+
+    var _construction =
+        _building.construction;
+
+    var _spark_runtime =
+        _construction.spark;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    _spark_runtime.remaining -=
+        1 / _fps;
+
+    if (_spark_runtime.remaining > 0)
+        return true;
+
+    _spark_runtime.remaining =
+        _spark_runtime.interval_seconds;
+
+
+    var _particles =
+        global.vtd.particles;
+
+    var _spark =
+        _particles.types.construction_spark;
+
+    var _center_x =
+        (_left + _right) * 0.5;
+
+    var _count =
+        clamp(
+            round(
+                (_right - _left)
+                / 42
+            ),
+            2,
+            4
+        );
+
+
+    for (
+        var i = 0;
+        i < _count;
+        ++i
+    )
+    {
+        var _spawn_x =
+            random_range(
+                _left + 4,
+                _right - 4
+            );
+
+        var _left_side =
+            _spawn_x < _center_x;
+
+        var _upward =
+            irandom(1) == 0;
+
+        var _direction =
+            0;
+
+        if (_left_side)
+        {
+            _direction =
+                _upward
+                ? 135
+                : 225;
+        }
+        else
+        {
+            _direction =
+                _upward
+                ? 45
+                : 315;
+        }
+
+
+        part_type_direction(
+            _spark,
+            _direction - 18,
+            _direction + 18,
+            0,
+            0
+        );
+
+
+        if (random(1) < 0.70)
+        {
+            part_type_color2(
+                _spark,
+                _building.visual.color,
+                c_white
+            );
+        }
+        else
+        {
+            part_type_color2(
+                _spark,
+                c_white,
+                c_yellow
+            );
+        }
+
+
+        part_particles_create(
+            _particles.system,
+            _spawn_x,
+            _scan_y,
+            _spark,
+            1
+        );
+    }
+
+
+    return true;
+}
+
 
 /// @description Creates a restrained explosion burst.
 
@@ -1098,6 +1233,7 @@ function scr_particles_cleanup()
     part_type_destroy(_types.ring);
     part_type_destroy(_types.ember);
 	part_type_destroy(_types.contact_spark);
+	part_type_destroy(_types.construction_spark);
 
     part_system_destroy(
         _particles.system

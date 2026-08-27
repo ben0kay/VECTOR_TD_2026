@@ -262,7 +262,16 @@ function scr_building_initialize(_building)
             ),
 
         complete:
-            false
+            false,
+			
+		spark:
+        {
+            remaining:
+                0,
+
+            interval_seconds:
+                0.085
+        }
     };
 
 
@@ -1208,6 +1217,48 @@ function scr_building_update(_building)
                     0,
                     1
                 );
+				
+				 // Construction scan-line sparks.
+            var _cell_size =
+                global.vtd_level.map.cell_size;
+
+            var _width =
+                _building.footprint.width_cells
+                * _cell_size;
+
+            var _height =
+                _building.footprint.height_cells
+                * _cell_size;
+
+            var _left =
+                _building.x
+                - (_width * 0.5);
+
+            var _right =
+                _building.x
+                + (_width * 0.5);
+
+            var _top =
+                _building.y
+                - (_height * 0.5);
+
+            var _bottom =
+                _building.y
+                + (_height * 0.5);
+
+            var _scan_y =
+                lerp(
+                    _bottom,
+                    _top,
+                    _building.construction.percent
+                );
+
+            scr_particles_construction_scan_emit(
+                _building,
+                _left,
+                _right,
+                _scan_y
+            );
 
 
             var _percent_added =
