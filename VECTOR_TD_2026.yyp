@@ -145,6 +145,7 @@
     {"id":{"name":"scr_resource_data","path":"scripts/scr_resource_data/scr_resource_data.yy",},},
     {"id":{"name":"scr_resource_node","path":"scripts/scr_resource_node/scr_resource_node.yy",},},
     {"id":{"name":"scr_spatial_collision","path":"scripts/scr_spatial_collision/scr_spatial_collision.yy",},},
+    {"id":{"name":"scr_stats","path":"scripts/scr_stats/scr_stats.yy",},},
     {"id":{"name":"scr_storage","path":"scripts/scr_storage/scr_storage.yy",},},
     {"id":{"name":"scr_tower_data","path":"scripts/scr_tower_data/scr_tower_data.yy",},},
     {"id":{"name":"scr_tower_fire","path":"scripts/scr_tower_fire/scr_tower_fire.yy",},},
