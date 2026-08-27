@@ -12,9 +12,6 @@ Condensed collection of gameplay, enemy, tower, economy, world, progression, UI,
 
 ## ENEMIES / ENEMY AI
 
-### Enemy Orders
-Enemies can spawn with an additional tactical order such as RUSH, SABOTAGE, SUPPRESS, HUNT, ESCORT, or SCAVENGE. This lets the same enemy definition behave differently between attacks without needing another enemy type.
-
 ### Revenge Targeting
 Certain enemies can temporarily prioritize the tower/player that has caused them significant damage. Particularly suitable for aggressive heavies and elites.
 
@@ -397,3 +394,76 @@ A possible core relationship:
 **EXPLORE → DISCOVER → MINE → REFINE → BUILD → CONSUME POWER → CREATE SIGNATURE → ATTRACT ENEMIES → DEFEND → SALVAGE → RESEARCH → EXPAND**
 
 The objective is for simple modular systems to combine into unpredictable situations. New enemies, towers, buildings, resources, map traits, and technologies should ideally plug into this loop rather than requiring completely separate gameplay systems.
+
+MOREEE:
+
+Enemy Drop Pods — certain attacks don't enter from the map edge. A target location gets a large warning circle/countdown, then a small squad drops there. Keep them away from the immediate CPU area so it's fair. This makes interior defense matter.
+Enemy Rally Points — enemies entering from roughly the same direction sometimes gather at a temporary rally position before attacking together. Instead of a stream of 20 enemies arriving individually, you suddenly see them assemble and then advance.
+Retreat & Reinforce — a badly damaged valuable enemy can retreat off-map. If it escapes, the director gets a small future budget refund or that enemy can return repaired later. Gives you a reason to chase something down with the player.
+Suppression — certain enemy weapons don't need to destroy towers. Sustained incoming fire temporarily reduces a tower's rotation/fire rate. This would give enemy machine-gunner-type units a distinct purpose without being another hacker.
+Enemy Mine Layer — sneaks around and drops temporary hazards along routes the player commonly travels. Doesn't affect towers much; specifically makes personally defending the base more dangerous.
+Enemy Beacon — an enemy reaches a location and deploys a stationary beacon. While alive, that location becomes eligible as a reinforcement spawn point. Suddenly killing the beacon matters enormously.
+Enemy Extraction Team — occasionally enemies aren't attacking you at all. They arrive to extract something valuable from the map—rare resource, ancient structure, wreckage, etc. You can ignore them or contest it.
+Enemy Evolution Pool — the director has a tiny persistent pool of upgrades during a level. Instead of only increasing budget, it might eventually purchase +shield, +speed, stealth access, etc. You could actually display ENEMY TECHNOLOGY: 3 somewhere.
+Tower Heat — separate from your temporary Overdrive idea. Some inherently powerful towers accumulate heat through normal firing. Sustained combat reduces their fire rate until they cool, making burst DPS and sustained DPS meaningfully different.
+Crossfire Bonus — enemies being attacked from substantially different directions receive a small vulnerability/accuracy bonus. Encourages spreading towers around a defensive area instead of creating one enormous gun blob.
+Last-Shot Capacitor — if an energy weapon waits without firing, it slowly charges its next shot up to a cap. Particularly cool for sniper/laser-style towers and makes quiet periods mechanically useful.
+Tower Link Pairs — certain support/tower combinations can form one explicit link. For example Radar → Sniper. A visible thin vector connection appears between them and gives a specialized bonus. Much simpler than making every nearby tower network with everything.
+Emergency Wall Seal — player can temporarily electrify/lock a breached wall segment or gap for several seconds. Expensive emergency ability rather than another permanent defense.
+Base Alarm State — the base itself has CALM / ALERT / COMBAT / CRITICAL states. Lights, building animation speed, UI, music and maybe certain automated systems respond to it. Mostly atmospheric, but would make the base feel alive.
+Power Surge Routing — if generation substantially exceeds demand, the player can temporarily dump surplus into one subsystem: Towers, Shields, Industry or Repair. Gives excess generation a purpose beyond filling batteries.
+Blackout Combat — when a section loses power, don't simply make everything stop. Buildings retain tiny emergency capacitors for a few seconds. Their lights flicker and fire rates collapse before they finally shut down. Makes power-grid failure visually dramatic.
+Resource Overmining — miners can be switched into an unsafe extraction mode: significantly faster extraction, but increased energy/signature and a small chance of destabilizing/depleting the deposit faster. A nice "I need iron NOW" button.
+Resource Discovery Chain — mining certain deposits has a small chance to reveal a nearby deeper/rare deposit. Expansion can therefore naturally lead you farther away from the CPU.
+Forward Operating Base — an expensive structure establishes a small remote build/support zone far from the CPU. Lets late-game players deliberately establish little satellite bases around distant resources.
+Abandoned Player Base — world generation can very rarely create ruins resembling your own faction's structures: dead towers, broken batteries, walls, etc. Repairing some gives you infrastructure. Makes the world imply other failed expeditions existed.
+Map Power Ruins — abandoned energy infrastructure can be repaired and connected to your grid. Maybe there's an incredible ancient generator far away, giving you a reason to defend a long-distance position.
+Enemy Territory — instead of every enemy simply appearing from nowhere, some areas of the map can gradually become enemy-controlled. Their structures/rallies become more common there until you push them back.
+Battle Scars — not just persistent wreckage from your list: frequently attacked locations acquire scorch marks/cracks/debris intensity. After an hour, you can literally identify where your worst battles happened.
+Director Personality — when a level starts, secretly roll a lightweight enemy doctrine: AGGRESSIVE, SIEGE, SWARM, RAIDER, METHODICAL, etc. It adjusts director weights without changing the enemy roster. Two runs of the same generated map could therefore feel noticeably different.
+Director Grudge — if one particular tower has been absolutely massacring enemies, the director can occasionally mark it as a high-value target for an attack. Different from individual Revenge Targeting: this is the director noticing that your Rank 8 Sniper has killed 150 units and eventually sending a specialized team after it.
+
+
+
+CRITICAL TOWER HITS - UPGRADES CAN INCREASE
+
+Tower Final Stand — when a tower is destroyed, there's a small chance its weapon remains operational for another 1–2 seconds while the structure catastrophically fails. Minigun sprays, laser burns continuously, cannon gets one final shot. Mostly spectacle, but memorable.
+Critical Hits on Buildings — enemy attacks occasionally damage a subsystem rather than just HP. TARGETING DAMAGED, POWER COUPLING DAMAGED, WEAPON JAMMED. Repairer/player repairs clear it. I'd reserve this for higher difficulties or special enemies.
+Enemy Weapon Loot — extremely rarely, an enemy drops a temporary usable weapon/module. The player can physically collect it and use enemy technology for the remainder of the level.
+Tower Emergency Retarget — when an enemy gets extremely close to the CPU, compatible towers temporarily override their normal priorities and treat it as critical. Gives your base an automatic "OH SHIT" response.
+Near-Miss Projectiles — large enemy/player projectiles passing very close to objects produce tiny sparks/distortion without actually damaging them. Pure polish, but would make projectile-heavy battles feel much more physical.
+Projectile Collision Events — very rare/high-tier weapons can actually collide. An AA interceptor could shoot down an incoming siege shell. You already have projectile interception in your broader plans, but projectile-vs-projectile explosions themselves could look spectacular.
+Chain Detonation Enemy — killing one causes nearby copies to become unstable. If you kill them quickly enough, you can create a cascading explosion through an entire cluster.
+Parasite Enemy — attaches itself to a building instead of attacking normally. While attached it drains energy/resources or weakens the building until the player/towers remove it.
+Enemy Split Decision — some enemies reaching a junction can split into two groups rather than everyone following the same route. Makes huge blobs naturally fan through bases.
+Sleeping Giant — a huge neutral machine sometimes generates with the map. It's harmless. Building/mining/fighting too close gradually wakes it up. You know exactly what terrible decision you're making when you expand there.
+Volatile Enemy Cargo — some transports visibly carry explosive/energy cargo. Destroying them causes a large explosion that damages nearby enemies too. Suddenly the player wants to deliberately kill that particular unit inside the formation.
+Captured Enemy — extremely rarely, disabling rather than destroying an enemy lets you recover it after combat for research/salvage. Could eventually interact nicely with your technology system.
+Tower Calibration — newly constructed sophisticated towers take a few seconds to calibrate before reaching full accuracy/rotation speed. Visually, targeting rings converge around them. Gives construction during combat a little more tension without making build times dramatically longer.
+Tower Recoil — purely visual. Cannon/sniper physically kicks backward a few pixels when firing and smoothly returns. Minigun vibrates slightly. Mortar jolts. This would make your new vector tower designs feel way more alive for almost no gameplay complexity.
+Tower Idle Behaviour — when nothing is around, AA slowly scans the sky, Radar rotates, Minigun occasionally adjusts orientation, Sniper sweeps an arc. Currently towers don't need to look frozen just because combat stopped.
+Tower Wake-Up — when an idle tower acquires a target, its visual changes briefly: targeting nodes illuminate → turret snaps toward target → weapon fires. Again mostly polish, but excellent feedback.
+Ammo Visible on Building — ammunition towers physically show remaining rounds. AA Rocket could visibly have four missiles and lose a little launch-cell marker as ammo is consumed, then refill during resupply.
+Battery Visual Charge — you've already started this visually. Push the concept throughout the game: buildings should visually communicate their internal state without requiring UI. Empty battery looks dead; overloaded generator crackles; starved fabricator flickers.
+Power Brownout — instead of power being purely ON/OFF, insufficient generation can cause a grid-wide brownout. Towers rotate slower, lights flicker, fabrication slows. Batteries stabilize it. Could make power management substantially more interesting.
+Grid Priority — player assigns CRITICAL / NORMAL / LOW power priority. During a shortage, miners shut down before towers, or vice versa if the player chooses. Very RTS-ish and probably fits your architecture nicely.
+Emergency Energy Dump — destroy/discharge a battery intentionally to immediately dump its remaining energy into the network, briefly allowing massive consumption or shield recharge, but permanently losing the battery.
+Generator Overload — temporarily run generators at 150–200% output. They accumulate instability and eventually need cooldown/repair. Nice emergency button during huge attacks.
+Construction Under Fire — damage to an unfinished building knocks its construction percentage backward slightly instead of simply behaving like normal HP damage. Watching enemies desperately prevent your Cannon from coming online could be cool.
+Emergency Construction — spend substantially more resources to accelerate one building currently being constructed. Your new construction-line particle effect could go absolutely nuts while this happens.
+Ghost Reconstruction — when rebuilding a destroyed structure in exactly the same footprint, briefly show a faint outline of the old building and reconstruct it faster/cheaper because the foundation remains.
+Blueprint Repeat — select a group of buildings and save their relative layout as a tiny blueprint. Probably more useful later once bases get larger.
+Defensive Zones — player can name/mark map regions: NORTH WALL, MINING OUTPOST, etc. Mostly organizational initially, but later alerts can say NORTH WALL UNDER ATTACK.
+Automatic Threat Names — the director generates names for sufficiently large assaults based on composition: ARMOURED PUSH, AIR INCURSION, SIEGE COLUMN, SWARM, INFILTRATION. Your UI warning system becomes much more atmospheric.
+Battle Intensity Meter — internally track current combat intensity from nearby enemies, projectiles, damage and deaths. This one number could drive screen shake strength, particle budgets, music, UI alarm intensity and environmental effects.
+Local Battle Intensity — even better: intensity around the camera/player. A giant fight on the opposite side of the map doesn't make your screen shake; entering that battlefield does.
+Combat Aftermath Phase — after a huge attack, the director deliberately pauses while wreckage/sparks remain, repairers activate, drones move around and music settles. Makes surviving a major wave feel like an actual event rather than immediately returning to normal.
+Enemy Arrival Trails — large groups entering from outside the map briefly produce distant vector streaks/signals in their direction before they physically appear. Gives subtle warning without a giant UI popup.
+Off-Screen Battle Indicators — if something important is fighting outside the camera, tiny directional edge indicators pulse based on severity. Especially useful once you have multiple outposts.
+CPU Voice/System Messages — not necessarily actual voice acting. Short computer messages like WESTERN GRID FAILURE, HOSTILE SIEGE WEAPON DETECTED, BATTERY RESERVE 10%, MINERAL VEIN EXHAUSTED. Could add enormous personality cheaply.
+Named Veteran Towers — once a tower reaches a high enough rank/kills, the game automatically gives it a callsign. CANNON-04 "HAMMER". Now losing it actually feels bad.
+Enemy Ace Units — inverse of veteran towers. Occasionally an ordinary enemy survives multiple battles/objectives and becomes named, visually marked, slightly stronger and worth more. If it escapes, it may appear later.
+Post-Mission Battlefield View — after victory, don't immediately leave. Freeze enemy spawning and let the player fly around their battered base while statistics appear. Seeing the actual surviving base alongside 1,482 enemies destroyed would be satisfying.
+Time-Lapse Base Replay — this is more ambitious but very cool: periodically save extremely lightweight building-position snapshots. At mission completion, rapidly replay the base growing from CPU → first miner → walls → huge fortress. No actual combat replay necessary.
+
+TOWER RECOIL
