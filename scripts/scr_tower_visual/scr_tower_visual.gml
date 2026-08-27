@@ -254,52 +254,169 @@ function scr_tower_range_draw(_tower)
     return true;
 }
 
-/// @description Draws the single-barrel anti-air tracker.
+/// @description Draws the Anti-Air Tower.
 
 function scr_tower_visual_anti_air(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
 
-    var _pulse =
-        0.65
-        + dsin(
-            (global.vtd.tick * 5)
-            + real(_tower.id)
-        ) * 0.2;
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick * 1.5;
+
 
     draw_set_color(_color);
 
-    // Tracking dish and central pivot.
 
-    draw_circle(_x, _y, 16, true);
-    draw_circle(_x, _y, 9, true);
-    draw_circle(_x, _y, 4, false);
+    // ========================================================================
+    // TRACKING BASE
+    // ========================================================================
 
-    // Single elevated barrel.
-
-    var _end_x = _x + lengthdir_x(38, _angle);
-    var _end_y = _y + lengthdir_y(38, _angle);
-
-    draw_line_width(_x, _y, _end_x, _end_y, 4);
-
-    // Small perpendicular sight near the muzzle.
-
-    draw_line_width(
-        _end_x + lengthdir_x(5, _angle + 90),
-        _end_y + lengthdir_y(5, _angle + 90),
-        _end_x + lengthdir_x(5, _angle - 90),
-        _end_y + lengthdir_y(5, _angle - 90),
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        18,
+        8,
+        _angle + 22.5,
         2
     );
 
-    draw_set_alpha(_pulse);
-    draw_set_color(c_white);
-    draw_circle(_x, _y, 3, false);
 
-    draw_set_alpha(1);
+    scr_enemy_visual_helper_arc_segments(
+        _x,
+        _y,
+        13,
+        4,
+        48,
+        _spin,
+        4,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL SENSOR
+    // ========================================================================
+
+    draw_circle(
+        _x,
+        _y,
+        6,
+        false
+    );
+
+
+    scr_enemy_visual_helper_radial_ticks(
+        _x,
+        _y,
+        7,
+        5,
+        4,
+        _spin,
+        2
+    );
+
+
+    // ========================================================================
+    // QUAD AA PRONGS
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        -8,
+
+        29,
+        -11,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        -3,
+
+        32,
+        -4,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        3,
+
+        32,
+        4,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        8,
+
+        29,
+        11,
+
+        2
+    );
+
+
+    // ========================================================================
+    // FRONT TARGETING NODE
+    // ========================================================================
+
+    var _node_x =
+        _x
+        + lengthdir_x(
+            34,
+            _angle
+        );
+
+    var _node_y =
+        _y
+        + lengthdir_y(
+            34,
+            _angle
+        );
+
+
+    draw_circle(
+        _node_x,
+        _node_y,
+        3,
+        true
+    );
+
+
     draw_set_color(c_white);
 
     return true;
@@ -767,42 +884,172 @@ function scr_tower_visual_laser(_tower)
     return true;
 }
 
-/// @description Draws the long-range sniper tower.
+/// @description Draws the Sniper Tower.
 
 function scr_tower_visual_sniper(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
 
     draw_set_color(_color);
 
-    // Narrow precision mount.
 
-    draw_circle(_x, _y, 15, true);
-    draw_circle(_x, _y, 6, false);
+    // ========================================================================
+    // PRECISION BASE
+    // ========================================================================
 
-    var _end_x = _x + lengthdir_x(44, _angle);
-    var _end_y = _y + lengthdir_y(44, _angle);
-
-    draw_line_width(_x, _y, _end_x, _end_y, 3);
-
-    // Long rail and sight marks.
-
-    draw_line(
-        _x + lengthdir_x(8, _angle + 90),
-        _y + lengthdir_y(8, _angle + 90),
-        _x + lengthdir_x(8, _angle - 90),
-        _y + lengthdir_y(8, _angle - 90)
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        17,
+        _angle,
+        2
     );
 
-    draw_line(
-        _end_x + lengthdir_x(4, _angle + 90),
-        _end_y + lengthdir_y(4, _angle + 90),
-        _end_x + lengthdir_x(4, _angle - 90),
-        _end_y + lengthdir_y(4, _angle - 90)
+
+    draw_circle(
+        _x,
+        _y,
+        8,
+        true
     );
+
+
+    // ========================================================================
+    // LONG RIFLE BODY
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -8,
+        -4,
+
+        20,
+        4,
+
+        2
+    );
+
+
+    // ========================================================================
+    // EXTENDED BARREL
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        18,
+        -2,
+
+        45,
+        2,
+
+        2
+    );
+
+
+    // Muzzle brake.
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        45,
+        -5,
+
+        50,
+        5,
+
+        2
+    );
+
+
+    // ========================================================================
+    // TARGETING SCOPE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -1,
+        -7,
+
+        17,
+        -7,
+
+        2
+    );
+
+
+    var _scope_x =
+        _x
+        + lengthdir_x(
+            10,
+            _angle
+        )
+        + lengthdir_x(
+            7,
+            _angle - 90
+        );
+
+    var _scope_y =
+        _y
+        + lengthdir_y(
+            10,
+            _angle
+        )
+        + lengthdir_y(
+            7,
+            _angle - 90
+        );
+
+
+    draw_circle(
+        _scope_x,
+        _scope_y,
+        3,
+        true
+    );
+
+
+    // ========================================================================
+    // REAR STOCK / ENERGY CELL
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_polygon(
+        _x,
+        _y,
+        _angle,
+
+        [
+            [-18, -6],
+            [-6, -4],
+            [-6, 4],
+            [-18, 6],
+            [-13, 0]
+        ],
+
+        2
+    );
+
 
     draw_set_color(c_white);
 
@@ -1135,36 +1382,237 @@ function scr_tower_visual_stasis(_tower)
 
 function scr_tower_visual_disruptor(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
-    var _spin = global.vtd.tick * -3 + real(_tower.id);
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick * 2.5;
+
 
     draw_set_color(_color);
 
-    for (var i = 0; i < 3; ++i)
-    {
-        var _a = _spin + (i * 120);
 
-        draw_line_width(
-            _x + lengthdir_x(7, _a),
-            _y + lengthdir_y(7, _a),
-            _x + lengthdir_x(18, _a + 25),
-            _y + lengthdir_y(18, _a + 25),
-            2
-        );
-    }
+    // ========================================================================
+    // DISRUPTION FIELD BASE
+    // ========================================================================
 
-    draw_circle(_x, _y, 7, false);
-
-    draw_line_width(
+    scr_enemy_visual_helper_arc_segments(
         _x,
         _y,
-        _x + lengthdir_x(34, _angle),
-        _y + lengthdir_y(34, _angle),
+        19,
+        6,
+        32,
+        _spin,
+        4,
+        2
+    );
+
+
+    scr_enemy_visual_helper_arc_segments(
+        _x,
+        _y,
+        13,
+        3,
+        65,
+        -_spin,
+        5,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL ELECTROMAGNETIC CORE
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        8,
+        6,
+        -_spin,
+        2
+    );
+
+
+    draw_circle(
+        _x,
+        _y,
+        3,
+        false
+    );
+
+
+    // ========================================================================
+    // FORKED DISRUPTION EMITTER
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        -5,
+
+        27,
+        -8,
+
         3
     );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        5,
+
+        27,
+        8,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        -8,
+
+        38,
+        -13,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        8,
+
+        38,
+        13,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        -8,
+
+        38,
+        -3,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        8,
+
+        38,
+        3,
+
+        2
+    );
+
+
+    // ========================================================================
+    // DISRUPTION NODES
+    // ========================================================================
+
+    var _node_distance =
+        38;
+
+
+    var _node_a_x =
+        _x
+        + lengthdir_x(
+            _node_distance,
+            _angle
+        )
+        + lengthdir_x(
+            8,
+            _angle - 90
+        );
+
+    var _node_a_y =
+        _y
+        + lengthdir_y(
+            _node_distance,
+            _angle
+        )
+        + lengthdir_y(
+            8,
+            _angle - 90
+        );
+
+
+    var _node_b_x =
+        _x
+        + lengthdir_x(
+            _node_distance,
+            _angle
+        )
+        + lengthdir_x(
+            8,
+            _angle + 90
+        );
+
+    var _node_b_y =
+        _y
+        + lengthdir_y(
+            _node_distance,
+            _angle
+        )
+        + lengthdir_y(
+            8,
+            _angle + 90
+        );
+
+
+    draw_circle(
+        _node_a_x,
+        _node_a_y,
+        3,
+        false
+    );
+
+    draw_circle(
+        _node_b_x,
+        _node_b_y,
+        3,
+        false
+    );
+
 
     draw_set_color(c_white);
 
@@ -1175,74 +1623,378 @@ function scr_tower_visual_disruptor(_tower)
 
 function scr_tower_visual_mortar(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
 
     draw_set_color(_color);
 
-    draw_circle(_x, _y, 17, false);
-    draw_circle(_x, _y, 10, false);
 
-    draw_line_width(
-        _x + lengthdir_x(4, _angle),
-        _y + lengthdir_y(4, _angle),
-        _x + lengthdir_x(29, _angle),
-        _y + lengthdir_y(29, _angle),
-        8
+    // ========================================================================
+    // ARTILLERY PLATFORM
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        22,
+        8,
+        _angle + 22.5,
+        3
     );
+
+
+    scr_enemy_visual_helper_radial_ticks(
+        _x,
+        _y,
+        16,
+        6,
+        4,
+        _angle + 45,
+        3
+    );
+
+
+    // ========================================================================
+    // MORTAR CRADLE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -11,
+        -10,
+
+        12,
+        10,
+
+        3
+    );
+
+
+    // Side supports.
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -7,
+        -12,
+
+        12,
+        -9,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -7,
+        12,
+
+        12,
+        9,
+
+        3
+    );
+
+
+    // ========================================================================
+    // LARGE SHORT MORTAR TUBE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        -7,
+
+        28,
+        7,
+
+        3
+    );
+
+
+    // Huge barrel opening.
+
+    var _muzzle_x =
+        _x
+        + lengthdir_x(
+            31,
+            _angle
+        );
+
+    var _muzzle_y =
+        _y
+        + lengthdir_y(
+            31,
+            _angle
+        );
+
 
     draw_circle(
-        _x + lengthdir_x(30, _angle),
-        _y + lengthdir_y(30, _angle),
-        6,
+        _muzzle_x,
+        _muzzle_y,
+        9,
+        true
+    );
+
+
+    draw_circle(
+        _muzzle_x,
+        _muzzle_y,
+        5,
         false
     );
+
+
+    // ========================================================================
+    // REAR AMMO HOUSING
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -18,
+        -7,
+
+        -8,
+        7,
+
+        2
+    );
+
 
     draw_set_color(c_white);
 
     return true;
 }
 
-/// @description Draws the twin-launcher AA Rocket Tower.
+/// @description Draws the Anti-Air Rocket Tower.
 
 function scr_tower_visual_aa_rocket(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
 
-    var _side_x = lengthdir_x(7, _angle + 90);
-    var _side_y = lengthdir_y(7, _angle + 90);
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick;
+
 
     draw_set_color(_color);
 
-    draw_circle(_x, _y, 15, true);
 
-    for (var side = -1; side <= 1; side += 2)
+    // ========================================================================
+    // HEAVY TRACKING PLATFORM
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        21,
+        8,
+        _angle + 22.5,
+        3
+    );
+
+
+    scr_enemy_visual_helper_arc_segments(
+        _x,
+        _y,
+        14,
+        4,
+        52,
+        _spin,
+        4,
+        2
+    );
+
+
+    // ========================================================================
+    // MISSILE LAUNCHER BODY
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -8,
+        -13,
+
+        27,
+        13,
+
+        3
+    );
+
+
+    // ========================================================================
+    // FOUR LAUNCH CELLS
+    // ========================================================================
+
+    var _cell_x =
+        19;
+
+    var _cell_spacing =
+        7;
+
+
+    for (var i = 0; i < 4; ++i)
     {
-        var _sx = _x + (_side_x * side);
-        var _sy = _y + (_side_y * side);
+        var _offset =
+            -10.5
+            + (i * _cell_spacing);
 
-        var _ex = _sx + lengthdir_x(34, _angle);
-        var _ey = _sy + lengthdir_y(34, _angle);
 
-        draw_line_width(_sx, _sy, _ex, _ey, 5);
+        var _rocket_x =
+            _x
+            + lengthdir_x(
+                _cell_x,
+                _angle
+            )
+            + lengthdir_x(
+                _offset,
+                _angle + 90
+            );
 
-        draw_triangle(
-            _ex + lengthdir_x(5, _angle),
-            _ey + lengthdir_y(5, _angle),
+        var _rocket_y =
+            _y
+            + lengthdir_y(
+                _cell_x,
+                _angle
+            )
+            + lengthdir_y(
+                _offset,
+                _angle + 90
+            );
 
-            _ex + lengthdir_x(5, _angle + 135),
-            _ey + lengthdir_y(5, _angle + 135),
 
-            _ex + lengthdir_x(5, _angle - 135),
-            _ey + lengthdir_y(5, _angle - 135),
+        draw_circle(
+            _rocket_x,
+            _rocket_y,
+            3,
             true
         );
     }
+
+
+    // ========================================================================
+    // FRONT LAUNCHER EDGE
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        -13,
+
+        33,
+        -10,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        13,
+
+        33,
+        10,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        33,
+        -10,
+
+        33,
+        10,
+
+        3
+    );
+
+
+    // ========================================================================
+    // REAR RADAR / TARGETER
+    // ========================================================================
+
+    var _radar_x =
+        _x
+        + lengthdir_x(
+            -15,
+            _angle
+        );
+
+    var _radar_y =
+        _y
+        + lengthdir_y(
+            -15,
+            _angle
+        );
+
+
+    draw_circle(
+        _radar_x,
+        _radar_y,
+        5,
+        true
+    );
+
+
+    scr_enemy_visual_helper_radial_ticks(
+        _radar_x,
+        _radar_y,
+        5,
+        3,
+        4,
+        _spin * 2,
+        1
+    );
+
 
     draw_set_color(c_white);
 
