@@ -77,6 +77,18 @@ function scr_profile_migrate(_profile)
 
     if (!variable_struct_exists(_profile, "version"))
         _profile.version = 1;
+	
+	if (!variable_struct_exists(_profile, "created_timestamp"))
+	{
+	    _profile.created_timestamp =
+	        date_current_datetime();
+	}
+
+	if (!variable_struct_exists(_profile, "last_played_timestamp"))
+	{
+	    _profile.last_played_timestamp =
+	        date_current_datetime();
+	}
 
     if (!variable_struct_exists(_profile, "campaign"))
     {

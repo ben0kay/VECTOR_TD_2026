@@ -37,7 +37,8 @@ function scr_game_initialize()
             buildings: {},
             resources: {},
             recipes: {},
-            worlds: {}
+            worlds: {},
+			upgrades: {},
         },
 
         debug:
@@ -75,7 +76,7 @@ function scr_game_initialize()
 
 
     // FUTURE:
-    // scr_upgrade_data_initialize();
+    scr_upgrade_data_initialize();
     // scr_research_data_initialize();
     // scr_boss_data_initialize();
     // scr_profile_system_initialize();

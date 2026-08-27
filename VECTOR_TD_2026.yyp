@@ -158,6 +158,7 @@
     {"id":{"name":"scr_tower_visual","path":"scripts/scr_tower_visual/scr_tower_visual.yy",},},
     {"id":{"name":"scr_tower","path":"scripts/scr_tower/scr_tower.yy",},},
     {"id":{"name":"scr_unique_hooks","path":"scripts/scr_unique_hooks/scr_unique_hooks.yy",},},
+    {"id":{"name":"scr_upgrade_data","path":"scripts/scr_upgrade_data/scr_upgrade_data.yy",},},
     {"id":{"name":"scr_upgrade","path":"scripts/scr_upgrade/scr_upgrade.yy",},},
     {"id":{"name":"scr_utility","path":"scripts/scr_utility/scr_utility.yy",},},
     {"id":{"name":"scr_world_data","path":"scripts/scr_world_data/scr_world_data.yy",},},

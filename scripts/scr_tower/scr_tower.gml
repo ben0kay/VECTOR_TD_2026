@@ -290,7 +290,7 @@ function scr_tower_initialize(_tower)
     };
 
 
-    scr_tower_progression_stats_apply(_tower);
+    scr_upgrade_tower_combat_stats_apply(_tower);
 
     return true;
 }

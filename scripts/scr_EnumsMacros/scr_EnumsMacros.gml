@@ -251,6 +251,19 @@ enum EnergyPriority { CRITICAL, HIGH, NORMAL, LOW }
 enum EnergyNetworkState { OFFLINE, DEFICIT, BATTERY, BALANCED, SURPLUS }
 enum EnergyOverlayMode { OFF, NETWORKS, DETAILED }
 
+enum UpgradeScope
+{
+    PROFILE,
+    LEVEL
+}
+
+enum UpgradeTarget
+{
+    BUILDING,
+    TOWER_COMBAT,
+    PLAYER
+}
+
 
 enum MainMenuAction
 {
