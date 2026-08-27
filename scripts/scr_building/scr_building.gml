@@ -141,11 +141,6 @@ function scr_building_initialize(_building)
 	    );
 
 
-	var _hp_maximum =
-	    _data.vitals.hp_maximum
-	    * _foundation_hp_multiplier;
-
-
 	_building.foundation =
 	{
 	    coverage:
@@ -157,28 +152,28 @@ function scr_building_initialize(_building)
 	    hp_multiplier:
 	        _foundation_hp_multiplier,
 
+	    // Tower combat stats move to their own pipeline next.
 	    tower_fire_rate_multiplier:
 	        _foundation_fire_rate_multiplier
 	};
 
 
-    // ========================================================================
-	// VITALS
+	// ========================================================================
+	// SHARED BUILDING STATS
 	// ========================================================================
 
-	var _initial_hp =
-	    max(
-	        1,
-	        _hp_maximum * 0.1
-	    );
+	var _base_hp_maximum =
+	    _data.vitals.hp_maximum;
 
 
-	// Buildings default to shield capacity equal to 25% maximum HP.
-	// Individual definitions may override this, including setting it to zero.
+	// Buildings without an explicit shield definition retain the existing
+	// behaviour: their shield capacity begins at 25% of base HP.
 
-	var _shield_maximum =
-	    _hp_maximum * 0.25;
+	var _base_shield_maximum =
+	    _base_hp_maximum * 0.25;
 
+	var _shield_scales_with_hp =
+	    true;
 
 	if (
 	    variable_struct_exists(
@@ -187,12 +182,81 @@ function scr_building_initialize(_building)
 	    )
 	)
 	{
-	    _shield_maximum =
+	    _base_shield_maximum =
 	        max(
 	            0,
 	            _data.vitals.shield_maximum
 	        );
+
+	    _shield_scales_with_hp =
+	        false;
 	}
+
+
+	_building.stats =
+	    scr_stats_runtime_create(
+	        {
+	            hp_maximum:
+	                _base_hp_maximum,
+
+	            shield_maximum:
+	                _base_shield_maximum
+	        }
+	    );
+
+
+	// Foundation effects are specific to this placed building, so they live in
+	// its local layer. Profile and level layers remain empty for now.
+
+	_building.stats.local.multiplier.hp_maximum =
+	    _foundation_hp_multiplier;
+
+	if (_shield_scales_with_hp)
+	{
+	    _building.stats.local.multiplier.shield_maximum =
+	        _foundation_hp_multiplier;
+	}
+
+
+	if (
+	    !scr_stats_recalculate(
+	        _building.stats
+	    )
+	)
+	{
+	    show_debug_message(
+	        "BUILDING ERROR - stat calculation failed: "
+	        + _building.identity.key
+	    );
+
+	    return false;
+	}
+
+
+	var _hp_maximum =
+	    scr_stats_final_get(
+	        _building.stats,
+	        "hp_maximum",
+	        1
+	    );
+
+	var _shield_maximum =
+	    scr_stats_final_get(
+	        _building.stats,
+	        "shield_maximum",
+	        0
+	    );
+
+
+	// ========================================================================
+	// VITALS
+	// ========================================================================
+
+	var _initial_hp =
+	    max(
+	        1,
+	        _hp_maximum * 0.1
+	    );
 
 
 	_building.vitals =
@@ -334,6 +398,104 @@ function scr_building_initialize(_building)
         "BUILDING CREATED: "
         + _building.identity.name
     );
+
+
+    return true;
+}
+
+/// @description Recalculates and applies shared building stats to live vitals.
+function scr_building_stats_apply(
+    _building,
+    _preserve_hp_ratio = false
+)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    if (!is_struct(_building.stats))
+        return false;
+
+    if (!is_struct(_building.vitals))
+        return false;
+
+
+    var _old_hp_maximum =
+        max(
+            1,
+            _building.vitals.hp.maximum
+        );
+
+    var _old_hp_current =
+        _building.vitals.hp.current;
+
+    var _old_hp_ratio =
+        clamp(
+            _old_hp_current
+            / _old_hp_maximum,
+            0,
+            1
+        );
+
+
+    if (
+        !scr_stats_recalculate(
+            _building.stats
+        )
+    )
+    {
+        return false;
+    }
+
+
+    var _new_hp_maximum =
+        max(
+            1,
+            scr_stats_final_get(
+                _building.stats,
+                "hp_maximum",
+                1
+            )
+        );
+
+    var _new_shield_maximum =
+        max(
+            0,
+            scr_stats_final_get(
+                _building.stats,
+                "shield_maximum",
+                0
+            )
+        );
+
+
+    _building.vitals.hp.maximum =
+        _new_hp_maximum;
+
+    _building.vitals.shield.maximum =
+        _new_shield_maximum;
+
+
+    if (_preserve_hp_ratio)
+    {
+        _building.vitals.hp.current =
+            _new_hp_maximum
+            * _old_hp_ratio;
+    }
+    else
+    {
+        _building.vitals.hp.current =
+            min(
+                _building.vitals.hp.current,
+                _new_hp_maximum
+            );
+    }
+
+
+    _building.vitals.shield.current =
+        min(
+            _building.vitals.shield.current,
+            _new_shield_maximum
+        );
 
 
     return true;

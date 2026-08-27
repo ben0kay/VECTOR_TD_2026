@@ -167,27 +167,80 @@ function scr_enemy_visual_helper_polygon(
         360 / _sides;
 
 
-    for (var i = 0; i < _sides; ++i)
+    // First vertex.
+
+    var _first_x =
+        _x
+        + lengthdir_x(
+            _radius,
+            _angle
+        );
+
+    var _first_y =
+        _y
+        + lengthdir_y(
+            _radius,
+            _angle
+        );
+
+
+    var _previous_x =
+        _first_x;
+
+    var _previous_y =
+        _first_y;
+
+
+    // Remaining vertices.
+
+    for (var i = 1; i < _sides; ++i)
     {
-        var _a1 =
+        var _current_angle =
             _angle
             + (i * _step);
 
-        var _a2 =
-            _angle
-            + (((i + 1) mod _sides) * _step);
+
+        var _current_x =
+            _x
+            + lengthdir_x(
+                _radius,
+                _current_angle
+            );
+
+        var _current_y =
+            _y
+            + lengthdir_y(
+                _radius,
+                _current_angle
+            );
 
 
         draw_line_width(
-            _x + lengthdir_x(_radius, _a1),
-            _y + lengthdir_y(_radius, _a1),
-
-            _x + lengthdir_x(_radius, _a2),
-            _y + lengthdir_y(_radius, _a2),
-
+            _previous_x,
+            _previous_y,
+            _current_x,
+            _current_y,
             _width
         );
+
+
+        _previous_x =
+            _current_x;
+
+        _previous_y =
+            _current_y;
     }
+
+
+    // Close polygon.
+
+    draw_line_width(
+        _previous_x,
+        _previous_y,
+        _first_x,
+        _first_y,
+        _width
+    );
 
 
     return true;
@@ -655,49 +708,74 @@ function scr_enemy_visual_helper_local_polygon(
         dsin(_angle);
 
 
-    for (var i = 0; i < _count; ++i)
+    // Transform the first point once.
+
+    var _first =
+        _points[0];
+
+    var _first_x =
+        _x
+        + (_first[0] * _cos)
+        + (_first[1] * _sin);
+
+    var _first_y =
+        _y
+        - (_first[0] * _sin)
+        + (_first[1] * _cos);
+
+
+    var _previous_x =
+        _first_x;
+
+    var _previous_y =
+        _first_y;
+
+
+    // Transform each remaining point only once.
+
+    for (var i = 1; i < _count; ++i)
     {
-        var _next =
-            (i + 1) mod _count;
-
-
-        var _p1 =
+        var _point =
             _points[i];
 
-        var _p2 =
-            _points[_next];
 
-
-        var _x1 =
+        var _current_x =
             _x
-            + (_p1[0] * _cos)
-            + (_p1[1] * _sin);
+            + (_point[0] * _cos)
+            + (_point[1] * _sin);
 
-        var _y1 =
+        var _current_y =
             _y
-            - (_p1[0] * _sin)
-            + (_p1[1] * _cos);
-
-
-        var _x2 =
-            _x
-            + (_p2[0] * _cos)
-            + (_p2[1] * _sin);
-
-        var _y2 =
-            _y
-            - (_p2[0] * _sin)
-            + (_p2[1] * _cos);
+            - (_point[0] * _sin)
+            + (_point[1] * _cos);
 
 
         draw_line_width(
-            _x1,
-            _y1,
-            _x2,
-            _y2,
+            _previous_x,
+            _previous_y,
+            _current_x,
+            _current_y,
             _width
         );
+
+
+        _previous_x =
+            _current_x;
+
+        _previous_y =
+            _current_y;
     }
+
+
+    // Close the polygon back to the first point.
+
+    draw_line_width(
+        _previous_x,
+        _previous_y,
+        _first_x,
+        _first_y,
+        _width
+    );
 
 
     return true;

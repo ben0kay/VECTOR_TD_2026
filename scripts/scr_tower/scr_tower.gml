@@ -199,12 +199,19 @@ function scr_tower_initialize(_tower)
 
     _tower.combat =
     {
-        base:
-        {
-            range: _data.range,
-            damage: _weapon_data.damage,
-            cooldown_seconds: _weapon_data.cooldown_seconds
-        },
+        stats:
+	    scr_stats_runtime_create(
+	        {
+	            range:
+	                _data.range,
+
+	            weapon_damage:
+	                _weapon_data.damage,
+
+	            weapon_cooldown_seconds:
+	                _weapon_data.cooldown_seconds
+	        }
+	    ),
 
         range: _data.range,
 
@@ -382,32 +389,14 @@ function scr_tower_update(_tower)
         );
 
     var _weapon =
-        _tower.combat.weapon;
+    _tower.combat.weapon;
 
-    var _foundation_fire_rate =
-        1;
-
-    if (
-        variable_struct_exists(
-            _tower.foundation,
-            "tower_fire_rate_multiplier"
-        )
-    )
-    {
-        _foundation_fire_rate =
-            _tower.foundation
-                .tower_fire_rate_multiplier;
-    }
-
-    _weapon.cooldown.remaining =
-        max(
-            0,
-            _weapon.cooldown.remaining
-            - (
-                (1 / _fps)
-                * _foundation_fire_rate
-            )
-        );
+	_weapon.cooldown.remaining =
+	    max(
+	        0,
+	        _weapon.cooldown.remaining
+	        - (1 / _fps)
+	    );
 
     if (_weapon.trace.active)
     {
@@ -504,8 +493,58 @@ function scr_tower_rank_experience_required(_rank)
     return infinity;
 }
 
-/// @description Recalculates one tower's small veteran stat bonuses.
 
+/// @description Applies finalized tower combat stats to active combat runtime.
+function scr_tower_combat_stats_apply(_tower)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!is_struct(_tower.combat))
+        return false;
+
+    if (!is_struct(_tower.combat.stats))
+        return false;
+
+    if (
+        !scr_stats_recalculate(
+            _tower.combat.stats
+        )
+    )
+    {
+        return false;
+    }
+
+
+    var _stats =
+        _tower.combat.stats;
+
+
+    _tower.combat.range =
+        scr_stats_final_get(
+            _stats,
+            "range",
+            0
+        );
+
+    _tower.combat.weapon.damage =
+        scr_stats_final_get(
+            _stats,
+            "weapon_damage",
+            0
+        );
+
+    _tower.combat.weapon.cooldown.duration =
+        scr_stats_final_get(
+            _stats,
+            "weapon_cooldown_seconds",
+            0.01
+        );
+
+    return true;
+}
+
+/// @description Rebuilds local veteran/foundation modifiers and applies combat stats.
 function scr_tower_progression_stats_apply(_tower)
 {
     if (!instance_exists(_tower))
@@ -514,13 +553,15 @@ function scr_tower_progression_stats_apply(_tower)
     if (!variable_instance_exists(_tower, "progression"))
         return false;
 
+    if (!is_struct(_tower.combat.stats))
+        return false;
+
 
     var _veteran_levels =
         max(
             0,
             _tower.progression.rank - 1
         );
-
 
     var _damage_multiplier =
         1
@@ -547,20 +588,46 @@ function scr_tower_progression_stats_apply(_tower)
         );
 
 
-    _tower.combat.weapon.damage =
-        _tower.combat.base.damage
-        * _damage_multiplier;
+    // The old foundation effect accelerated cooldown countdown directly.
+    // Dividing its duration by that multiplier gives the same fire rate,
+    // while keeping all combat results in the stat pipeline.
 
-    _tower.combat.range =
-        _tower.combat.base.range
-        * _range_multiplier;
+    var _foundation_fire_rate =
+        1;
 
-    _tower.combat.weapon.cooldown.duration =
-        _tower.combat.base.cooldown_seconds
-        * _cooldown_multiplier;
+    if (
+        variable_struct_exists(
+            _tower.foundation,
+            "tower_fire_rate_multiplier"
+        )
+    )
+    {
+        _foundation_fire_rate =
+            max(
+                0.01,
+                _tower.foundation
+                    .tower_fire_rate_multiplier
+            );
+    }
 
 
-    return true;
+    var _local =
+        _tower.combat.stats.local.multiplier;
+
+    _local.weapon_damage =
+        _damage_multiplier;
+
+    _local.range =
+        _range_multiplier;
+
+    _local.weapon_cooldown_seconds =
+        _cooldown_multiplier
+        / _foundation_fire_rate;
+
+
+    return scr_tower_combat_stats_apply(
+        _tower
+    );
 }
 
 /// @description Grants experience and processes tower rank promotions.

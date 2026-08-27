@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_tower_data",
+  "%Name":"scr_profile",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_tower_data",
+  "name":"scr_profile",
   "parent":{
-    "name":"DATA",
-    "path":"folders/scripts/DATA.yy",
+    "name":"BOOT-PROFILE-MAIN",
+    "path":"folders/scripts/BOOT-PROFILE-MAIN.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

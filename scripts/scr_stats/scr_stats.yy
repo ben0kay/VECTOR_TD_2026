@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_stats",
   "parent":{
-    "name":"building scripts",
-    "path":"folders/scripts/building scripts.yy",
+    "name":"stats",
+    "path":"folders/scripts/building scripts/stats.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

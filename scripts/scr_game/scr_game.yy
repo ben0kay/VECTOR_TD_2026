@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_game",
   "parent":{
-    "name":"init scripts",
-    "path":"folders/scripts/init scripts.yy",
+    "name":"BOOT-PROFILE-MAIN",
+    "path":"folders/scripts/BOOT-PROFILE-MAIN.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

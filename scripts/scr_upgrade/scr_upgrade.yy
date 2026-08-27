@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_tower_data",
+  "%Name":"scr_upgrade",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_tower_data",
+  "name":"scr_upgrade",
   "parent":{
-    "name":"DATA",
-    "path":"folders/scripts/DATA.yy",
+    "name":"stats",
+    "path":"folders/scripts/building scripts/stats.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

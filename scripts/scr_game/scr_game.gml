@@ -43,7 +43,7 @@ function scr_game_initialize()
         debug:
         {
             enabled: true
-        }
+        },
 
         // FUTURE:
         // profile
@@ -51,6 +51,9 @@ function scr_game_initialize()
         // persistent upgrades
         // campaign progress
         // display and graphics settings
+		
+		profile:
+    scr_upgrade_profile_runtime_create(),
     };
 
 
@@ -199,6 +202,12 @@ function scr_level_initialize()
         {
             entries: {}
         },
+
+		upgrades:
+		{
+		    level:
+		        scr_upgrade_level_runtime_create()
+		},
 
         waves:
         {

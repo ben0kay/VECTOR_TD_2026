@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_resource_data",
   "parent":{
-    "name":"init scripts",
-    "path":"folders/scripts/init scripts.yy",
+    "name":"DATA",
+    "path":"folders/scripts/DATA.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
