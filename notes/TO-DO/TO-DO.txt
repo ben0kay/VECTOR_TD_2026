@@ -1,4 +1,132 @@
-# VECTOR TD 2026 — TODO & HANDOVER
+# VECTOR TD 2026 — FULL TODO & HANDOVER (CURRENT)
+
+# CURRENT UPDATE — READ THIS FIRST
+
+This document preserves the complete earlier handover and backlog below. Nothing
+from that detailed backlog has been intentionally deleted. This update records
+work completed after the original version; where an older section conflicts
+with this update, this update is authoritative.
+
+Current implementation source:
+
+`https://github.com/ben0kay/VECTOR_TD_2026`
+
+Always inspect the newest GitHub push before changing code. The original
+`VECTOR RTS TD.zip` remains the gameplay/reference project when older behavior
+or pacing needs comparison.
+
+---
+
+## New completed work after the original handover
+
+### Player chassis selection and stat pipeline
+
+- `LevelState.CHASSIS_SELECT` now exists between level initialization and
+  ordinary `PLAYING` runtime.
+- The map loads behind a centered HUD chassis selection panel.
+- Player can select Assault, Heavy, Engineer or Support before gameplay starts.
+- One generic `o_player` remains the correct architecture; do not make separate
+  player objects for Heavy/Assault/etc.
+- `scr_player_chassis` owns static chassis definitions, selection, and the
+  base/persistent/level/final stat pipeline.
+- `player.chassis.stats.final` is rebuilt from base plus flat/multiplier
+  persistent and level modifiers; do not modify final stats directly.
+- Live runtime currently receives movement speed, HP, shield, weapon damage,
+  weapon cooldown, projectile speed and chassis colour.
+- Chassis-specific vector silhouettes are now drawn for Assault, Heavy,
+  Engineer and Support.
+- MMB uses the generic `scr_player_alternate_ability_update()` switch. The
+  four secondary abilities currently remain harmless `// FUTURE:` placeholders.
+- Main fire remains the player's regular damaging attack. Engineer repair is a
+  future secondary ability, not a main fire.
+
+Current baseline stats:
+
+| Chassis | Speed | HP | Shield | Main damage | Cooldown | Secondary |
+|---|---:|---:|---:|---:|---:|---|
+| Assault | 7.0 | 100 | 0 | 27 | 0.16 | Combat Burst |
+| Heavy | 4.8 | 175 | 50 | 20 | 0.22 | Rocket |
+| Engineer | 6.4 | 85 | 0 | 15 | 0.20 | Repair |
+| Support | 6.0 | 110 | 25 | 18 | 0.18 | Command Pulse |
+
+### Tower turn/aim system
+
+- Towers now turn toward targets rather than snapping instantly.
+- `scr_tower_aim_update()` uses shortest-path angle math across `0/360`.
+- Towers fire only when their remaining angle difference is within the aim
+  tolerance.
+- Optional tower definition fields:
+
+```gml
+turn_speed_degrees_per_second: 360,
+fire_angle_tolerance_degrees: 3,
+```
+
+- Missing values default to `360` degrees/second and `3` degrees.
+- Basic Tower currently has a deliberate slow test setting of `60` degrees/sec
+  and `2` degrees tolerance. The rest currently use defaults until balanced.
+
+### Minimap static terrain and enemy radar contacts
+
+- Dead cells are no longer scanned/drawn individually every minimap frame.
+- `hud.minimap.static_terrain` owns a cached surface, dirty flag, scale, width
+  and height. It rebuilds on first use, surface loss or zoom changes.
+- HUD cleanup frees the cached terrain surface.
+- The minimap now has a radar sweep with `sweep_angle`, `previous_sweep_angle`
+  and `sweep_degrees_per_second` (currently `90`, so a four-second rotation).
+- Enemy contacts only appear when swept, then fade until the next pass.
+- Enemy minimap colour always comes from `enemy.visual.color`.
+- Enemy definitions may optionally add:
+
+```gml
+minimap:
+{
+    size: 1.5,
+    fade_time: 4
+},
+```
+
+- Missing minimap data defaults to size `1.5` and fade time `4` seconds.
+  Runtime stores `size`, `fade_time`, and `contact_remaining`.
+- This contact/fade behavior applies only to enemies. Player, buildings and
+  terrain remain normally visible.
+- In `scr_hud_minimap_update(_hud)`, call
+  `scr_hud_minimap_radar_update(_hud)` rather than `id`.
+
+### Enemy roster additions/changes
+
+The current registration list includes:
+
+- Weak and Weak MK2;
+- Hunter and Hunter MK2;
+- Phaser, Single Shooter, Triple Shooter, Sniper, Kamikaze;
+- Splitter and Splitter Child;
+- Berserker;
+- Flyer, Heavy Flyer and Gunship;
+- Brute;
+- Ground Transporter and Transporter MK2;
+- Shield Generator;
+- Siege Beam Platform and Siege Rocket Platform;
+- Centipede Head and Centipede Child.
+
+The transport cargo-release flow belongs to the enemy-spawner update path after
+transport death, not the level controller. Child-only enemies must stay out of
+natural spawn pools.
+
+### What is still not proven
+
+- Full chassis-selection playthrough/restart testing.
+- Individual tower turn-speed balance.
+- Minimap sweep, fade, zoom, hide/show, display-surface recreation and restart
+  testing.
+- 100–200+ enemy performance test with projectiles, rapid-fire towers and
+  enemy shooters.
+- Full refinery/fabricator/ammunition/resupply gameplay loop.
+
+---
+
+# ORIGINAL FULL HANDOVER — PRESERVED BELOW
+
 
 ## 1. Start here in a new chat
 
