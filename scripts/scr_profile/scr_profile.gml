@@ -234,17 +234,17 @@ function scr_profile_load(_slot)
     var _profile =
         json_parse(_json);
 
-    if (!scr_profile_valid(_profile))
-        return false;
-
     if (
-        !scr_profile_migrate(
-            _profile
-        )
+    !scr_profile_migrate(
+        _profile
     )
-    {
-        return false;
-    }
+	)
+	{
+	    return false;
+	}
+
+	if (!scr_profile_valid(_profile))
+	    return false;
 
     _profile.slot =
         _slot;
@@ -314,18 +314,25 @@ function scr_profile_slot_summary_get(_slot)
 
     buffer_delete(_buffer);
 
-    var _profile =
-        json_parse(_json);
+	    var _profile =
+	    json_parse(_json);
 
-    if (!scr_profile_valid(_profile))
-    {
-        return
-        {
-            occupied: false,
-            slot: _slot,
-            corrupted: true
-        };
-    }
+	if (
+	    !scr_profile_migrate(
+	        _profile
+	    )
+	    || !scr_profile_valid(
+	        _profile
+	    )
+	)
+	{
+	    return
+	    {
+	        occupied: false,
+	        slot: _slot,
+	        corrupted: true
+	    };
+	}
 
     return
     {
