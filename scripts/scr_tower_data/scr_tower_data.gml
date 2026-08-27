@@ -258,7 +258,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 280 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 3 },
 
 economy:
 {
@@ -353,7 +353,7 @@ function scr_tower_data_cannon()
 
             construction:
             {
-                time_seconds: 0
+                time_seconds: 5
             },
 
             economy:
@@ -457,7 +457,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 250 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 3 },
 
 economy:
 {
@@ -533,7 +533,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 230 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 2.5 },
 
 economy:
 {
@@ -623,7 +623,7 @@ vitals:
 
 construction:
 {
-    time_seconds: 0
+    time_seconds: 4
 },
 
 economy:
@@ -725,7 +725,7 @@ vitals:
 
 construction:
 {
-    time_seconds: 0
+    time_seconds: 6
 },
 
 economy:
@@ -773,7 +773,7 @@ tower:
             effect:
             {
                 type: EnemyEffect.STASIS,
-                duration_seconds: 3,
+                duration_seconds: 4,
                 radius: 0
             }
         }
@@ -815,7 +815,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 280 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 6 },
 
 economy:
 {
@@ -865,8 +865,8 @@ tower:
             effect:
             {
                 type: EnemyEffect.DAMAGE_OVER_TIME,
-                damage: 4,
-                interval_seconds: 1,
+                damage: 3,
+                interval_seconds: 0.5,
                 duration_seconds: -1,
                 damage_type: DamageType.LASER,
                 radius: 0
@@ -910,7 +910,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 340 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 7 },
 
 economy:
 {

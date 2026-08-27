@@ -34,7 +34,6 @@ function scr_effect_initialize(_effect)
     if (!instance_exists(_effect))
         return false;
 
-
     if (!variable_instance_exists(_effect, "effect_type"))
         return false;
 
@@ -72,9 +71,213 @@ function scr_effect_initialize(_effect)
             _effect.effect_radius_start,
 
         radius_end:
-            _effect.effect_radius_end
+            _effect.effect_radius_end,
+
+        death:
+            undefined
     };
 
+
+    if (
+        _effect.effect.type
+        != EffectType.ENEMY_DEATH
+    )
+    {
+        return true;
+    }
+
+
+    if (!variable_instance_exists(_effect, "effect_enemy_radius"))
+        return false;
+
+    if (!variable_instance_exists(_effect, "effect_ghost_sides"))
+        return false;
+
+    if (!variable_instance_exists(_effect, "effect_fragment_count"))
+        return false;
+
+    if (!variable_instance_exists(_effect, "effect_spark_count"))
+        return false;
+
+
+    var _fragments =
+        [];
+
+    var _total_count =
+        _effect.effect_fragment_count
+        + _effect.effect_spark_count;
+
+    for (
+        var i = 0;
+        i < _total_count;
+        ++i
+    )
+    {
+        var _is_spark =
+            i >= _effect.effect_fragment_count;
+
+        var _speed =
+            _is_spark
+            ? random_range(
+                _effect.effect_enemy_radius * 4.5,
+                _effect.effect_enemy_radius * 7.0
+            )
+            : random_range(
+                _effect.effect_enemy_radius * 2.3,
+                _effect.effect_enemy_radius * 4.4
+            );
+
+        array_push(
+            _fragments,
+            {
+                spark:
+                    _is_spark,
+
+                x:
+                    _effect.x,
+
+                y:
+                    _effect.y,
+
+                angle:
+                    random(360),
+
+                speed:
+                    _speed,
+
+                deceleration:
+                    _speed
+                    * random_range(
+                        1.5,
+                        2.3
+                    ),
+
+                rotation:
+                    random(360),
+
+                rotation_speed:
+                    random_range(
+                        -540,
+                        540
+                    ),
+
+                size:
+                    _is_spark
+                    ? random_range(2, 4)
+                    : clamp(
+                        _effect.effect_enemy_radius
+                        * random_range(
+                            0.12,
+                            0.26
+                        ),
+                        2,
+                        8
+                    ),
+
+                age:
+                    0,
+
+                duration:
+                    _is_spark
+                    ? random_range(0.22, 0.42)
+                    : random_range(0.35, 0.65),
+
+                sides:
+                    irandom_range(3, 4)
+            }
+        );
+    }
+
+
+    _effect.effect.death =
+    {
+        radius:
+            _effect.effect_enemy_radius,
+
+        ghost_sides:
+            _effect.effect_ghost_sides,
+
+        fragments:
+            _fragments
+    };
+
+
+    return true;
+}
+
+
+/// @description Updates the debris owned by one enemy-death effect.
+
+function scr_effect_enemy_death_update(
+    _effect,
+    _delta
+)
+{
+    if (!instance_exists(_effect))
+        return false;
+
+
+    var _death =
+        _effect.effect.death;
+
+    var _fragments =
+        _death.fragments;
+
+    for (
+        var i = 0;
+        i < array_length(_fragments);
+        ++i
+    )
+    {
+        var _fragment =
+            _fragments[i];
+
+        if (
+            _fragment.age
+            >= _fragment.duration
+        )
+        {
+            continue;
+        }
+
+        _fragment.age =
+            min(
+                _fragment.duration,
+                _fragment.age + _delta
+            );
+
+        _fragment.x +=
+            lengthdir_x(
+                _fragment.speed * _delta,
+                _fragment.angle
+            );
+
+        _fragment.y +=
+            lengthdir_y(
+                _fragment.speed * _delta,
+                _fragment.angle
+            );
+
+        _fragment.speed =
+            max(
+                0,
+                _fragment.speed
+                - (
+                    _fragment.deceleration
+                    * _delta
+                )
+            );
+
+        _fragment.rotation +=
+            _fragment.rotation_speed
+            * _delta;
+
+        _fragments[i] =
+            _fragment;
+    }
+
+    _death.fragments =
+        _fragments;
 
     return true;
 }
@@ -93,9 +296,24 @@ function scr_effect_update(_effect)
             game_get_speed(gamespeed_fps)
         );
 
+    var _delta =
+        1 / _fps;
+
+
+    if (
+        _effect.effect.type
+        == EffectType.ENEMY_DEATH
+    )
+    {
+        scr_effect_enemy_death_update(
+            _effect,
+            _delta
+        );
+    }
+
 
     _effect.effect.age +=
-        1 / _fps;
+        _delta;
 
 
     if (
@@ -104,6 +322,7 @@ function scr_effect_update(_effect)
     )
     {
         instance_destroy(_effect);
+        return false;
     }
 
 
@@ -217,6 +436,172 @@ function scr_effect_draw_shockwave(_effect)
 
 /// @description Draws one generic temporary effect.
 
+/// @description Draws one vector enemy-death flash, ghost, ring, and debris burst.
+
+function scr_effect_draw_enemy_death(_effect)
+{
+    if (!instance_exists(_effect))
+        return false;
+
+
+    var _data =
+        _effect.effect;
+
+    var _death =
+        _data.death;
+
+    var _progress =
+        clamp(
+            _data.age
+            / _data.duration,
+            0,
+            1
+        );
+
+
+    // ========================================================================
+    // WHITE GHOST / INITIAL FLASH
+    // ========================================================================
+
+    var _ghost_progress =
+        clamp(
+            _progress / 0.25,
+            0,
+            1
+        );
+
+    var _ghost_radius =
+        lerp(
+            _death.radius * 0.70,
+            _death.radius * 1.20,
+            _ghost_progress
+        );
+
+    var _ghost_alpha =
+        (1 - _ghost_progress)
+        * 0.95;
+
+    draw_set_color(c_white);
+    draw_set_alpha(_ghost_alpha);
+
+    draw_circle(
+        _effect.x,
+        _effect.y,
+        max(
+            2,
+            _death.radius * 0.38
+        ),
+        false
+    );
+
+    scr_enemy_visual_helper_polygon(
+        _effect.x,
+        _effect.y,
+        _ghost_radius,
+        _death.ghost_sides,
+        _progress * 80,
+        2
+    );
+
+
+    // ========================================================================
+    // COLOURED EXPANDING RING
+    // ========================================================================
+
+    var _ring_radius =
+        lerp(
+            _data.radius_start,
+            _data.radius_end,
+            _progress
+        );
+
+    draw_set_color(_data.color);
+    draw_set_alpha(
+        (1 - _progress)
+        * 0.85
+    );
+
+    draw_circle(
+        _effect.x,
+        _effect.y,
+        _ring_radius,
+        true
+    );
+
+
+    // ========================================================================
+    // COLOURED FRAGMENTS / SPARKS
+    // ========================================================================
+
+    var _fragments =
+        _death.fragments;
+
+    for (
+        var i = 0;
+        i < array_length(_fragments);
+        ++i
+    )
+    {
+        var _fragment =
+            _fragments[i];
+
+        var _fragment_progress =
+            clamp(
+                _fragment.age
+                / _fragment.duration,
+                0,
+                1
+            );
+
+        if (_fragment_progress >= 1)
+            continue;
+
+        draw_set_alpha(
+            (1 - _fragment_progress)
+            * 0.95
+        );
+
+        if (_fragment.spark)
+        {
+            draw_line_width(
+                _fragment.x,
+                _fragment.y,
+
+                _fragment.x
+                - lengthdir_x(
+                    _fragment.size * 3,
+                    _fragment.angle
+                ),
+
+                _fragment.y
+                - lengthdir_y(
+                    _fragment.size * 3,
+                    _fragment.angle
+                ),
+
+                1
+            );
+
+            continue;
+        }
+
+        scr_enemy_visual_helper_polygon(
+            _fragment.x,
+            _fragment.y,
+            _fragment.size,
+            _fragment.sides,
+            _fragment.rotation,
+            1
+        );
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
 function scr_effect_draw(_effect)
 {
     if (!instance_exists(_effect))
@@ -228,6 +613,9 @@ function scr_effect_draw(_effect)
         case EffectType.SHOCKWAVE:
             return scr_effect_draw_shockwave(_effect);
 
+		case EffectType.ENEMY_DEATH:
+            return scr_effect_draw_enemy_death(_effect);
+			
         case EffectType.IMPACT_FLASH:
         case EffectType.BEAM_IMPACT:
         {
@@ -238,4 +626,99 @@ function scr_effect_draw(_effect)
 
 
     return true;
+}
+
+/// @description Creates one data-driven vector death effect from an enemy.
+
+function scr_effect_enemy_death_create(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return noone;
+
+
+    var _radius =
+        max(
+            6,
+            _enemy.visual.radius
+        );
+
+    var _fragment_count =
+        clamp(
+            round(
+                2
+                + (_radius * 0.16)
+            ),
+            3,
+            8
+        );
+
+    var _spark_count =
+        clamp(
+            round(
+                1
+                + (_radius * 0.10)
+            ),
+            2,
+            6
+        );
+
+    var _ghost_sides =
+        6;
+
+    if (_radius <= 14)
+    {
+        _ghost_sides = 4;
+    }
+    else if (_radius >= 28)
+    {
+        _ghost_sides = 8;
+    }
+
+
+    return instance_create_layer(
+        _enemy.x,
+        _enemy.y,
+
+        scr_layer_effect_get(
+            _enemy.movement.layer
+        ),
+
+        o_effect,
+        {
+            effect_type:
+                EffectType.ENEMY_DEATH,
+
+            effect_duration:
+                clamp(
+                    0.38
+                    + (_radius * 0.012),
+                    0.45,
+                    0.80
+                ),
+
+            effect_color:
+                _enemy.visual.color,
+
+            effect_radius_start:
+                max(
+                    4,
+                    _radius * 0.55
+                ),
+
+            effect_radius_end:
+                _radius * 1.90,
+
+            effect_enemy_radius:
+                _radius,
+
+            effect_ghost_sides:
+                _ghost_sides,
+
+            effect_fragment_count:
+                _fragment_count,
+
+            effect_spark_count:
+                _spark_count
+        }
+    );
 }

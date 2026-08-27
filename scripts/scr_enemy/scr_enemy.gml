@@ -1754,8 +1754,6 @@ function scr_enemy_spawn_test()
     return scr_enemy_spawn_edge("enemy_weak");
 }
 
-/// @description Draws one enemy and all current combat feedback.
-
 /// @description Draws one enemy and its visible combat feedback.
 
 function scr_enemy_draw(_enemy)
@@ -2760,7 +2758,6 @@ function scr_enemy_modifier_has(
     return false;
 }
 
-/// @description Adds one modifier to an existing enemy.
 
 /// @description Adds one modifier to an existing enemy.
 
@@ -2930,6 +2927,7 @@ function scr_enemy_die(_enemy, _damage)
         EnemyState.DEAD;
 
     scr_navigation_enemy_stop(_enemy);
+	scr_effect_enemy_death_create(_enemy);
 
 
     // ========================================================================

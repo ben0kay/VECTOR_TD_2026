@@ -20,7 +20,9 @@ function scr_particles_initialize()
             spark: part_type_create(),
             ring: part_type_create(),
             ember: part_type_create(),
-			contact_spark: part_type_create()
+			contact_spark: part_type_create(),
+			construction_spark: part_type_create()
+			
         }
     };
 
@@ -315,7 +317,59 @@ function scr_particles_initialize()
         "VECTOR TD 2026 - PARTICLES INITIALIZED"
     );
 
+	var _construction_spark =
+    global.vtd.particles.types.construction_spark;
 
+
+	part_type_sprite(
+	    _construction_spark,
+	    s_particle_sharp,
+	    true,
+	    false,
+	    false
+	);
+
+
+	part_type_size(
+	    _construction_spark,
+	    0.12,
+	    0.28,
+	    -0.01,
+	    0
+	);
+
+
+	part_type_speed(
+	    _construction_spark,
+	    1.8,
+	    4.2,
+	    -0.08,
+	    0
+	);
+
+
+	part_type_direction(
+	    _construction_spark,
+	    0,
+	    360,
+	    0,
+	    0
+	);
+
+
+	part_type_life(
+	    _construction_spark,
+	    10,
+	    22
+	);
+
+
+	part_type_alpha3(
+	    _construction_spark,
+	    1,
+	    0.8,
+	    0
+	);
     return true;
 }
 

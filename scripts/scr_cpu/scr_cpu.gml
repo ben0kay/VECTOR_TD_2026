@@ -132,7 +132,7 @@ function scr_cpu_damage(_cpu, _damage)
 }
 
 
-/// @description Draws the CPU.
+/// @description Draws the CPU as a large sci-fi processor chip.
 
 function scr_cpu_draw(_cpu)
 {
@@ -140,52 +140,413 @@ function scr_cpu_draw(_cpu)
         return false;
 
 
-    var _visual =
-        _cpu.visual;
+    var _x =
+        _cpu.x;
+
+    var _y =
+        _cpu.y;
 
     var _radius =
-        _visual.radius;
+        _cpu.visual.radius;
+
+    var _spin =
+        global.vtd.tick * 0.8;
+
+    var _pulse =
+        0.75
+        + dsin(
+            global.vtd.tick * 4
+            + real(_cpu.id)
+        ) * 0.2;
+
+
+    var _green =
+        make_color_rgb(
+            50,
+            210,
+            95
+        );
+
+    var _lime =
+        make_color_rgb(
+            150,
+            255,
+            80
+        );
+
+    var _yellow =
+        make_color_rgb(
+            255,
+            220,
+            60
+        );
 
 
     // ========================================================================
-    // VECTOR BODY
+    // OUTER CPU CHIP BODY
     // ========================================================================
 
     draw_set_color(
-        _visual.color
+        _green
     );
 
+
     draw_rectangle(
-        _cpu.x - _radius,
-        _cpu.y - _radius,
-        _cpu.x + _radius,
-        _cpu.y + _radius,
+        _x - _radius,
+        _y - _radius,
+        _x + _radius,
+        _y + _radius,
+        true
+    );
+
+
+    draw_rectangle(
+        _x - (_radius * 0.82),
+        _y - (_radius * 0.82),
+        _x + (_radius * 0.82),
+        _y + (_radius * 0.82),
+        true
+    );
+
+
+    // ========================================================================
+    // CHIP CONTACT PINS
+    // ========================================================================
+
+    draw_set_color(
+        _yellow
+    );
+
+
+    var _pin_count =
+        6;
+
+    var _pin_spacing =
+        (_radius * 1.5)
+        / (_pin_count - 1);
+
+
+    for (var i = 0; i < _pin_count; ++i)
+    {
+        var _offset =
+            -(_radius * 0.75)
+            + (i * _pin_spacing);
+
+
+        // Top.
+
+        draw_line_width(
+            _x + _offset,
+            _y - _radius,
+            _x + _offset,
+            _y - _radius - 10,
+            3
+        );
+
+
+        // Bottom.
+
+        draw_line_width(
+            _x + _offset,
+            _y + _radius,
+            _x + _offset,
+            _y + _radius + 10,
+            3
+        );
+
+
+        // Left.
+
+        draw_line_width(
+            _x - _radius,
+            _y + _offset,
+            _x - _radius - 10,
+            _y + _offset,
+            3
+        );
+
+
+        // Right.
+
+        draw_line_width(
+            _x + _radius,
+            _y + _offset,
+            _x + _radius + 10,
+            _y + _offset,
+            3
+        );
+    }
+
+
+    // ========================================================================
+    // INTERNAL CIRCUIT PATHS
+    // ========================================================================
+
+    draw_set_color(
+        _green
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        -48,
+        -34,
+
+        -20,
+        -34,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        -20,
+        -34,
+
+        -20,
+        -16,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        48,
+        -32,
+
+        24,
+        -32,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        24,
+        -32,
+
+        24,
+        -14,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        -46,
+        34,
+
+        -26,
+        34,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        -26,
+        34,
+
+        -26,
+        17,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        48,
+        30,
+
+        25,
+        30,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        0,
+
+        25,
+        30,
+
+        25,
+        15,
+
+        2
+    );
+
+
+    // ========================================================================
+    // CIRCUIT NODES
+    // ========================================================================
+
+    draw_set_color(
+        _yellow
+    );
+
+
+    draw_circle(
+        _x - 20,
+        _y - 34,
+        3,
         false
     );
 
 
-    draw_set_color(
-        c_aqua
+    draw_circle(
+        _x + 24,
+        _y - 32,
+        3,
+        false
     );
 
+
+    draw_circle(
+        _x - 26,
+        _y + 34,
+        3,
+        false
+    );
+
+
+    draw_circle(
+        _x + 25,
+        _y + 30,
+        3,
+        false
+    );
+
+
+    // ========================================================================
+    // CENTRAL PROCESSOR PACKAGE
+    // ========================================================================
+
+    draw_set_color(
+        _lime
+    );
+
+
     draw_rectangle(
-        _cpu.x - _radius + 6,
-        _cpu.y - _radius + 6,
-        _cpu.x + _radius - 6,
-        _cpu.y + _radius - 6,
+        _x - 26,
+        _y - 26,
+        _x + 26,
+        _y + 26,
         true
     );
 
 
     draw_set_color(
-        _visual.color
+        _yellow
     );
 
+
+    draw_rectangle(
+        _x - 19,
+        _y - 19,
+        _x + 19,
+        _y + 19,
+        true
+    );
+
+
+    // ========================================================================
+    // ROTATING SCI-FI PROCESSOR CORE
+    // ========================================================================
+
+    draw_set_color(
+        _green
+    );
+
+
+    scr_enemy_visual_helper_arc_segments(
+        _x,
+        _y,
+        16,
+        4,
+        55,
+        _spin,
+        5,
+        2
+    );
+
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        10,
+        -_spin * 1.5,
+        2
+    );
+
+
+    // ========================================================================
+    // ACTIVE CPU CORE
+    // ========================================================================
+
+    draw_set_alpha(
+        _pulse
+    );
+
+
+    draw_set_color(
+        _yellow
+    );
+
+
     draw_circle(
-        _cpu.x,
-        _cpu.y,
-        _radius * 0.45,
+        _x,
+        _y,
+        7,
         false
+    );
+
+
+    draw_set_color(
+        _lime
+    );
+
+
+    draw_circle(
+        _x,
+        _y,
+        3,
+        true
+    );
+
+
+    draw_set_alpha(
+        1
     );
 
 
@@ -201,19 +562,21 @@ function scr_cpu_draw(_cpu)
             1
         );
 
+
     var _bar_width =
         _radius * 2;
 
     var _bar_left =
-        _cpu.x - _radius;
+        _x - _radius;
 
     var _bar_top =
-        _cpu.y - _radius - 14;
+        _y - _radius - 20;
 
 
     draw_set_color(
         c_dkgray
     );
+
 
     draw_rectangle(
         _bar_left,
@@ -227,6 +590,7 @@ function scr_cpu_draw(_cpu)
     draw_set_color(
         c_lime
     );
+
 
     draw_rectangle(
         _bar_left,
@@ -242,9 +606,10 @@ function scr_cpu_draw(_cpu)
         c_white
     );
 
+
     draw_text(
-        _cpu.x - 28,
-        _cpu.y - 8,
+        _x - 28,
+        _y - 8,
         "CPU"
     );
 

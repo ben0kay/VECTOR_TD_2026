@@ -224,7 +224,7 @@ enum ResourceType { CURRENCY, RAW_MATERIAL, REFINED_MATERIAL, AMMUNITION }
 // VISUAL EFFECTS
 // ============================================================================
 
-enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT }
+enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT, ENEMY_DEATH }
 
 
 // ============================================================================

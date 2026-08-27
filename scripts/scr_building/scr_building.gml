@@ -866,7 +866,7 @@ function scr_building_draw(_building)
         _top,
         _right,
         _bottom,
-        false
+        true
     );
 
 
