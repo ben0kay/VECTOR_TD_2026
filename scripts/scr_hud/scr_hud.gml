@@ -1785,7 +1785,7 @@ function scr_hud_wave_warning_draw(_hud)
     return true;
 }
 
-/// @description Draws one reusable compact top-HUD information cell.
+/// @description Draws one reusable framed top-HUD information cell.
 
 function scr_hud_top_cell_draw(
     _x,
@@ -1812,83 +1812,181 @@ function scr_hud_top_cell_draw(
     var _middle_y =
         _top + (_height * 0.5);
 
+    var _corner =
+        8;
 
-    draw_set_color(
-        c_dkgray
+
+    // ========================================================================
+    // SUBTLE CELL BODY
+    // ========================================================================
+
+    draw_set_alpha(0.22);
+    draw_set_color(c_black);
+
+    draw_rectangle(
+        _left + 2,
+        _top + 2,
+        _right - 2,
+        _bottom - 2,
+        false
     );
 
+
+    // ========================================================================
+    // AQUA VECTOR FRAME
+    // ========================================================================
+
+    draw_set_alpha(0.72);
+    draw_set_color(c_aqua);
+
+    draw_line_width(
+        _left + _corner,
+        _top + 2,
+        _right - _corner,
+        _top + 2,
+        1
+    );
+
+    draw_line_width(
+        _left + _corner,
+        _bottom - 2,
+        _right - _corner,
+        _bottom - 2,
+        1
+    );
+
+    draw_line_width(
+        _left + 2,
+        _top + _corner,
+        _left + 2,
+        _bottom - _corner,
+        1
+    );
+
+    draw_line_width(
+        _right - 2,
+        _top + _corner,
+        _right - 2,
+        _bottom - _corner,
+        1
+    );
+
+
+    // Clipped corners.
 
     draw_line(
-        _right,
-        _top + 8,
-        _right,
-        _bottom - 8
+        _left + 2,
+        _top + _corner,
+        _left + _corner,
+        _top + 2
     );
-
-
-    // Small vector status diamond.
-
-    draw_set_color(
-        _color
-    );
-
 
     draw_line(
-        _left + 10,
+        _right - _corner,
+        _top + 2,
+        _right - 2,
+        _top + _corner
+    );
+
+    draw_line(
+        _left + 2,
+        _bottom - _corner,
+        _left + _corner,
+        _bottom - 2
+    );
+
+    draw_line(
+        _right - _corner,
+        _bottom - 2,
+        _right - 2,
+        _bottom - _corner
+    );
+
+
+    // Small inset technical marks.
+
+    draw_set_alpha(0.45);
+
+    draw_line(
+        _left + _corner + 8,
+        _top + 6,
+        _left + _corner + 30,
+        _top + 6
+    );
+
+    draw_line(
+        _right - _corner - 30,
+        _bottom - 6,
+        _right - _corner - 8,
+        _bottom - 6
+    );
+
+
+    // ========================================================================
+    // COLOURED ACCENT / STATUS DIAMOND
+    // ========================================================================
+
+    draw_set_alpha(0.90);
+    draw_set_color(_color);
+
+    draw_line_width(
+        _left + 12,
+        _top + 12,
+        _left + 12,
+        _bottom - 12,
+        2
+    );
+
+    draw_line(
+        _left + 22,
         _middle_y,
-        _left + 15,
+        _left + 27,
         _middle_y - 5
     );
 
     draw_line(
-        _left + 15,
+        _left + 27,
         _middle_y - 5,
-        _left + 20,
+        _left + 32,
         _middle_y
     );
 
     draw_line(
-        _left + 20,
+        _left + 32,
         _middle_y,
-        _left + 15,
+        _left + 27,
         _middle_y + 5
     );
 
     draw_line(
-        _left + 15,
+        _left + 27,
         _middle_y + 5,
-        _left + 10,
+        _left + 22,
         _middle_y
     );
 
 
-    draw_set_halign(
-        fa_left
-    );
+    // ========================================================================
+    // TEXT
+    // ========================================================================
 
-    draw_set_valign(
-        fa_top
-    );
+    draw_set_alpha(1);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 
-
-    draw_set_color(
-        _color
-    );
+    draw_set_color(_color);
 
     draw_text(
-        _left + 28,
-        _top + 7,
+        _left + 40,
+        _top + 10,
         string_upper(_label)
     );
 
-
-    draw_set_color(
-        c_white
-    );
+    draw_set_color(c_white);
 
     draw_text(
-        _left + 28,
-        _top + 22,
+        _left + 40,
+        _top + 30,
         _value
     );
 

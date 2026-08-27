@@ -383,8 +383,126 @@ function scr_hud_chassis_select_icon_draw(
     return true;
 }
 
+/// @description Draws a segmented vector-tech frame with clipped corners.
+
+function scr_hud_chassis_select_frame_draw(
+    _left,
+    _top,
+    _right,
+    _bottom,
+    _color,
+    _corner_size = 16,
+    _line_width = 1
+)
+{
+    var _corner =
+        max(
+            4,
+            _corner_size
+        );
+
+    draw_set_color(_color);
+
+
+    // Main segmented edges.
+
+    draw_line_width(
+        _left + _corner,
+        _top,
+        _right - _corner,
+        _top,
+        _line_width
+    );
+
+    draw_line_width(
+        _left + _corner,
+        _bottom,
+        _right - _corner,
+        _bottom,
+        _line_width
+    );
+
+    draw_line_width(
+        _left,
+        _top + _corner,
+        _left,
+        _bottom - _corner,
+        _line_width
+    );
+
+    draw_line_width(
+        _right,
+        _top + _corner,
+        _right,
+        _bottom - _corner,
+        _line_width
+    );
+
+
+    // Clipped corner braces.
+
+    draw_line_width(
+        _left,
+        _top + _corner,
+        _left + _corner,
+        _top,
+        _line_width
+    );
+
+    draw_line_width(
+        _right - _corner,
+        _top,
+        _right,
+        _top + _corner,
+        _line_width
+    );
+
+    draw_line_width(
+        _left,
+        _bottom - _corner,
+        _left + _corner,
+        _bottom,
+        _line_width
+    );
+
+    draw_line_width(
+        _right - _corner,
+        _bottom,
+        _right,
+        _bottom - _corner,
+        _line_width
+    );
+
+
+    // Small inset technical marks.
+
+    var _mark_length =
+        min(
+            24,
+            (_right - _left) * 0.12
+        );
+
+    draw_line_width(
+        _left + _corner + 10,
+        _top + 5,
+        _left + _corner + 10 + _mark_length,
+        _top + 5,
+        _line_width
+    );
+
+    draw_line_width(
+        _right - _corner - 10 - _mark_length,
+        _bottom - 5,
+        _right - _corner - 10,
+        _bottom - 5,
+        _line_width
+    );
+
+    return true;
+}
 
 /// @description Draws the pre-level chassis-selection interface.
+
 function scr_hud_chassis_select_draw(_hud)
 {
     if (!instance_exists(_hud))
@@ -398,9 +516,11 @@ function scr_hud_chassis_select_draw(_hud)
         return true;
     }
 
+
     scr_hud_chassis_select_layout_update(
         _hud
     );
+
 
     var _select =
         _hud.hud.chassis_select;
@@ -437,10 +557,10 @@ function scr_hud_chassis_select_draw(_hud)
 
 
     // ========================================================================
-    // BACKDROP / WINDOW
+    // BACKDROP
     // ========================================================================
 
-    draw_set_alpha(0.58);
+    draw_set_alpha(0.74);
     draw_set_color(c_black);
 
     draw_rectangle(
@@ -451,10 +571,12 @@ function scr_hud_chassis_select_draw(_hud)
         false
     );
 
-    draw_set_alpha(
-        _select.background_alpha
-    );
 
+    // ========================================================================
+    // MAIN VECTOR WINDOW
+    // ========================================================================
+
+    draw_set_alpha(0.96);
     draw_set_color(c_black);
 
     draw_rectangle(
@@ -466,22 +588,45 @@ function scr_hud_chassis_select_draw(_hud)
     );
 
     draw_set_alpha(1);
-    draw_set_color(_select.color);
 
-    draw_rectangle(
+    scr_hud_chassis_select_frame_draw(
         _left,
         _top,
         _right,
         _bottom,
-        true
+        c_aqua,
+        20,
+        2
+    );
+
+
+    // Header separator and technical rails.
+
+    draw_set_alpha(0.85);
+    draw_set_color(c_aqua);
+
+    draw_line_width(
+        _left + 20,
+        _top + _select.header_height,
+        _right - 20,
+        _top + _select.header_height,
+        1
     );
 
     draw_line_width(
-        _left,
-        _top + _select.header_height,
-        _right,
-        _top + _select.header_height,
-        2
+        _left + 32,
+        _top + _select.header_height + 6,
+        _left + 190,
+        _top + _select.header_height + 6,
+        1
+    );
+
+    draw_line_width(
+        _right - 190,
+        _top + _select.header_height + 6,
+        _right - 32,
+        _top + _select.header_height + 6,
+        1
     );
 
 
@@ -489,13 +634,23 @@ function scr_hud_chassis_select_draw(_hud)
     // HEADER
     // ========================================================================
 
+    draw_set_alpha(1);
     draw_set_halign(fa_center);
     draw_set_valign(fa_top);
+
+    draw_set_color(c_aqua);
+
+    draw_text(
+        (_left + _right) * 0.5,
+        _top + 16,
+        "CHASSIS DEPLOYMENT ARRAY"
+    );
+
     draw_set_color(c_white);
 
     draw_text(
         (_left + _right) * 0.5,
-        _top + 22,
+        _top + 42,
         "SELECT PLAYER CHASSIS"
     );
 
@@ -503,13 +658,31 @@ function scr_hud_chassis_select_draw(_hud)
 
     draw_text(
         (_left + _right) * 0.5,
-        _top + 58,
-        "Choose your baseline combat role for this level"
+        _top + 68,
+        "CHOOSE YOUR BASELINE COMBAT ROLE FOR THIS LEVEL"
+    );
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_aqua);
+
+    draw_text(
+        _left + 24,
+        _top + 18,
+        "SYS // READY"
+    );
+
+    draw_set_halign(fa_right);
+
+    draw_text(
+        _right - 24,
+        _top + 18,
+        "UNIT // 01"
     );
 
 
     // ========================================================================
-    // CARDS
+    // CHASSIS CARDS
     // ========================================================================
 
     var _cards =
@@ -539,100 +712,214 @@ function scr_hud_chassis_select_draw(_hud)
         var _card_color =
             _data.visual.color;
 
+        var _card_left =
+            _card.x;
+
+        var _card_top =
+            _card.y;
+
+        var _card_right =
+            _card.x + _card.width;
+
+        var _card_bottom =
+            _card.y + _card.height;
+
+
+        // Dark panel body.
+
         draw_set_alpha(
             _hovered
-            ? 0.30
-            : 0.12
+            ? 0.52
+            : 0.34
         );
 
         draw_set_color(c_black);
 
         draw_rectangle(
-            _card.x,
-            _card.y,
-            _card.x + _card.width,
-            _card.y + _card.height,
+            _card_left,
+            _card_top,
+            _card_right,
+            _card_bottom,
             false
         );
 
+
+        // Aqua structural frame, with chassis-colour corner highlights.
+
+        draw_set_alpha(
+            _hovered
+            ? 0.95
+            : 0.55
+        );
+
+        scr_hud_chassis_select_frame_draw(
+            _card_left,
+            _card_top,
+            _card_right,
+            _card_bottom,
+            c_aqua,
+            12,
+            1
+        );
+
         draw_set_alpha(1);
+
+        scr_hud_chassis_select_frame_draw(
+            _card_left + 4,
+            _card_top + 4,
+            _card_right - 4,
+            _card_bottom - 4,
+            _card_color,
+            8,
+            _hovered
+            ? 2
+            : 1
+        );
+
+
+        // Left identity rail.
+
+        draw_set_alpha(
+            _hovered
+            ? 1
+            : 0.75
+        );
+
         draw_set_color(_card_color);
 
+        draw_line_width(
+            _card_left + 14,
+            _card_top + 18,
+            _card_left + 14,
+            _card_bottom - 18,
+            _hovered
+            ? 3
+            : 2
+        );
+
+
+        // Icon containment panel.
+
+        draw_set_alpha(0.65);
+        draw_set_color(c_aqua);
+
         draw_rectangle(
-            _card.x,
-            _card.y,
-            _card.x + _card.width,
-            _card.y + _card.height,
+            _card_left + 28,
+            _card_top + 24,
+            _card_left + 96,
+            _card_top + 92,
             true
         );
 
+        draw_set_alpha(1);
+
         scr_hud_chassis_select_icon_draw(
-            _card.x + 62,
-            _card.y + 62,
+            _card_left + 62,
+            _card_top + 58,
             _data.visual.style,
             _card_color
         );
 
+
+        // Chassis number / title.
+
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
+
+        draw_set_color(c_aqua);
+
+        draw_text(
+            _card_left + 118,
+            _card_top + 18,
+            "CHASSIS // "
+            + string(i + 1)
+        );
+
         draw_set_color(_card_color);
 
         draw_text(
-            _card.x + 118,
-            _card.y + 24,
+            _card_left + 118,
+            _card_top + 42,
             _data.name
         );
 
         draw_set_color(c_white);
 
         draw_text_ext(
-		    _card.x + 118,
-		    _card.y + 56,
-		    _data.description,
-		    18,
-		    _card.width - 140
-		);
+            _card_left + 118,
+            _card_top + 70,
+            _data.description,
+            18,
+            _card.width - 142
+        );
+
+
+        // Divider above loadout data.
+
+        draw_set_alpha(0.60);
+        draw_set_color(c_aqua);
+
+        draw_line_width(
+            _card_left + 28,
+            _card_bottom - 76,
+            _card_right - 28,
+            _card_bottom - 76,
+            1
+        );
+
+
+        // Secondary ability label.
 
         var _secondary_name =
-		    "COMBAT BURST";
+            "COMBAT BURST";
 
-		switch (_data.alternate_ability)
-		{
-		    case PlayerAlternateAbility.ROCKET:
-		    {
-		        _secondary_name =
-		            "ROCKET";
-		    }
-		    break;
-
-
-		    case PlayerAlternateAbility.REPAIR:
-		    {
-		        _secondary_name =
-		            "REPAIR";
-		    }
-		    break;
+        switch (_data.alternate_ability)
+        {
+            case PlayerAlternateAbility.ROCKET:
+            {
+                _secondary_name =
+                    "ROCKET";
+            }
+            break;
 
 
-		    case PlayerAlternateAbility.COMMAND_PULSE:
-		    {
-		        _secondary_name =
-		            "COMMAND PULSE";
-		    }
-		    break;
-		}
+            case PlayerAlternateAbility.REPAIR:
+            {
+                _secondary_name =
+                    "REPAIR";
+            }
+            break;
 
 
-		draw_set_color(c_ltgray);
+            case PlayerAlternateAbility.COMMAND_PULSE:
+            {
+                _secondary_name =
+                    "COMMAND PULSE";
+            }
+            break;
+        }
 
-		draw_text(
-		    _card.x + 22,
-		    _card.y + _card.height - 58,
 
-		    "PRIMARY: PULSE"
-		    + "\nSECONDARY: "
-		    + _secondary_name
-		);
+        // Loadout information.
+
+        draw_set_alpha(1);
+        draw_set_color(c_ltgray);
+
+        draw_text(
+            _card_left + 30,
+            _card_bottom - 62,
+            "PRIMARY // PULSE"
+        );
+
+        draw_text(
+            _card_left + 30,
+            _card_bottom - 38,
+            "SECONDARY // "
+            + _secondary_name
+        );
+
+
+        // Selection prompt.
 
         draw_set_halign(fa_right);
         draw_set_valign(fa_bottom);
@@ -644,13 +931,53 @@ function scr_hud_chassis_select_draw(_hud)
         );
 
         draw_text(
-            _card.x + _card.width - 18,
-            _card.y + _card.height - 18,
+            _card_right - 24,
+            _card_bottom - 18,
             _hovered
-            ? "CLICK TO DEPLOY"
-            : "SELECT"
+            ? "CLICK TO DEPLOY >"
+            : "SELECT >"
+        );
+
+
+        // Small animated-looking corner status glyph.
+
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(_card_color);
+
+        draw_text(
+            _card_left + 28,
+            _card_top + _card.height - 22,
+            _hovered
+            ? "[ ACTIVE ]"
+            : "[ STANDBY ]"
         );
     }
+
+
+    // ========================================================================
+    // FOOTER DETAILS
+    // ========================================================================
+
+    draw_set_alpha(0.65);
+    draw_set_color(c_aqua);
+
+    draw_line_width(
+        _left + 24,
+        _bottom - 16,
+        _left + 170,
+        _bottom - 16,
+        1
+    );
+
+    draw_line_width(
+        _right - 170,
+        _bottom - 16,
+        _right - 24,
+        _bottom - 16,
+        1
+    );
+
 
     draw_set_alpha(1);
     draw_set_color(c_white);

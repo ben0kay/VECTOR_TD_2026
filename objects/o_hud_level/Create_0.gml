@@ -15,8 +15,8 @@ hud =
 
     top:
     {
-        height: 88,
-        row_height: 44,
+        height: 104,
+        row_height: 52,
         color: c_aqua,
         background_alpha: 0.92
     },
