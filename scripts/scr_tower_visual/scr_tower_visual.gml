@@ -1,73 +1,121 @@
 
-/// @description Draws the basic ground cannon.
+/// @description Draws the Basic Tower.
 
 function scr_tower_visual_ground(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
 
 
     draw_set_color(_color);
 
-    // Rotating diamond mount.
 
-    var _mount_radius = 15;
+    // ========================================================================
+    // ROTATING BASE PLATE
+    // ========================================================================
 
-    for (var i = 0; i < 4; ++i)
-    {
-        var _a1 = _angle + 45 + (i * 90);
-        var _a2 = _angle + 45 + (((i + 1) mod 4) * 90);
-
-        draw_line_width(
-            _x + lengthdir_x(_mount_radius, _a1),
-            _y + lengthdir_y(_mount_radius, _a1),
-            _x + lengthdir_x(_mount_radius, _a2),
-            _y + lengthdir_y(_mount_radius, _a2),
-            2
-        );
-    }
-
-
-    // Central reactor.
-
-    draw_circle(_x, _y, 8, false);
-    draw_circle(_x, _y, 3, true);
-
-
-    // Main barrel with two vector rails.
-
-    var _side_x = lengthdir_x(4, _angle + 90);
-    var _side_y = lengthdir_y(4, _angle + 90);
-
-    var _barrel_x =
-        _x + lengthdir_x(36, _angle);
-
-    var _barrel_y =
-        _y + lengthdir_y(36, _angle);
-
-    draw_line_width(
-        _x + _side_x,
-        _y + _side_y,
-        _barrel_x + _side_x,
-        _barrel_y + _side_y,
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        20,
+        _angle,
         2
     );
 
-    draw_line_width(
-        _x - _side_x,
-        _y - _side_y,
-        _barrel_x - _side_x,
-        _barrel_y - _side_y,
+
+    scr_enemy_visual_helper_radial_ticks(
+        _x,
+        _y,
+        14,
+        5,
+        4,
+        _angle,
         2
     );
 
-    draw_line_width(
-        _barrel_x + _side_x,
-        _barrel_y + _side_y,
-        _barrel_x - _side_x,
-        _barrel_y - _side_y,
+
+    // ========================================================================
+    // CENTRAL TURRET
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        11,
+        6,
+        _angle + 30,
+        2
+    );
+
+
+    draw_circle(
+        _x,
+        _y,
+        5,
+        false
+    );
+
+
+    // ========================================================================
+    // MAIN CANNON
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        7,
+        -4,
+
+        31,
+        4,
+
+        2
+    );
+
+
+    // Narrow muzzle extension.
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        31,
+        -2.5,
+
+        38,
+        2.5,
+
+        2
+    );
+
+
+    // ========================================================================
+    // REAR COUNTERWEIGHT
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -14,
+        -5,
+
+        -5,
+        5,
+
         2
     );
 
@@ -257,100 +305,301 @@ function scr_tower_visual_anti_air(_tower)
     return true;
 }
 
-/// @description Draws the alternating twin-minigun tower.
+/// @description Draws the Twin Minigun Tower.
 
 function scr_tower_visual_minigun(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
 
 
     draw_set_color(_color);
 
-    draw_circle(_x, _y, 17, true);
-    draw_circle(_x, _y, 8, false);
 
+    // ========================================================================
+    // LOW ROTARY BASE
+    // ========================================================================
 
-    var _side_x = lengthdir_x(7, _angle + 90);
-    var _side_y = lengthdir_y(7, _angle + 90);
-
-    var _end_x = _x + lengthdir_x(38, _angle);
-    var _end_y = _y + lengthdir_y(38, _angle);
-
-
-    // Twin rotary barrels.
-
-    draw_line_width(
-        _x + _side_x,
-        _y + _side_y,
-        _end_x + _side_x,
-        _end_y + _side_y,
-        4
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        19,
+        8,
+        _angle + 22.5,
+        2
     );
 
-    draw_line_width(
-        _x - _side_x,
-        _y - _side_y,
-        _end_x - _side_x,
-        _end_y - _side_y,
-        4
-    );
 
     draw_circle(
-        _end_x + _side_x,
-        _end_y + _side_y,
+        _x,
+        _y,
+        12,
+        true
+    );
+
+
+    // ========================================================================
+    // CENTRAL WEAPON HOUSING
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -9,
+        -10,
+
+        15,
+        10,
+
+        2
+    );
+
+
+    // ========================================================================
+    // LEFT MINIGUN
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        10,
+        -10,
+
+        34,
+        -4,
+
+        2
+    );
+
+
+    // ========================================================================
+    // RIGHT MINIGUN
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        10,
+        4,
+
+        34,
+        10,
+
+        2
+    );
+
+
+    // Barrel tips.
+
+    var _left_x =
+        _x
+        + lengthdir_x(38, _angle)
+        + lengthdir_x(7, _angle - 90);
+
+    var _left_y =
+        _y
+        + lengthdir_y(38, _angle)
+        + lengthdir_y(7, _angle - 90);
+
+
+    var _right_x =
+        _x
+        + lengthdir_x(38, _angle)
+        + lengthdir_x(7, _angle + 90);
+
+    var _right_y =
+        _y
+        + lengthdir_y(38, _angle)
+        + lengthdir_y(7, _angle + 90);
+
+
+    draw_circle(
+        _left_x,
+        _left_y,
         4,
         true
     );
 
     draw_circle(
-        _end_x - _side_x,
-        _end_y - _side_y,
+        _right_x,
+        _right_y,
         4,
         true
     );
 
 
-    // Build-menu previews do not contain a combat runtime.
-    // A preview simply highlights the first barrel.
+    // ========================================================================
+    // REAR AMMO / MOTOR BLOCK
+    // ========================================================================
 
-    var _active_side = 1;
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
 
+        -17,
+        -8,
 
-    if (is_struct(_tower))
-    {
-        if (
-            variable_struct_exists(_tower, "combat")
-            && is_struct(_tower.combat)
-            && variable_struct_exists(_tower.combat, "weapon")
-            && is_struct(_tower.combat.weapon)
-            && variable_struct_exists(_tower.combat.weapon, "muzzle")
-        )
-        {
-            _active_side =
-                _tower.combat.weapon.muzzle.side;
-        }
-    }
-    else if (
-        variable_instance_exists(_tower, "combat")
-        && is_struct(_tower.combat)
-    )
-    {
-        _active_side =
-            _tower.combat.weapon.muzzle.side;
-    }
+        -7,
+        8,
 
+        2
+    );
 
-    // Highlight the barrel that will fire next.
 
     draw_set_color(c_white);
 
+    return true;
+}
+
+/// @description Draws the heavy Explosive Cannon Tower.
+
+function scr_tower_visual_cannon(_tower)
+{
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+
+    draw_set_color(_color);
+
+
+    // ========================================================================
+    // HEAVY OCTAGONAL PLATFORM
+    // ========================================================================
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        22,
+        8,
+        _angle + 22.5,
+        3
+    );
+
+
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        15,
+        8,
+        _angle,
+        2
+    );
+
+
+    // Reinforcing mounts.
+
+    scr_enemy_visual_helper_radial_ticks(
+        _x,
+        _y,
+        17,
+        5,
+        4,
+        _angle + 45,
+        3
+    );
+
+
+    // ========================================================================
+    // LARGE BREECH
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -10,
+        -9,
+
+        14,
+        9,
+
+        3
+    );
+
+
+    // ========================================================================
+    // HEAVY BARREL
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        10,
+        -6,
+
+        34,
+        6,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        34,
+        -7,
+
+        41,
+        7,
+
+        3
+    );
+
+
+    // ========================================================================
+    // REAR RECOIL ASSEMBLY
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        -19,
+        -6,
+
+        -8,
+        6,
+
+        2
+    );
+
+
     draw_circle(
-        _end_x + (_side_x * _active_side),
-        _end_y + (_side_y * _active_side),
-        2,
+        _x,
+        _y,
+        5,
         false
     );
 
@@ -360,116 +609,159 @@ function scr_tower_visual_minigun(_tower)
     return true;
 }
 
-/// @description Draws the heavy explosive cannon.
-
-function scr_tower_visual_cannon(_tower)
-{
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
-
-    draw_set_color(_color);
-
-    // Heavy octagonal mount.
-
-    var _radius = 18;
-
-    for (var i = 0; i < 8; ++i)
-    {
-        var _a1 = _angle + (i * 45);
-        var _a2 = _angle + (((i + 1) mod 8) * 45);
-
-        draw_line_width(
-            _x + lengthdir_x(_radius, _a1),
-            _y + lengthdir_y(_radius, _a1),
-            _x + lengthdir_x(_radius, _a2),
-            _y + lengthdir_y(_radius, _a2),
-            3
-        );
-    }
-
-    draw_circle(_x, _y, 10, false);
-
-    // Wide cannon barrel.
-
-    var _side_x = lengthdir_x(6, _angle + 90);
-    var _side_y = lengthdir_y(6, _angle + 90);
-    var _end_x = _x + lengthdir_x(40, _angle);
-    var _end_y = _y + lengthdir_y(40, _angle);
-
-    draw_line_width(
-        _x + _side_x,
-        _y + _side_y,
-        _end_x + _side_x,
-        _end_y + _side_y,
-        3
-    );
-
-    draw_line_width(
-        _x - _side_x,
-        _y - _side_y,
-        _end_x - _side_x,
-        _end_y - _side_y,
-        3
-    );
-
-    draw_line_width(
-        _end_x + _side_x,
-        _end_y + _side_y,
-        _end_x - _side_x,
-        _end_y - _side_y,
-        3
-    );
-
-    draw_set_color(c_white);
-
-    return true;
-}
-
-/// @description Draws the shield-focused laser emitter.
+/// @description Draws the Shield Laser Tower.
 
 function scr_tower_visual_laser(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
 
-    var _pulse =
-        0.7
-        + dsin(
-            (global.vtd.tick * 8)
-            + real(_tower.id)
-        ) * 0.2;
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick * 2;
+
 
     draw_set_color(_color);
 
-    draw_circle(_x, _y, 16, true);
-    draw_circle(_x, _y, 11, true);
 
-    // Three focusing prongs.
+    // ========================================================================
+    // ENERGY BASE
+    // ========================================================================
 
-    for (var i = -1; i <= 1; ++i)
-    {
-        var _side = i * 5;
+    scr_enemy_visual_helper_double_ring(
+        _x,
+        _y,
+        18,
+        11
+    );
 
-        draw_line_width(
-            _x + lengthdir_x(_side, _angle + 90),
-            _y + lengthdir_y(_side, _angle + 90),
-            _x + lengthdir_x(31, _angle)
-                + lengthdir_x(_side * 0.45, _angle + 90),
-            _y + lengthdir_y(31, _angle)
-                + lengthdir_y(_side * 0.45, _angle + 90),
-            2
-        );
-    }
 
-    draw_set_alpha(_pulse);
-    draw_set_color(c_white);
-    draw_circle(_x, _y, 4, false);
+    // Slowly rotating energy nodes.
 
-    draw_set_alpha(1);
+    scr_enemy_visual_helper_radial_dots(
+        _x,
+        _y,
+        15,
+        2,
+        4,
+        _spin,
+        true
+    );
+
+
+    // ========================================================================
+    // FOCUSING ARMS
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        2,
+        -9,
+
+        27,
+        -4,
+
+        3
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        2,
+        9,
+
+        27,
+        4,
+
+        3
+    );
+
+
+    // Rear braces.
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -9,
+        -7,
+
+        7,
+        -9,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        -9,
+        7,
+
+        7,
+        9,
+
+        2
+    );
+
+
+    // ========================================================================
+    // LASER FOCUS
+    // ========================================================================
+
+    var _focus_x =
+        _x
+        + lengthdir_x(31, _angle);
+
+    var _focus_y =
+        _y
+        + lengthdir_y(31, _angle);
+
+
+    draw_circle(
+        _focus_x,
+        _focus_y,
+        5,
+        true
+    );
+
+
+    draw_circle(
+        _focus_x,
+        _focus_y,
+        2,
+        false
+    );
+
+
+    // Central reactor.
+
+    draw_circle(
+        _x,
+        _y,
+        5,
+        false
+    );
+
+
     draw_set_color(c_white);
 
     return true;
@@ -557,53 +849,137 @@ function scr_tower_weapon_trace_draw(_tower)
 
 function scr_tower_visual_cryo(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
+
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick * 1.5;
+
 
     draw_set_color(_color);
 
 
-    // Rotating frozen core.
+    // ========================================================================
+    // CRYOGENIC CORE
+    // ========================================================================
 
-    for (var i = 0; i < 6; ++i)
-    {
-        var _a1 = _angle + (i * 60);
-        var _a2 = _angle + (((i + 1) mod 6) * 60);
-
-        draw_line_width(
-            _x + lengthdir_x(13, _a1),
-            _y + lengthdir_y(13, _a1),
-            _x + lengthdir_x(13, _a2),
-            _y + lengthdir_y(13, _a2),
-            2
-        );
-    }
-
-
-    var _side_x = lengthdir_x(5, _angle + 90);
-    var _side_y = lengthdir_y(5, _angle + 90);
-    var _end_x = _x + lengthdir_x(36, _angle);
-    var _end_y = _y + lengthdir_y(36, _angle);
-
-    draw_line_width(
-        _x + _side_x,
-        _y + _side_y,
-        _end_x + _side_x,
-        _end_y + _side_y,
+    scr_enemy_visual_helper_polygon(
+        _x,
+        _y,
+        15,
+        6,
+        _spin,
         2
     );
 
-    draw_line_width(
-        _x - _side_x,
-        _y - _side_y,
-        _end_x - _side_x,
-        _end_y - _side_y,
+
+    scr_enemy_visual_helper_spokes(
+        _x,
+        _y,
+        5,
+        17,
+        6,
+        _spin,
         2
     );
 
-    draw_circle(_x, _y, 5, true);
+
+    draw_circle(
+        _x,
+        _y,
+        5,
+        false
+    );
+
+
+    // ========================================================================
+    // COOLANT PRONGS
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        -9,
+
+        26,
+        -6,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        5,
+        9,
+
+        26,
+        6,
+
+        2
+    );
+
+
+    // Inner emitter rail.
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        8,
+        0,
+
+        34,
+        0,
+
+        3
+    );
+
+
+    // ========================================================================
+    // CRYO EMITTER
+    // ========================================================================
+
+    var _emitter_x =
+        _x
+        + lengthdir_x(38, _angle);
+
+    var _emitter_y =
+        _y
+        + lengthdir_y(38, _angle);
+
+
+    draw_circle(
+        _emitter_x,
+        _emitter_y,
+        6,
+        true
+    );
+
+
+    draw_circle(
+        _emitter_x,
+        _emitter_y,
+        3,
+        false
+    );
+
 
     draw_set_color(c_white);
 
@@ -614,55 +990,141 @@ function scr_tower_visual_cryo(_tower)
 
 function scr_tower_visual_stasis(_tower)
 {
-    var _x = _tower.x;
-    var _y = _tower.y;
-    var _angle = _tower.visual.draw_angle;
-    var _color = _tower.visual.turret_color;
+    var _x =
+        _tower.x;
 
-    var _pulse =
-        0.65
-        + dsin(
-            global.vtd.tick * 5
-            + real(_tower.id)
-        ) * 0.25;
+    var _y =
+        _tower.y;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    var _color =
+        _tower.visual.turret_color;
+
+    var _spin =
+        global.vtd.tick * -1.5;
 
 
     draw_set_color(_color);
 
-    draw_circle(_x, _y, 16, true);
-    draw_circle(_x, _y, 10, false);
 
+    // ========================================================================
+    // CONTAINMENT FIELD
+    // ========================================================================
 
-    // Radial containment marks.
-
-    for (var i = 0; i < 4; ++i)
-    {
-        var _mark_angle =
-            _angle
-            + (i * 90);
-
-        draw_line_width(
-            _x + lengthdir_x(12, _mark_angle),
-            _y + lengthdir_y(12, _mark_angle),
-            _x + lengthdir_x(18, _mark_angle),
-            _y + lengthdir_y(18, _mark_angle),
-            2
-        );
-    }
-
-
-    draw_set_alpha(_pulse);
-
-    draw_line_width(
+    scr_enemy_visual_helper_arc_segments(
         _x,
         _y,
-        _x + lengthdir_x(38, _angle),
-        _y + lengthdir_y(38, _angle),
-        4
+        19,
+        4,
+        55,
+        _spin,
+        5,
+        2
     );
 
-    draw_set_alpha(1);
-    draw_circle(_x, _y, 4, true);
+
+    scr_enemy_visual_helper_arc_segments(
+        _x,
+        _y,
+        13,
+        4,
+        42,
+        -_spin,
+        4,
+        2
+    );
+
+
+    // ========================================================================
+    // CENTRAL FIELD CORE
+    // ========================================================================
+
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        8,
+        _spin,
+        2
+    );
+
+
+    draw_circle(
+        _x,
+        _y,
+        3,
+        false
+    );
+
+
+    // ========================================================================
+    // STASIS PROJECTOR
+    // ========================================================================
+
+    scr_enemy_visual_helper_local_box(
+        _x,
+        _y,
+        _angle,
+
+        7,
+        -3,
+
+        30,
+        3,
+
+        2
+    );
+
+
+    // Forked emitter.
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        -3,
+
+        38,
+        -6,
+
+        2
+    );
+
+
+    scr_enemy_visual_helper_local_line(
+        _x,
+        _y,
+        _angle,
+
+        27,
+        3,
+
+        38,
+        6,
+
+        2
+    );
+
+
+    var _emitter_x =
+        _x
+        + lengthdir_x(38, _angle);
+
+    var _emitter_y =
+        _y
+        + lengthdir_y(38, _angle);
+
+
+    draw_circle(
+        _emitter_x,
+        _emitter_y,
+        3,
+        false
+    );
+
 
     draw_set_color(c_white);
 

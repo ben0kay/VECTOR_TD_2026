@@ -702,3 +702,98 @@ function scr_enemy_visual_helper_local_polygon(
 
     return true;
 }
+
+// ============================================================================
+// LOCAL-SPACE BOX
+// ============================================================================
+
+/// @description Draws a rotated outlined rectangle using local-space coordinates.
+
+function scr_enemy_visual_helper_local_box(
+    _x,
+    _y,
+    _angle,
+    _x1,
+    _y1,
+    _x2,
+    _y2,
+    _width = 1
+)
+{
+    var _points =
+    [
+        [_x1, _y1],
+        [_x2, _y1],
+        [_x2, _y2],
+        [_x1, _y2]
+    ];
+
+
+    return scr_enemy_visual_helper_local_polygon(
+        _x,
+        _y,
+        _angle,
+        _points,
+        _width
+    );
+}
+
+// ============================================================================
+// RADIAL TICKS
+// ============================================================================
+
+/// @description Draws short evenly spaced radial tick marks around a center.
+
+function scr_enemy_visual_helper_radial_ticks(
+    _x,
+    _y,
+    _radius,
+    _tick_length,
+    _count,
+    _angle = 0,
+    _width = 1
+)
+{
+    if (_count <= 0)
+        return false;
+
+
+    var _step =
+        360 / _count;
+
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _a =
+            _angle
+            + (i * _step);
+
+
+        draw_line_width(
+            _x + lengthdir_x(
+                _radius,
+                _a
+            ),
+
+            _y + lengthdir_y(
+                _radius,
+                _a
+            ),
+
+            _x + lengthdir_x(
+                _radius + _tick_length,
+                _a
+            ),
+
+            _y + lengthdir_y(
+                _radius + _tick_length,
+                _a
+            ),
+
+            _width
+        );
+    }
+
+
+    return true;
+}
