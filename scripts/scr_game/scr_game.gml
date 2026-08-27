@@ -52,8 +52,7 @@ function scr_game_initialize()
         // campaign progress
         // display and graphics settings
 		
-		profile:
-    scr_upgrade_profile_runtime_create(),
+		profile: undefined,
     };
 
 
@@ -80,11 +79,6 @@ function scr_game_initialize()
     // scr_research_data_initialize();
     // scr_boss_data_initialize();
     // scr_profile_system_initialize();
-
-
-    global.GameState =
-        GameState.MENU;
-
 
     show_debug_message(
         "VECTOR TD 2026 - GAME INITIALIZED"
