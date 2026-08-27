@@ -405,3 +405,158 @@ function scr_upgrade_tower_combat_stats_apply(_tower)
         _tower
     );
 }
+
+/// ============================================================================
+/// GRANTING / REFRESH
+/// ============================================================================
+
+/// @description Rebuilds upgrade-derived combat stats for every placed tower.
+function scr_upgrade_towers_refresh()
+{
+    with (o_tower)
+    {
+        scr_upgrade_tower_combat_stats_apply(id);
+    }
+
+    return true;
+}
+
+
+/// @description Grants one permanent profile upgrade and refreshes active towers.
+function scr_upgrade_profile_grant(_upgrade_key)
+{
+    var _upgrade =
+        scr_upgrade_data_get(
+            _upgrade_key
+        );
+
+    if (!is_struct(_upgrade))
+        return false;
+
+    if (_upgrade.scope != UpgradeScope.PROFILE)
+        return false;
+
+    if (!variable_global_exists("vtd"))
+        return false;
+
+    if (!is_struct(global.vtd))
+        return false;
+
+    if (!is_struct(global.vtd.profile))
+        return false;
+
+    if (!is_struct(global.vtd.profile.upgrades))
+        return false;
+
+    if (
+        !is_array(
+            global.vtd.profile.upgrades.owned
+        )
+    )
+    {
+        global.vtd.profile.upgrades.owned = [];
+    }
+
+    if (
+        scr_upgrade_owned_has(
+            global.vtd.profile.upgrades.owned,
+            _upgrade_key
+        )
+    )
+    {
+        return false;
+    }
+
+
+    var _owned =
+        global.vtd.profile.upgrades.owned;
+
+    array_push(
+        _owned,
+        _upgrade_key
+    );
+
+    global.vtd.profile.upgrades.owned =
+        _owned;
+
+
+    if (!scr_profile_save())
+        return false;
+
+    scr_upgrade_towers_refresh();
+
+    show_debug_message(
+        "PROFILE UPGRADE GRANTED: "
+        + _upgrade.identity.name
+    );
+
+    return true;
+}
+
+
+/// @description Grants one temporary level upgrade and refreshes active towers.
+function scr_upgrade_level_grant(_upgrade_key)
+{
+    var _upgrade =
+        scr_upgrade_data_get(
+            _upgrade_key
+        );
+
+    if (!is_struct(_upgrade))
+        return false;
+
+    if (_upgrade.scope != UpgradeScope.LEVEL)
+        return false;
+
+    if (!variable_global_exists("vtd_level"))
+        return false;
+
+    if (!is_struct(global.vtd_level))
+        return false;
+
+    if (!is_struct(global.vtd_level.upgrades))
+        return false;
+
+    if (!is_struct(global.vtd_level.upgrades.level))
+        return false;
+
+    if (
+        !is_array(
+            global.vtd_level.upgrades.level.owned
+        )
+    )
+    {
+        global.vtd_level.upgrades.level.owned = [];
+    }
+
+    if (
+        scr_upgrade_owned_has(
+            global.vtd_level.upgrades.level.owned,
+            _upgrade_key
+        )
+    )
+    {
+        return false;
+    }
+
+
+    var _owned =
+        global.vtd_level.upgrades.level.owned;
+
+    array_push(
+        _owned,
+        _upgrade_key
+    );
+
+    global.vtd_level.upgrades.level.owned =
+        _owned;
+
+    scr_upgrade_towers_refresh();
+
+    show_debug_message(
+        "LEVEL UPGRADE GRANTED: "
+        + _upgrade.identity.name
+    );
+
+    return true;
+}
