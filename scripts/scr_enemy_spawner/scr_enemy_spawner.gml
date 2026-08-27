@@ -38,6 +38,9 @@ function scr_enemy_spawner_data_valid(_data)
 
     if (!variable_struct_exists(_data, "milestones"))
         return false;
+	
+	if (!variable_struct_exists(_data, "orders"))
+    return false;
 
     if (!variable_struct_exists(_data, "modifiers"))
         return false;
@@ -74,6 +77,55 @@ function scr_enemy_spawner_data_valid(_data)
 
     if (!is_array(_data.milestones))
         return false;
+	
+	if (!is_struct(_data.orders))
+    return false;
+	
+	// ========================================================================
+	// ORDER CONFIGURATION
+	// ========================================================================
+
+	var _orders =
+	    _data.orders;
+
+	if (!variable_struct_exists(_orders, "enabled"))
+	    return false;
+
+	if (!variable_struct_exists(_orders, "baseline_chance"))
+	    return false;
+
+	if (!variable_struct_exists(_orders, "cluster_chance"))
+	    return false;
+
+	if (!variable_struct_exists(_orders, "available"))
+	    return false;
+
+	if (!is_array(_orders.available))
+	    return false;
+
+	if (
+	    _orders.baseline_chance < 0
+	    || _orders.baseline_chance > 1
+	)
+	{
+	    return false;
+	}
+
+	if (
+	    _orders.cluster_chance < 0
+	    || _orders.cluster_chance > 1
+	)
+	{
+	    return false;
+	}
+
+	if (
+	    _orders.enabled
+	    && array_length(_orders.available) <= 0
+	)
+	{
+	    return false;
+	}
 
 
     // ========================================================================
@@ -336,7 +388,8 @@ function scr_enemy_spawn(
     _world_y,
     _spawn_direction = undefined,
     _spawn_modifiers = [],
-    _major_wave_number = 0
+    _major_wave_number = 0,
+    _spawn_order = EnemyOrder.NONE
 )
 {
     var _data =
@@ -356,6 +409,9 @@ function scr_enemy_spawn(
             scr_enemy_modifiers_copy(
                 _spawn_modifiers
             ),
+			
+		spawn_order:
+            _spawn_order,
 
         // Zero means this enemy did not originate from an authored wave.
         major_wave_number:
@@ -785,7 +841,8 @@ function scr_enemy_spawner_group_queue(
     _side,
     _zone_center,
     _zone_width,
-    _source_name
+    _source_name,
+    _order = EnemyOrder.NONE
 )
 {
     if (!instance_exists(_spawner))
@@ -859,6 +916,8 @@ function scr_enemy_spawner_group_queue(
             _queue,
             {
                 enemy_key: _enemy_entry.enemy_key,
+				
+				order: _order,
 
                 modifiers:
                     scr_enemy_spawner_modifiers_get(
@@ -1086,15 +1145,30 @@ function scr_enemy_spawner_queue_update(
 			        _entry.major_wave_number;
 			}
 			
-            var _enemy =
-		    scr_enemy_spawn(
-		        _entry.enemy_key,
-		        _position.x,
-		        _position.y,
-		        undefined,
-		        _entry.modifiers,
-		        _major_wave_number
-		    );
+            var _order =
+			    EnemyOrder.NONE;
+
+			if (
+			    variable_struct_exists(
+			        _entry,
+			        "order"
+			    )
+			)
+			{
+			    _order =
+			        _entry.order;
+			}
+
+			var _enemy =
+			scr_enemy_spawn(
+			    _entry.enemy_key,
+			    _position.x,
+			    _position.y,
+			    undefined,
+			    _entry.modifiers,
+			    _major_wave_number,
+			    _order
+			);
 
             if (instance_exists(_enemy))
             {
@@ -1230,6 +1304,12 @@ function scr_enemy_spawner_baseline_update(
             {
                 enemy_key:
                     _entry.enemy_key,
+					
+				order:
+			    scr_enemy_spawner_order_roll(
+			        _spawner,
+			        _pressure_data.orders.baseline_chance
+			    ),
 
                 modifiers:
                     scr_enemy_spawner_modifiers_get(
@@ -1367,6 +1447,11 @@ function scr_enemy_spawner_cluster_update(
                     _data.zone_width_maximum
                 );
 
+			var _cluster_order =
+		    scr_enemy_spawner_order_roll(
+		        _spawner,
+		        _spawner.spawner.data.orders.cluster_chance
+		    );
 
             var _queued =
                 scr_enemy_spawner_group_queue(
@@ -1386,7 +1471,8 @@ function scr_enemy_spawner_cluster_update(
                     _zone_center,
                     _zone_width,
 
-                    _pattern.name
+                    _pattern.name,
+					_cluster_order
                 );
 
 
@@ -2459,4 +2545,38 @@ function scr_enemy_spawner_dynamic_cluster_pool_create(
 
 
     return _result;
+}
+
+/// @description Rolls one optional tactical order from the world's available list.
+function scr_enemy_spawner_order_roll(
+    _spawner,
+    _chance
+)
+{
+    if (!instance_exists(_spawner))
+        return EnemyOrder.NONE;
+
+    var _orders =
+        _spawner.spawner.data.orders;
+
+    if (!_orders.enabled)
+        return EnemyOrder.NONE;
+
+    if (_chance <= 0)
+        return EnemyOrder.NONE;
+
+    if (random(1) >= _chance)
+        return EnemyOrder.NONE;
+
+    var _available =
+        _orders.available;
+
+    if (array_length(_available) <= 0)
+        return EnemyOrder.NONE;
+
+    return _available[
+        irandom(
+            array_length(_available) - 1
+        )
+    ];
 }

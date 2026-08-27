@@ -203,6 +203,20 @@ function scr_navigation_enemy_path_build(_enemy)
     if (!_path_found)
     {
         _enemy.navigation.reachable = false;
+		
+		        if (
+            scr_enemy_order_active(_enemy)
+            && _enemy.targeting.target
+                == _enemy.order.target
+        )
+        {
+            scr_enemy_order_fallback(
+                _enemy
+            );
+
+            return false;
+        }
+		
         _enemy.navigation.needs_path = false;
 
         _enemy.navigation.revision_seen =

@@ -192,6 +192,29 @@ function scr_world_data_initialize()
 				maximum_alive_enemies: 300,
 				maximum_queued_enemies: 600,
 				
+				
+				// ========================================================================
+				// ENEMY ORDERS
+				// ========================================================================
+
+				orders:
+				{
+				    enabled: true,
+
+				    // Each ordinary baseline enemy rolls independently.
+				    baseline_chance: 0.001,
+
+				    // One roll per cluster. A successful roll applies to its entire group.
+				    cluster_chance: 0.05,
+
+				    available:
+				    [
+				        EnemyOrder.TARGET_PLAYER,
+				        EnemyOrder.TARGET_MINER,
+				        EnemyOrder.TARGET_TOWER
+				    ]
+				},
+				
 				// ========================================================================
 				// TIMED ENEMY MODIFIERS
 				// ========================================================================

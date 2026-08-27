@@ -100,6 +100,13 @@ enum EnemyBehavior
     ANCHOR_BEAM,
     SUPPORT
 }
+enum EnemyOrder
+{
+    NONE,
+    TARGET_PLAYER,
+    TARGET_MINER,
+    TARGET_TOWER
+}
 
 
 // ============================================================================

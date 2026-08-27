@@ -987,7 +987,7 @@ function scr_hud_top_bar_draw(_hud)
     // ========================================================================
 
     var _resource_width =
-        155;
+        240;
 
     var _hidden_resources =
         0;

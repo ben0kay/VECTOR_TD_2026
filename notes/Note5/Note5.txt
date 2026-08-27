@@ -1,0 +1,14 @@
+
+___________________________________________
+############################################################################################
+ERROR in action number 1
+of  Step Event0 for object o_controller_energy:
+Unable to find instance for object index 104466
+ at gml_Script_scr_energy_consumers_sort (line 420) -     return _first.energy.priority - _second.energy.priority;
+############################################################################################
+gml_Script_scr_energy_consumers_sort (line 420)
+gml_Script_scr_energy_network_update (line 525)
+gml_Script_scr_energy_update (line 721) -             _network,
+gml_Object_o_controller_energy_Step_0 (line 13) - scr_energy_update();
+
+error during gameplay ask chat gpt to check

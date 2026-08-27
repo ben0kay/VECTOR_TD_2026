@@ -18,9 +18,6 @@ Enemies can spawn with an additional tactical order such as RUSH, SABOTAGE, SUPP
 ### Revenge Targeting
 Certain enemies can temporarily prioritize the tower/player that has caused them significant damage. Particularly suitable for aggressive heavies and elites.
 
-### Berserker Enemy
-Heavy enemy that becomes increasingly dangerous as its HP falls. Low health could increase movement speed, attack speed, damage, or aggression.
-
 ### Burrower Enemy
 Uses the UNDERGROUND movement layer. Travels underground where most towers cannot attack it, but periodically surfaces and becomes vulnerable.
 

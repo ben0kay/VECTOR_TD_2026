@@ -32,6 +32,16 @@ if (!scr_enemy_advanced_initialize(id))
     exit;
 }
 
+if (!scr_enemy_order_initialize(id))
+{
+    show_debug_message(
+        "ENEMY ORDER ERROR - initialization failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
 
 if (!scr_enemy_performance_initialize(id))
 {

@@ -3698,28 +3698,35 @@ function scr_enemy_step_event_gameplay(
     // PLAYER TARGETING AND STRATEGIC RETARGETING
     // ========================================================================
 
-    var _player_target_active =
-        variable_struct_exists(
-            _enemy.targeting,
-            "player"
-        )
-        && _enemy.targeting.player.active;
-
-
-    if (
-        _player_target_active
-        || _decision_due
-    )
+    if (scr_enemy_order_active(id))
     {
-        scr_enemy_player_targeting_update(
-            _enemy
-        );
+        scr_enemy_order_update(id);
     }
     else
     {
-        scr_enemy_strategic_retarget_update(
-            _enemy
-        );
+        var _player_target_active =
+            variable_struct_exists(
+                targeting,
+                "player"
+            )
+            && targeting.player.active;
+
+
+        if (
+            _player_target_active
+            || _decision_due
+        )
+        {
+            scr_enemy_player_targeting_update(
+                id
+            );
+        }
+        else
+        {
+            scr_enemy_strategic_retarget_update(
+                id
+            );
+        }
     }
 
 

@@ -42,6 +42,7 @@
   "name":"VECTOR_TD_2026",
   "resources":[
     {"id":{"name":"future_ideas","path":"notes/future_ideas/future_ideas.yy",},},
+    {"id":{"name":"Note5","path":"notes/Note5/Note5.yy",},},
     {"id":{"name":"player_chassis_idea","path":"notes/player_chassis_idea/player_chassis_idea.yy",},},
     {"id":{"name":"RESOURCE TODO","path":"notes/RESOURCE TODO/RESOURCE TODO.yy",},},
     {"id":{"name":"TO-DO","path":"notes/TO-DO/TO-DO.yy",},},
@@ -101,6 +102,7 @@
     {"id":{"name":"scr_enemy_behavior","path":"scripts/scr_enemy_behavior/scr_enemy_behavior.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
     {"id":{"name":"scr_enemy_effects","path":"scripts/scr_enemy_effects/scr_enemy_effects.yy",},},
+    {"id":{"name":"scr_enemy_order","path":"scripts/scr_enemy_order/scr_enemy_order.yy",},},
     {"id":{"name":"scr_enemy_player_targeting","path":"scripts/scr_enemy_player_targeting/scr_enemy_player_targeting.yy",},},
     {"id":{"name":"scr_enemy_spawner","path":"scripts/scr_enemy_spawner/scr_enemy_spawner.yy",},},
     {"id":{"name":"scr_enemy_stealth","path":"scripts/scr_enemy_stealth/scr_enemy_stealth.yy",},},

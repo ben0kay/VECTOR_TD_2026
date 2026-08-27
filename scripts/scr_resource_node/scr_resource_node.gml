@@ -90,25 +90,60 @@ function scr_resource_node_visual_crystal(_node)
         return false;
 
 
-    var _cell_size = global.vtd_level.map.cell_size;
-    var _radius = _cell_size * 0.38 * _node.visual.scale;
-    var _angle = _node.visual.rotation;
+    var _radius =
+        global.vtd_level.map.cell_size
+        * 0.38
+        * _node.visual.scale;
+
+    var _angle =
+        _node.visual.rotation;
 
 
-    var _top_x = _node.x + lengthdir_x(_radius, _angle + 90);
-    var _top_y = _node.y + lengthdir_y(_radius, _angle + 90);
+    var _dx =
+        lengthdir_x(
+            _radius,
+            _angle
+        );
 
-    var _right_x = _node.x + lengthdir_x(_radius, _angle);
-    var _right_y = _node.y + lengthdir_y(_radius, _angle);
-
-    var _bottom_x = _node.x + lengthdir_x(_radius, _angle - 90);
-    var _bottom_y = _node.y + lengthdir_y(_radius, _angle - 90);
-
-    var _left_x = _node.x + lengthdir_x(_radius, _angle + 180);
-    var _left_y = _node.y + lengthdir_y(_radius, _angle + 180);
+    var _dy =
+        lengthdir_y(
+            _radius,
+            _angle
+        );
 
 
-    draw_set_color(_node.visual.color);
+    var _right_x =
+        _node.x + _dx;
+
+    var _right_y =
+        _node.y + _dy;
+
+    var _left_x =
+        _node.x - _dx;
+
+    var _left_y =
+        _node.y - _dy;
+
+
+    // Perpendicular vector.
+
+    var _top_x =
+        _node.x - _dy;
+
+    var _top_y =
+        _node.y + _dx;
+
+    var _bottom_x =
+        _node.x + _dy;
+
+    var _bottom_y =
+        _node.y - _dx;
+
+
+    draw_set_color(
+        _node.visual.color
+    );
+
 
     draw_triangle(
         _top_x,
@@ -120,6 +155,7 @@ function scr_resource_node_visual_crystal(_node)
         false
     );
 
+
     draw_triangle(
         _node.x,
         _node.y,
@@ -130,6 +166,7 @@ function scr_resource_node_visual_crystal(_node)
         false
     );
 
+
     draw_line_width(
         _top_x,
         _top_y,
@@ -137,6 +174,7 @@ function scr_resource_node_visual_crystal(_node)
         _bottom_y,
         2
     );
+
 
     draw_line_width(
         _left_x,
@@ -147,7 +185,10 @@ function scr_resource_node_visual_crystal(_node)
     );
 
 
-    draw_set_color(c_white);
+    draw_set_color(
+        c_white
+    );
+
 
     draw_circle(
         _node.x,
