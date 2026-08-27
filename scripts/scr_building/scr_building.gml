@@ -1158,7 +1158,10 @@ function scr_building_construction_complete(_building)
             _building.visual.color;
     }
 
-
+	scr_effect_construction_complete_create(
+        _building
+    );
+	
     scr_particles_construction_complete(
         _building.x,
         _building.y,

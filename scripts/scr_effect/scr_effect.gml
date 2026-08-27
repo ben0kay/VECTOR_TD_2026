@@ -27,8 +27,6 @@ function scr_effect_shockwave_create(
     );
 }
 
-/// @description Initializes one temporary primitive effect.
-
 function scr_effect_initialize(_effect)
 {
     if (!instance_exists(_effect))
@@ -49,6 +47,10 @@ function scr_effect_initialize(_effect)
     if (!variable_instance_exists(_effect, "effect_radius_end"))
         return false;
 
+
+    // ========================================================================
+    // COMMON EFFECT RUNTIME
+    // ========================================================================
 
     _effect.effect =
     {
@@ -74,132 +76,200 @@ function scr_effect_initialize(_effect)
             _effect.effect_radius_end,
 
         death:
+            undefined,
+
+        construction:
             undefined
     };
 
 
-    if (
-        _effect.effect.type
-        != EffectType.ENEMY_DEATH
-    )
+    // ========================================================================
+    // TYPE-SPECIFIC RUNTIME
+    // ========================================================================
+
+    switch (_effect.effect.type)
     {
-        return true;
-    }
-
-
-    if (!variable_instance_exists(_effect, "effect_enemy_radius"))
-        return false;
-
-    if (!variable_instance_exists(_effect, "effect_ghost_sides"))
-        return false;
-
-    if (!variable_instance_exists(_effect, "effect_fragment_count"))
-        return false;
-
-    if (!variable_instance_exists(_effect, "effect_spark_count"))
-        return false;
-
-
-    var _fragments =
-        [];
-
-    var _total_count =
-        _effect.effect_fragment_count
-        + _effect.effect_spark_count;
-
-    for (
-        var i = 0;
-        i < _total_count;
-        ++i
-    )
-    {
-        var _is_spark =
-            i >= _effect.effect_fragment_count;
-
-        var _speed =
-            _is_spark
-            ? random_range(
-                _effect.effect_enemy_radius * 4.5,
-                _effect.effect_enemy_radius * 7.0
+        case EffectType.CONSTRUCTION_COMPLETE:
+        {
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_footprint_width"
+                )
             )
-            : random_range(
-                _effect.effect_enemy_radius * 2.3,
-                _effect.effect_enemy_radius * 4.4
-            );
-
-        array_push(
-            _fragments,
             {
-                spark:
-                    _is_spark,
-
-                x:
-                    _effect.x,
-
-                y:
-                    _effect.y,
-
-                angle:
-                    random(360),
-
-                speed:
-                    _speed,
-
-                deceleration:
-                    _speed
-                    * random_range(
-                        1.5,
-                        2.3
-                    ),
-
-                rotation:
-                    random(360),
-
-                rotation_speed:
-                    random_range(
-                        -540,
-                        540
-                    ),
-
-                size:
-                    _is_spark
-                    ? random_range(2, 4)
-                    : clamp(
-                        _effect.effect_enemy_radius
-                        * random_range(
-                            0.12,
-                            0.26
-                        ),
-                        2,
-                        8
-                    ),
-
-                age:
-                    0,
-
-                duration:
-                    _is_spark
-                    ? random_range(0.22, 0.42)
-                    : random_range(0.35, 0.65),
-
-                sides:
-                    irandom_range(3, 4)
+                return false;
             }
-        );
+
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_footprint_height"
+                )
+            )
+            {
+                return false;
+            }
+
+            _effect.effect.construction =
+            {
+                width:
+                    _effect.effect_footprint_width,
+
+                height:
+                    _effect.effect_footprint_height
+            };
+        }
+        break;
+
+
+        case EffectType.ENEMY_DEATH:
+        {
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_enemy_radius"
+                )
+            )
+            {
+                return false;
+            }
+
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_ghost_sides"
+                )
+            )
+            {
+                return false;
+            }
+
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_fragment_count"
+                )
+            )
+            {
+                return false;
+            }
+
+            if (
+                !variable_instance_exists(
+                    _effect,
+                    "effect_spark_count"
+                )
+            )
+            {
+                return false;
+            }
+
+
+            var _fragments =
+                [];
+
+            var _total_count =
+                _effect.effect_fragment_count
+                + _effect.effect_spark_count;
+
+            for (
+                var i = 0;
+                i < _total_count;
+                ++i
+            )
+            {
+                var _is_spark =
+                    i
+                    >= _effect.effect_fragment_count;
+
+                var _speed =
+                    _is_spark
+                    ? random_range(
+                        _effect.effect_enemy_radius * 4.5,
+                        _effect.effect_enemy_radius * 7.0
+                    )
+                    : random_range(
+                        _effect.effect_enemy_radius * 2.3,
+                        _effect.effect_enemy_radius * 4.4
+                    );
+
+                array_push(
+                    _fragments,
+                    {
+                        spark:
+                            _is_spark,
+
+                        x:
+                            _effect.x,
+
+                        y:
+                            _effect.y,
+
+                        angle:
+                            random(360),
+
+                        speed:
+                            _speed,
+
+                        deceleration:
+                            _speed
+                            * random_range(
+                                1.5,
+                                2.3
+                            ),
+
+                        rotation:
+                            random(360),
+
+                        rotation_speed:
+                            random_range(
+                                -540,
+                                540
+                            ),
+
+                        size:
+                            _is_spark
+                            ? random_range(2, 4)
+                            : clamp(
+                                _effect.effect_enemy_radius
+                                * random_range(
+                                    0.12,
+                                    0.26
+                                ),
+                                2,
+                                8
+                            ),
+
+                        age:
+                            0,
+
+                        duration:
+                            _is_spark
+                            ? random_range(0.22, 0.42)
+                            : random_range(0.35, 0.65),
+
+                        sides:
+                            irandom_range(3, 4)
+                    }
+                );
+            }
+
+
+            _effect.effect.death =
+            {
+                radius:
+                    _effect.effect_enemy_radius,
+
+                ghost_sides:
+                    _effect.effect_ghost_sides,
+
+                fragments:
+                    _fragments
+            };
+        }
+        break;
     }
-
-
-    _effect.effect.death =
-    {
-        radius:
-            _effect.effect_enemy_radius,
-
-        ghost_sides:
-            _effect.effect_ghost_sides,
-
-        fragments:
-            _fragments
-    };
 
 
     return true;
@@ -602,6 +672,217 @@ function scr_effect_draw_enemy_death(_effect)
     return true;
 }
 
+/// @description Draws a building-sized activation flash when construction completes.
+
+function scr_effect_draw_construction_complete(_effect)
+{
+    if (!instance_exists(_effect))
+        return false;
+
+
+    var _data =
+        _effect.effect;
+
+    var _construction =
+        _data.construction;
+
+    var _progress =
+        clamp(
+            _data.age
+            / _data.duration,
+            0,
+            1
+        );
+
+    var _flash_progress =
+        clamp(
+            _progress / 0.20,
+            0,
+            1
+        );
+
+    var _flash_alpha =
+        (1 - _flash_progress)
+        * 0.42;
+
+    var _expand =
+        lerp(
+            0,
+            14,
+            _progress
+        );
+
+    var _half_width =
+        (_construction.width * 0.5)
+        + _expand;
+
+    var _half_height =
+        (_construction.height * 0.5)
+        + _expand;
+
+    var _left =
+        _effect.x - _half_width;
+
+    var _right =
+        _effect.x + _half_width;
+
+    var _top =
+        _effect.y - _half_height;
+
+    var _bottom =
+        _effect.y + _half_height;
+
+
+    // Brief whole-footprint system-online flash.
+
+    draw_set_color(c_white);
+    draw_set_alpha(_flash_alpha);
+
+    draw_rectangle(
+        _effect.x
+        - (_construction.width * 0.5),
+
+        _effect.y
+        - (_construction.height * 0.5),
+
+        _effect.x
+        + (_construction.width * 0.5),
+
+        _effect.y
+        + (_construction.height * 0.5),
+
+        false
+    );
+
+
+    // Main coloured outline expanding away from the completed building.
+
+    draw_set_color(_data.color);
+    draw_set_alpha(
+        (1 - _progress)
+        * 0.95
+    );
+
+    draw_rectangle(
+        _left,
+        _top,
+        _right,
+        _bottom,
+        true
+    );
+
+
+    // Short bright corner braces make the activation easier to notice.
+
+    draw_set_alpha(
+        (1 - _progress)
+        * 0.85
+    );
+
+    var _brace_length =
+        lerp(
+            12,
+            3,
+            _progress
+        );
+
+    draw_line_width(
+        _left,
+        _top,
+        _left + _brace_length,
+        _top,
+        2
+    );
+
+    draw_line_width(
+        _left,
+        _top,
+        _left,
+        _top + _brace_length,
+        2
+    );
+
+    draw_line_width(
+        _right,
+        _top,
+        _right - _brace_length,
+        _top,
+        2
+    );
+
+    draw_line_width(
+        _right,
+        _top,
+        _right,
+        _top + _brace_length,
+        2
+    );
+
+    draw_line_width(
+        _left,
+        _bottom,
+        _left + _brace_length,
+        _bottom,
+        2
+    );
+
+    draw_line_width(
+        _left,
+        _bottom,
+        _left,
+        _bottom - _brace_length,
+        2
+    );
+
+    draw_line_width(
+        _right,
+        _bottom,
+        _right - _brace_length,
+        _bottom,
+        2
+    );
+
+    draw_line_width(
+        _right,
+        _bottom,
+        _right,
+        _bottom - _brace_length,
+        2
+    );
+
+
+    // One final expanding circular energy ring.
+
+    var _ring_radius =
+        lerp(
+            8,
+            max(
+                _construction.width,
+                _construction.height
+            )
+            * 0.90,
+            _progress
+        );
+
+    draw_set_alpha(
+        (1 - _progress)
+        * 0.55
+    );
+
+    draw_circle(
+        _effect.x,
+        _effect.y,
+        _ring_radius,
+        true
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    return true;
+}
+
 function scr_effect_draw(_effect)
 {
     if (!instance_exists(_effect))
@@ -612,6 +893,9 @@ function scr_effect_draw(_effect)
     {
         case EffectType.SHOCKWAVE:
             return scr_effect_draw_shockwave(_effect);
+			
+		case EffectType.CONSTRUCTION_COMPLETE:
+            return scr_effect_draw_construction_complete(_effect);
 
 		case EffectType.ENEMY_DEATH:
             return scr_effect_draw_enemy_death(_effect);
@@ -719,6 +1003,59 @@ function scr_effect_enemy_death_create(_enemy)
 
             effect_spark_count:
                 _spark_count
+        }
+    );
+}
+
+/// @description Creates one footprint-sized construction-completion activation effect.
+
+function scr_effect_construction_complete_create(_building)
+{
+    if (!instance_exists(_building))
+        return noone;
+
+
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _width =
+        _building.footprint.width_cells
+        * _cell_size;
+
+    var _height =
+        _building.footprint.height_cells
+        * _cell_size;
+
+
+    return instance_create_layer(
+        _building.x,
+        _building.y,
+        "Effects_Ground",
+        o_effect,
+        {
+            effect_type:
+                EffectType.CONSTRUCTION_COMPLETE,
+
+            effect_duration:
+                0.55,
+
+            effect_color:
+                _building.visual.color,
+
+            effect_radius_start:
+                0,
+
+            effect_radius_end:
+                max(
+                    _width,
+                    _height
+                ),
+
+            effect_footprint_width:
+                _width,
+
+            effect_footprint_height:
+                _height
         }
     );
 }

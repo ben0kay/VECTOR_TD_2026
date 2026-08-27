@@ -180,7 +180,7 @@ visual:
 
 footprint: { width_cells: 2, height_cells: 2 },
 vitals: { hp_maximum: 260 },
-construction: { time_seconds: 0 },
+construction: { time_seconds: 2.75 },
 
 economy:
 {

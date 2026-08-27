@@ -224,7 +224,7 @@ enum ResourceType { CURRENCY, RAW_MATERIAL, REFINED_MATERIAL, AMMUNITION }
 // VISUAL EFFECTS
 // ============================================================================
 
-enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT, ENEMY_DEATH }
+enum EffectType { SHOCKWAVE, IMPACT_FLASH, BEAM_IMPACT, ENEMY_DEATH, CONSTRUCTION_COMPLETE }
 
 
 // ============================================================================
@@ -286,6 +286,9 @@ enum MainMenuAction
 
 #macro OUTSIDE_VIEW_256 \
     (!scr_culling_check_instance(id, 256))
+	
+#macro INSIDE_FOG \
+	(!scr_fog_position_visible(x, y))
 	
 #macro GAMEPLAY_ACTIVE \
     (global.GameState == GameState.PLAYING \
