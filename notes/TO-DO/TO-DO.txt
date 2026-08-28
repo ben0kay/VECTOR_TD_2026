@@ -141,7 +141,7 @@ Before providing code:
 3. Read this handover.
 4. Ask what the user most recently tested.
 5. Resolve compile/runtime errors before adding more systems.
-6. Request the original Vector TD ZIP when older gameplay behavior needs comparison.
+6. Request the original Vector TD ZIP when older gameplay behavior needs comparison. (unless no longer needed)
 
 Original gameplay reference:
 
@@ -200,6 +200,7 @@ Do not turn the game into an abstract framework that the user cannot follow.
 The user strongly prefers:
 
 - complete replacement functions and events;
+- formatting code on more horizontal lines when possible, to prevent unknown accessor errors and long lined files
 - a short explanation before every code block;
 - direct instructions such as “replace this function”;
 - enums and switch statements;

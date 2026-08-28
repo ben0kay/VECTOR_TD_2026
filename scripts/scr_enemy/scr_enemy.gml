@@ -1422,31 +1422,7 @@ function scr_enemy_target_edge_distance(
         || _object == o_player
     )
     {
-        var _target_radius =
-            0;
-
-
-        // These targets normally expose visual.radius.
-        // Keep this fallback for compatibility.
-
-        if (
-            variable_instance_exists(
-                _target,
-                "visual"
-            )
-            && is_struct(
-                _target.visual
-            )
-            && variable_struct_exists(
-                _target.visual,
-                "radius"
-            )
-        )
-        {
-            _target_radius =
-                _target.visual.radius;
-        }
-
+        var _target_radius = _target.visual.radius;
 
         var _dx =
             _target.x
