@@ -76,13 +76,8 @@ function scr_stats_runtime_create(_base)
             scr_stats_modifiers_create(),
 
         // Gameplay must read this layer, never base directly.
-        final: {},
+        final: {}
 		
-		critical_chance:
-	    _critical_chance,
-
-		critical_multiplier:
-	    _critical_multiplier
     };
 }
 

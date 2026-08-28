@@ -218,18 +218,24 @@ function scr_tower_initialize(_tower)
     _tower.combat =
     {
         stats:
-	    scr_stats_runtime_create(
-	        {
-	            range:
-	                _data.range,
+        scr_stats_runtime_create(
+            {
+                range:
+                    _data.range,
 
-	            weapon_damage:
-	                _weapon_data.damage,
+                weapon_damage:
+                    _weapon_data.damage,
 
-	            weapon_cooldown_seconds:
-	                _weapon_data.cooldown_seconds
-	        }
-	    ),
+                weapon_cooldown_seconds:
+                    _weapon_data.cooldown_seconds,
+
+                critical_chance:
+                    _critical_chance,
+
+                critical_multiplier:
+                    _critical_multiplier
+            }
+        ),
 
         range: _data.range,
 

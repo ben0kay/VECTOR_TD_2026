@@ -8,7 +8,6 @@ function scr_projectile_tower_create(
     _world_y,
     _draw_angle,
     _damage,
-    _damage_type,
     _projectile_data,
     _target_layer,
     _target = noone
@@ -281,7 +280,7 @@ function scr_projectile_tower_impact(
                 _projectile.x,
                 _projectile.y,
                 _projectile.visual.draw_angle,
-                _combat.damage,
+                _combat.damage.amount,
                 _area
             );
 
