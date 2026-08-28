@@ -167,6 +167,7 @@
     {"id":{"name":"scr_utility","path":"scripts/scr_utility/scr_utility.yy",},},
     {"id":{"name":"scr_world_data","path":"scripts/scr_world_data/scr_world_data.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
+    {"id":{"name":"s_collision_circle","path":"sprites/s_collision_circle/s_collision_circle.yy",},},
     {"id":{"name":"s_dead_cell","path":"sprites/s_dead_cell/s_dead_cell.yy",},},
     {"id":{"name":"s_enemy_weak","path":"sprites/s_enemy_weak/s_enemy_weak.yy",},},
     {"id":{"name":"s_particle_blur","path":"sprites/s_particle_blur/s_particle_blur.yy",},},

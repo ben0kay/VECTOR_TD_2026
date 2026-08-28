@@ -96,48 +96,91 @@ function scr_projectile_tower_initialize(_projectile)
 
     _projectile.combat =
     {
-        owner: _projectile.projectile_owner,
-        target: _projectile.projectile_target,
+        owner:
+            _projectile.projectile_owner,
 
-        damage: _projectile.projectile_damage,
-        impact: _projectile.projectile_impact,
-        damage_radius: _projectile.projectile_damage_radius,
-        target_layer: _projectile.projectile_target_layer,
-        effect: _projectile.projectile_effect
+        target:
+            _projectile.projectile_target,
+
+        damage:
+            _projectile.projectile_damage,
+
+        impact:
+            _projectile.projectile_impact,
+
+        damage_radius:
+            _projectile.projectile_damage_radius,
+
+        target_layer:
+            _projectile.projectile_target_layer,
+
+        effect:
+            _projectile.projectile_effect
     };
 
 
     _projectile.movement =
     {
-        type: _projectile.projectile_movement,
-        speed: _projectile.projectile_speed,
-        turn_speed: _projectile.projectile_turn_speed,
+        type:
+            _projectile.projectile_movement,
+
+        speed:
+            _projectile.projectile_speed,
+
+        turn_speed:
+            _projectile.projectile_turn_speed,
 
         destination:
         {
-            x: _projectile.projectile_target_x,
-            y: _projectile.projectile_target_y
+            x:
+                _projectile.projectile_target_x,
+
+            y:
+                _projectile.projectile_target_y
         }
     };
 
 
     _projectile.life =
     {
-        remaining: _projectile.projectile_lifetime
+        remaining:
+            _projectile.projectile_lifetime
     };
 
 
     _projectile.visual =
     {
-        draw_angle: _projectile.projectile_angle,
-        radius: _projectile.projectile_radius,
-        color: _projectile.projectile_color
+        draw_angle:
+            _projectile.projectile_angle,
+
+        radius:
+            _projectile.projectile_radius,
+
+        color:
+            _projectile.projectile_color
     };
+
+
+    // ========================================================================
+    // COLLISION MASK
+    // ========================================================================
+
+    _projectile.mask_index =
+        s_collision_circle;
+
+    var _collision_scale =
+        _projectile.visual.radius
+        / 16;
+
+    _projectile.image_xscale =
+        _collision_scale;
+
+    _projectile.image_yscale =
+        _collision_scale;
 
 
     return true;
 }
-
 /// @description Finds the earliest valid enemy crossed by a tower projectile.
 
 function scr_projectile_tower_enemy_find(
@@ -364,7 +407,7 @@ function scr_projectile_tower_impact(
     return true;
 }
 
-/// @description Moves one tower projectile and resolves its impact.
+/// @description Moves one tower projectile.
 
 function scr_projectile_tower_update(_projectile)
 {
@@ -389,32 +432,27 @@ function scr_projectile_tower_update(_projectile)
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(_projectile);
+        instance_destroy(
+            _projectile
+        );
+
         return true;
     }
 
 
-    // Homing projectiles turn toward their target.
-    // Target-position projectiles aim at their stored destination.
+    // Update straight / homing / destination direction.
 
     scr_projectile_tower_direction_update(
         _projectile
     );
 
 
-    var _start_x =
-        _projectile.x;
-
-    var _start_y =
-        _projectile.y;
-
-
     // ========================================================================
     // FIXED TARGET-POSITION PROJECTILE
     // ========================================================================
     //
-    // Mortar shells travel toward their original destination and do not
-    // collide with unrelated enemies along the way.
+    // Mortars ignore ordinary enemy collisions and explode at their stored
+    // destination.
 
     if (
         _projectile.movement.type
@@ -427,10 +465,11 @@ function scr_projectile_tower_update(_projectile)
         var _destination_y =
             _projectile.movement.destination.y;
 
+
         var _destination_distance =
             point_distance(
-                _start_x,
-                _start_y,
+                _projectile.x,
+                _projectile.y,
                 _destination_x,
                 _destination_y
             );
@@ -458,6 +497,7 @@ function scr_projectile_tower_update(_projectile)
                 _projectile
             );
 
+
             return true;
         }
 
@@ -482,70 +522,21 @@ function scr_projectile_tower_update(_projectile)
     // ========================================================================
     // STRAIGHT / HOMING PROJECTILE
     // ========================================================================
+    //
+    // Collision against enemies is handled by GameMaker's native
+    // Collision Event.
 
-    var _end_x =
-        _start_x
-        + lengthdir_x(
+    _projectile.x +=
+        lengthdir_x(
             _projectile.movement.speed,
             _projectile.visual.draw_angle
         );
 
-    var _end_y =
-        _start_y
-        + lengthdir_y(
+    _projectile.y +=
+        lengthdir_y(
             _projectile.movement.speed,
             _projectile.visual.draw_angle
         );
-
-
-    var _enemy_hit =
-        scr_projectile_tower_enemy_find(
-            _projectile,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-
-    if (is_struct(_enemy_hit))
-    {
-        var _enemy =
-            _enemy_hit.enemy;
-
-
-        if (instance_exists(_enemy))
-        {
-            // Preserve your existing impact behavior by resolving the
-            // projectile at the direct target's position.
-
-            _projectile.x =
-                _enemy.x;
-
-            _projectile.y =
-                _enemy.y;
-
-
-            scr_projectile_tower_impact(
-                _projectile,
-                _enemy
-            );
-        }
-
-
-        instance_destroy(
-            _projectile
-        );
-
-        return true;
-    }
-
-
-    _projectile.x =
-        _end_x;
-
-    _projectile.y =
-        _end_y;
 
 
     return true;

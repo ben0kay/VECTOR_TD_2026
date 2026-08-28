@@ -177,6 +177,45 @@ function scr_enemy_initialize(_enemy)
         color:
             _data.visual.color
     };
+		
+	// ========================================================================
+	// COLLISION MASK
+	// ========================================================================
+	//
+	// Sprite-backed enemies use their own visual sprite as their native
+	// GameMaker collision mask.
+	//
+	// Primitive-drawn enemies use the generic circular fallback mask.
+
+	if (
+	    _enemy.visual.sprite != -1
+	    && sprite_exists(_enemy.visual.sprite)
+	)
+	{
+	    _enemy.mask_index =
+	        _enemy.visual.sprite;
+
+	    _enemy.image_xscale =
+	        _enemy.visual.scale_x;
+
+	    _enemy.image_yscale =
+	        _enemy.visual.scale_y;
+	}
+	else
+	{
+	    _enemy.mask_index =
+	        s_collision_circle;
+
+	    var _collision_scale =
+	        _enemy.visual.radius
+	        / 16;
+
+	    _enemy.image_xscale =
+	        _collision_scale;
+
+	    _enemy.image_yscale =
+	        _collision_scale;
+	}	
 
 	// ========================================================================
 	// MINIMAP
