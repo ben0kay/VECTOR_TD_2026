@@ -253,7 +253,12 @@ order: 30
 visual:
 {
     color: make_color_rgb(25, 75, 65),
-    turret_color: c_lime
+    turret_color: c_lime,
+	recoil:
+	{
+	    kick_distance: 1,
+	    recovery_speed: 50
+	},
 },
 
 footprint: { width_cells: 2, height_cells: 2 },
@@ -528,7 +533,12 @@ order: 60
 visual:
 {
     color: make_color_rgb(35, 35, 80),
-    turret_color: make_color_rgb(170, 150, 255)
+    turret_color: make_color_rgb(170, 150, 255),
+	recoil:
+	{
+	    kick_distance: 5,
+	    recovery_speed: 18
+	},
 },
 
 footprint: { width_cells: 2, height_cells: 2 },

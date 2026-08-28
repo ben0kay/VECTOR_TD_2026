@@ -1,3 +1,6 @@
+/// @description Lightweight visual recoil for tower turrets.
+
+
 
 /// @description Draws the Basic Tower.
 
@@ -127,17 +130,50 @@ function scr_tower_visual_ground(_tower)
 
 
 /// @description Draws the configured tower and active weapon trace.
-
 function scr_tower_draw(_tower)
 {
     if (!instance_exists(_tower))
         return false;
+
+    var _offset =
+        scr_tower_recoil_offset_get(
+            _tower
+        );
+
+    var _previous_matrix =
+        matrix_get(matrix_world);
+
+    var _recoil_matrix =
+        matrix_build(
+            _offset.x,
+            _offset.y,
+            0,
+
+            0,
+            0,
+            0,
+
+            1,
+            1,
+            1
+        );
+
+    matrix_set(
+        matrix_world,
+        _recoil_matrix
+    );
 
     if (!is_undefined(_tower.visual.draw_function))
         _tower.visual.draw_function(_tower);
     else
         scr_tower_visual_ground(_tower);
 
+    matrix_set(
+        matrix_world,
+        _previous_matrix
+    );
+
+    // Trace remains at its real muzzle position.
     scr_tower_weapon_trace_draw(_tower);
 
     return true;

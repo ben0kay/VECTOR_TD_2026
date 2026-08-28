@@ -101,6 +101,7 @@ function scr_tower_initialize(_tower)
 
     _tower.visual.draw_angle = 0;
     _tower.visual.draw_function = scr_tower_visual_ground;
+	_tower.visual.recoil = scr_tower_recoil_runtime_create(_data);
 
     if (variable_struct_exists(_data, "draw_function"))
         _tower.visual.draw_function = _data.draw_function;
@@ -378,6 +379,8 @@ function scr_tower_update(_tower)
 {
     if (!instance_exists(_tower))
         return false;
+	
+	scr_tower_recoil_update(_tower);
 
     if (_tower.BuildingState != BuildingState.ACTIVE)
         return true;

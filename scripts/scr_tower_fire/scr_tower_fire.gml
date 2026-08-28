@@ -560,6 +560,7 @@ function scr_tower_fire(_tower)
         _weapon.cooldown.duration;
 
     scr_tower_muzzle_advance(_tower);
+	scr_tower_recoil_fire(_tower);
 
 
     if (!instance_exists(_tower.targeting.target))
@@ -578,3 +579,149 @@ function scr_tower_fire(_tower)
 
     return true;
 }
+
+/// @description Creates one tower recoil runtime from optional tower data.
+function scr_tower_recoil_runtime_create(_tower_data)
+{
+    var _kick_distance = 2;
+    var _recovery_speed = 28;
+
+    if (
+        is_struct(_tower_data)
+        && variable_struct_exists(
+            _tower_data,
+            "recoil"
+        )
+        && is_struct(_tower_data.recoil)
+    )
+    {
+        var _data =
+            _tower_data.recoil;
+
+        if (
+            variable_struct_exists(
+                _data,
+                "kick_distance"
+            )
+        )
+        {
+            _kick_distance =
+                max(
+                    0,
+                    _data.kick_distance
+                );
+        }
+
+        if (
+            variable_struct_exists(
+                _data,
+                "recovery_speed"
+            )
+        )
+        {
+            _recovery_speed =
+                max(
+                    0,
+                    _data.recovery_speed
+                );
+        }
+    }
+
+    return
+    {
+        distance: 0,
+
+        kick_distance:
+            _kick_distance,
+
+        recovery_speed:
+            _recovery_speed
+    };
+}
+
+
+/// @description Triggers visual recoil after a successful tower shot.
+function scr_tower_recoil_fire(_tower)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!is_struct(_tower.visual.recoil))
+        return false;
+
+    var _recoil =
+        _tower.visual.recoil;
+
+    _recoil.distance =
+        max(
+            _recoil.distance,
+            _recoil.kick_distance
+        );
+
+    return true;
+}
+
+
+/// @description Returns recoil smoothly toward its resting position.
+function scr_tower_recoil_update(_tower)
+{
+    if (!instance_exists(_tower))
+        return false;
+
+    if (!is_struct(_tower.visual.recoil))
+        return false;
+
+    var _recoil =
+        _tower.visual.recoil;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    _recoil.distance =
+        max(
+            0,
+            _recoil.distance
+            - (
+                _recoil.recovery_speed
+                / _fps
+            )
+        );
+
+    return true;
+}
+
+
+/// @description Returns the backward visual offset for the current turret angle.
+function scr_tower_recoil_offset_get(_tower)
+{
+    if (!instance_exists(_tower))
+        return { x: 0, y: 0 };
+
+    if (!is_struct(_tower.visual.recoil))
+        return { x: 0, y: 0 };
+
+    var _distance =
+        _tower.visual.recoil.distance;
+
+    var _angle =
+        _tower.visual.draw_angle;
+
+    return
+    {
+        x:
+            lengthdir_x(
+                -_distance,
+                _angle
+            ),
+
+        y:
+            lengthdir_y(
+                -_distance,
+                _angle
+            )
+    };
+}
+
