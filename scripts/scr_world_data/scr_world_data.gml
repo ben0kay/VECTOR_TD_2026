@@ -245,9 +245,9 @@ function scr_world_data_initialize()
 				{
 				    enabled: true,
 
-				    interval_start_seconds: 3.25,
-				    interval_end_seconds: 0.9,
-				    scaling_seconds: 1200,
+				    interval_start_seconds: 2.25,
+				    interval_end_seconds: 0.5,
+				    scaling_seconds: 600,
 					weight_shift_seconds: 300,
 					weight_shift_strength: 2,
 
@@ -280,11 +280,11 @@ function scr_world_data_initialize()
                 {
                     enabled: true,
 
-                    interval_min_seconds: 22,
-					interval_max_seconds: 38,
+                    interval_min_seconds: 12,
+					interval_max_seconds: 20,
 
 					scaling_start_seconds: 120,
-					scaling_seconds: 900,
+					scaling_seconds: 600,
 					count_multiplier_maximum: 3.0,
 
                     zone_width_minimum: 0.1,

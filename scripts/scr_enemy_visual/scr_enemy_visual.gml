@@ -375,26 +375,83 @@ function scr_enemy_health_bar_draw(_enemy)
         return false;
 
 
-    var _radius = _enemy.visual.radius;
-    var _hover = scr_enemy_visual_hover_offset_get(_enemy);
-
-    var _bar_width = _radius * 2;
-    var _bar_left = _enemy.x - _radius;
-    var _hp_bar_top = _enemy.y + _hover - _radius - 8;
+    var _hp =
+        _enemy.vitals.hp;
 
     var _shield =
         _enemy.vitals.shield;
+
+    var _support =
+        _shield.support;
+
+
+    // ========================================================================
+    // BAR VISIBILITY
+    // ========================================================================
+    //
+    // Do not draw any bars for a completely untouched enemy.
+    //
+    // However, if either shield is visible, the health bar is also drawn
+    // underneath it so the shield bars never appear to float by themselves.
+
+    var _health_damaged =
+        _hp.current
+        < _hp.maximum;
+
+
+    var _natural_shield_visible =
+        _shield.enabled
+        && _shield.maximum > 0
+        && _shield.current > 0;
+
+
+    var _support_shield_visible =
+        _support.enabled
+        && _support.maximum > 0
+        && _support.current > 0;
+
+
+    if (
+        !_health_damaged
+        && !_natural_shield_visible
+        && !_support_shield_visible
+    )
+    {
+        return true;
+    }
+
+
+    // ========================================================================
+    // SHARED GEOMETRY
+    // ========================================================================
+
+    var _radius =
+        _enemy.visual.radius;
+
+    var _hover =
+        scr_enemy_visual_hover_offset_get(
+            _enemy
+        );
+
+    var _bar_width =
+        _radius * 2;
+
+    var _bar_left =
+        _enemy.x
+        - _radius;
+
+    var _hp_bar_top =
+        _enemy.y
+        + _hover
+        - _radius
+        - 8;
 
 
     // ========================================================================
     // NATURAL SHIELD BAR
     // ========================================================================
 
-    if (
-        is_struct(_shield)
-        && _shield.enabled
-        && _shield.maximum > 0
-    )
+    if (_natural_shield_visible)
     {
         var _shield_percent =
             clamp(
@@ -404,11 +461,16 @@ function scr_enemy_health_bar_draw(_enemy)
                 1
             );
 
+
         var _shield_bar_top =
-            _hp_bar_top - 4;
+            _hp_bar_top
+            - 4;
 
 
-        draw_set_color(c_dkgray);
+        draw_set_color(
+            c_dkgray
+        );
+
 
         draw_rectangle(
             _bar_left,
@@ -419,13 +481,19 @@ function scr_enemy_health_bar_draw(_enemy)
         );
 
 
-        draw_set_color(_shield.color);
+        draw_set_color(
+            _shield.color
+        );
+
 
         draw_rectangle(
             _bar_left,
             _shield_bar_top,
             _bar_left
-            + (_bar_width * _shield_percent),
+            + (
+                _bar_width
+                * _shield_percent
+            ),
             _shield_bar_top + 2,
             false
         );
@@ -436,17 +504,8 @@ function scr_enemy_health_bar_draw(_enemy)
     // TEMPORARY SUPPORT SHIELD BAR
     // ========================================================================
 
-    if (
-        is_struct(_shield)
-        && is_struct(_shield.support)
-        && _shield.support.enabled
-        && _shield.support.maximum > 0
-        && _shield.support.current > 0
-    )
+    if (_support_shield_visible)
     {
-        var _support =
-            _shield.support;
-
         var _support_percent =
             clamp(
                 _support.current
@@ -456,22 +515,22 @@ function scr_enemy_health_bar_draw(_enemy)
             );
 
 
-        // If the enemy also has a natural shield, place this bar above it.
-        // Otherwise, place it directly above the health bar.
-
         var _support_bar_top =
-            _hp_bar_top - 4;
+            _hp_bar_top
+            - 4;
 
-        if (
-            _shield.enabled
-            && _shield.maximum > 0
-        )
+
+        if (_natural_shield_visible)
         {
-            _support_bar_top -= 4;
+            _support_bar_top -=
+                4;
         }
 
 
-        draw_set_color(c_dkgray);
+        draw_set_color(
+            c_dkgray
+        );
+
 
         draw_rectangle(
             _bar_left,
@@ -482,13 +541,19 @@ function scr_enemy_health_bar_draw(_enemy)
         );
 
 
-        draw_set_color(_support.color);
+        draw_set_color(
+            _support.color
+        );
+
 
         draw_rectangle(
             _bar_left,
             _support_bar_top,
             _bar_left
-            + (_bar_width * _support_percent),
+            + (
+                _bar_width
+                * _support_percent
+            ),
             _support_bar_top + 2,
             false
         );
@@ -498,20 +563,26 @@ function scr_enemy_health_bar_draw(_enemy)
     // ========================================================================
     // HEALTH BAR
     // ========================================================================
+    //
+    // Once any bar is relevant, health remains the bottom baseline even
+    // when HP itself is still full.
 
     var _hp_percent =
         clamp(
-            _enemy.vitals.hp.current
+            _hp.current
             / max(
                 1,
-                _enemy.vitals.hp.maximum
+                _hp.maximum
             ),
             0,
             1
         );
 
 
-    draw_set_color(c_dkgray);
+    draw_set_color(
+        c_dkgray
+    );
+
 
     draw_rectangle(
         _bar_left,
@@ -522,23 +593,31 @@ function scr_enemy_health_bar_draw(_enemy)
     );
 
 
-    draw_set_color(c_red);
+    draw_set_color(
+        c_red
+    );
+
 
     draw_rectangle(
         _bar_left,
         _hp_bar_top,
         _bar_left
-        + (_bar_width * _hp_percent),
+        + (
+            _bar_width
+            * _hp_percent
+        ),
         _hp_bar_top + 3,
         false
     );
 
 
-    draw_set_color(c_white);
+    draw_set_color(
+        c_white
+    );
+
 
     return true;
 }
-
 /// @description Draws the large triangular Splitter enemy.
 
 function scr_enemy_visual_splitter(_enemy)
@@ -1311,146 +1390,234 @@ function scr_enemy_visual_flyer(_enemy)
     return true;
 }
 
-/// @description Draws one active primitive vector shield.
+/// @description Draws active natural and temporary enemy shields.
 
 function scr_enemy_shield_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    if (!variable_struct_exists(_enemy.vitals, "shield"))
-        return true;
 
-    var _shield = _enemy.vitals.shield;
+    var _shield =
+        _enemy.vitals.shield;
 
-    if (!is_struct(_shield))
-        return true;
-
-    if (!variable_struct_exists(_shield, "enabled"))
-        return true;
-
-    if (!_shield.enabled || _shield.current <= 0)
-        return true;
-
-    var _ratio =
-        clamp(
-            _shield.current / max(1, _shield.maximum),
-            0,
-            1
-        );
-
-    var _radius =
-        _enemy.visual.radius
-        + 7
-        + dsin(
-            (global.vtd.tick * 3)
-            + real(_enemy.id)
-        );
-
-    var _alpha =
-        0.35
-        + (_ratio * 0.25)
-        + (_shield.hit_flash * 0.35);
-
-    draw_set_color(_shield.color);
+    var _support =
+        _shield.support;
 
 
-    // Faint energy inside the shield.
+    // ========================================================================
+    // VISIBILITY
+    // ========================================================================
+    //
+    // Enemy initialization guarantees both shield structs exist.
+    //
+    // If neither shield currently has energy, there is nothing to draw.
 
-    draw_set_alpha(
-        0.035
-        + (_shield.hit_flash * 0.05)
-    );
-
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius,
-        false
-    );
-
-
-    // Main shield boundary.
-
-    draw_set_alpha(
-        clamp(_alpha, 0, 1)
-    );
-
-    draw_circle(
-        _enemy.x,
-        _enemy.y,
-        _radius,
-        true
-    );
+    var _natural_active =
+        _shield.enabled
+        && _shield.current > 0
+        && _shield.maximum > 0;
 
 
-    // Segments disappear as shield energy falls.
+    var _support_active =
+        _support.enabled
+        && _support.current > 0
+        && _support.maximum > 0;
 
-    var _segments =
-        max(
-            1,
-            ceil(_ratio * 8)
-        );
 
-    for (var i = 0; i < _segments; ++i)
+    if (
+        !_natural_active
+        && !_support_active
+    )
     {
-        var _angle = i * 45;
+        return true;
+    }
 
-        draw_line(
-            _enemy.x + lengthdir_x(_radius + 3, _angle - 12),
-            _enemy.y + lengthdir_y(_radius + 3, _angle - 12),
-            _enemy.x + lengthdir_x(_radius + 3, _angle + 12),
-            _enemy.y + lengthdir_y(_radius + 3, _angle + 12)
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
+
+    var _base_radius =
+        _enemy.visual.radius;
+
+
+    // ========================================================================
+    // NATURAL SHIELD
+    // ========================================================================
+
+    if (_natural_active)
+    {
+        var _ratio =
+            clamp(
+                _shield.current
+                / _shield.maximum,
+                0,
+                1
+            );
+
+
+        var _radius =
+            _base_radius
+            + 7
+            + dsin(
+                (global.vtd.tick * 3)
+                + real(_enemy.id)
+            );
+
+
+        var _alpha =
+            0.35
+            + (_ratio * 0.25)
+            + (_shield.hit_flash * 0.35);
+
+
+        draw_set_color(
+            _shield.color
+        );
+
+
+        // Faint internal shield energy.
+
+        draw_set_alpha(
+            0.035
+            + (_shield.hit_flash * 0.05)
+        );
+
+
+        draw_circle(
+            _x,
+            _y,
+            _radius,
+            false
+        );
+
+
+        // Main shield boundary.
+
+        draw_set_alpha(
+            clamp(
+                _alpha,
+                0,
+                1
+            )
+        );
+
+
+        draw_circle(
+            _x,
+            _y,
+            _radius,
+            true
+        );
+
+
+        // Segments disappear as shield energy falls.
+
+        var _segments =
+            max(
+                1,
+                ceil(_ratio * 8)
+            );
+
+
+        for (
+            var i = 0;
+            i < _segments;
+            ++i
+        )
+        {
+            var _angle =
+                i * 45;
+
+            var _segment_radius =
+                _radius + 3;
+
+
+            draw_line(
+                _x
+                    + lengthdir_x(
+                        _segment_radius,
+                        _angle - 12
+                    ),
+
+                _y
+                    + lengthdir_y(
+                        _segment_radius,
+                        _angle - 12
+                    ),
+
+                _x
+                    + lengthdir_x(
+                        _segment_radius,
+                        _angle + 12
+                    ),
+
+                _y
+                    + lengthdir_y(
+                        _segment_radius,
+                        _angle + 12
+                    )
+            );
+        }
+    }
+
+
+    // ========================================================================
+    // TEMPORARY SUPPORT SHIELD
+    // ========================================================================
+
+    if (_support_active)
+    {
+        var _support_ratio =
+            clamp(
+                _support.current
+                / _support.maximum,
+                0,
+                1
+            );
+
+
+        var _support_radius =
+            _base_radius
+            + 12
+            + dsin(
+                (global.vtd.tick * 5)
+                + real(_enemy.id)
+            );
+
+
+        draw_set_color(
+            _support.color
+        );
+
+
+        draw_set_alpha(
+            clamp(
+                0.3
+                + (_support_ratio * 0.25)
+                + (_support.hit_flash * 0.35),
+
+                0,
+                1
+            )
+        );
+
+
+        draw_circle(
+            _x,
+            _y,
+            _support_radius,
+            true
         );
     }
-	
-	// ========================================================================
-	// TEMPORARY SUPPORT SHIELD
-	// ========================================================================
 
-	if (
-	    is_struct(_shield.support)
-	    && _shield.support.enabled
-	    && _shield.support.current > 0
-	)
-	{
-	    var _support =
-	        _shield.support;
-
-	    var _support_ratio =
-	        clamp(
-	            _support.current
-	            / max(1, _support.maximum),
-	            0,
-	            1
-	        );
-
-	    var _support_radius =
-	        _enemy.visual.radius
-	        + 12
-	        + dsin(
-	            (global.vtd.tick * 5)
-	            + real(_enemy.id)
-	        );
-
-	    draw_set_color(_support.color);
-
-	    draw_set_alpha(
-	        0.3
-	        + (_support_ratio * 0.25)
-	        + (_support.hit_flash * 0.35)
-	    );
-
-	    draw_circle(
-	        _enemy.x,
-	        _enemy.y,
-	        _support_radius,
-	        true
-	    );
-	}
 
     draw_set_alpha(1);
     draw_set_color(c_white);
+
 
     return true;
 }

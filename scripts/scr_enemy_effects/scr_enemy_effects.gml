@@ -315,16 +315,40 @@ function scr_enemy_effects_update(_enemy)
 }
 
 
-/// @description Draws temporary vector feedback for active enemy effects.
+/// @description Draws active enemy status-effect visuals.
 
 function scr_enemy_effects_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    if (!is_struct(_enemy.effects))
-        return false;
 
+    var _effects =
+        _enemy.effects;
+
+
+    // ========================================================================
+    // NOTHING ACTIVE
+    // ========================================================================
+    //
+    // Every enemy owns the effects runtime.
+    // If nothing is active, leave immediately.
+
+    if (
+        !_effects.slow.active
+        && !_effects.stasis.active
+        && !_effects.damage_over_time.active
+    )
+    {
+        return true;
+    }
+
+
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
 
     var _radius =
         _enemy.visual.radius;
@@ -334,7 +358,7 @@ function scr_enemy_effects_draw(_enemy)
     // CRYO SLOW
     // ========================================================================
 
-    if (_enemy.effects.slow.active)
+    if (_effects.slow.active)
     {
         var _cryo_radius =
             _radius + 4;
@@ -363,14 +387,14 @@ function scr_enemy_effects_draw(_enemy)
                 _section_start + 48;
 
             var _previous_x =
-                _enemy.x
+                _x
                 + lengthdir_x(
                     _cryo_radius,
                     _section_start
                 );
 
             var _previous_y =
-                _enemy.y
+                _y
                 + lengthdir_y(
                     _cryo_radius,
                     _section_start
@@ -384,14 +408,14 @@ function scr_enemy_effects_draw(_enemy)
             )
             {
                 var _next_x =
-                    _enemy.x
+                    _x
                     + lengthdir_x(
                         _cryo_radius,
                         _angle
                     );
 
                 var _next_y =
-                    _enemy.y
+                    _y
                     + lengthdir_y(
                         _cryo_radius,
                         _angle
@@ -424,26 +448,27 @@ function scr_enemy_effects_draw(_enemy)
                 + 24
                 + (i * 90);
 
+
             draw_line(
-                _enemy.x
+                _x
                 + lengthdir_x(
                     _cryo_radius - 2,
                     _mark_angle
                 ),
 
-                _enemy.y
+                _y
                 + lengthdir_y(
                     _cryo_radius - 2,
                     _mark_angle
                 ),
 
-                _enemy.x
+                _x
                 + lengthdir_x(
                     _cryo_radius + 3,
                     _mark_angle
                 ),
 
-                _enemy.y
+                _y
                 + lengthdir_y(
                     _cryo_radius + 3,
                     _mark_angle
@@ -457,7 +482,7 @@ function scr_enemy_effects_draw(_enemy)
     // STASIS
     // ========================================================================
 
-    if (_enemy.effects.stasis.active)
+    if (_effects.stasis.active)
     {
         var _stasis_radius =
             _radius + 7;
@@ -467,7 +492,8 @@ function scr_enemy_effects_draw(_enemy)
             + dsin(
                 global.vtd.tick * 8
                 + real(_enemy.id)
-            ) * 0.2;
+            )
+            * 0.2;
 
 
         draw_set_alpha(_pulse);
@@ -482,8 +508,8 @@ function scr_enemy_effects_draw(_enemy)
 
 
         draw_circle(
-            _enemy.x,
-            _enemy.y,
+            _x,
+            _y,
             _stasis_radius,
             true
         );
@@ -492,111 +518,158 @@ function scr_enemy_effects_draw(_enemy)
         // Horizontal and vertical containment lines.
 
         draw_line(
-            _enemy.x - _radius,
-            _enemy.y,
-            _enemy.x + _radius,
-            _enemy.y
+            _x - _radius,
+            _y,
+            _x + _radius,
+            _y
         );
 
         draw_line(
-            _enemy.x,
-            _enemy.y - _radius,
-            _enemy.x,
-            _enemy.y + _radius
+            _x,
+            _y - _radius,
+            _x,
+            _y + _radius
         );
 
 
         // Diamond-shaped inner lock.
 
+        var _inner_radius =
+            _radius * 0.55;
+
+
         draw_line(
-            _enemy.x,
-            _enemy.y - (_radius * 0.55),
-            _enemy.x + (_radius * 0.55),
-            _enemy.y
+            _x,
+            _y - _inner_radius,
+            _x + _inner_radius,
+            _y
         );
 
         draw_line(
-            _enemy.x + (_radius * 0.55),
-            _enemy.y,
-            _enemy.x,
-            _enemy.y + (_radius * 0.55)
+            _x + _inner_radius,
+            _y,
+            _x,
+            _y + _inner_radius
         );
 
         draw_line(
-            _enemy.x,
-            _enemy.y + (_radius * 0.55),
-            _enemy.x - (_radius * 0.55),
-            _enemy.y
+            _x,
+            _y + _inner_radius,
+            _x - _inner_radius,
+            _y
         );
 
         draw_line(
-            _enemy.x - (_radius * 0.55),
-            _enemy.y,
-            _enemy.x,
-            _enemy.y - (_radius * 0.55)
+            _x - _inner_radius,
+            _y,
+            _x,
+            _y - _inner_radius
         );
     }
-	
-	// ========================================================================
-	// DISRUPTION / DAMAGE OVER TIME
-	// ========================================================================
-
-	if (_enemy.effects.damage_over_time.active)
-	{
-	    var _dot_radius =
-	        _radius + 5;
-
-	    var _dot_spin =
-	        (
-	            global.vtd.tick * -3
-	            + real(_enemy.id)
-	        )
-	        mod 360;
-
-	    var _dot_pulse =
-	        0.55
-	        + dsin(
-	            global.vtd.tick * 7
-	            + real(_enemy.id)
-	        ) * 0.25;
 
 
-	    draw_set_alpha(_dot_pulse);
-	    draw_set_color(make_color_rgb(190, 70, 255));
+    // ========================================================================
+    // DISRUPTION / DAMAGE OVER TIME
+    // ========================================================================
+
+    if (_effects.damage_over_time.active)
+    {
+        var _dot_radius =
+            _radius + 5;
+
+        var _dot_spin =
+            (
+                global.vtd.tick * -3
+                + real(_enemy.id)
+            )
+            mod 360;
+
+        var _dot_pulse =
+            0.55
+            + dsin(
+                global.vtd.tick * 7
+                + real(_enemy.id)
+            )
+            * 0.25;
 
 
-	    // Rotating electrical disruption marks.
+        draw_set_alpha(_dot_pulse);
 
-	    for (var i = 0; i < 3; ++i)
-	    {
-	        var _angle =
-	            _dot_spin
-	            + (i * 120);
-
-	        var _middle_angle =
-	            _angle + 18;
-
-	        var _end_angle =
-	            _angle + 34;
+        draw_set_color(
+            make_color_rgb(
+                190,
+                70,
+                255
+            )
+        );
 
 
-	        draw_line(
-	            _enemy.x + lengthdir_x(_dot_radius - 3, _angle),
-	            _enemy.y + lengthdir_y(_dot_radius - 3, _angle),
+        // Rotating electrical disruption marks.
 
-	            _enemy.x + lengthdir_x(_dot_radius + 3, _middle_angle),
-	            _enemy.y + lengthdir_y(_dot_radius + 3, _middle_angle)
-	        );
+        for (var i = 0; i < 3; ++i)
+        {
+            var _angle =
+                _dot_spin
+                + (i * 120);
 
-	        draw_line(
-	            _enemy.x + lengthdir_x(_dot_radius + 3, _middle_angle),
-	            _enemy.y + lengthdir_y(_dot_radius + 3, _middle_angle),
+            var _middle_angle =
+                _angle + 18;
 
-	            _enemy.x + lengthdir_x(_dot_radius - 2, _end_angle),
-	            _enemy.y + lengthdir_y(_dot_radius - 2, _end_angle)
-	        );
-	    }
-	}
+            var _end_angle =
+                _angle + 34;
+
+
+            var _middle_x =
+                _x
+                + lengthdir_x(
+                    _dot_radius + 3,
+                    _middle_angle
+                );
+
+            var _middle_y =
+                _y
+                + lengthdir_y(
+                    _dot_radius + 3,
+                    _middle_angle
+                );
+
+
+            draw_line(
+                _x
+                + lengthdir_x(
+                    _dot_radius - 3,
+                    _angle
+                ),
+
+                _y
+                + lengthdir_y(
+                    _dot_radius - 3,
+                    _angle
+                ),
+
+                _middle_x,
+                _middle_y
+            );
+
+
+            draw_line(
+                _middle_x,
+                _middle_y,
+
+                _x
+                + lengthdir_x(
+                    _dot_radius - 2,
+                    _end_angle
+                ),
+
+                _y
+                + lengthdir_y(
+                    _dot_radius - 2,
+                    _end_angle
+                )
+            );
+        }
+    }
 
 
     // ========================================================================
@@ -605,6 +678,7 @@ function scr_enemy_effects_draw(_enemy)
 
     draw_set_alpha(1);
     draw_set_color(c_white);
+
 
     return true;
 }
