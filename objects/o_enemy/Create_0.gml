@@ -54,12 +54,3 @@ if (!scr_enemy_performance_initialize(id))
 }
 
 
-if (!scr_spatial_enemy_update(id))
-{
-    show_debug_message(
-        "ENEMY ERROR - spatial registration failed."
-    );
-
-    instance_destroy();
-    exit;
-}

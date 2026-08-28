@@ -363,11 +363,6 @@ Improved in the supplied ZIP:
 
 Still outstanding:
 
-- `scr_spatial_enemy_update()` still calls `scr_spatial_collision_initialize()`.
-- `scr_spatial_enemy_segment_find()` still calls it too.
-
-Those consumer calls should eventually be replaced by strict readiness validation. Only `scr_level_initialize()` should initialize the system.
-
 ## Combat statistics
 
 Currently some systems can create missing `global.vtd_level.combat` data:

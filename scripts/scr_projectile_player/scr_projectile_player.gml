@@ -130,110 +130,30 @@ function scr_projectile_player_initialize(
     };
 
 
+    // ========================================================================
+    // COLLISION MASK
+    // ========================================================================
+
+    _projectile.mask_index =
+        s_collision_circle;
+
+    var _collision_scale =
+        _projectile.visual.radius
+        / 16;
+
+    _projectile.image_xscale =
+        _collision_scale;
+
+    _projectile.image_yscale =
+        _collision_scale;
+
+
     return true;
 }
 
 
-/// @description Returns the squared distance from a point to a line segment.
 
-function scr_point_istance_squared(
-    _point_x,
-    _point_y,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    var _segment_x =
-        _end_x - _start_x;
-
-    var _segment_y =
-        _end_y - _start_y;
-
-    var _length_squared =
-        (_segment_x * _segment_x)
-        + (_segment_y * _segment_y);
-
-
-    if (_length_squared <= 0)
-    {
-        var _difference_x =
-            _point_x - _start_x;
-
-        var _difference_y =
-            _point_y - _start_y;
-
-
-        return (
-            (_difference_x * _difference_x)
-            + (_difference_y * _difference_y)
-        );
-    }
-
-
-    var _amount =
-        (
-            ((_point_x - _start_x) * _segment_x)
-            + ((_point_y - _start_y) * _segment_y)
-        )
-        / _length_squared;
-
-
-    _amount =
-        clamp(
-            _amount,
-            0,
-            1
-        );
-
-
-    var _closest_x =
-        _start_x
-        + (_segment_x * _amount);
-
-    var _closest_y =
-        _start_y
-        + (_segment_y * _amount);
-
-
-    var _distance_x =
-        _point_x - _closest_x;
-
-    var _distance_y =
-        _point_y - _closest_y;
-
-
-    return (
-        (_distance_x * _distance_x)
-        + (_distance_y * _distance_y)
-    );
-}
-
-/// @description Finds an enemy crossed by one player-projectile segment.
-
-function scr_projectile_player_enemy_find(
-    _projectile,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    if (!instance_exists(_projectile))
-        return undefined;
-
-
-    return scr_spatial_enemy_segment_find(
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y,
-        _projectile.visual.radius
-    );
-}
-
-/// @description Updates one player projectile with spatial swept collision.
+/// @description Updates one player projectile.
 
 function scr_projectile_player_update(_projectile)
 {
@@ -258,7 +178,10 @@ function scr_projectile_player_update(_projectile)
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(_projectile);
+        instance_destroy(
+            _projectile
+        );
+
         return true;
     }
 
@@ -268,6 +191,7 @@ function scr_projectile_player_update(_projectile)
 
     var _start_y =
         _projectile.y;
+
 
     var _end_x =
         _start_x
@@ -284,28 +208,12 @@ function scr_projectile_player_update(_projectile)
         );
 
 
-    // One spatial query for the complete movement segment.
-
-    var _enemy_hit =
-        scr_projectile_player_enemy_find(
-            _projectile,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-    var _enemy_hit_amount =
-        infinity;
-
-
-    if (is_struct(_enemy_hit))
-    {
-        _enemy_hit_amount =
-            _enemy_hit.amount;
-    }
-
-
+    // ========================================================================
+    // WORLD SOLID COLLISION
+    // ========================================================================
+    //
+    // Enemy collision is now handled by GameMaker's native Collision Event.
+    //
     // Solid collision remains stepped because walls intentionally allow
     // player projectiles through while other gameplay solids stop them.
 
@@ -330,7 +238,11 @@ function scr_projectile_player_update(_projectile)
         );
 
 
-    for (var i = 1; i <= _steps; ++i)
+    for (
+        var i = 1;
+        i <= _steps;
+        ++i
+    )
     {
         var _progress =
             i / _steps;
@@ -359,52 +271,18 @@ function scr_projectile_player_update(_projectile)
             )
         )
         {
-            // FUTURE:
-            // terrain impact particles
-            // ricochet weapons
-            // destructible terrain
+            instance_destroy(
+                _projectile
+            );
 
-            instance_destroy(_projectile);
-            return true;
-        }
-
-
-        if (
-            is_struct(_enemy_hit)
-            && _enemy_hit_amount <= _progress
-        )
-        {
-            var _enemy =
-                _enemy_hit.enemy;
-
-
-            if (instance_exists(_enemy))
-            {
-                var _damage =
-                    scr_damage_create(
-                        _projectile.combat.damage,
-                        _projectile.combat.owner,
-                        DamageSource.PLAYER
-                    );
-
-
-                scr_enemy_damage(
-                    _enemy,
-                    _damage
-                );
-            }
-
-
-            // FUTURE:
-            // enemy impact particles
-            // piercing ammunition
-            // explosive player weapons
-
-            instance_destroy(_projectile);
             return true;
         }
     }
 
+
+    // ========================================================================
+    // MOVE
+    // ========================================================================
 
     _projectile.x =
         _end_x;

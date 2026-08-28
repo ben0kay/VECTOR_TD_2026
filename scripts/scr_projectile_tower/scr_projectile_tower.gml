@@ -181,29 +181,7 @@ function scr_projectile_tower_initialize(_projectile)
 
     return true;
 }
-/// @description Finds the earliest valid enemy crossed by a tower projectile.
 
-function scr_projectile_tower_enemy_find(
-    _projectile,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    if (!instance_exists(_projectile))
-        return undefined;
-
-
-    return scr_spatial_enemy_segment_find(
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y,
-        _projectile.visual.radius,
-        _projectile.combat.target_layer
-    );
-}
 
 
 /// @description Resolves one tower projectile impact.
