@@ -66,7 +66,7 @@
     {"id":{"name":"o_energy_generator","path":"objects/o_energy_generator/o_energy_generator.yy",},},
     {"id":{"name":"o_energy_node","path":"objects/o_energy_node/o_energy_node.yy",},},
     {"id":{"name":"o_fabricator","path":"objects/o_fabricator/o_fabricator.yy",},},
-    {"id":{"name":"o_feedback_wold","path":"objects/o_feedback_wold/o_feedback_wold.yy",},},
+    {"id":{"name":"o_feedback_world","path":"objects/o_feedback_world/o_feedback_world.yy",},},
     {"id":{"name":"o_foundation","path":"objects/o_foundation/o_foundation.yy",},},
     {"id":{"name":"o_hud_level","path":"objects/o_hud_level/o_hud_level.yy",},},
     {"id":{"name":"o_menu_main","path":"objects/o_menu_main/o_menu_main.yy",},},

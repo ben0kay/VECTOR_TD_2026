@@ -124,7 +124,7 @@ function scr_tower_data_basic_ground()
                     damage: 10,
 					critical:
 					{
-					    chance: 0.01,
+					    chance: 0.1,
 					    multiplier: 7
 					},
                     energy_cost: 2,

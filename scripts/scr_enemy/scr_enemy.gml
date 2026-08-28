@@ -1840,7 +1840,7 @@ function scr_enemy_damage(_enemy, _damage)
     _damage.modifiers.rear_attack.multiplier =
         _rear_multiplier;
 
-	scr_feedback_world_crit_damage();
+	scr_feedback_world_crit_damage(_enemy, _damage);
     var _remaining_damage =
         _damage.amount
         * _rear_multiplier;

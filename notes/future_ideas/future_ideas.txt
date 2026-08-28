@@ -168,7 +168,7 @@ Tower Heat — make powerful towers lose sustained fire rate as normal firing bu
 
 Last-Shot Capacitor — let idle energy towers charge their next shot up to a cap for stronger opening attacks.
 
-Crossfire Bonus — reward attacks arriving from substantially different directions around an enemy.
+===== DONE ===== REAR FLANK DAMAGE BONUS
 
 Gravity Tower — add a support weapon that gathers enemies for area-damage combinations.
 
