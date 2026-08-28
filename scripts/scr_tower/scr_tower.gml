@@ -101,7 +101,7 @@ function scr_tower_initialize(_tower)
 
     _tower.visual.draw_angle = 0;
     _tower.visual.draw_function = scr_tower_visual_ground;
-	_tower.visual.recoil = scr_tower_recoil_runtime_create(_data);
+	_tower.visual.recoil = scr_tower_recoil_runtime_create(_tower.building_data.visual);
 
     if (variable_struct_exists(_data, "draw_function"))
         _tower.visual.draw_function = _data.draw_function;
