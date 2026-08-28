@@ -32,50 +32,96 @@ function scr_resource_node_initialize(_node)
     }
 
 
-    var _data = scr_resource_data_get(_node.resource_key);
+    var _data =
+        scr_resource_data_get(
+            _node.resource_key
+        );
+
 
     if (!scr_resource_data_valid(_data))
         return false;
 
 
-    _node.resource_data = _data;
+    _node.resource_data =
+        _data;
 
 
     _node.identity =
     {
-        key: _data.identity.key,
-        name: _data.identity.name,
-        vein_id: _node.vein_id
+        key:
+            _data.identity.key,
+
+        name:
+            _data.identity.name,
+
+        vein_id:
+            _node.vein_id
     };
 
 
-    var _amount = irandom_range(
-        _data.node.amount_min,
-        _data.node.amount_max
-    );
+    var _amount =
+        irandom_range(
+            _data.node.amount_min,
+            _data.node.amount_max
+        );
 
 
     _node.amount =
     {
-        current: _amount,
-        maximum: _amount,
-        depleted: false
+        current:
+            _amount,
+
+        maximum:
+            _amount,
+
+        depleted:
+            false
     };
 
 
     _node.claim =
     {
-        miner: noone
+        miner:
+            noone
     };
 
 
     _node.visual =
     {
-        sprite: _data.visual.sprite,
-        draw_function: _data.visual.draw_function,
-        color: _data.visual.color,
-        rotation: irandom(3) * 90,
-        scale: random_range(0.8, 1)
+        sprite:
+            _data.visual.sprite,
+
+        draw_function:
+            _data.visual.draw_function,
+
+        color:
+            _data.visual.color,
+
+        rotation:
+            irandom(3) * 90,
+
+        scale:
+            random_range(
+                0.8,
+                1
+            )
+    };
+
+
+    // ========================================================================
+    // VISIBILITY CACHE
+    // ========================================================================
+    //
+    // Resource nodes never move.
+    //
+    // Their camera visibility therefore only needs refreshing periodically.
+    // IFRAMES_5 staggers the refresh using instance ID so only roughly
+    // one fifth of all resource nodes perform a camera check each frame.
+
+    _node.visibility =
+    {
+        on_screen:
+            true
     };
 
 
