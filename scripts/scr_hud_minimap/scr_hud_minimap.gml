@@ -130,51 +130,6 @@ function scr_hud_minimap_pointer_over(_hud)
 }
 
 
-/// @description Converts a world position into a minimap GUI position.
-function scr_hud_minimap_world_to_gui(
-    _map,
-    _center_x,
-    _center_y,
-    _world_x,
-    _world_y,
-    _player_x,
-    _player_y
-)
-{
-    var _map_left =
-        _map.x + _map.padding;
-
-    var _map_top =
-        _map.y + _map.header_height + _map.padding;
-
-    var _map_width =
-        _map.width - (_map.padding * 2);
-
-    var _map_height =
-        _map.height
-        - _map.header_height
-        - (_map.padding * 2);
-
-    var _scale =
-        min(
-            _map_width,
-            _map_height
-        )
-        / (_map.range * 2);
-
-    return
-    {
-        x:
-            _center_x
-            + ((_world_x - _player_x) * _scale),
-
-        y:
-            _center_y
-            + ((_world_y - _player_y) * _scale)
-    };
-}
-
-
 /// @description Draws one compact minimap marker.
 function scr_hud_minimap_marker_draw(
     _x,
@@ -788,12 +743,16 @@ function scr_hud_minimap_static_terrain_draw(
 /// @description Draws the player-centred tactical minimap dock.
 function scr_hud_minimap_draw(_hud)
 {
-    if (!instance_exists(_hud)) return false;
+    if (!instance_exists(_hud))
+        return false;
+
 
     var _map =
         _hud.hud.minimap;
 
-    if (!_map.visible) return true;
+    if (!_map.visible)
+        return true;
+
 
     var _left =
         _map.x;
@@ -806,6 +765,7 @@ function scr_hud_minimap_draw(_hud)
 
     var _bottom =
         _map.y + _map.height;
+
 
     var _map_left =
         _left + _map.padding;
@@ -821,11 +781,13 @@ function scr_hud_minimap_draw(_hud)
     var _map_bottom =
         _bottom - _map.padding;
 
+
     var _map_width =
         _map_right - _map_left;
 
     var _map_height =
         _map_bottom - _map_top;
+
 
     var _center_x =
         _map_left
@@ -835,12 +797,32 @@ function scr_hud_minimap_draw(_hud)
         _map_top
         + (_map_height * 0.5);
 
+
+    // Calculate these once for every marker this frame.
+
+    var _map_scale =
+        min(
+            _map_width,
+            _map_height
+        )
+        / (_map.range * 2);
+
+    var _range_squared =
+        _map.range * _map.range;
+
+
     // ========================================================================
     // PANEL
     // ========================================================================
 
-    draw_set_alpha(_map.background_alpha);
-    draw_set_color(c_black);
+    draw_set_alpha(
+        _map.background_alpha
+    );
+
+    draw_set_color(
+        c_black
+    );
+
 
     draw_rectangle(
         _left,
@@ -850,8 +832,13 @@ function scr_hud_minimap_draw(_hud)
         false
     );
 
+
     draw_set_alpha(1);
-    draw_set_color(_map.color);
+
+    draw_set_color(
+        _map.color
+    );
+
 
     draw_rectangle(
         _left,
@@ -861,6 +848,7 @@ function scr_hud_minimap_draw(_hud)
         true
     );
 
+
     draw_line(
         _left,
         _top + _map.header_height,
@@ -868,8 +856,10 @@ function scr_hud_minimap_draw(_hud)
         _top + _map.header_height
     );
 
+
     var _corner =
         10;
+
 
     draw_line(
         _left,
@@ -899,19 +889,30 @@ function scr_hud_minimap_draw(_hud)
         _bottom - _corner
     );
 
+
     // ========================================================================
     // TITLE / CONTROLS
     // ========================================================================
 
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_middle);
-    draw_set_color(_map.color);
+    draw_set_halign(
+        fa_left
+    );
+
+    draw_set_valign(
+        fa_middle
+    );
+
+    draw_set_color(
+        _map.color
+    );
+
 
     draw_text(
         _left + 10,
         _top + (_map.header_height * 0.5),
         "MINIMAP"
     );
+
 
     scr_hud_minimap_control_draw(
         _map.controls.zoom_in,
@@ -931,12 +932,19 @@ function scr_hud_minimap_draw(_hud)
         c_gray
     );
 
+
     // ========================================================================
     // MAP BACKGROUND / GRID
     // ========================================================================
 
-    draw_set_alpha(0.22);
-    draw_set_color(c_dkgray);
+    draw_set_alpha(
+        0.22
+    );
+
+    draw_set_color(
+        c_dkgray
+    );
+
 
     draw_rectangle(
         _map_left,
@@ -946,8 +954,10 @@ function scr_hud_minimap_draw(_hud)
         false
     );
 
+
     var _grid_divisions =
         4;
+
 
     for (
         var i = 1;
@@ -957,11 +967,18 @@ function scr_hud_minimap_draw(_hud)
     {
         var _grid_x =
             _map_left
-            + ((_map_width / _grid_divisions) * i);
+            + (
+                (_map_width / _grid_divisions)
+                * i
+            );
 
         var _grid_y =
             _map_top
-            + ((_map_height / _grid_divisions) * i);
+            + (
+                (_map_height / _grid_divisions)
+                * i
+            );
+
 
         draw_line(
             _grid_x,
@@ -969,6 +986,7 @@ function scr_hud_minimap_draw(_hud)
             _grid_x,
             _map_bottom
         );
+
 
         draw_line(
             _map_left,
@@ -978,8 +996,15 @@ function scr_hud_minimap_draw(_hud)
         );
     }
 
-    draw_set_alpha(0.4);
-    draw_set_color(_map.color);
+
+    draw_set_alpha(
+        0.4
+    );
+
+    draw_set_color(
+        _map.color
+    );
+
 
     draw_circle(
         _center_x,
@@ -991,8 +1016,13 @@ function scr_hud_minimap_draw(_hud)
         true
     );
 
+
     draw_set_alpha(1);
-    draw_set_color(_map.color);
+
+    draw_set_color(
+        _map.color
+    );
+
 
     draw_rectangle(
         _map_left,
@@ -1002,6 +1032,7 @@ function scr_hud_minimap_draw(_hud)
         true
     );
 
+
     // ========================================================================
     // WORLD MARKERS
     // ========================================================================
@@ -1009,22 +1040,28 @@ function scr_hud_minimap_draw(_hud)
     var _player =
         global.vtd_level.entities.player;
 
+
     if (instance_exists(_player))
     {
         scr_hud_minimap_static_terrain_draw(
-	    _hud,
-	    _player,
-	    _map_left,
-	    _map_top,
-	    _map_width,
-	    _map_height
-	);
+            _hud,
+            _player,
+            _map_left,
+            _map_top,
+            _map_width,
+            _map_height
+        );
+
+
         // ====================================================================
         // BUILDINGS
         // ====================================================================
 
         var _building_count =
-            instance_number(o_building_par);
+            instance_number(
+                o_building_par
+            );
+
 
         for (
             var i = 0;
@@ -1038,7 +1075,10 @@ function scr_hud_minimap_draw(_hud)
                     i
                 );
 
-            if (!instance_exists(_building)) continue;
+
+            if (!instance_exists(_building))
+                continue;
+
 
             if (
                 _building.BuildingState
@@ -1048,71 +1088,106 @@ function scr_hud_minimap_draw(_hud)
                 continue;
             }
 
+
+            var _building_dx =
+                _building.x
+                - _player.x;
+
+            var _building_dy =
+                _building.y
+                - _player.y;
+
+            var _building_distance_squared =
+                (_building_dx * _building_dx)
+                + (_building_dy * _building_dy);
+
+
             if (
-                point_distance(
-                    _player.x,
-                    _player.y,
-                    _building.x,
-                    _building.y
-                )
-                > _map.range
+                _building_distance_squared
+                > _range_squared
             )
             {
                 continue;
             }
 
-            var _building_position =
-                scr_hud_minimap_world_to_gui(
-                    _map,
-                    _center_x,
-                    _center_y,
-                    _building.x,
-                    _building.y,
-                    _player.x,
-                    _player.y
+
+            // Direct world-to-minimap conversion.
+            // No temporary { x, y } struct is created.
+
+            var _building_map_x =
+                _center_x
+                + (
+                    _building_dx
+                    * _map_scale
                 );
 
+            var _building_map_y =
+                _center_y
+                + (
+                    _building_dy
+                    * _map_scale
+                );
+
+
             draw_set_alpha(1);
-            draw_set_color(c_lime);
+
+            draw_set_color(
+                c_lime
+            );
+
 
             draw_rectangle(
-                _building_position.x - 3,
-                _building_position.y - 3,
-                _building_position.x + 3,
-                _building_position.y + 3,
+                _building_map_x - 3,
+                _building_map_y - 3,
+                _building_map_x + 3,
+                _building_map_y + 3,
                 false
             );
 
-            draw_set_alpha(0.5);
-            draw_set_color(c_aqua);
+
+            draw_set_alpha(
+                0.5
+            );
+
+            draw_set_color(
+                c_aqua
+            );
+
 
             draw_rectangle(
-                _building_position.x - 4,
-                _building_position.y - 4,
-                _building_position.x + 4,
-                _building_position.y + 4,
+                _building_map_x - 4,
+                _building_map_y - 4,
+                _building_map_x + 4,
+                _building_map_y + 4,
                 true
             );
         }
 
-                // ====================================================================
+
+        // ====================================================================
         // ENEMIES / RADAR CONTACTS
         // ====================================================================
 
         var _enemy_count =
-            instance_number(o_enemy);
+            instance_number(
+                o_enemy
+            );
 
         var _radar =
             _map.radar;
 
+
         var _fps =
             max(
                 1,
-                game_get_speed(gamespeed_fps)
+                game_get_speed(
+                    gamespeed_fps
+                )
             );
 
         var _delta_seconds =
             1 / _fps;
+
 
         for (
             var i = 0;
@@ -1126,21 +1201,14 @@ function scr_hud_minimap_draw(_hud)
                     i
                 );
 
+
             if (!instance_exists(_enemy))
                 continue;
 
-            if (
-                !variable_instance_exists(
-                    _enemy,
-                    "minimap"
-                )
-            )
-            {
-                continue;
-            }
 
             var _enemy_minimap =
                 _enemy.minimap;
+
 
             _enemy_minimap.contact_remaining =
                 max(
@@ -1149,16 +1217,28 @@ function scr_hud_minimap_draw(_hud)
                     - _delta_seconds
                 );
 
-            var _distance =
-                point_distance(
-                    _player.x,
-                    _player.y,
-                    _enemy.x,
-                    _enemy.y
-                );
 
-            if (_distance > _map.range)
+            var _enemy_dx =
+                _enemy.x
+                - _player.x;
+
+            var _enemy_dy =
+                _enemy.y
+                - _player.y;
+
+            var _enemy_distance_squared =
+                (_enemy_dx * _enemy_dx)
+                + (_enemy_dy * _enemy_dy);
+
+
+            if (
+                _enemy_distance_squared
+                > _range_squared
+            )
+            {
                 continue;
+            }
+
 
             var _enemy_angle =
                 point_direction(
@@ -1167,6 +1247,7 @@ function scr_hud_minimap_draw(_hud)
                     _enemy.x,
                     _enemy.y
                 );
+
 
             if (
                 scr_hud_minimap_radar_sweep_crossed(
@@ -1180,23 +1261,33 @@ function scr_hud_minimap_draw(_hud)
                     _enemy_minimap.fade_time;
             }
 
+
             if (
-                _enemy_minimap.contact_remaining <= 0
+                _enemy_minimap.contact_remaining
+                <= 0
             )
             {
                 continue;
             }
 
-            var _enemy_position =
-                scr_hud_minimap_world_to_gui(
-                    _map,
-                    _center_x,
-                    _center_y,
-                    _enemy.x,
-                    _enemy.y,
-                    _player.x,
-                    _player.y
+
+            // Direct world-to-minimap conversion.
+            // No temporary { x, y } struct is created.
+
+            var _enemy_map_x =
+                _center_x
+                + (
+                    _enemy_dx
+                    * _map_scale
                 );
+
+            var _enemy_map_y =
+                _center_y
+                + (
+                    _enemy_dy
+                    * _map_scale
+                );
+
 
             var _fade_alpha =
                 clamp(
@@ -1206,54 +1297,66 @@ function scr_hud_minimap_draw(_hud)
                     1
                 );
 
+
             var _dot_size =
                 _enemy_minimap.size;
+
 
             draw_set_color(
                 _enemy.visual.color
             );
+
 
             draw_set_alpha(
                 0.08
                 * _fade_alpha
             );
 
+
             draw_circle(
-                _enemy_position.x,
-                _enemy_position.y,
+                _enemy_map_x,
+                _enemy_map_y,
                 _dot_size * 4.67,
                 false
             );
+
 
             draw_set_alpha(
                 0.18
                 * _fade_alpha
             );
 
+
             draw_circle(
-                _enemy_position.x,
-                _enemy_position.y,
+                _enemy_map_x,
+                _enemy_map_y,
                 _dot_size * 3.33,
                 false
             );
+
 
             draw_set_alpha(
                 0.45
                 * _fade_alpha
             );
 
+
             draw_circle(
-                _enemy_position.x,
-                _enemy_position.y,
+                _enemy_map_x,
+                _enemy_map_y,
                 _dot_size * 2,
                 false
             );
 
-            draw_set_alpha(_fade_alpha);
+
+            draw_set_alpha(
+                _fade_alpha
+            );
+
 
             draw_circle(
-                _enemy_position.x,
-                _enemy_position.y,
+                _enemy_map_x,
+                _enemy_map_y,
                 _dot_size,
                 false
             );
@@ -1271,8 +1374,15 @@ function scr_hud_minimap_draw(_hud)
             )
             * 0.5;
 
-        draw_set_alpha(0.72);
-        draw_set_color(_map.color);
+
+        draw_set_alpha(
+            0.72
+        );
+
+        draw_set_color(
+            _map.color
+        );
+
 
         draw_line_width(
             _center_x,
@@ -1293,12 +1403,19 @@ function scr_hud_minimap_draw(_hud)
             2
         );
 
+
         // ====================================================================
         // PLAYER
         // ====================================================================
 
-        draw_set_alpha(0.18);
-        draw_set_color(c_aqua);
+        draw_set_alpha(
+            0.18
+        );
+
+        draw_set_color(
+            c_aqua
+        );
+
 
         draw_rectangle(
             _center_x - 8,
@@ -1308,8 +1425,13 @@ function scr_hud_minimap_draw(_hud)
             false
         );
 
+
         draw_set_alpha(1);
-        draw_set_color(c_aqua);
+
+        draw_set_color(
+            c_aqua
+        );
+
 
         draw_rectangle(
             _center_x - 4,
@@ -1319,7 +1441,11 @@ function scr_hud_minimap_draw(_hud)
             false
         );
 
-        draw_set_color(c_white);
+
+        draw_set_color(
+            c_white
+        );
+
 
         draw_rectangle(
             _center_x - 5,
@@ -1331,9 +1457,18 @@ function scr_hud_minimap_draw(_hud)
     }
     else
     {
-        draw_set_halign(fa_center);
-        draw_set_valign(fa_middle);
-        draw_set_color(c_red);
+        draw_set_halign(
+            fa_center
+        );
+
+        draw_set_valign(
+            fa_middle
+        );
+
+        draw_set_color(
+            c_red
+        );
+
 
         draw_text(
             _center_x,
@@ -1342,25 +1477,50 @@ function scr_hud_minimap_draw(_hud)
         );
     }
 
+
     // ========================================================================
     // RANGE LABEL
     // ========================================================================
 
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_bottom);
-    draw_set_color(c_gray);
+    draw_set_halign(
+        fa_left
+    );
+
+    draw_set_valign(
+        fa_bottom
+    );
+
+    draw_set_color(
+        c_gray
+    );
+
 
     draw_text(
         _map_left + 4,
         _map_bottom - 4,
         "RANGE "
-        + string(floor(_map.range))
+        + string(
+            floor(
+                _map.range
+            )
+        )
     );
 
+
     draw_set_alpha(1);
-    draw_set_color(c_white);
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_top);
+
+    draw_set_color(
+        c_white
+    );
+
+    draw_set_halign(
+        fa_left
+    );
+
+    draw_set_valign(
+        fa_top
+    );
+
 
     return true;
 }

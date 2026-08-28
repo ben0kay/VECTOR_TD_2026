@@ -536,7 +536,19 @@ function scr_enemy_initialize(_enemy)
         reachable: true,
 
         blocked_action:
-            _data.navigation.blocked_action
+            _data.navigation.blocked_action,
+			
+		lazy:
+		    {
+		        factor: 7,
+
+		        breach_pending: false,
+		        breach_timer: 0,
+		        breach_attempts: 0,
+
+		        outside_view: false
+		    }
+
     };
 
 
@@ -1226,10 +1238,12 @@ function scr_enemy_performance_update(_enemy)
     if (_visibility.timer <= 0)
     {
         _visibility.outside_view =
-            !scr_culling_check_instance(
-                _enemy,
-                128
-            );
+	    !scr_culling_check_circle_fast(
+	        _enemy.x,
+	        _enemy.y,
+	        _enemy.visual.radius,
+	        128
+	    );
 
         if (_visibility.outside_view)
         {
@@ -1374,132 +1388,160 @@ function scr_enemy_target_acquire(_enemy)
 }
 
 
-
-/// @description Returns the distance between an enemy and its target edges.
+/// @description Returns the fast edge distance between an enemy and its validated target.
 
 function scr_enemy_target_edge_distance(
     _enemy,
     _target
 )
 {
-    if (!instance_exists(_enemy))
-        return infinity;
+    var _enemy_x =
+        _enemy.x;
 
-    if (!instance_exists(_target))
-        return infinity;
+    var _enemy_y =
+        _enemy.y;
+
+    var _enemy_radius =
+        _enemy.visual.radius;
 
 
     // ========================================================================
-    // BUILDING RECTANGLE
+    // CPU / PLAYER
     // ========================================================================
+    //
+    // Enemy targeting only uses CPU, player, or buildings.
+    // Checking these two explicit targets lets every remaining target use the
+    // building path without object_is_ancestor() every step.
+
+    var _object =
+        _target.object_index;
+
 
     if (
-        _target.object_index
-        == o_building_par
-        || object_is_ancestor(
-            _target.object_index,
-            o_building_par
-        )
+        _object == o_cpu
+        || _object == o_player
     )
     {
-        var _cell_size =
-            global.vtd_level.map.cell_size;
+        var _target_radius =
+            0;
 
-        var _half_width =
-            (
-                _target.footprint.width_cells
-                * _cell_size
+
+        // These targets normally expose visual.radius.
+        // Keep this fallback for compatibility.
+
+        if (
+            variable_instance_exists(
+                _target,
+                "visual"
             )
-            * 0.5;
-
-        var _half_height =
-            (
-                _target.footprint.height_cells
-                * _cell_size
+            && is_struct(
+                _target.visual
             )
-            * 0.5;
+            && variable_struct_exists(
+                _target.visual,
+                "radius"
+            )
+        )
+        {
+            _target_radius =
+                _target.visual.radius;
+        }
 
 
-        // Find the closest point anywhere on the building rectangle.
+        var _dx =
+            _target.x
+            - _enemy_x;
 
-        var _closest_x =
-            clamp(
-                _enemy.x,
-                _target.x - _half_width,
-                _target.x + _half_width
-            );
-
-        var _closest_y =
-            clamp(
-                _enemy.y,
-                _target.y - _half_height,
-                _target.y + _half_height
-            );
-
-
-        var _distance_to_rectangle =
-            point_distance(
-                _enemy.x,
-                _enemy.y,
-                _closest_x,
-                _closest_y
-            );
-
-
-        // A small interaction tolerance allows enemies standing in diagonal
-        // neighboring grid cells to attack the building.
-        //
-        // Without this tolerance, a 16-pixel enemy beside a 32-pixel wall can
-        // finish its path approximately 2.6 pixels outside its attack range.
-
-        var _interaction_tolerance =
-            _cell_size * 0.25;
+        var _dy =
+            _target.y
+            - _enemy_y;
 
 
         return max(
             0,
-            _distance_to_rectangle
-            - _enemy.visual.radius
-            - _interaction_tolerance
+            sqrt(
+                (_dx * _dx)
+                + (_dy * _dy)
+            )
+            - _enemy_radius
+            - _target_radius
         );
     }
 
 
     // ========================================================================
-    // CIRCULAR TARGET
+    // BUILDING
     // ========================================================================
+    //
+    // All remaining ordinary enemy targets are building objects.
 
-    var _target_radius =
-        0;
+    var _cell_size =
+        global.vtd_level.map.cell_size;
+
+    var _half_width =
+        _target.footprint.width_cells
+        * _cell_size
+        * 0.5;
+
+    var _half_height =
+        _target.footprint.height_cells
+        * _cell_size
+        * 0.5;
 
 
-    if (
-        variable_instance_exists(
-            _target,
-            "visual"
-        )
-        && is_struct(_target.visual)
-        && variable_struct_exists(
-            _target.visual,
-            "radius"
-        )
-    )
-    {
-        _target_radius =
-            _target.visual.radius;
-    }
+    var _target_left =
+        _target.x
+        - _half_width;
+
+    var _target_right =
+        _target.x
+        + _half_width;
+
+    var _target_top =
+        _target.y
+        - _half_height;
+
+    var _target_bottom =
+        _target.y
+        + _half_height;
+
+
+    var _closest_x =
+        clamp(
+            _enemy_x,
+            _target_left,
+            _target_right
+        );
+
+    var _closest_y =
+        clamp(
+            _enemy_y,
+            _target_top,
+            _target_bottom
+        );
+
+
+    var _dx =
+        _enemy_x
+        - _closest_x;
+
+    var _dy =
+        _enemy_y
+        - _closest_y;
+
+
+    var _interaction_tolerance =
+        _cell_size * 0.25;
 
 
     return max(
         0,
-        point_distance(
-            _enemy.x,
-            _enemy.y,
-            _target.x,
-            _target.y
+        sqrt(
+            (_dx * _dx)
+            + (_dy * _dy)
         )
-        - _enemy.visual.radius
-        - _target_radius
+        - _enemy_radius
+        - _interaction_tolerance
     );
 }
 

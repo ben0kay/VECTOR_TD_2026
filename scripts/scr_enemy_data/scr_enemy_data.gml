@@ -378,9 +378,9 @@ function scr_enemy_data_weak()
 
             visual:
             {
-                sprite: -1,
-                scale_x: 1,
-                scale_y: 1,
+                sprite: s_enemy_weak,
+                scale_x: 0.25,
+                scale_y: 0.25,
                 draw_function: scr_enemy_visual_weak,
                 radius: 11,
                 color: c_yellow

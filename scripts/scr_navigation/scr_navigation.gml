@@ -53,31 +53,6 @@ function scr_navigation_enemy_grid_get(_enemy)
     return -1;
 }
 
-/// @description Ensures an enemy has lazy-navigation runtime data.
-
-function scr_navigation_enemy_lazy_runtime_ensure(_enemy)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    if (!variable_struct_exists(_enemy.navigation, "lazy"))
-    {
-        _enemy.navigation.lazy =
-        {
-            factor: 7,
-
-            breach_pending: false,
-            breach_timer: 0,
-            breach_attempts: 0,
-
-            outside_view: false
-        };
-    }
-
-
-    return true;
-}
 
 /// @description Requests a staggered enemy path calculation.
 
@@ -90,28 +65,10 @@ function scr_navigation_enemy_repath_request(
         return false;
 
 
-    scr_navigation_enemy_lazy_runtime_ensure(
-        _enemy
-    );
-
-
     var _outside_view =
-        false;
-
-
-    if (
-        variable_instance_exists(
-            _enemy,
-            "performance"
-        )
-        && is_struct(_enemy.performance)
-    )
-    {
-        _outside_view =
-            _enemy.performance
-                .visibility
-                .outside_view;
-    }
+        _enemy.performance
+            .visibility
+            .outside_view;
 
 
     _enemy.navigation.lazy.outside_view =
@@ -176,10 +133,6 @@ function scr_navigation_enemy_path_build(_enemy)
 
     if (!instance_exists(_enemy.targeting.target))
         return false;
-
-
-    scr_navigation_enemy_lazy_runtime_ensure(_enemy);
-
 
     var _grid =
         scr_navigation_enemy_grid_get(_enemy);
@@ -294,28 +247,16 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
-    scr_navigation_enemy_lazy_runtime_ensure(
-        _enemy
-    );
-
-
     var _lazy =
         _enemy.navigation.lazy;
 
 
-    if (
-        variable_instance_exists(
-            _enemy,
-            "performance"
-        )
-        && is_struct(_enemy.performance)
-    )
-    {
-        _lazy.outside_view =
-            _enemy.performance
-                .visibility
-                .outside_view;
-    }
+    // Performance data is guaranteed during enemy initialization.
+
+    _lazy.outside_view =
+        _enemy.performance
+            .visibility
+            .outside_view;
 
 
     // A building or obstacle changed. Every enemy notices the revision,
@@ -368,7 +309,10 @@ function scr_navigation_enemy_update(_enemy)
                     true;
 
                 _lazy.breach_timer =
-                    irandom_range(30, 60)
+                    irandom_range(
+                        30,
+                        60
+                    )
                     * _retry_factor;
             }
         }
@@ -400,7 +344,6 @@ function scr_navigation_enemy_update(_enemy)
 
     return true;
 }
-
 /// @description Returns possible approach positions around a building.
 
 function scr_navigation_building_approach_positions(
