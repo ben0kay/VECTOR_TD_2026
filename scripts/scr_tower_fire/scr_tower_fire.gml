@@ -448,6 +448,19 @@ function scr_tower_fire(_tower)
 
 
     var _weapon = _tower.combat.weapon;
+	var _damage =
+        scr_damage_create(
+            _weapon.damage,
+            _tower,
+            DamageSource.TOWER,
+            _weapon.damage_type
+        );
+
+    scr_damage_critical_roll(
+        _damage,
+        _weapon.critical.chance,
+        _weapon.critical.multiplier
+    );
     var _muzzle = scr_tower_muzzle_position_get(_tower);
     var _fired = false;
 
@@ -465,8 +478,7 @@ function scr_tower_fire(_tower)
                     _muzzle.x,
                     _muzzle.y,
                     _tower.visual.draw_angle,
-                    _weapon.damage,
-                    _weapon.damage_type,
+					_damage,
                     _weapon.projectile,
                     _tower.targeting.layer,
                     _target
@@ -479,13 +491,6 @@ function scr_tower_fire(_tower)
 
         case TowerWeaponType.HITSCAN:
         {
-            var _damage =
-                scr_damage_create(
-                    _weapon.damage,
-                    _tower,
-                    DamageSource.TOWER,
-                    _weapon.damage_type
-                );
 
             scr_enemy_damage(_target, _damage);
 
@@ -508,13 +513,6 @@ function scr_tower_fire(_tower)
 
         case TowerWeaponType.BEAM:
         {
-            var _damage =
-                scr_damage_create(
-                    _weapon.damage,
-                    _tower,
-                    DamageSource.TOWER,
-                    _weapon.damage_type
-                );
 
             scr_enemy_damage(_target, _damage);
 

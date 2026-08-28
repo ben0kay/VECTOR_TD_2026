@@ -122,6 +122,11 @@ function scr_tower_data_basic_ground()
                         DamageType.KINETIC,
 
                     damage: 10,
+					critical:
+					{
+					    chance: 0.01,
+					    multiplier: 7
+					},
                     energy_cost: 2,
                     cooldown_seconds: 0.6,
 
@@ -204,6 +209,11 @@ tower:
         type: TowerWeaponType.PROJECTILE,
         damage_type: DamageType.KINETIC,
         damage: 12,
+		critical:
+					{
+					    chance: 0.01,
+					    multiplier: 7
+					},
         energy_cost: 1.5,
         cooldown_seconds: 0.45,
 
@@ -287,6 +297,11 @@ tower:
         type: TowerWeaponType.PROJECTILE,
         damage_type: DamageType.KINETIC,
         damage: 3,
+		critical:
+					{
+					    chance: 0.002,
+					    multiplier: 7
+					},
         energy_cost: 0.65,
         cooldown_seconds: 0.09,
 
@@ -569,6 +584,11 @@ tower:
         type: TowerWeaponType.HITSCAN,
         damage_type: DamageType.KINETIC,
         damage: 140,
+		critical:
+					{
+					    chance: 0.01,
+					    multiplier: 7
+					},
         energy_cost: 12,
         cooldown_seconds: 3,
 
@@ -659,6 +679,11 @@ tower:
         type: TowerWeaponType.PROJECTILE,
         damage_type: DamageType.KINETIC,
         damage: 6,
+		critical:
+					{
+					    chance: 0.01,
+					    multiplier: 7
+					},
         energy_cost: 4,
         cooldown_seconds: 2.5,
 

@@ -197,6 +197,23 @@ function scr_tower_initialize(_tower)
     if (variable_struct_exists(_weapon_data, "hitscan"))
         _hitscan = _weapon_data.hitscan;
 
+	var _critical_chance = 0;
+    var _critical_multiplier = 1;
+
+    if (
+        variable_struct_exists(
+            _weapon_data,
+            "critical"
+        )
+        && is_struct(_weapon_data.critical)
+    )
+    {
+        _critical_chance =
+            _weapon_data.critical.chance;
+
+        _critical_multiplier =
+            _weapon_data.critical.multiplier;
+    }
 
     _tower.combat =
     {
@@ -221,6 +238,15 @@ function scr_tower_initialize(_tower)
             type: _weapon_data.type,
             damage_type: _weapon_data.damage_type,
             damage: _weapon_data.damage,
+			
+			critical:
+				{
+				    chance:
+				        _critical_chance,
+
+				    multiplier:
+				        _critical_multiplier
+				},
 
             cooldown:
             {
@@ -542,6 +568,20 @@ function scr_tower_combat_stats_apply(_tower)
             _stats,
             "weapon_cooldown_seconds",
             0.01
+        );
+		
+		  _tower.combat.weapon.critical.chance =
+        scr_stats_final_get(
+            _stats,
+            "critical_chance",
+            0
+        );
+
+    _tower.combat.weapon.critical.multiplier =
+        scr_stats_final_get(
+            _stats,
+            "critical_multiplier",
+            1
         );
 
     return true;

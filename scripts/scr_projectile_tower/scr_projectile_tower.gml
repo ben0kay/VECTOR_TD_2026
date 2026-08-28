@@ -70,7 +70,6 @@ function scr_projectile_tower_create(
             projectile_target_y: _target_y,
 
             projectile_damage: _damage,
-            projectile_damage_type: _damage_type,
             projectile_speed: _projectile_data.speed,
             projectile_turn_speed: _turn_speed,
             projectile_movement: _movement,
@@ -102,7 +101,6 @@ function scr_projectile_tower_initialize(_projectile)
         target: _projectile.projectile_target,
 
         damage: _projectile.projectile_damage,
-        damage_type: _projectile.projectile_damage_type,
         impact: _projectile.projectile_impact,
         damage_radius: _projectile.projectile_damage_radius,
         target_layer: _projectile.projectile_target_layer,
@@ -211,17 +209,12 @@ function scr_projectile_tower_impact(
 
 
             scr_enemy_damage(
-                _direct_target,
-                scr_damage_create(
-                    _combat.damage,
-                    _combat.owner,
-                    DamageSource.TOWER,
-                    _combat.damage_type
-                )
-            );
+    _direct_target,
+    _combat.damage
+);
 
 
-            switch (_combat.damage_type)
+            switch (_combat.damage.damage_type)
             {
                 case DamageType.LASER:
                 {
@@ -283,7 +276,7 @@ function scr_projectile_tower_impact(
             scr_attack_area_apply(
                 _combat.owner,
                 DamageSource.TOWER,
-                _combat.damage_type,
+                _combat.damage.damage_type,
                 _combat.target_layer,
                 _projectile.x,
                 _projectile.y,

@@ -1828,7 +1828,21 @@ function scr_enemy_damage(_enemy, _damage)
         _damage_type = _damage.damage_type;
 
 
-    var _remaining_damage = _damage.amount;
+    var _rear_multiplier =
+        scr_damage_rear_attack_multiplier_get(
+            _enemy,
+            _damage
+        );
+
+    _damage.modifiers.rear_attack.occurred =
+        _rear_multiplier > 1;
+
+    _damage.modifiers.rear_attack.multiplier =
+        _rear_multiplier;
+
+    var _remaining_damage =
+        _damage.amount
+        * _rear_multiplier;
 
     var _shield = _enemy.vitals.shield;
 
