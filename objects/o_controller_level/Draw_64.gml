@@ -143,7 +143,7 @@ if (instance_exists(_camera))
         16,
         490,
         "ZOOM: "
-        + string_format(_camera.camera_runtime.zoom.current, 1, 2)
+        + string_format(_camera.zoom_current, 1, 2)
     );
 }
 
