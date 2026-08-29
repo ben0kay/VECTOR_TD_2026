@@ -386,57 +386,39 @@ function scr_enemy_spawn(
     _enemy_key,
     _world_x,
     _world_y,
+    _entry_x,
+    _entry_y,
     _spawn_direction = undefined,
     _spawn_modifiers = [],
     _major_wave_number = 0,
     _spawn_order = EnemyOrder.NONE
 )
 {
-    var _data =
-        scr_enemy_data_get(
-            _enemy_key
-        );
+    var _data = scr_enemy_data_get(_enemy_key);
 
     if (!scr_enemy_data_valid(_data))
         return noone;
-
 
     var _creation_variables =
     {
         enemy_key: _enemy_key,
 
-        spawn_modifiers:
-            scr_enemy_modifiers_copy(
-                _spawn_modifiers
-            ),
-			
-		spawn_order:
-            _spawn_order,
+        spawn_entry_x: _entry_x,
+        spawn_entry_y: _entry_y,
 
-        // Zero means this enemy did not originate from an authored wave.
-        major_wave_number:
-            max(0, floor(_major_wave_number))
+        spawn_modifiers: scr_enemy_modifiers_copy(_spawn_modifiers),
+        spawn_order: _spawn_order,
+
+        major_wave_number: max(0, floor(_major_wave_number))
     };
 
-
     if (!is_undefined(_spawn_direction))
-    {
-        variable_struct_set(
-            _creation_variables,
-            "spawn_direction",
-            _spawn_direction
-        );
-    }
-
+        variable_struct_set(_creation_variables, "spawn_direction", _spawn_direction);
 
     return instance_create_layer(
         _world_x,
         _world_y,
-
-        scr_layer_enemy_get(
-            _data.movement.layer
-        ),
-
+        scr_layer_enemy_get(_data.movement.layer),
         o_enemy,
         _creation_variables
     );
@@ -725,47 +707,33 @@ function scr_enemy_spawner_side_get()
 }
 
 
-/// @description Finds a passable edge-cell position for one enemy.
+/// @description Finds an outside spawn position and passable map-entry position.
 
-function scr_enemy_spawner_edge_position_get(
-    _enemy_key,
-    _side,
-    _edge_ratio
-)
+function scr_enemy_spawner_edge_position_get(_enemy_key, _side, _edge_ratio)
 {
-    var _enemy_data = scr_enemy_data_get(_enemy_key);
+    var _data = scr_enemy_data_get(_enemy_key);
 
-    if (!scr_enemy_data_valid(_enemy_data))
+    if (!scr_enemy_data_valid(_data))
         return undefined;
-
 
     if (_side == SpawnSide.RANDOM)
         _side = scr_enemy_spawner_side_get();
 
-
     var _columns = global.vtd_level.map.columns;
     var _rows = global.vtd_level.map.rows;
     var _cell_size = global.vtd_level.map.cell_size;
+    var _map_width = _columns * _cell_size;
+    var _map_height = _rows * _cell_size;
 
-    var _flying =
-        _enemy_data.movement.layer
-        == EnemyMovementLayer.FLYING;
-
-
+    var _flying = _data.movement.layer == EnemyMovementLayer.FLYING;
     _edge_ratio = clamp(_edge_ratio, 0.02, 0.98);
-
 
     repeat (30)
     {
-        var _ratio = clamp(
-            _edge_ratio + random_range(-0.08, 0.08),
-            0.02,
-            0.98
-        );
+        var _ratio = clamp(_edge_ratio + random_range(-0.08, 0.08), 0.02, 0.98);
 
-        var _cell_x = 1;
-        var _cell_y = 1;
-
+        var _cell_x;
+        var _cell_y;
 
         switch (_side)
         {
@@ -790,44 +758,52 @@ function scr_enemy_spawner_edge_position_get(
             break;
         }
 
-
         _cell_x = clamp(_cell_x, 1, _columns - 2);
         _cell_y = clamp(_cell_y, 1, _rows - 2);
 
-
         var _valid = _flying;
 
-
         if (!_flying)
+            _valid = scr_world_cell_type_get(_cell_x, _cell_y) == WorldCellType.EMPTY;
+
+        if (!_valid)
+            continue;
+
+        var _entry_x = (_cell_x * _cell_size) + (_cell_size * 0.5);
+        var _entry_y = (_cell_y * _cell_size) + (_cell_size * 0.5);
+
+        var _spawn_x = _entry_x;
+        var _spawn_y = _entry_y;
+
+        switch (_side)
         {
-            _valid =
-                scr_world_cell_type_get(
-                    _cell_x,
-                    _cell_y
-                )
-                == WorldCellType.EMPTY;
+            case SpawnSide.TOP:
+                _spawn_y = -_cell_size;
+            break;
+
+            case SpawnSide.RIGHT:
+                _spawn_x = _map_width + _cell_size;
+            break;
+
+            case SpawnSide.BOTTOM:
+                _spawn_y = _map_height + _cell_size;
+            break;
+
+            case SpawnSide.LEFT:
+                _spawn_x = -_cell_size;
+            break;
         }
 
-
-        if (_valid)
-        {
-            return
-            {
-                x:
-                    (_cell_x * _cell_size)
-                    + (_cell_size * 0.5),
-
-                y:
-                    (_cell_y * _cell_size)
-                    + (_cell_size * 0.5)
-            };
-        }
+        return {
+            x: _spawn_x,
+            y: _spawn_y,
+            entry_x: _entry_x,
+            entry_y: _entry_y
+        };
     }
-
 
     return undefined;
 }
-
 
 /// @description Adds one weighted staggered group to the unified queue.
 
@@ -1159,16 +1135,17 @@ function scr_enemy_spawner_queue_update(
 			        _entry.order;
 			}
 
-			var _enemy =
-			scr_enemy_spawn(
-			    _entry.enemy_key,
-			    _position.x,
-			    _position.y,
-			    undefined,
-			    _entry.modifiers,
-			    _major_wave_number,
-			    _order
-			);
+			var _enemy = scr_enemy_spawn(
+		    _entry.enemy_key,
+		    _position.x,
+		    _position.y,
+		    _position.entry_x,
+		    _position.entry_y,
+		    undefined,
+		    _entry.modifiers,
+		    _major_wave_number,
+		    _order
+		);
 
             if (instance_exists(_enemy))
             {

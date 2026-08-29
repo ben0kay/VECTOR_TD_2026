@@ -4,27 +4,35 @@ if (!GAMEPLAY_ACTIVE)
     exit;
 
 
-// Cache camera/fog visibility and stagger optional decisions.
+// ============================================================================
+// ENTERING MAP
+// ============================================================================
 
-scr_enemy_performance_update(id);
-
-
-var _visible =
-    performance.visibility.visible;
-
-var _decision_due =
-    performance.decisions.due;
+if (EnemyState == EnemyState.SPAWNING)
+{
+    scr_enemy_entering_update(id);
+    exit;
+}
 
 
 // ============================================================================
-// ACTIVE STATUS EFFECTS
+// PERFORMANCE
+// ============================================================================
+
+scr_enemy_performance_update(id);
+
+var _visible = performance.visibility.visible;
+var _decision_due = performance.decisions.due;
+
+
+// ============================================================================
+// ACTIVE EFFECTS
 // ============================================================================
 
 var _effects_active =
     effects.slow.active
     || effects.stasis.active
     || effects.damage_over_time.active;
-
 
 if (_effects_active)
 {
@@ -35,8 +43,7 @@ if (_effects_active)
 }
 else
 {
-    movement.speed =
-        movement.speed_base;
+    movement.speed = movement.speed_base;
 }
 
 
@@ -50,7 +57,6 @@ var _stealth_active =
     || stealth.reveal.active
     || stealth.alpha.current < 0.999;
 
-
 if (_stealth_active)
 {
     scr_enemy_stealth_update(id);
@@ -61,20 +67,12 @@ if (_stealth_active)
 
 
 // ============================================================================
-// UNIQUE OR ORDINARY STEP
+// UNIQUE / NORMAL
 // ============================================================================
-//
-// This is the only unique-enemy check performed by o_enemy's Step event.
 
 if (has_unique)
 {
-    if (
-        !scr_enemy_unique_step_event(
-            id,
-            _visible,
-            _decision_due
-        )
-    )
+    if (!scr_enemy_unique_step_event(id, _visible, _decision_due))
     {
         show_debug_message(
             "ENEMY UNIQUE ERROR - Step Event failed: "
@@ -82,22 +80,13 @@ if (has_unique)
         );
     }
 
-
     exit;
 }
 
 
-scr_enemy_step_event_gameplay(
-    id,
-    _decision_due
-);
-
+scr_enemy_step_event_gameplay(id, _decision_due);
 
 if (!instance_exists(id))
     exit;
 
-
-scr_enemy_step_event_finish(
-    id,
-    _visible
-);
+scr_enemy_step_event_finish(id, _visible);

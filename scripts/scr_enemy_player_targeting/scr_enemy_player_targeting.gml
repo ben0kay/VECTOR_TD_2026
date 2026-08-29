@@ -128,12 +128,11 @@ function scr_enemy_player_targeting_update(_enemy)
 
     // Enemies not pursuing the player may periodically reconsider buildings.
 
-    if (!_runtime.active)
-    {
-        scr_enemy_strategic_retarget_update(
-            _enemy
-        );
-    }
+    if (!_runtime.active
+    && _enemy.targeting.target_type == EnemyTarget.BUILDING)
+	{
+	    scr_enemy_strategic_retarget_update(_enemy);
+	}
 
 
     scr_enemy_player_roll_sync(
