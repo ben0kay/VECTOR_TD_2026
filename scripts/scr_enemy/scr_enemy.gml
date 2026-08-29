@@ -547,14 +547,16 @@ function scr_enemy_initialize(_enemy)
     // ========================================================================
 
     _enemy.targeting =
-    {
-        target: noone,
-        strategic: noone,
-        breach: noone,
+	{
+	    target: noone,
+	    strategic: noone,
+	    breach: noone,
 
-        target_type:
-            _data.targeting.target_type
-    };
+	    target_x: 0,
+	    target_y: 0,
+
+	    target_type: _data.targeting.target_type
+	};
 
 
     // ========================================================================
@@ -1247,12 +1249,13 @@ function scr_enemy_entering_update(_enemy)
     var _entry_x = _enemy.spawn_entry_x;
     var _entry_y = _enemy.spawn_entry_y;
 
-    var _distance = point_distance(
-        _enemy.x,
-        _enemy.y,
-        _entry_x,
-        _entry_y
-    );
+    var _distance =
+        point_distance(
+            _enemy.x,
+            _enemy.y,
+            _entry_x,
+            _entry_y
+        );
 
     if (_distance <= _enemy.movement.speed + 2)
     {
@@ -1263,22 +1266,26 @@ function scr_enemy_entering_update(_enemy)
 
         _enemy.EnemyState = EnemyState.MOVING;
 
-        // Acquire the first strategic target only after entering the map.
-        _enemy.targeting.target = scr_enemy_target_acquire(_enemy);
+        var _target = scr_enemy_target_acquire(_enemy);
 
-        // Normal pathfinding begins now.
+        scr_enemy_strategic_target_set(
+            _enemy,
+            _target
+        );
+
         _enemy.navigation.needs_path = true;
         _enemy.navigation.repath_timer = 0;
 
         return true;
     }
 
-    var _direction = point_direction(
-        _enemy.x,
-        _enemy.y,
-        _entry_x,
-        _entry_y
-    );
+    var _direction =
+        point_direction(
+            _enemy.x,
+            _enemy.y,
+            _entry_x,
+            _entry_y
+        );
 
     _enemy.x += lengthdir_x(_enemy.movement.speed, _direction);
     _enemy.y += lengthdir_y(_enemy.movement.speed, _direction);
@@ -1457,6 +1464,46 @@ function scr_enemy_target_acquire(_enemy)
     }
 
     return noone;
+}
+
+function scr_enemy_building_target_update(_enemy)
+{
+    if (_enemy.targeting.player.active)
+        return true;
+
+    var _candidate = scr_enemy_closest_building_get(_enemy, 512);
+
+    if (!instance_exists(_candidate))
+        return true;
+
+    var _current = _enemy.targeting.strategic;
+
+    if (!instance_exists(_current))
+    {
+        scr_enemy_strategic_target_set(_enemy, _candidate);
+        scr_navigation_enemy_repath_request(_enemy, true);
+        return true;
+    }
+
+    var _old_dx = _enemy.targeting.target_x - _enemy.x;
+    var _old_dy = _enemy.targeting.target_y - _enemy.y;
+
+    var _new_dx = _candidate.x - _enemy.x;
+    var _new_dy = _candidate.y - _enemy.y;
+
+    var _old_distance =
+        (_old_dx * _old_dx) + (_old_dy * _old_dy);
+
+    var _new_distance =
+        (_new_dx * _new_dx) + (_new_dy * _new_dy);
+
+    if (_new_distance >= _old_distance)
+        return true;
+
+    scr_enemy_strategic_target_set(_enemy, _candidate);
+    scr_navigation_enemy_repath_request(_enemy, true);
+
+    return true;
 }
 
 
@@ -1724,7 +1771,6 @@ function scr_enemy_attack(_enemy)
 
 function scr_enemy_update(_enemy)
 {
-    // Only count cooldown while it actually exists.
     if (_enemy.attack.cooldown.remaining > 0)
     {
         _enemy.attack.cooldown.remaining -= 1 / game_get_speed(gamespeed_fps);
@@ -1733,72 +1779,8 @@ function scr_enemy_update(_enemy)
             _enemy.attack.cooldown.remaining = 0;
     }
 
-    // Brainless enemies need none of the normal targeting/navigation maintenance.
-    if (_enemy.EnemyBehavior == EnemyBehavior.BRAINLESS)
-        return scr_enemy_behavior_update(_enemy);
-
-
-    // ------------------------------------------------------------------------
-    // FAST PATH: FIXED CPU TARGET
-    // ------------------------------------------------------------------------
-    //
-    // CPU does not move.
-    // Ordinary CPU enemies do not need to validate/reacquire it every few
-    // frames. Player aggro and orders are handled before reaching here.
-
-    if (_enemy.targeting.target_type == EnemyTarget.CPU
-        && !_enemy.targeting.player.active
-        && _enemy.order.type == EnemyOrder.NONE)
-    {
-        return scr_enemy_behavior_update(_enemy);
-    }
-
-
-    // ------------------------------------------------------------------------
-    // TEMPORARY OLD MAINTENANCE
-    // ------------------------------------------------------------------------
-    //
-    // Keep this for building hunters and other target types until we replace
-    // them with the cached-position system next.
-
-    if (IFRAMES_5)
-    {
-        if (!instance_exists(_enemy.targeting.strategic))
-        {
-            var _strategic = scr_enemy_target_acquire(_enemy);
-            scr_enemy_strategic_target_set(_enemy, _strategic);
-        }
-
-        if (!instance_exists(_enemy.targeting.breach))
-            _enemy.targeting.breach = noone;
-
-        if (!instance_exists(_enemy.targeting.target))
-        {
-            if (instance_exists(_enemy.targeting.strategic))
-            {
-                _enemy.targeting.target = _enemy.targeting.strategic;
-            }
-            else
-            {
-                var _strategic = scr_enemy_target_acquire(_enemy);
-
-                scr_enemy_strategic_target_set(_enemy, _strategic);
-                _enemy.targeting.target = _enemy.targeting.strategic;
-            }
-
-            if (!instance_exists(_enemy.targeting.target))
-            {
-                scr_navigation_enemy_stop(_enemy);
-                return true;
-            }
-
-            scr_navigation_enemy_repath_request(_enemy, true);
-        }
-    }
-
     return scr_enemy_behavior_update(_enemy);
 }
-
 
 
 /// @description Spawns the default CPU-seeking test enemy.
@@ -3752,20 +3734,23 @@ function scr_enemy_attack_line_of_sight_clear(
 }
 
 
-/// @description Processes ordinary targeting, movement and attacking.
-
 function scr_enemy_step_event_gameplay(_enemy, _decision_due)
 {
-    // Orders override ordinary targeting.
     if (_enemy.order.type != EnemyOrder.NONE)
     {
         scr_enemy_order_update(_enemy);
     }
     else
     {
-        // Player aggro only needs processing when active or on a decision tick.
         if (_enemy.targeting.player.active || _decision_due)
             scr_enemy_player_targeting_update(_enemy);
+
+        if (_decision_due
+            && _enemy.targeting.target_type == EnemyTarget.BUILDING
+            && !_enemy.targeting.player.active)
+        {
+            scr_enemy_building_target_update(_enemy);
+        }
     }
 
     scr_enemy_update(_enemy);

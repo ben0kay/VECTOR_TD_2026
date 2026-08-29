@@ -691,53 +691,16 @@ function scr_enemy_combat_movement_update(
     );
 }
 
-/// @description Assigns a new strategic target and resets target-specific decisions.
-
 function scr_enemy_strategic_target_set(_enemy, _target)
 {
-    if (!instance_exists(_enemy))
-        return false;
+    _enemy.targeting.strategic = _target;
+    _enemy.targeting.target = _target;
 
-    var _old_target =
-        _enemy.targeting.strategic;
-
-    if (_old_target == _target)
-        return false;
-
-
-    _enemy.targeting.strategic =
-        _target;
-
-
-    // A new strategic target permits one new player roll.
-
-    if (variable_struct_exists(_enemy.targeting, "player"))
+    if (instance_exists(_target))
     {
-        var _player_runtime =
-            _enemy.targeting.player;
-
-        _player_runtime.roll.strategic_target =
-            _target;
-
-        _player_runtime.roll.completed =
-            false;
-
-        _player_runtime.roll.succeeded =
-            false;
+        _enemy.targeting.target_x = _target.x;
+        _enemy.targeting.target_y = _target.y;
     }
-
-
-    // Do not interrupt active player aggro or an active breach target.
-
-    if (
-        !_enemy.targeting.player.active
-        && !instance_exists(_enemy.targeting.breach)
-    )
-    {
-        _enemy.targeting.target =
-            _target;
-    }
-
 
     return true;
 }

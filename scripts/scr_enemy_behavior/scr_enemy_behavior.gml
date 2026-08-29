@@ -1,158 +1,134 @@
 function scr_enemy_behavior_standard_update(_enemy)
 {
-    var _target =
-        _enemy.targeting.target;
-
-
     switch (_enemy.EnemyState)
     {
-        case EnemyState.SPAWNING:
-        {
-            _enemy.EnemyState =
-                EnemyState.MOVING;
-
-            scr_navigation_enemy_repath_request(
-                _enemy,
-                true
-            );
-        }
-        break;
-
-
         case EnemyState.MOVING:
         {
             // Native path movement continues automatically.
-            // Exact target/range decisions only need periodic updates.
+            scr_navigation_enemy_update(_enemy);
 
-            if (IFRAMES_5)
+            if (!IFRAMES_5)
+                return true;
+
+
+            // ------------------------------------------------------------
+            // BUILDING HUNTER
+            // ------------------------------------------------------------
+
+            if (_enemy.targeting.target_type == EnemyTarget.BUILDING
+                && !_enemy.targeting.player.active)
             {
-                if (!instance_exists(_target))
-                    break;
+                var _dx = _enemy.targeting.target_x - _enemy.x;
+                var _dy = _enemy.targeting.target_y - _enemy.y;
 
+                var _distance_squared =
+                    (_dx * _dx) + (_dy * _dy);
 
-                var _edge_distance =
-                    scr_enemy_target_edge_distance(
-                        _enemy,
-                        _target
-                    );
+                var _arrival_range =
+                    _enemy.attack.range
+                    + global.vtd_level.map.cell_size;
 
+                // Still travelling toward remembered location.
+                if (_distance_squared > _arrival_range * _arrival_range)
+                    return true;
 
-                var _attack_position_valid =
-                    _edge_distance
-                    <= _enemy.attack.range;
-
-
-                if (
-                    _attack_position_valid
-                    && _enemy.attack.requires_line_of_sight
-                )
+                // Only NOW does the enemy discover whether the building
+                // still exists.
+                if (!instance_exists(_enemy.targeting.strategic))
                 {
-                    _attack_position_valid =
-                        scr_enemy_attack_line_of_sight_clear(
-                            _enemy,
-                            _target
-                        );
-                }
+                    var _replacement =
+                        scr_enemy_target_acquire(_enemy);
 
+                    scr_enemy_strategic_target_set(_enemy, _replacement);
 
-                if (_attack_position_valid)
-                {
-                    scr_navigation_enemy_stop(
-                        _enemy
-                    );
+                    if (instance_exists(_replacement))
+                        scr_navigation_enemy_repath_request(_enemy, true);
 
-                    _enemy.EnemyState =
-                        EnemyState.ATTACKING;
-
-                    break;
+                    return true;
                 }
             }
 
 
-            scr_navigation_enemy_update(
-                _enemy
-            );
+            // ------------------------------------------------------------
+            // LIVE TARGET RANGE CHECK
+            // ------------------------------------------------------------
+
+            var _target = _enemy.targeting.target;
+
+            if (!instance_exists(_target))
+                return true;
+
+            var _edge_distance =
+                scr_enemy_target_edge_distance(_enemy, _target);
+
+            var _can_attack =
+                _edge_distance <= _enemy.attack.range;
+
+            if (_can_attack && _enemy.attack.requires_line_of_sight)
+                _can_attack =
+                    scr_enemy_attack_line_of_sight_clear(_enemy, _target);
+
+            if (_can_attack)
+            {
+                scr_navigation_enemy_stop(_enemy);
+                _enemy.EnemyState = EnemyState.ATTACKING;
+            }
+
+            return true;
         }
-        break;
 
 
         case EnemyState.ATTACKING:
         {
-            // Attacking remains responsive for now.
-            // We can profile this separately after the movement savings.
+            var _target = _enemy.targeting.target;
 
             if (!instance_exists(_target))
-                break;
+            {
+                _enemy.EnemyState = EnemyState.MOVING;
 
+                if (_enemy.targeting.target_type == EnemyTarget.BUILDING)
+                {
+                    var _replacement =
+                        scr_enemy_target_acquire(_enemy);
 
-            _enemy.visual.draw_angle =
-                point_direction(
-                    _enemy.x,
-                    _enemy.y,
-                    _target.x,
-                    _target.y
-                );
+                    scr_enemy_strategic_target_set(_enemy, _replacement);
 
+                    if (instance_exists(_replacement))
+                        scr_navigation_enemy_repath_request(_enemy, true);
+                }
+
+                return true;
+            }
 
             var _edge_distance =
-                scr_enemy_target_edge_distance(
-                    _enemy,
-                    _target
-                );
+                scr_enemy_target_edge_distance(_enemy, _target);
 
+            var _can_attack =
+                _edge_distance <= _enemy.attack.range;
 
-            var _attack_position_valid =
-                _edge_distance
-                <= _enemy.attack.range;
+            if (_can_attack && _enemy.attack.requires_line_of_sight)
+                _can_attack =
+                    scr_enemy_attack_line_of_sight_clear(_enemy, _target);
 
-
-            if (
-                _attack_position_valid
-                && _enemy.attack.requires_line_of_sight
-            )
+            if (!_can_attack)
             {
-                _attack_position_valid =
-                    scr_enemy_attack_line_of_sight_clear(
-                        _enemy,
-                        _target
-                    );
+                _enemy.EnemyState = EnemyState.MOVING;
+                scr_navigation_enemy_repath_request(_enemy, true);
+                return true;
             }
-
-
-            if (!_attack_position_valid)
-            {
-                _enemy.EnemyState =
-                    EnemyState.MOVING;
-
-                scr_navigation_enemy_repath_request(
-                    _enemy,
-                    true
-                );
-
-                break;
-            }
-
 
             if (_enemy.attack.cooldown.remaining <= 0)
-            {
-                scr_enemy_attack(
-                    _enemy
-                );
-            }
+                scr_enemy_attack(_enemy);
+
+            return true;
         }
-        break;
 
 
         case EnemyState.STUNNED:
         case EnemyState.DEAD:
-        {
-            scr_navigation_enemy_stop(
-                _enemy
-            );
-        }
+            scr_navigation_enemy_stop(_enemy);
         break;
     }
-
 
     return true;
 }

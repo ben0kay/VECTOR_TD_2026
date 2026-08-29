@@ -28,9 +28,9 @@ if (has_unique)
 scr_enemy_draw(id);
 
 // ========================================================================
-// TEMP DEBUG - ENEMY SNIPER LOS
+// TEMP DEBUG - RANGED ENEMY LOS CHECK - CHANGE SNIPER TO ALL RANGED. DO NOT DELETE THIS COMMENTED BLOCK CODE
 // ========================================================================
-
+/*
 if (
     identity.key == "enemy_sniper"
     && instance_exists(targeting.target)

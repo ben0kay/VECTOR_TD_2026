@@ -233,130 +233,111 @@ function scr_navigation_enemy_path_build(_enemy)
     return true;
 }
 
-/// @description Updates staggered native navigation and breach retries.
-
 function scr_navigation_enemy_update(_enemy)
 {
-    // Native GameMaker path movement continues by itself.
-    // Keep only dynamic speed synchronized every frame.
+    // Native GameMaker path movement continues automatically.
+    _enemy.path_speed = _enemy.movement.speed;
 
-    _enemy.path_speed =
-        _enemy.movement.speed;
-
-
-    var _lazy =
-        _enemy.navigation.lazy;
+    var _nav = _enemy.navigation;
+    var _lazy = _nav.lazy;
+    var _revision = global.vtd_level.navigation.revision;
 
 
-    // ========================================================================
-    // FAST PATH
-    // ========================================================================
+    // ------------------------------------------------------------------------
+    // REMEMBERED DEAD BUILDING
+    // ------------------------------------------------------------------------
     //
-    // The overwhelming majority of moving enemies should leave here.
-    // Nothing changed, no path is requested, and no breach work is pending.
+    // A building hunter whose chosen building died keeps following the
+    // already-created path toward its remembered destination.
+    //
+    // It does not learn that the building is gone merely because the
+    // navigation grid changed.
 
-    if (
-        !_enemy.navigation.needs_path
+    var _remembering_building =
+        _enemy.targeting.target_type == EnemyTarget.BUILDING
+        && !_enemy.targeting.player.active
+        && _enemy.order.type == EnemyOrder.NONE
+        && !instance_exists(_enemy.targeting.strategic)
+        && _enemy.path_index != -1;
+
+    if (_remembering_building)
+    {
+        _nav.revision_seen = _revision;
+        _nav.needs_path = false;
+
+        _lazy.breach_pending = false;
+        _lazy.breach_timer = 0;
+
+        return true;
+    }
+
+
+    // ------------------------------------------------------------------------
+    // FAST PATH
+    // ------------------------------------------------------------------------
+
+    if (!_nav.needs_path
         && !_lazy.breach_pending
-        && _enemy.navigation.revision_seen
-            == global.vtd_level.navigation.revision
-    )
+        && _nav.revision_seen == _revision)
     {
         return true;
     }
 
 
-    // Only navigation work that actually needs attention reaches here.
-
-    _lazy.outside_view =
-        _enemy.performance
-            .visibility
-            .outside_view;
+    _lazy.outside_view = _enemy.performance.visibility.outside_view;
 
 
-    // ========================================================================
-    // NAVIGATION REVISION
-    // ========================================================================
+    // ------------------------------------------------------------------------
+    // NAVIGATION GRID CHANGED
+    // ------------------------------------------------------------------------
 
-    if (
-        _enemy.navigation.revision_seen
-        != global.vtd_level.navigation.revision
-        && !_enemy.navigation.needs_path
-        && !_lazy.breach_pending
-    )
+    if (_nav.revision_seen != _revision
+        && !_nav.needs_path
+        && !_lazy.breach_pending)
     {
-        scr_navigation_enemy_repath_request(
-            _enemy,
-            false
-        );
+        scr_navigation_enemy_repath_request(_enemy, false);
     }
 
 
-    // ========================================================================
+    // ------------------------------------------------------------------------
     // BREACH RETRY
-    // ========================================================================
+    // ------------------------------------------------------------------------
 
     if (_lazy.breach_pending)
     {
         _lazy.breach_timer--;
 
-
         if (_lazy.breach_timer <= 0)
         {
-            _lazy.breach_pending =
-                false;
-
+            _lazy.breach_pending = false;
             _lazy.breach_attempts++;
 
-
-            var _breach_started =
-                scr_navigation_enemy_breach_begin(
-                    _enemy
-                );
-
-
-            if (!_breach_started)
+            if (!scr_navigation_enemy_breach_begin(_enemy))
             {
-                var _retry_factor =
-                    _lazy.outside_view
-                    ? _lazy.factor
-                    : 1;
+                var _factor = _lazy.outside_view ? _lazy.factor : 1;
 
-
-                _lazy.breach_pending =
-                    true;
-
-                _lazy.breach_timer =
-                    irandom_range(
-                        30,
-                        60
-                    )
-                    * _retry_factor;
+                _lazy.breach_pending = true;
+                _lazy.breach_timer = irandom_range(30, 60) * _factor;
             }
         }
     }
 
 
-    // ========================================================================
+    // ------------------------------------------------------------------------
     // PATH REQUEST
-    // ========================================================================
+    // ------------------------------------------------------------------------
 
-    if (_enemy.navigation.needs_path)
+    if (_nav.needs_path)
     {
-        _enemy.navigation.repath_timer--;
+        _nav.repath_timer--;
 
-
-        if (_enemy.navigation.repath_timer <= 0)
-        {
-            return scr_navigation_enemy_path_build(
-                _enemy
-            );
-        }
+        if (_nav.repath_timer <= 0)
+            return scr_navigation_enemy_path_build(_enemy);
     }
-
 
     return true;
 }
+
 /// @description Returns possible approach positions around a building.
 
 function scr_navigation_building_approach_positions(
