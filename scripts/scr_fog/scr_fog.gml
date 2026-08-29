@@ -204,27 +204,12 @@ function scr_fog_visibility_update(_fog_controller)
 
 function scr_fog_position_visible(_world_x, _world_y)
 {
-    if (!variable_global_exists("vtd_level"))
+    var _fog =
+        global.vtd_level.entities.fog.fog;
+
+    if (!_fog.enabled)
         return true;
 
-    if (!is_struct(global.vtd_level))
-        return true;
-
-    if (!variable_struct_exists(global.vtd_level.entities, "fog"))
-        return true;
-
-
-    var _controller =
-        global.vtd_level.entities.fog;
-
-    if (!instance_exists(_controller))
-        return true;
-
-    if (!_controller.fog.enabled)
-        return true;
-
-
-    var _fog = _controller.fog;
 
     var _cell_x =
         floor(_world_x / _fog.cell_size);

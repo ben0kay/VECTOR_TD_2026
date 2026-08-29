@@ -1,23 +1,7 @@
-/// @description Processes ordinary enemy movement and attacks.
-
 function scr_enemy_behavior_standard_update(_enemy)
 {
-    if (!instance_exists(_enemy))
-        return false;
-
-
     var _target =
         _enemy.targeting.target;
-
-    if (!instance_exists(_target))
-        return true;
-
-
-    var _edge_distance =
-        scr_enemy_target_edge_distance(
-            _enemy,
-            _target
-        );
 
 
     switch (_enemy.EnemyState)
@@ -37,36 +21,51 @@ function scr_enemy_behavior_standard_update(_enemy)
 
         case EnemyState.MOVING:
         {
-            var _attack_position_valid =
-                _edge_distance
-                <= _enemy.attack.range;
+            // Native path movement continues automatically.
+            // Exact target/range decisions only need periodic updates.
 
-
-            // Non-LOS enemies never call the LOS function.
-
-            if (
-                _attack_position_valid
-                && _enemy.attack.requires_line_of_sight
-            )
+            if (IFRAMES_5)
             {
-                _attack_position_valid =
-                    scr_enemy_attack_line_of_sight_clear(
+                if (!instance_exists(_target))
+                    break;
+
+
+                var _edge_distance =
+                    scr_enemy_target_edge_distance(
                         _enemy,
                         _target
                     );
-            }
 
 
-            if (_attack_position_valid)
-            {
-                scr_navigation_enemy_stop(
-                    _enemy
-                );
+                var _attack_position_valid =
+                    _edge_distance
+                    <= _enemy.attack.range;
 
-                _enemy.EnemyState =
-                    EnemyState.ATTACKING;
 
-                break;
+                if (
+                    _attack_position_valid
+                    && _enemy.attack.requires_line_of_sight
+                )
+                {
+                    _attack_position_valid =
+                        scr_enemy_attack_line_of_sight_clear(
+                            _enemy,
+                            _target
+                        );
+                }
+
+
+                if (_attack_position_valid)
+                {
+                    scr_navigation_enemy_stop(
+                        _enemy
+                    );
+
+                    _enemy.EnemyState =
+                        EnemyState.ATTACKING;
+
+                    break;
+                }
             }
 
 
@@ -79,6 +78,13 @@ function scr_enemy_behavior_standard_update(_enemy)
 
         case EnemyState.ATTACKING:
         {
+            // Attacking remains responsive for now.
+            // We can profile this separately after the movement savings.
+
+            if (!instance_exists(_target))
+                break;
+
+
             _enemy.visual.draw_angle =
                 point_direction(
                     _enemy.x,
@@ -88,12 +94,17 @@ function scr_enemy_behavior_standard_update(_enemy)
                 );
 
 
+            var _edge_distance =
+                scr_enemy_target_edge_distance(
+                    _enemy,
+                    _target
+                );
+
+
             var _attack_position_valid =
                 _edge_distance
                 <= _enemy.attack.range;
 
-
-            // Non-LOS enemies never call the LOS function.
 
             if (
                 _attack_position_valid

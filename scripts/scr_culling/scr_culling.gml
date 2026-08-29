@@ -234,8 +234,6 @@ function scr_culling_check_instance(
     _padding = 128
 )
 {
-    if (!instance_exists(_instance))
-        return false;
 
 
     var _radius = 16;

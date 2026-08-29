@@ -1689,14 +1689,8 @@ function scr_enemy_attack(_enemy)
     return true;
 }
 
-/// @description Processes shared enemy logic and dispatches its primary behavior.
-
 function scr_enemy_update(_enemy)
 {
-    if (!instance_exists(_enemy))
-        return false;
-
-
     var _fps =
         max(
             1,
@@ -1712,7 +1706,7 @@ function scr_enemy_update(_enemy)
         );
 
 
-    // Brainless enemies do not require strategic targets or paths.
+    // Brainless enemies have no strategic targeting/navigation maintenance.
 
     if (
         _enemy.EnemyBehavior
@@ -1726,42 +1720,16 @@ function scr_enemy_update(_enemy)
 
 
     // ========================================================================
-    // STRATEGIC TARGET RECOVERY
+    // PERIODIC TARGET MAINTENANCE
     // ========================================================================
+    //
+    // Target validity does not need checking 60 times per second.
+    // IFRAMES_5 is staggered by instance id, spreading enemy work across
+    // several frames.
 
-    if (!instance_exists(_enemy.targeting.strategic))
+    if (IFRAMES_5)
     {
-        var _strategic =
-            scr_enemy_target_acquire(
-                _enemy
-            );
-
-        scr_enemy_strategic_target_set(
-            _enemy,
-            _strategic
-        );
-    }
-
-
-    if (!instance_exists(_enemy.targeting.breach))
-    {
-        _enemy.targeting.breach =
-            noone;
-    }
-
-
-    // ========================================================================
-    // ACTIVE TARGET RECOVERY
-    // ========================================================================
-
-    if (!instance_exists(_enemy.targeting.target))
-    {
-        if (instance_exists(_enemy.targeting.strategic))
-        {
-            _enemy.targeting.target =
-                _enemy.targeting.strategic;
-        }
-        else
+        if (!instance_exists(_enemy.targeting.strategic))
         {
             var _strategic =
                 scr_enemy_target_acquire(
@@ -1772,30 +1740,57 @@ function scr_enemy_update(_enemy)
                 _enemy,
                 _strategic
             );
+        }
 
-            _enemy.targeting.target =
-                _enemy.targeting.strategic;
+
+        if (!instance_exists(_enemy.targeting.breach))
+        {
+            _enemy.targeting.breach =
+                noone;
         }
 
 
         if (!instance_exists(_enemy.targeting.target))
         {
-            scr_navigation_enemy_stop(
-                _enemy
+            if (instance_exists(_enemy.targeting.strategic))
+            {
+                _enemy.targeting.target =
+                    _enemy.targeting.strategic;
+            }
+            else
+            {
+                var _strategic =
+                    scr_enemy_target_acquire(
+                        _enemy
+                    );
+
+                scr_enemy_strategic_target_set(
+                    _enemy,
+                    _strategic
+                );
+
+                _enemy.targeting.target =
+                    _enemy.targeting.strategic;
+            }
+
+
+            if (!instance_exists(_enemy.targeting.target))
+            {
+                scr_navigation_enemy_stop(
+                    _enemy
+                );
+
+                return true;
+            }
+
+
+            scr_navigation_enemy_repath_request(
+                _enemy,
+                true
             );
-
-            return true;
         }
-
-
-        scr_navigation_enemy_repath_request(
-            _enemy,
-            true
-        );
     }
 
-
-    // Exactly one primary behavior runs per enemy.
 
     return scr_enemy_behavior_update(
         _enemy

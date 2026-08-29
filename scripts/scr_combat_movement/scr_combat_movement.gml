@@ -924,19 +924,11 @@ function scr_enemy_standoff_update(_enemy)
     var _data =
         _enemy.combat_movement.data;
 
+
     var _edge_distance =
         scr_enemy_target_edge_distance(
             _enemy,
             _target
-        );
-
-    var _line_clear =
-        !_data.requires_line_of_sight
-        || !scr_world_line_blocked_by_dead(
-            _enemy.x,
-            _enemy.y,
-            _target.x,
-            _target.y
         );
 
 
@@ -957,13 +949,27 @@ function scr_enemy_standoff_update(_enemy)
 
         case EnemyState.MOVING:
         {
-            if (
+            var _attack_position_valid =
                 _edge_distance
                 <= _data.preferred_range
                 && _edge_distance
-                >= _data.minimum_range
-                && _line_clear
+                >= _data.minimum_range;
+
+
+            if (
+                _attack_position_valid
+                && _enemy.attack.requires_line_of_sight
             )
+            {
+                _attack_position_valid =
+                    scr_enemy_attack_line_of_sight_clear(
+                        _enemy,
+                        _target
+                    );
+            }
+
+
+            if (_attack_position_valid)
             {
                 scr_navigation_enemy_stop(
                     _enemy
@@ -976,7 +982,7 @@ function scr_enemy_standoff_update(_enemy)
             }
 
 
-            // Continue around dead terrain until a valid firing lane appears.
+            // Continue approaching until a valid firing position is found.
 
             scr_navigation_enemy_update(
                 _enemy
@@ -996,21 +1002,27 @@ function scr_enemy_standoff_update(_enemy)
                 );
 
 
-            _line_clear =
-                !_data.requires_line_of_sight
-                || !scr_world_line_blocked_by_dead(
-                    _enemy.x,
-                    _enemy.y,
-                    _target.x,
-                    _target.y
-                );
+            var _attack_position_valid =
+                _edge_distance
+                <= _data.maximum_range
+                && _edge_distance
+                >= _data.minimum_range;
 
 
             if (
-                _edge_distance
-                > _data.maximum_range
-                || !_line_clear
+                _attack_position_valid
+                && _enemy.attack.requires_line_of_sight
             )
+            {
+                _attack_position_valid =
+                    scr_enemy_attack_line_of_sight_clear(
+                        _enemy,
+                        _target
+                    );
+            }
+
+
+            if (!_attack_position_valid)
             {
                 _enemy.EnemyState =
                     EnemyState.MOVING;

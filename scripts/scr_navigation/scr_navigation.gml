@@ -237,21 +237,36 @@ function scr_navigation_enemy_path_build(_enemy)
 
 function scr_navigation_enemy_update(_enemy)
 {
-    if (!instance_exists(_enemy))
-        return false;
+    // Native GameMaker path movement continues by itself.
+    // Keep only dynamic speed synchronized every frame.
 
-    if (!instance_exists(_enemy.targeting.target))
-    {
-        scr_navigation_enemy_stop(_enemy);
-        return false;
-    }
+    _enemy.path_speed =
+        _enemy.movement.speed;
 
 
     var _lazy =
         _enemy.navigation.lazy;
 
 
-    // Performance data is guaranteed during enemy initialization.
+    // ========================================================================
+    // FAST PATH
+    // ========================================================================
+    //
+    // The overwhelming majority of moving enemies should leave here.
+    // Nothing changed, no path is requested, and no breach work is pending.
+
+    if (
+        !_enemy.navigation.needs_path
+        && !_lazy.breach_pending
+        && _enemy.navigation.revision_seen
+            == global.vtd_level.navigation.revision
+    )
+    {
+        return true;
+    }
+
+
+    // Only navigation work that actually needs attention reaches here.
 
     _lazy.outside_view =
         _enemy.performance
@@ -259,8 +274,9 @@ function scr_navigation_enemy_update(_enemy)
             .outside_view;
 
 
-    // A building or obstacle changed. Every enemy notices the revision,
-    // but the expensive mp_grid_path calculation receives a random delay.
+    // ========================================================================
+    // NAVIGATION REVISION
+    // ========================================================================
 
     if (
         _enemy.navigation.revision_seen
@@ -276,7 +292,9 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
-    // A normal route failed. Breach analysis remains staggered.
+    // ========================================================================
+    // BREACH RETRY
+    // ========================================================================
 
     if (_lazy.breach_pending)
     {
@@ -319,6 +337,10 @@ function scr_navigation_enemy_update(_enemy)
     }
 
 
+    // ========================================================================
+    // PATH REQUEST
+    // ========================================================================
+
     if (_enemy.navigation.needs_path)
     {
         _enemy.navigation.repath_timer--;
@@ -332,15 +354,6 @@ function scr_navigation_enemy_update(_enemy)
         }
     }
 
-
-    // Native path movement must remain active every frame.
-
-    _enemy.path_speed =
-        _enemy.movement.speed;
-
-
-    // Visual direction is handled once by
-    // scr_enemy_visual_direction_update() while visible.
 
     return true;
 }

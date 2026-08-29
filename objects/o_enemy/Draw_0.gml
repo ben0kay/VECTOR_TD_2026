@@ -26,3 +26,51 @@ if (has_unique)
 
 
 scr_enemy_draw(id);
+
+// ========================================================================
+// TEMP DEBUG - ENEMY SNIPER LOS
+// ========================================================================
+
+if (
+    identity.key == "enemy_sniper"
+    && instance_exists(targeting.target)
+)
+{
+    var _target =
+        targeting.target;
+
+    var _blocked =
+        scr_world_line_blocked_by_dead(
+            x,
+            y,
+            _target.x,
+            _target.y
+        );
+
+
+    draw_set_alpha(1);
+
+    draw_set_color(
+        _blocked
+        ? c_red
+        : c_lime
+    );
+
+    draw_line_width(
+        x,
+        y,
+        _target.x,
+        _target.y,
+        3
+    );
+
+    draw_set_color(c_white);
+
+    draw_text(
+        x + 16,
+        y + 16,
+        _blocked
+        ? "BLOCKED"
+        : "CLEAR"
+    );
+}

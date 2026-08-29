@@ -7,3 +7,4 @@ if (BuildingState != BuildingState.ACTIVE)
 
 scr_tower_range_draw(id);
 scr_tower_draw(id);
+
