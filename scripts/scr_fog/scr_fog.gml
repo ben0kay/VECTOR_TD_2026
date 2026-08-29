@@ -192,10 +192,6 @@ function scr_fog_visibility_update(_fog_controller)
     // Gameplay data has changed.
     // The surface will rebuild once during the next Draw event.
 
-    _fog.render.dirty =
-        true;
-
-
     return true;
 }
 
@@ -340,10 +336,14 @@ function scr_fog_draw(_fog_controller)
     if (!_fog.enabled)
         return true;
 
+
     var _render = _fog.render;
 
     var _scale =
         _render.scale;
+
+    var _fog_scale =
+        _scale;
 
     var _width =
         ceil(room_width / _scale);
@@ -351,10 +351,6 @@ function scr_fog_draw(_fog_controller)
     var _height =
         ceil(room_height / _scale);
 
-
-    // ------------------------------------------------------------
-    // PERMANENT SHROUD
-    // ------------------------------------------------------------
 
     if (!surface_exists(_render.shroud_surface))
     {
@@ -380,10 +376,6 @@ function scr_fog_draw(_fog_controller)
     }
 
 
-    // ------------------------------------------------------------
-    // ACTIVE FOG
-    // ------------------------------------------------------------
-
     if (!surface_exists(_render.fog_surface))
     {
         _render.fog_surface =
@@ -397,9 +389,12 @@ function scr_fog_draw(_fog_controller)
     }
 
 
-    // ------------------------------------------------------------
-    // PERMANENT EXPLORATION
-    // ------------------------------------------------------------
+    var _player =
+        global.vtd_level.entities.player;
+
+    var _cpu =
+        global.vtd_level.entities.cpu;
+
 
     surface_set_target(
         _render.shroud_surface
@@ -409,9 +404,6 @@ function scr_fog_draw(_fog_controller)
         bm_subtract
     );
 
-
-    var _player =
-        global.vtd_level.entities.player;
 
     if (instance_exists(_player))
     {
@@ -423,9 +415,6 @@ function scr_fog_draw(_fog_controller)
         );
     }
 
-
-    var _cpu =
-        global.vtd_level.entities.cpu;
 
     if (instance_exists(_cpu))
     {
@@ -443,9 +432,9 @@ function scr_fog_draw(_fog_controller)
         if (BuildingState == BuildingState.ACTIVE)
         {
             draw_circle(
-                x / other._scale,
-                y / other._scale,
-                scr_fog_revealer_range_get(id) / other._scale,
+                x / _fog_scale,
+                y / _fog_scale,
+                scr_fog_revealer_range_get(id) / _fog_scale,
                 false
             );
         }
@@ -458,10 +447,6 @@ function scr_fog_draw(_fog_controller)
 
     surface_reset_target();
 
-
-    // ------------------------------------------------------------
-    // CURRENT VISIBILITY
-    // ------------------------------------------------------------
 
     surface_set_target(
         _render.fog_surface
@@ -504,9 +489,9 @@ function scr_fog_draw(_fog_controller)
         if (BuildingState == BuildingState.ACTIVE)
         {
             draw_circle(
-                x / other._scale,
-                y / other._scale,
-                scr_fog_revealer_range_get(id) / other._scale,
+                x / _fog_scale,
+                y / _fog_scale,
+                scr_fog_revealer_range_get(id) / _fog_scale,
                 false
             );
         }
@@ -520,12 +505,14 @@ function scr_fog_draw(_fog_controller)
     surface_reset_target();
 
 
-    // ------------------------------------------------------------
-    // FINAL DRAW
-    // ------------------------------------------------------------
+    draw_set_color(
+        c_white
+    );
 
-    draw_set_color(c_white);
-    draw_set_alpha(1);
+    draw_set_alpha(
+        1
+    );
+
 
     draw_surface_ext(
         _render.shroud_surface,
@@ -538,6 +525,7 @@ function scr_fog_draw(_fog_controller)
         _fog.alpha.unexplored
     );
 
+
     draw_surface_ext(
         _render.fog_surface,
         0,
@@ -548,6 +536,7 @@ function scr_fog_draw(_fog_controller)
         c_white,
         1
     );
+
 
     return true;
 }

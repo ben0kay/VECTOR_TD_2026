@@ -13,6 +13,14 @@ hud =
 		hide: false
 	},
 	
+	static_surface:
+	{
+	    surface_id: -1,
+	    width: 0,
+	    height: 0
+	},
+	
+	
     selection:
     {
         target: noone

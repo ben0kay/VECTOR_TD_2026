@@ -842,56 +842,6 @@ function scr_hud_top_bar_draw(_hud)
         _hud.hud.top.row_height;
 
 
-    // ========================================================================
-    // BACKGROUND
-    // ========================================================================
-
-    draw_set_alpha(
-        _hud.hud.top.background_alpha
-    );
-
-    draw_set_color(
-        c_black
-    );
-
-
-    draw_rectangle(
-        0,
-        0,
-        _gui_width,
-        _height,
-        false
-    );
-
-
-    draw_set_alpha(
-        1
-    );
-
-    draw_set_color(
-        _hud.hud.top.color
-    );
-
-
-    draw_line(
-        0,
-        _height,
-        _gui_width,
-        _height
-    );
-
-
-    draw_set_color(
-        c_dkgray
-    );
-
-    draw_line(
-        0,
-        _row_height,
-        _gui_width,
-        _row_height
-    );
-
 
     // ========================================================================
     // RIGHT-HAND STATUS CELLS
@@ -1397,47 +1347,7 @@ function scr_hud_bottom_bar_draw(_hud)
     var _inspector_top =
         _gui_height - _inspector_height;
 
-    // Horizontal bottom tray.
 
-    draw_set_alpha(_hud.hud.bottom.background_alpha);
-    draw_set_color(c_black);
-
-    draw_rectangle(
-        0,
-        _tray_top,
-        _inspector_left,
-        _gui_height,
-        false
-    );
-
-    // Taller permanent inspector.
-
-    draw_rectangle(
-        _inspector_left,
-        _inspector_top,
-        _gui_width,
-        _gui_height,
-        false
-    );
-
-    draw_set_alpha(1);
-    draw_set_color(_hud.hud.bottom.color);
-
-    draw_line(0, _tray_top, _inspector_left, _tray_top);
-
-    draw_line(
-        _inspector_left,
-        _inspector_top,
-        _gui_width,
-        _inspector_top
-    );
-
-    draw_line(
-        _inspector_left,
-        _inspector_top,
-        _inspector_left,
-        _gui_height
-    );
 
     if (_hud.hud.build_menu.open)
     {
@@ -1785,40 +1695,26 @@ function scr_hud_wave_warning_draw(_hud)
     return true;
 }
 
-/// @description Draws one reusable framed top-HUD information cell.
-
-function scr_hud_top_cell_draw(
+function scr_hud_top_cell_static_draw(
     _x,
     _width,
     _height,
     _label,
-    _value,
     _color,
     _y = 0
 )
 {
-    var _left =
-        _x;
+    var _left = _x;
+    var _right = _x + _width;
 
-    var _right =
-        _x + _width;
-
-    var _top =
-        _y;
-
-    var _bottom =
-        _y + _height;
+    var _top = _y;
+    var _bottom = _y + _height;
 
     var _middle_y =
         _top + (_height * 0.5);
 
-    var _corner =
-        8;
+    var _corner = 8;
 
-
-    // ========================================================================
-    // SUBTLE CELL BODY
-    // ========================================================================
 
     draw_set_alpha(0.22);
     draw_set_color(c_black);
@@ -1832,47 +1728,38 @@ function scr_hud_top_cell_draw(
     );
 
 
-    // ========================================================================
-    // AQUA VECTOR FRAME
-    // ========================================================================
-
     draw_set_alpha(0.72);
     draw_set_color(c_aqua);
 
-    draw_line_width(
+
+    draw_line(
         _left + _corner,
         _top + 2,
         _right - _corner,
-        _top + 2,
-        1
+        _top + 2
     );
 
-    draw_line_width(
+    draw_line(
         _left + _corner,
         _bottom - 2,
         _right - _corner,
-        _bottom - 2,
-        1
+        _bottom - 2
     );
 
-    draw_line_width(
+    draw_line(
         _left + 2,
         _top + _corner,
         _left + 2,
-        _bottom - _corner,
-        1
+        _bottom - _corner
     );
 
-    draw_line_width(
+    draw_line(
         _right - 2,
         _top + _corner,
         _right - 2,
-        _bottom - _corner,
-        1
+        _bottom - _corner
     );
 
-
-    // Clipped corners.
 
     draw_line(
         _left + 2,
@@ -1903,8 +1790,6 @@ function scr_hud_top_cell_draw(
     );
 
 
-    // Small inset technical marks.
-
     draw_set_alpha(0.45);
 
     draw_line(
@@ -1922,10 +1807,6 @@ function scr_hud_top_cell_draw(
     );
 
 
-    // ========================================================================
-    // COLOURED ACCENT / STATUS DIAMOND
-    // ========================================================================
-
     draw_set_alpha(0.90);
     draw_set_color(_color);
 
@@ -1936,6 +1817,7 @@ function scr_hud_top_cell_draw(
         _bottom - 12,
         2
     );
+
 
     draw_line(
         _left + 22,
@@ -1966,10 +1848,6 @@ function scr_hud_top_cell_draw(
     );
 
 
-    // ========================================================================
-    // TEXT
-    // ========================================================================
-
     draw_set_alpha(1);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
@@ -1982,18 +1860,441 @@ function scr_hud_top_cell_draw(
         string_upper(_label)
     );
 
-    draw_set_color(c_white);
-
-    draw_text(
-        _left + 40,
-        _top + 30,
-        _value
-    );
-
 
     return _right;
 }
 
+function scr_hud_static_surface_build(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
+
+    var _surface_data =
+        _hud.hud.static_surface;
+
+
+    if (surface_exists(_surface_data.id))
+        surface_free(_surface_data.id);
+
+
+    _surface_data.id =
+        surface_create(
+            _gui_width,
+            _gui_height
+        );
+
+
+    if (!surface_exists(_surface_data.id))
+        return false;
+
+
+    _surface_data.width =
+        _gui_width;
+
+    _surface_data.height =
+        _gui_height;
+
+
+    surface_set_target(
+        _surface_data.id
+    );
+
+    draw_clear_alpha(
+        c_black,
+        0
+    );
+
+
+    var _top =
+        _hud.hud.top;
+
+    var _top_height =
+        _top.height;
+
+    var _row_height =
+        _top.row_height;
+
+
+    // TOP BACKGROUND
+
+    draw_set_alpha(
+        _top.background_alpha
+    );
+
+    draw_set_color(c_black);
+
+    draw_rectangle(
+        0,
+        0,
+        _gui_width,
+        _top_height,
+        false
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(_top.color);
+
+    draw_line(
+        0,
+        _top_height,
+        _gui_width,
+        _top_height
+    );
+
+
+    draw_set_color(c_dkgray);
+
+    draw_line(
+        0,
+        _row_height,
+        _gui_width,
+        _row_height
+    );
+
+
+    // TOP CELL LAYOUT
+
+    var _time_width = 130;
+    var _cpu_width = 180;
+    var _player_width = 180;
+
+    var _right_width =
+        _player_width
+        + _cpu_width
+        + _time_width;
+
+    var _right_x =
+        _gui_width
+        - _right_width;
+
+
+    var _draw_x = 0;
+
+
+    _draw_x =
+        scr_hud_top_cell_static_draw(
+            _draw_x,
+            170,
+            _row_height,
+            "Credits",
+            c_aqua,
+            0
+        );
+
+
+    _draw_x =
+        scr_hud_top_cell_static_draw(
+            _draw_x,
+            220,
+            _row_height,
+            "Energy",
+            c_lime,
+            0
+        );
+
+
+    var _resource_width = 240;
+
+    var _resource_keys =
+        variable_struct_get_names(
+            global.vtd.data.resources
+        );
+
+
+    for (
+        var i = 0;
+        i < array_length(_resource_keys);
+        ++i
+    )
+    {
+        var _resource_data =
+            scr_resource_data_get(
+                _resource_keys[i]
+            );
+
+
+        if (!scr_resource_data_valid(_resource_data))
+            continue;
+
+        if (
+            _resource_data.identity.type
+            != ResourceType.RAW_MATERIAL
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            _draw_x + _resource_width
+            > _right_x
+        )
+        {
+            continue;
+        }
+
+
+        _draw_x =
+            scr_hud_top_cell_static_draw(
+                _draw_x,
+                _resource_width,
+                _row_height,
+                _resource_data.identity.name + " R/F",
+                _resource_data.visual.color,
+                0
+            );
+    }
+
+
+    var _right_cell_x =
+        _right_x;
+
+
+    _right_cell_x =
+        scr_hud_top_cell_static_draw(
+            _right_cell_x,
+            _player_width,
+            _row_height,
+            "Player Integrity",
+            c_aqua,
+            0
+        );
+
+
+    _right_cell_x =
+        scr_hud_top_cell_static_draw(
+            _right_cell_x,
+            _cpu_width,
+            _row_height,
+            "CPU Integrity",
+            c_lime,
+            0
+        );
+
+
+    scr_hud_top_cell_static_draw(
+        _right_cell_x,
+        _time_width,
+        _row_height,
+        "Elapsed",
+        c_aqua,
+        0
+    );
+
+
+    var _limit_types =
+    [
+        BuildLimitType.TOWER,
+        BuildLimitType.DEFENSE,
+        BuildLimitType.ECONOMY,
+        BuildLimitType.INFRASTRUCTURE,
+        BuildLimitType.FOUNDATION
+    ];
+
+    var _limit_colors =
+    [
+        c_yellow,
+        c_fuchsia,
+        make_color_rgb(90, 210, 120),
+        c_aqua,
+        make_color_rgb(100, 150, 190)
+    ];
+
+
+    var _limit_x = 0;
+    var _limit_width = 180;
+
+
+    for (
+        var i = 0;
+        i < array_length(_limit_types);
+        ++i
+    )
+    {
+        _limit_x =
+            scr_hud_top_cell_static_draw(
+                _limit_x,
+                _limit_width,
+                _row_height,
+                scr_build_limit_name(
+                    _limit_types[i]
+                ),
+                _limit_colors[i],
+                _row_height
+            );
+    }
+
+
+    scr_hud_top_cell_static_draw(
+        _gui_width - _time_width,
+        _time_width,
+        _row_height,
+        "Enemies",
+        c_red,
+        _row_height
+    );
+
+
+    // BOTTOM HUD SHELL
+
+    var _bottom =
+        _hud.hud.bottom;
+
+    var _tray_top =
+        _gui_height
+        - _bottom.height;
+
+    var _inspector_left =
+        _gui_width
+        - _bottom.inspector_width;
+
+    var _inspector_top =
+        _gui_height
+        - _bottom.inspector_height;
+
+
+    draw_set_alpha(
+        _bottom.background_alpha
+    );
+
+    draw_set_color(c_black);
+
+
+    draw_rectangle(
+        0,
+        _tray_top,
+        _inspector_left,
+        _gui_height,
+        false
+    );
+
+
+    draw_rectangle(
+        _inspector_left,
+        _inspector_top,
+        _gui_width,
+        _gui_height,
+        false
+    );
+
+
+    draw_set_alpha(1);
+
+    draw_set_color(
+        _bottom.color
+    );
+
+
+    draw_line(
+        0,
+        _tray_top,
+        _inspector_left,
+        _tray_top
+    );
+
+
+    draw_line(
+        _inspector_left,
+        _inspector_top,
+        _gui_width,
+        _inspector_top
+    );
+
+
+    draw_line(
+        _inspector_left,
+        _inspector_top,
+        _inspector_left,
+        _gui_height
+    );
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+
+    surface_reset_target();
+
+
+    return true;
+}
+
+function scr_hud_static_surface_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+
+    var _surface =
+        _hud.hud.static_surface;
+
+    var _gui_width =
+        display_get_gui_width();
+
+    var _gui_height =
+        display_get_gui_height();
+
+
+    if (
+        !surface_exists(_surface.surface_id)
+        || _surface.width != _gui_width
+        || _surface.height != _gui_height
+    )
+    {
+        if (!scr_hud_static_surface_build(_hud))
+            return false;
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    draw_surface(
+        _surface.surface_id,
+        0,
+        0
+    );
+
+
+    return true;
+}
+
+function scr_hud_top_cell_draw(
+    _x,
+    _width,
+    _height,
+    _label,
+    _value,
+    _color,
+    _y = 0
+)
+{
+    draw_set_alpha(1);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    draw_set_color(c_white);
+
+    draw_text(
+        _x + 40,
+        _y + 30,
+        _value
+    );
+
+
+    return _x + _width;
+}
 /// @description Pushes resource-gain feedback into the level HUD.
 
 function scr_hud_resource_gain_push(

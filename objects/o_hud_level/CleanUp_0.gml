@@ -2,6 +2,30 @@
 
 scr_hud_minimap_static_terrain_destroy(id);
 
+
+if (
+    variable_struct_exists(
+        hud,
+        "static_surface"
+    )
+)
+{
+    if (
+        surface_exists(
+            hud.static_surface.surface_id
+        )
+    )
+    {
+        surface_free(
+            hud.static_surface.surface_id
+        );
+    }
+
+    hud.static_surface.surface_id =
+        -1;
+}
+
+
 hud.alerts.queue = [];
 hud.alerts.active = undefined;
 
@@ -16,5 +40,6 @@ if (
     && global.vtd_level.entities.hud == id
 )
 {
-    global.vtd_level.entities.hud = noone;
+    global.vtd_level.entities.hud =
+        noone;
 }

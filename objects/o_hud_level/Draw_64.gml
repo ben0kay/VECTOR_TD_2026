@@ -16,17 +16,12 @@ draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 
-
-if (hud.debug.hide)
-    exit;
-
 if (!variable_global_exists("vtd_level")) exit;
 if (!is_struct(global.vtd_level)) exit;
 
-draw_set_alpha(1);
-draw_set_color(c_white);
-draw_set_halign(fa_left);
-draw_set_valign(fa_top);
+
+if (hud.debug.hide)
+    exit;
 
 var _result_active =
     variable_struct_exists(
@@ -63,6 +58,7 @@ if (_result_active)
     exit;
 }
 
+scr_hud_static_surface_draw(id);
 scr_hud_top_bar_draw(id);
 scr_hud_resource_feedback_draw(id);
 scr_hud_bottom_bar_draw(id);
