@@ -1,20 +1,15 @@
 {
   "$GMObject":"",
-  "%Name":"o_dead_cell",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "%Name":"o_solid",
+  "eventList":[],
   "managed":true,
-  "name":"o_dead_cell",
+  "name":"o_solid",
   "overriddenProperties":[],
   "parent":{
     "name":"world",
     "path":"folders/objects/world.yy",
   },
-  "parentObjectId":{
-    "name":"o_solid",
-    "path":"objects/o_solid/o_solid.yy",
-  },
+  "parentObjectId":null,
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,
@@ -32,10 +27,7 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":{
-    "name":"s_dead_cell",
-    "path":"sprites/s_dead_cell/s_dead_cell.yy",
-  },
+  "spriteId":null,
   "spriteMaskId":null,
   "visible":true,
 }

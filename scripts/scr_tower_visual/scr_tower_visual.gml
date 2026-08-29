@@ -186,18 +186,10 @@ function scr_tower_range_draw(_tower)
     if (!instance_exists(_tower))
         return false;
 
-    if (!variable_global_exists("vtd_level"))
-        return false;
-
-    if (!is_struct(global.vtd_level))
-        return false;
-
     if (!variable_struct_exists(global.vtd_level.entities, "hud"))
         return false;
 
-
-    var _hud =
-        global.vtd_level.entities.hud;
+    var _hud = global.vtd_level.entities.hud;
 
     if (!instance_exists(_hud))
         return false;
@@ -205,84 +197,15 @@ function scr_tower_range_draw(_tower)
     if (_hud.hud.selection.target != _tower)
         return false;
 
+    var _range = _tower.combat.range;
 
-    var _range =
-        _tower.combat.range;
-
-    // dsin() uses degrees and produces a slow, smooth pulse.
-
-    var _pulse =
-        0.55
-        + dsin(global.vtd.tick * 2)
-        * 0.12;
-
-
-    // ========================================================================
-    // SUBTLE RANGE INTERIOR
-    // ========================================================================
-
-    draw_set_color(
-        c_aqua
-    );
+    draw_set_color(c_aqua);
 
     draw_set_alpha(0.035);
+    draw_circle(_tower.x, _tower.y, _range, false);
 
-    draw_circle(
-        _tower.x,
-        _tower.y,
-        _range,
-        false
-    );
-
-
-    // ========================================================================
-    // RANGE OUTLINE
-    // ========================================================================
-
-    draw_set_alpha(_pulse);
-
-    draw_circle(
-        _tower.x,
-        _tower.y,
-        _range,
-        true
-    );
-
-
-    // ========================================================================
-    // DIRECTIONAL RANGE MARKERS
-    // ========================================================================
-
-    draw_set_alpha(0.85);
-
-    for (var i = 0; i < 4; ++i)
-    {
-        var _angle = i * 90;
-
-        var _marker_x =
-            _tower.x
-            + lengthdir_x(_range, _angle);
-
-        var _marker_y =
-            _tower.y
-            + lengthdir_y(_range, _angle);
-
-
-        draw_line(
-            _marker_x
-                + lengthdir_x(6, _angle + 90),
-
-            _marker_y
-                + lengthdir_y(6, _angle + 90),
-
-            _marker_x
-                + lengthdir_x(6, _angle - 90),
-
-            _marker_y
-                + lengthdir_y(6, _angle - 90)
-        );
-    }
-
+    draw_set_alpha(0.65);
+    draw_circle(_tower.x, _tower.y, _range, true);
 
     draw_set_alpha(1);
     draw_set_color(c_white);

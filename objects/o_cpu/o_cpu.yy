@@ -12,7 +12,10 @@
     "name":"buildings",
     "path":"folders/objects/buildings.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"o_solid",
+    "path":"objects/o_solid/o_solid.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

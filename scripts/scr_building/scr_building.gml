@@ -81,6 +81,40 @@ function scr_building_initialize(_building)
         cells: [],
         reserved: false
     };
+	
+	// ========================================================================
+	// COLLISION MASK
+	// ========================================================================
+
+	_building.mask_index =
+	    s_collision_square;
+
+	var _cell_size =
+	    global.vtd_level.map.cell_size;
+
+	var _mask_width =
+	    sprite_get_width(
+	        s_collision_square
+	    );
+
+	var _mask_height =
+	    sprite_get_height(
+	        s_collision_square
+	    );
+
+	_building.image_xscale =
+	    (
+	        _building.footprint.width_cells
+	        * _cell_size
+	    )
+	    / _mask_width;
+
+	_building.image_yscale =
+	    (
+	        _building.footprint.height_cells
+	        * _cell_size
+	    )
+	    / _mask_height;
 
 
     if (
