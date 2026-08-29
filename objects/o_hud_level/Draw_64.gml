@@ -1,5 +1,25 @@
 /// @description Draws the gameplay HUD and mission-result overlay.
 
+// ========================================================================
+// FPS COUNTER
+// ========================================================================
+var _gui_width = display_get_gui_width();
+var _gui_height = display_get_gui_height();
+draw_set_halign(fa_right);
+draw_set_valign(fa_middle);
+draw_set_color(c_white);
+draw_text(_gui_width - 12,_gui_height * 0.5,string(fps_real) + " FPS");
+// ========================================================================
+
+draw_set_alpha(1);
+draw_set_color(c_white);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
+
+
+if (hud.debug.hide)
+    exit;
+
 if (!variable_global_exists("vtd_level")) exit;
 if (!is_struct(global.vtd_level)) exit;
 
@@ -81,18 +101,3 @@ scr_hud_alert_draw(id);
 // Debug interface remains above normal gameplay HUD elements.
 scr_debug_menu_draw(id);
 
-// ========================================================================
-// FPS COUNTER
-// ========================================================================
-var _gui_width = display_get_gui_width();
-var _gui_height = display_get_gui_height();
-draw_set_halign(fa_right);
-draw_set_valign(fa_middle);
-draw_set_color(c_white);
-draw_text(_gui_width - 12,_gui_height * 0.5,string(fps_real) + " FPS");
-// ========================================================================
-
-draw_set_alpha(1);
-draw_set_color(c_white);
-draw_set_halign(fa_left);
-draw_set_valign(fa_top);

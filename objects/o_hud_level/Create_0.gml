@@ -8,6 +8,11 @@ if (instance_number(object_index) > 1)
 
 hud =
 {
+	debug: 
+	{
+		hide: false
+	},
+	
     selection:
     {
         target: noone

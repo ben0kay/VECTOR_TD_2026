@@ -90,12 +90,12 @@ function scr_world_data_initialize()
 			[
 			    {
 			        resource_key: "resource_credits",
-			        amount: 2500
+			        amount: 25000
 			    },
 
 			    {
 			        resource_key: "resource_carbon",
-			        amount: 0
+			        amount: 1000
 			    },
 
 			    {

@@ -128,34 +128,50 @@ function scr_enemy_effect_area_apply(
         return false;
 
 
-    var _enemy_count =
-        instance_number(o_enemy);
+    var _enemy_list =
+        ds_list_create();
 
-    for (var i = 0; i < _enemy_count; ++i)
+
+    collision_circle_list(
+        _world_x,
+        _world_y,
+        _radius,
+        o_enemy,
+        false,
+        true,
+        _enemy_list,
+        false
+    );
+
+
+    var _count =
+        ds_list_size(
+            _enemy_list
+        );
+
+
+    for (
+        var i = 0;
+        i < _count;
+        ++i
+    )
     {
         var _enemy =
-            instance_find(
-                o_enemy,
-                i
-            );
+            _enemy_list[| i];
 
-        if (!instance_exists(_enemy))
-            continue;
-
-        if (_enemy.EnemyState == EnemyState.DEAD)
-            continue;
-
-        if (_enemy.movement.layer != _target_layer)
-            continue;
 
         if (
-            point_distance(
-                _world_x,
-                _world_y,
-                _enemy.x,
-                _enemy.y
-            )
-            > _radius + _enemy.visual.radius
+            _enemy.EnemyState
+            == EnemyState.DEAD
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            _enemy.movement.layer
+            != _target_layer
         )
         {
             continue;
@@ -168,6 +184,11 @@ function scr_enemy_effect_area_apply(
             _source
         );
     }
+
+
+    ds_list_destroy(
+        _enemy_list
+    );
 
 
     return true;

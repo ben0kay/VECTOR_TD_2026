@@ -12,3 +12,45 @@ gml_Script_scr_energy_update (line 721) -             _network,
 gml_Object_o_controller_energy_Step_0 (line 13) - scr_energy_update();
 
 error during gameplay ask chat gpt to check
+
+
+
+
+Tomorrow notes — New Vector performance vs Old Vector
+Old Vector is faster mainly because enemies do very little most frames.
+Expensive work is timer/flag-driven instead of every Step.
+Offscreen enemies use much larger lazy intervals for target/path decisions.
+Native paths keep moving enemies without constantly rebuilding or re-evaluating everything.
+Visual facing only updates when visibility logic says it matters.
+Visibility itself is staggered.
+
+For New Vector, aim for this execution model:
+
+Every frame: only essential movement, cooldowns, active attack behavior, truly necessary state.
+Every few frames, staggered: current target validity, range checks, LOS checks, visual-facing updates if needed.
+Every 10–30+ frames: strategic retargeting, player-target reconsideration, visibility/performance checks.
+Flag/event only: path rebuilds, nav revision reactions, breach attempts, new target acquisition.
+
+Current profiler hotspots to revisit:
+
+scr_enemy_step_event_gameplay
+scr_enemy_update
+scr_enemy_behavior_update
+scr_enemy_behavior_standard_update
+scr_enemy_visual_direction_update
+scr_enemy_performance_update
+scr_enemy_strategic_retarget_update
+scr_enemy_order_active
+
+Key principle:
+
+Don’t call helper after helper every enemy Step just to discover nothing needs doing.
+
+The tower optimization was a good example of the direction:
+
+stop scanning every enemy in the room,
+use collision_circle_list,
+stagger full target validation,
+stagger target reacquisition.
+
+Next session, I’d start with enemy Step and simplify it toward the old Vector pattern before touching small things like random instance_exists() checks.
