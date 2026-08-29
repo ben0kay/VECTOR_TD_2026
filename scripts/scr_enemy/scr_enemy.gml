@@ -207,8 +207,8 @@ function scr_enemy_initialize(_enemy)
 	        s_collision_circle;
 
 	    var _collision_scale =
-	        _enemy.visual.radius
-	        / 16;
+	        (_enemy.visual.radius
+	        / 16) * 1.05;
 
 	    _enemy.image_xscale =
 	        _collision_scale;

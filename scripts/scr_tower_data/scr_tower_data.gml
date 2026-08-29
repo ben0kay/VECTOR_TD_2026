@@ -121,14 +121,14 @@ function scr_tower_data_basic_ground()
                     damage_type:
                         DamageType.KINETIC,
 
-                    damage: 10,
+                    damage: 11,
 					critical:
 					{
 					    chance: 0.1,
 					    multiplier: 7
 					},
                     energy_cost: 2,
-                    cooldown_seconds: 0.6,
+                    cooldown_seconds: 0.5,
 
                     muzzle:
                     {

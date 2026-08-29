@@ -417,7 +417,7 @@ function scr_enemy_data_weak()
             },
 
             rewards:
-            scr_enemy_rewards_create(2, 1),
+            scr_enemy_rewards_create(3, 1),
 
             abilities: []
         }
@@ -506,7 +506,7 @@ function scr_enemy_data_hunter()
 
             rewards:
                 scr_enemy_rewards_create(
-                    3,
+                    4,
                     2
                 ),
 
