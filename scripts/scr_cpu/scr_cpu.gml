@@ -35,6 +35,22 @@ function scr_cpu_initialize(_cpu)
         radius: 64,
         color: c_blue
     };
+		
+	var _cell = scr_building_position_to_cell(_cpu.x, _cpu.y);
+	var _width = 3;
+	var _height = 3;
+
+	_cpu.footprint =
+	{
+	    width_cells: _width,
+	    height_cells: _height,
+
+	    origin:
+	    {
+	        x: _cell.x - floor(_width * 0.5),
+	        y: _cell.y - floor(_height * 0.5)
+	    }
+	};
 
     global.vtd_level.entities.cpu = _cpu;
 

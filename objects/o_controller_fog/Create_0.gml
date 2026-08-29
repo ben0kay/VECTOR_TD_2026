@@ -1,4 +1,4 @@
-/// @description Initializes level fog-of-war grids.
+/// @description Initializes level fog-of-war.
 
 if (instance_number(object_index) > 1)
 {
@@ -6,41 +6,22 @@ if (instance_number(object_index) > 1)
     exit;
 }
 
-
-var _cell_size =
-    64;
+var _cell_size = 64;
 
 var _columns =
-    ceil(
-        room_width
-        / _cell_size
-    );
+    ceil(room_width / _cell_size);
 
 var _rows =
-    ceil(
-        room_height
-        / _cell_size
-    );
-
+    ceil(room_height / _cell_size);
 
 fog =
 {
-    enabled:
-        true,
+    enabled: true,
 
-    cell_size:
-        _cell_size,
+    cell_size: _cell_size,
 
-    columns:
-        _columns,
-
-    rows:
-        _rows,
-
-
-    // ========================================================================
-    // GAMEPLAY GRIDS
-    // ========================================================================
+    columns: _columns,
+    rows: _rows,
 
     visible_grid:
         ds_grid_create(
@@ -54,13 +35,7 @@ fog =
             _rows
         ),
 
-
-    // ========================================================================
-    // UPDATE
-    // ========================================================================
-
-    update_timer:
-        0,
+    update_timer: 0,
 
     update_interval:
     {
@@ -68,34 +43,20 @@ fog =
         maximum: 5
     },
 
-
-    // ========================================================================
-    // VISUAL
-    // ========================================================================
-
     alpha:
     {
         explored: 0.55,
         unexplored: 1.0
     },
 
-
-    // ========================================================================
-    // CACHED RENDERING
-    // ========================================================================
-    //
-    // The DS grids remain the gameplay authority.
-    // This surface is only a cached visual representation.
-    //
-    // One surface pixel represents one fog cell.
-
     render:
     {
-        surface: -1,
-        dirty: true
+        scale: 4,
+
+        fog_surface: -1,
+        shroud_surface: -1
     }
 };
-
 
 ds_grid_clear(
     fog.visible_grid,
@@ -107,15 +68,9 @@ ds_grid_clear(
     0
 );
 
+global.vtd_level.entities.fog = id;
 
-global.vtd_level.entities.fog =
-    id;
-
-
-scr_fog_visibility_update(
-    id
-);
-
+scr_fog_visibility_update(id);
 
 show_debug_message(
     "VECTOR TD 2026 - FOG INITIALIZED"

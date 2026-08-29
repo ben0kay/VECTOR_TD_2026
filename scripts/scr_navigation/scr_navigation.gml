@@ -338,247 +338,119 @@ function scr_navigation_enemy_update(_enemy)
     return true;
 }
 
-/// @description Returns possible approach positions around a building.
-
-function scr_navigation_building_approach_positions(
-    _enemy,
-    _building
-)
+function scr_navigation_target_approach_positions(_enemy, _target)
 {
-    var _positions =
-        [];
+    var _positions = [];
 
+    var _origin = _target.footprint.origin;
+    var _width = _target.footprint.width_cells;
+    var _height = _target.footprint.height_cells;
 
-    if (!instance_exists(_enemy))
-        return _positions;
+    var _left = _origin.x - 1;
+    var _right = _origin.x + _width;
+    var _top = _origin.y - 1;
+    var _bottom = _origin.y + _height;
 
-    if (!instance_exists(_building))
-        return _positions;
-
-    if (!is_struct(_building.footprint))
-        return _positions;
-
-
-    var _origin =
-        _building.footprint.origin;
-
-    var _width =
-        _building.footprint.width_cells;
-
-    var _height =
-        _building.footprint.height_cells;
-
-
-    var _left =
-        _origin.x - 1;
-
-    var _right =
-        _origin.x + _width;
-
-    var _top =
-        _origin.y - 1;
-
-    var _bottom =
-        _origin.y + _height;
-
-
-    for (
-        var _cell_y = _top;
-        _cell_y <= _bottom;
-        ++_cell_y
-    )
+    for (var _cell_y = _top; _cell_y <= _bottom; ++_cell_y)
     {
-        for (
-            var _cell_x = _left;
-            _cell_x <= _right;
-            ++_cell_x
-        )
+        for (var _cell_x = _left; _cell_x <= _right; ++_cell_x)
         {
-            var _inside_building =
-                (
-                    _cell_x >= _origin.x
-                    && _cell_x
-                        < _origin.x + _width
-                    && _cell_y >= _origin.y
-                    && _cell_y
-                        < _origin.y + _height
-                );
+            var _inside =
+                _cell_x >= _origin.x
+                && _cell_x < _origin.x + _width
+                && _cell_y >= _origin.y
+                && _cell_y < _origin.y + _height;
 
-
-            if (_inside_building)
+            if (_inside)
                 continue;
 
+            if (!scr_building_cell_inside_map(_cell_x, _cell_y))
+                continue;
 
-            if (
-                !scr_building_cell_inside_map(
-                    _cell_x,
-                    _cell_y
-                )
-            )
+            if (mp_grid_get_cell(
+                global.vtd_level.navigation.grid_ground,
+                _cell_x,
+                _cell_y
+            ) != 0)
             {
                 continue;
             }
-
-
-            if (
-                mp_grid_get_cell(
-                    global.vtd_level.navigation
-                        .grid_ground,
-                    _cell_x,
-                    _cell_y
-                )
-                != 0
-            )
-            {
-                continue;
-            }
-
 
             var _position =
-                scr_building_cell_to_position(
-                    _cell_x,
-                    _cell_y
-                );
-
+                scr_building_cell_to_position(_cell_x, _cell_y);
 
             array_push(
                 _positions,
                 {
-                    x:
+                    x: _position.x,
+                    y: _position.y,
+                    distance: point_distance(
+                        _enemy.x,
+                        _enemy.y,
                         _position.x,
-
-                    y:
-                        _position.y,
-
-                    distance:
-                        point_distance(
-                            _enemy.x,
-                            _enemy.y,
-                            _position.x,
-                            _position.y
-                        )
+                        _position.y
+                    )
                 }
             );
         }
     }
 
-
-    // Sort nearest approach cells first.
-
-    for (
-        var i = 1;
-        i < array_length(_positions);
-        ++i
-    )
+    // Nearest approach cells first.
+    for (var i = 1; i < array_length(_positions); ++i)
     {
-        var _entry =
-            _positions[i];
+        var _entry = _positions[i];
+        var j = i - 1;
 
-        var j =
-            i - 1;
-
-
-        while (
-            j >= 0
-            && _positions[j].distance
-                > _entry.distance
-        )
+        while (j >= 0 && _positions[j].distance > _entry.distance)
         {
-            _positions[j + 1] =
-                _positions[j];
-
+            _positions[j + 1] = _positions[j];
             j--;
         }
 
-
-        _positions[j + 1] =
-            _entry;
+        _positions[j + 1] = _entry;
     }
-
 
     return _positions;
 }
 
 
-/// @description Builds a path to an ordinary target or adjacent building cell.
-
-function scr_navigation_path_to_target(
-    _enemy,
-    _target,
-    _grid,
-    _path
-)
+function scr_navigation_path_to_target(_enemy, _target, _grid, _path)
 {
-    if (!instance_exists(_enemy))
-        return false;
-
     if (!instance_exists(_target))
         return false;
 
-
-    // Buildings occupy blocked grid cells, so enemies must path to an
-    // accessible neighboring cell rather than the building centre.
-
-    if (
-        _target.object_index
-        == o_building_par
-        || object_is_ancestor(
-            _target.object_index,
-            o_building_par
-        )
-    )
+    // Any footprint target — CPU or building — is approached from outside.
+    if (variable_instance_exists(_target, "footprint"))
     {
         var _positions =
-            scr_navigation_building_approach_positions(
-                _enemy,
-                _target
-            );
+            scr_navigation_target_approach_positions(_enemy, _target);
 
-
-        for (
-            var i = 0;
-            i < array_length(_positions);
-            ++i
-        )
+        for (var i = 0; i < array_length(_positions); ++i)
         {
-            var _position =
-                _positions[i];
+            var _position = _positions[i];
 
+            path_clear_points(_path);
 
-            path_clear_points(
-                _path
-            );
-
-
-            if (
-                mp_grid_path(
-                    _grid,
-                    _path,
-                    _enemy.x,
-                    _enemy.y,
-                    _position.x,
-                    _position.y,
-                    true
-                )
-            )
+            if (mp_grid_path(
+                _grid,
+                _path,
+                _enemy.x,
+                _enemy.y,
+                _position.x,
+                _position.y,
+                true
+            ))
             {
                 return true;
             }
         }
 
-
-        path_clear_points(
-            _path
-        );
-
+        path_clear_points(_path);
         return false;
     }
 
-
-    path_clear_points(
-        _path
-    );
-
+    // Player / other point targets.
+    path_clear_points(_path);
 
     return mp_grid_path(
         _grid,

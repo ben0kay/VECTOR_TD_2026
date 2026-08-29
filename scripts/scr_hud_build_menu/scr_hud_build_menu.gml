@@ -463,7 +463,7 @@ function scr_hud_build_menu_create()
             scr_hud_button_create(
                 "build",
                 "BUILD",
-                "B"
+                "CTRL"
             ),
 
         left_button:
@@ -871,7 +871,7 @@ function scr_hud_build_menu_update(_hud)
 
 
     if (
-        keyboard_check_pressed(ord("B"))
+        keyboard_check_pressed(vk_control)
         || scr_hud_button_update(_menu.build_button)
     )
     {

@@ -335,348 +335,279 @@ function scr_fog_draw(_fog_controller)
     if (!instance_exists(_fog_controller))
         return false;
 
-
-    var _fog =
-        _fog_controller.fog;
-
+    var _fog = _fog_controller.fog;
 
     if (!_fog.enabled)
         return true;
 
+    var _render = _fog.render;
 
-    var _render =
-        _fog.render;
+    var _scale =
+        _render.scale;
+
+    var _width =
+        ceil(room_width / _scale);
+
+    var _height =
+        ceil(room_height / _scale);
 
 
-    // ========================================================================
-    // CACHE REBUILD
-    // ========================================================================
-    //
-    // Rebuild only when:
-    //
-    // - gameplay visibility changed;
-    // - GameMaker discarded the surface;
-    // - the surface has not been created yet.
+    // ------------------------------------------------------------
+    // PERMANENT SHROUD
+    // ------------------------------------------------------------
 
-    if (
-        _render.dirty
-        || !surface_exists(
-            _render.surface
-        )
-    )
+    if (!surface_exists(_render.shroud_surface))
     {
-        if (
-            !scr_fog_surface_rebuild(
-                _fog_controller
-            )
-        )
-        {
+        _render.shroud_surface =
+            surface_create(
+                _width,
+                _height
+            );
+
+        if (!surface_exists(_render.shroud_surface))
             return false;
-        }
-    }
 
-
-    // ========================================================================
-    // DRAW
-    // ========================================================================
-    //
-    // Stretch the tiny fog-grid surface across the world.
-    //
-    // Each surface pixel therefore occupies exactly one world fog cell.
-
-    draw_set_alpha(1);
-
-    draw_set_color(
-        c_white
-    );
-
-
-    draw_surface_stretched(
-        _render.surface,
-
-        0,
-        0,
-
-        _fog.columns
-            * _fog.cell_size,
-
-        _fog.rows
-            * _fog.cell_size
-    );
-
-
-    draw_set_alpha(1);
-
-    draw_set_color(
-        c_white
-    );
-
-
-    return true;
-}
-
-/// @description Rebuilds the cached low-resolution fog render surface.
-
-function scr_fog_surface_rebuild(_fog_controller)
-{
-    if (!instance_exists(_fog_controller))
-        return false;
-
-
-    var _fog =
-        _fog_controller.fog;
-
-    var _render =
-        _fog.render;
-
-
-    // ========================================================================
-    // SURFACE
-    // ========================================================================
-    //
-    // One surface pixel represents one world fog cell.
-    //
-    // Example:
-    //
-    // 8192 x 8192 world
-    // 64 pixel fog cells
-    //
-    // becomes only a:
-    //
-    // 128 x 128 surface.
-
-    var _surface_width =
-        _fog.columns;
-
-    var _surface_height =
-        _fog.rows;
-
-
-    var _surface_valid =
-        surface_exists(
-            _render.surface
+        surface_set_target(
+            _render.shroud_surface
         );
 
+        draw_clear_alpha(
+            c_black,
+            1
+        );
 
-    if (_surface_valid)
-    {
-        _surface_valid =
-            surface_get_width(
-                _render.surface
-            )
-            == _surface_width
-            && surface_get_height(
-                _render.surface
-            )
-            == _surface_height;
+        surface_reset_target();
     }
 
 
-    if (!_surface_valid)
+    // ------------------------------------------------------------
+    // ACTIVE FOG
+    // ------------------------------------------------------------
+
+    if (!surface_exists(_render.fog_surface))
     {
-        if (
-            surface_exists(
-                _render.surface
-            )
-        )
-        {
-            surface_free(
-                _render.surface
-            );
-        }
-
-
-        _render.surface =
+        _render.fog_surface =
             surface_create(
-                _surface_width,
-                _surface_height
+                _width,
+                _height
             );
+
+        if (!surface_exists(_render.fog_surface))
+            return false;
     }
 
 
-    if (
-        !surface_exists(
-            _render.surface
-        )
-    )
-    {
-        _render.surface =
-            -1;
-
-        _render.dirty =
-            true;
-
-        return false;
-    }
-
-
-    // ========================================================================
-    // REBUILD
-    // ========================================================================
+    // ------------------------------------------------------------
+    // PERMANENT EXPLORATION
+    // ------------------------------------------------------------
 
     surface_set_target(
-        _render.surface
+        _render.shroud_surface
+    );
+
+    gpu_set_blendmode(
+        bm_subtract
     );
 
 
-    // Visible cells are transparent.
+    var _player =
+        global.vtd_level.entities.player;
 
-    draw_clear_alpha(
-        c_black,
-        0
-    );
-
-
-    draw_set_color(
-        c_black
-    );
-
-
-    for (
-        var _cell_y = 0;
-        _cell_y < _fog.rows;
-        ++_cell_y
-    )
+    if (instance_exists(_player))
     {
-        for (
-            var _cell_x = 0;
-            _cell_x < _fog.columns;
-            ++_cell_x
-        )
+        draw_circle(
+            _player.x / _scale,
+            _player.y / _scale,
+            scr_fog_revealer_range_get(_player) / _scale,
+            false
+        );
+    }
+
+
+    var _cpu =
+        global.vtd_level.entities.cpu;
+
+    if (instance_exists(_cpu))
+    {
+        draw_circle(
+            _cpu.x / _scale,
+            _cpu.y / _scale,
+            scr_fog_revealer_range_get(_cpu) / _scale,
+            false
+        );
+    }
+
+
+    with (o_building_par)
+    {
+        if (BuildingState == BuildingState.ACTIVE)
         {
-            // Fully visible cells remain transparent.
-
-            if (
-                _fog.visible_grid[# _cell_x,_cell_y] > 0
-            )
-            {
-                continue;
-            }
-
-
-            var _explored =
-                _fog.explored_grid[# _cell_x, _cell_y ] > 0;
-
-
-            draw_set_alpha(
-                _explored
-                ? _fog.alpha.explored
-                : _fog.alpha.unexplored
-            );
-
-
-            // One surface pixel = one fog cell.
-
-            draw_point(
-                _cell_x,
-                _cell_y
+            draw_circle(
+                x / other._scale,
+                y / other._scale,
+                scr_fog_revealer_range_get(id) / other._scale,
+                false
             );
         }
     }
 
+
+    gpu_set_blendmode(
+        bm_normal
+    );
 
     surface_reset_target();
 
 
-    draw_set_alpha(1);
+    // ------------------------------------------------------------
+    // CURRENT VISIBILITY
+    // ------------------------------------------------------------
 
-    draw_set_color(
-        c_white
+    surface_set_target(
+        _render.fog_surface
+    );
+
+    draw_clear_alpha(
+        c_black,
+        _fog.alpha.explored
+    );
+
+    gpu_set_blendmode(
+        bm_subtract
     );
 
 
-    _render.dirty =
-        false;
+    if (instance_exists(_player))
+    {
+        draw_circle(
+            _player.x / _scale,
+            _player.y / _scale,
+            scr_fog_revealer_range_get(_player) / _scale,
+            false
+        );
+    }
 
+
+    if (instance_exists(_cpu))
+    {
+        draw_circle(
+            _cpu.x / _scale,
+            _cpu.y / _scale,
+            scr_fog_revealer_range_get(_cpu) / _scale,
+            false
+        );
+    }
+
+
+    with (o_building_par)
+    {
+        if (BuildingState == BuildingState.ACTIVE)
+        {
+            draw_circle(
+                x / other._scale,
+                y / other._scale,
+                scr_fog_revealer_range_get(id) / other._scale,
+                false
+            );
+        }
+    }
+
+
+    gpu_set_blendmode(
+        bm_normal
+    );
+
+    surface_reset_target();
+
+
+    // ------------------------------------------------------------
+    // FINAL DRAW
+    // ------------------------------------------------------------
+
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    draw_surface_ext(
+        _render.shroud_surface,
+        0,
+        0,
+        _scale,
+        _scale,
+        0,
+        c_white,
+        _fog.alpha.unexplored
+    );
+
+    draw_surface_ext(
+        _render.fog_surface,
+        0,
+        0,
+        _scale,
+        _scale,
+        0,
+        c_white,
+        1
+    );
 
     return true;
 }
 
-
-/// @description Releases all fog-owned runtime data.
 
 function scr_fog_cleanup(_fog_controller)
 {
     if (!instance_exists(_fog_controller))
         return false;
 
-
-    if (
-        variable_instance_exists(
-            _fog_controller,
-            "fog"
-        )
-    )
+    if (variable_instance_exists(_fog_controller, "fog"))
     {
         var _fog =
             _fog_controller.fog;
 
-
-        // ====================================================================
-        // GAMEPLAY GRIDS
-        // ====================================================================
-
-        if (
-            ds_exists(
-                _fog.visible_grid,
-                ds_type_grid
-            )
-        )
+        if (ds_exists(
+            _fog.visible_grid,
+            ds_type_grid
+        ))
         {
             ds_grid_destroy(
                 _fog.visible_grid
             );
         }
 
-
-        if (
-            ds_exists(
-                _fog.explored_grid,
-                ds_type_grid
-            )
-        )
+        if (ds_exists(
+            _fog.explored_grid,
+            ds_type_grid
+        ))
         {
             ds_grid_destroy(
                 _fog.explored_grid
             );
         }
 
-
-        // ====================================================================
-        // RENDER SURFACE
-        // ====================================================================
-
-        if (
-            surface_exists(
-                _fog.render.surface
-            )
-        )
+        if (surface_exists(
+            _fog.render.fog_surface
+        ))
         {
             surface_free(
-                _fog.render.surface
+                _fog.render.fog_surface
             );
         }
 
+        if (surface_exists(
+            _fog.render.shroud_surface
+        ))
+        {
+            surface_free(
+                _fog.render.shroud_surface
+            );
+        }
 
-        _fog.render.surface =
-            -1;
-
-        _fog.render.dirty =
-            true;
+        _fog.render.fog_surface = -1;
+        _fog.render.shroud_surface = -1;
     }
 
-
-    // ========================================================================
-    // LEVEL REFERENCE
-    // ========================================================================
-
     if (
-        variable_global_exists(
-            "vtd_level"
-        )
-        && is_struct(
-            global.vtd_level
-        )
+        variable_global_exists("vtd_level")
+        && is_struct(global.vtd_level)
         && variable_struct_exists(
             global.vtd_level.entities,
             "fog"
@@ -688,7 +619,6 @@ function scr_fog_cleanup(_fog_controller)
         global.vtd_level.entities.fog =
             noone;
     }
-
 
     return true;
 }
