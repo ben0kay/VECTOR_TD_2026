@@ -404,7 +404,7 @@ function scr_enemy_initialize(_enemy)
         false;
 
     var _destroy_on_impact =
-        false;
+    _data.attack.type == EnemyAttack.CONTACT;
 
 
     if (

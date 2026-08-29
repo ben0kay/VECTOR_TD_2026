@@ -4,54 +4,72 @@ function scr_enemy_behavior_standard_update(_enemy)
     {
         case EnemyState.MOVING:
         {
-            // Native path movement continues automatically.
             scr_navigation_enemy_update(_enemy);
 
-            if (!IFRAMES_5)
-                return true;
-
-
             // ------------------------------------------------------------
-            // BUILDING HUNTER
+            // IMPACT ENEMY
             // ------------------------------------------------------------
+            //
+            // Native path movement does almost everything.
+            //
+            // No range checks while travelling.
+            // When a building path finishes beside its target, move the final
+            // few pixels directly into it and let the collision event handle
+            // damage + destruction.
 
-            if (_enemy.targeting.target_type == EnemyTarget.BUILDING
-                && !_enemy.targeting.player.active)
+            if (_enemy.movement.destroy_on_impact)
             {
-                var _dx = _enemy.targeting.target_x - _enemy.x;
-                var _dy = _enemy.targeting.target_y - _enemy.y;
-
-                var _distance_squared =
-                    (_dx * _dx) + (_dy * _dy);
-
-                var _arrival_range =
-                    _enemy.attack.range
-                    + global.vtd_level.map.cell_size;
-
-                // Still travelling toward remembered location.
-                if (_distance_squared > _arrival_range * _arrival_range)
-                    return true;
-
-                // Only NOW does the enemy discover whether the building
-                // still exists.
-                if (!instance_exists(_enemy.targeting.strategic))
+                if (_enemy.navigation.needs_path
+                    || !_enemy.navigation.reachable
+                    || _enemy.path_index != -1)
                 {
-                    var _replacement =
-                        scr_enemy_target_acquire(_enemy);
+                    return true;
+                }
 
-                    scr_enemy_strategic_target_set(_enemy, _replacement);
+                var _target = _enemy.targeting.target;
 
-                    if (instance_exists(_replacement))
-                        scr_navigation_enemy_repath_request(_enemy, true);
+                // Building vanished before we reached the remembered location.
+                // Only discover this once the old path has actually completed.
+                if (!instance_exists(_target))
+                {
+                    if (_enemy.targeting.target_type == EnemyTarget.BUILDING
+                        && !_enemy.targeting.player.active)
+                    {
+                        var _replacement = scr_enemy_target_acquire(_enemy);
+
+                        scr_enemy_strategic_target_set(_enemy, _replacement);
+
+                        if (instance_exists(_replacement))
+                            scr_navigation_enemy_repath_request(_enemy, true);
+                    }
 
                     return true;
                 }
+
+                // Path-to-building ends beside the blocked footprint.
+                // Finish the final short movement physically into the target.
+                var _direction = point_direction(
+                    _enemy.x,
+                    _enemy.y,
+                    _target.x,
+                    _target.y
+                );
+
+                _enemy.x += lengthdir_x(_enemy.movement.speed, _direction);
+                _enemy.y += lengthdir_y(_enemy.movement.speed, _direction);
+
+                _enemy.movement.direction = _direction;
+
+                return true;
             }
 
 
             // ------------------------------------------------------------
-            // LIVE TARGET RANGE CHECK
+            // RANGED / SPECIAL MELEE
             // ------------------------------------------------------------
+
+            if (!IFRAMES_5)
+                return true;
 
             var _target = _enemy.targeting.target;
 
@@ -65,8 +83,10 @@ function scr_enemy_behavior_standard_update(_enemy)
                 _edge_distance <= _enemy.attack.range;
 
             if (_can_attack && _enemy.attack.requires_line_of_sight)
+            {
                 _can_attack =
                     scr_enemy_attack_line_of_sight_clear(_enemy, _target);
+            }
 
             if (_can_attack)
             {
@@ -88,8 +108,7 @@ function scr_enemy_behavior_standard_update(_enemy)
 
                 if (_enemy.targeting.target_type == EnemyTarget.BUILDING)
                 {
-                    var _replacement =
-                        scr_enemy_target_acquire(_enemy);
+                    var _replacement = scr_enemy_target_acquire(_enemy);
 
                     scr_enemy_strategic_target_set(_enemy, _replacement);
 
@@ -107,8 +126,10 @@ function scr_enemy_behavior_standard_update(_enemy)
                 _edge_distance <= _enemy.attack.range;
 
             if (_can_attack && _enemy.attack.requires_line_of_sight)
+            {
                 _can_attack =
                     scr_enemy_attack_line_of_sight_clear(_enemy, _target);
+            }
 
             if (!_can_attack)
             {
@@ -132,7 +153,6 @@ function scr_enemy_behavior_standard_update(_enemy)
 
     return true;
 }
-
 /// @description Dispatches one enemy's configured primary behavior.
 
 function scr_enemy_behavior_update(_enemy)
