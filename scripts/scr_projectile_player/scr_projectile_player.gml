@@ -152,7 +152,6 @@ function scr_projectile_player_initialize(
 }
 
 
-
 /// @description Updates one player projectile.
 
 function scr_projectile_player_update(_projectile)
@@ -160,136 +159,28 @@ function scr_projectile_player_update(_projectile)
     if (!instance_exists(_projectile))
         return false;
 
-
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
-
+    var _fps = max(1, game_get_speed(gamespeed_fps));
 
     _projectile.life.remaining =
-        max(
-            0,
-            _projectile.life.remaining
-            - (1 / _fps)
-        );
-
+        max(0, _projectile.life.remaining - (1 / _fps));
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(
-            _projectile
-        );
-
+        instance_destroy(_projectile);
         return true;
     }
 
-
-    var _start_x =
-        _projectile.x;
-
-    var _start_y =
-        _projectile.y;
-
-
-    var _end_x =
-        _start_x
-        + lengthdir_x(
+    _projectile.x +=
+        lengthdir_x(
             _projectile.movement.speed,
             _projectile.visual.draw_angle
         );
 
-    var _end_y =
-        _start_y
-        + lengthdir_y(
+    _projectile.y +=
+        lengthdir_y(
             _projectile.movement.speed,
             _projectile.visual.draw_angle
         );
-
-
-    // ========================================================================
-    // WORLD SOLID COLLISION
-    // ========================================================================
-    //
-    // Enemy collision is now handled by GameMaker's native Collision Event.
-    //
-    // Solid collision remains stepped because walls intentionally allow
-    // player projectiles through while other gameplay solids stop them.
-
-    var _distance =
-        point_distance(
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-    var _steps =
-        max(
-            1,
-            ceil(
-                _distance
-                / max(
-                    1,
-                    _projectile.visual.radius
-                )
-            )
-        );
-
-
-    for (
-        var i = 1;
-        i <= _steps;
-        ++i
-    )
-    {
-        var _progress =
-            i / _steps;
-
-        var _check_x =
-            lerp(
-                _start_x,
-                _end_x,
-                _progress
-            );
-
-        var _check_y =
-            lerp(
-                _start_y,
-                _end_y,
-                _progress
-            );
-
-
-        if (
-            scr_world_circle_gameplay_solid(
-                _check_x,
-                _check_y,
-                _projectile.visual.radius,
-                false
-            )
-        )
-        {
-            instance_destroy(
-                _projectile
-            );
-
-            return true;
-        }
-    }
-
-
-    // ========================================================================
-    // MOVE
-    // ========================================================================
-
-    _projectile.x =
-        _end_x;
-
-    _projectile.y =
-        _end_y;
-
 
     return true;
 }

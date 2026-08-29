@@ -354,10 +354,7 @@ function scr_enemy_player_targeting_update(_enemy)
 
 /// @description Returns whether an enemy has clear sight of the player.
 
-function scr_enemy_player_line_of_sight_clear(
-    _enemy,
-    _player
-)
+function scr_enemy_player_line_of_sight_clear(_enemy, _player)
 {
     if (!instance_exists(_enemy))
         return false;
@@ -365,77 +362,16 @@ function scr_enemy_player_line_of_sight_clear(
     if (!instance_exists(_player))
         return false;
 
-
-    if (
-        _enemy.movement.layer
-        == EnemyMovementLayer.FLYING
-    )
-    {
-        return true;
-    }
-
-
-    var _distance =
-        point_distance(
-            _enemy.x,
-            _enemy.y,
-            _player.x,
-            _player.y
-        );
-
-    if (_distance <= 0)
+    if (_enemy.movement.layer == EnemyMovementLayer.FLYING)
         return true;
 
-
-    var _spacing =
-        max(
-            8,
-            global.vtd_level.map.cell_size
-            * 0.5
-        );
-
-    var _checks =
-        max(
-            1,
-            ceil(_distance / _spacing)
-        );
-
-
-    // Skip both endpoints. Only space between the enemy and player matters.
-
-    for (var i = 1; i < _checks; ++i)
-    {
-        var _amount =
-            i / _checks;
-
-        var _check_x =
-            lerp(
-                _enemy.x,
-                _player.x,
-                _amount
-            );
-
-        var _check_y =
-            lerp(
-                _enemy.y,
-                _player.y,
-                _amount
-            );
-
-
-        if (
-            scr_world_circle_gameplay_solid(
-                _check_x,
-                _check_y,
-                2,
-                true
-            )
-        )
-        {
-            return false;
-        }
-    }
-
-
-    return true;
+    return collision_line(
+        _enemy.x,
+        _enemy.y,
+        _player.x,
+        _player.y,
+        o_solid,
+        false,
+        true
+    ) == noone;
 }

@@ -185,77 +185,20 @@ function scr_enemy_combat_anchor_begin(
 
 /// @description Returns whether a short local movement segment remains clear.
 
-function scr_enemy_combat_segment_clear(
-    _enemy,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
+function scr_enemy_combat_segment_clear(_enemy, _start_x, _start_y, _end_x, _end_y)
 {
     if (!instance_exists(_enemy))
         return false;
 
-
-    var _distance =
-        point_distance(
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-    var _sample_distance =
-        max(
-            4,
-            _enemy.visual.radius * 0.4
-        );
-
-    var _steps =
-        max(
-            1,
-            ceil(
-                _distance
-                / _sample_distance
-            )
-        );
-
-
-    for (var i = 1; i <= _steps; ++i)
-    {
-        var _amount =
-            i / _steps;
-
-        var _check_x =
-            lerp(
-                _start_x,
-                _end_x,
-                _amount
-            );
-
-        var _check_y =
-            lerp(
-                _start_y,
-                _end_y,
-                _amount
-            );
-
-
-        if (
-            scr_world_circle_gameplay_solid(
-                _check_x,
-                _check_y,
-                _enemy.visual.radius,
-                true
-            )
-        )
-        {
-            return false;
-        }
-    }
-
-
-    return true;
+    return collision_line(
+        _start_x,
+        _start_y,
+        _end_x,
+        _end_y,
+        o_solid,
+        false,
+        true
+    ) == noone;
 }
 
 
@@ -331,16 +274,18 @@ function scr_enemy_combat_destination_valid(
 
 
     if (
-        scr_world_circle_gameplay_solid(
-            _world_x,
-            _world_y,
-            _enemy.visual.radius,
-            true
-        )
-    )
-    {
-        return false;
-    }
+	    collision_circle(
+	        _world_x,
+	        _world_y,
+	        _enemy.visual.radius,
+	        o_solid,
+	        false,
+	        true
+	    ) != noone
+	)
+	{
+	    return false;
+	}
 
 
     if (
@@ -548,19 +493,19 @@ function scr_enemy_combat_destination_move(_enemy)
 
 
     if (
-        scr_world_circle_gameplay_solid(
-            _next_x,
-            _next_y,
-            _enemy.visual.radius,
-            true
-        )
-    )
-    {
-        _destination.active =
-            false;
-
-        return false;
-    }
+	    collision_circle(
+	        _next_x,
+	        _next_y,
+	        _enemy.visual.radius,
+	        o_solid,
+	        false,
+	        true
+	    ) != noone
+	)
+	{
+	    _destination.active = false;
+	    return false;
+	}
 
 
     _enemy.x = _next_x;
