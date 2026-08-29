@@ -31,70 +31,51 @@ function scr_enemy_player_roll_sync(_enemy)
     return true;
 }
 
-/// @description Restores the best strategic target after player aggro ends.
+/// @description Restores the strategic objective after player aggro ends.
 
 function scr_enemy_player_target_restore(_enemy)
 {
-    if (!instance_exists(_enemy))
-        return false;
+    var _runtime = _enemy.targeting.player;
+
+    _runtime.active = false;
+    _runtime.roll.succeeded = false;
+
+    _enemy.targeting.breach = noone;
 
 
-    var _runtime =
-        _enemy.targeting.player;
-
-    _runtime.active =
-        false;
-
-    _runtime.roll.succeeded =
-        false;
-
-
-    // Look for a newly placed, meaningfully closer building immediately.
-
-    scr_enemy_strategic_retarget_update(
-        _enemy,
-        true
-    );
-
-
-    // If the cached target was destroyed, acquire a replacement regardless
-    // of the ordinary target-switch distance requirement.
-
-    if (!instance_exists(_enemy.targeting.strategic))
+    // Building hunters reconsider their objective when ending a player chase.
+    if (_enemy.targeting.target_type == EnemyTarget.BUILDING)
     {
-        var _replacement =
-            scr_enemy_target_acquire(
-                _enemy
-            );
+        scr_enemy_building_target_update(_enemy);
 
-        scr_enemy_strategic_target_set(
-            _enemy,
-            _replacement
-        );
+        // No usable remembered target? Perform a full acquisition.
+        if (!instance_exists(_enemy.targeting.strategic))
+        {
+            var _replacement = scr_enemy_target_acquire(_enemy);
+
+            scr_enemy_strategic_target_set(
+                _enemy,
+                _replacement
+            );
+        }
     }
 
-
-    _enemy.targeting.breach =
-        noone;
 
     _enemy.targeting.target =
         _enemy.targeting.strategic;
 
 
-    if (instance_exists(_enemy.targeting.target))
-    {
-        _enemy.navigation.reachable =
-            true;
+    if (!instance_exists(_enemy.targeting.target))
+        return true;
 
-        _enemy.EnemyState =
-            EnemyState.MOVING;
 
-        scr_navigation_enemy_repath_request(
-            _enemy,
-            true
-        );
-    }
+    _enemy.navigation.reachable = true;
+    _enemy.EnemyState = EnemyState.MOVING;
 
+    scr_navigation_enemy_repath_request(
+        _enemy,
+        true
+    );
 
     return true;
 }
@@ -125,14 +106,6 @@ function scr_enemy_player_targeting_update(_enemy)
     var _delta =
         1 / _fps;
 
-
-    // Enemies not pursuing the player may periodically reconsider buildings.
-
-    if (!_runtime.active
-    && _enemy.targeting.target_type == EnemyTarget.BUILDING)
-	{
-	    scr_enemy_strategic_retarget_update(_enemy);
-	}
 
 
     scr_enemy_player_roll_sync(

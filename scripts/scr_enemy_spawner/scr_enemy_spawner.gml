@@ -2251,81 +2251,27 @@ function scr_enemy_spawner_cleanup(_spawner)
     return true;
 }
 
-/// @description Spawns one enemy configuration at a random map edge.
+/// @description Spawns one enemy at a random map edge.
 
-function scr_enemy_spawn_edge(
-    _enemy_key,
-    _spawn_modifiers = []
-)
+function scr_enemy_spawn_edge(_enemy_key, _spawn_modifiers = [])
 {
-    var _margin = 64;
-    var _spawn_x = _margin;
-    var _spawn_y = _margin;
+    var _side = scr_enemy_spawner_side_get();
 
+    var _position = scr_enemy_spawner_edge_position_get(
+        _enemy_key,
+        _side,
+        random_range(0.05, 0.95)
+    );
 
-    switch (irandom(3))
-    {
-        case 0:
-        {
-            _spawn_x =
-                random_range(
-                    _margin,
-                    room_width - _margin
-                );
-
-            _spawn_y =
-                _margin;
-        }
-        break;
-
-
-        case 1:
-        {
-            _spawn_x =
-                room_width - _margin;
-
-            _spawn_y =
-                random_range(
-                    _margin,
-                    room_height - _margin
-                );
-        }
-        break;
-
-
-        case 2:
-        {
-            _spawn_x =
-                random_range(
-                    _margin,
-                    room_width - _margin
-                );
-
-            _spawn_y =
-                room_height - _margin;
-        }
-        break;
-
-
-        case 3:
-        {
-            _spawn_x =
-                _margin;
-
-            _spawn_y =
-                random_range(
-                    _margin,
-                    room_height - _margin
-                );
-        }
-        break;
-    }
-
+    if (!is_struct(_position))
+        return noone;
 
     return scr_enemy_spawn(
         _enemy_key,
-        _spawn_x,
-        _spawn_y,
+        _position.x,
+        _position.y,
+        _position.entry_x,
+        _position.entry_y,
         undefined,
         _spawn_modifiers
     );

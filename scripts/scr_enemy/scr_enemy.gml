@@ -1466,6 +1466,20 @@ function scr_enemy_target_acquire(_enemy)
     return noone;
 }
 
+function scr_enemy_strategic_target_set(_enemy, _target)
+{
+    _enemy.targeting.strategic = _target;
+    _enemy.targeting.target = _target;
+
+    if (instance_exists(_target))
+    {
+        _enemy.targeting.target_x = _target.x;
+        _enemy.targeting.target_y = _target.y;
+    }
+
+    return true;
+}
+
 function scr_enemy_building_target_update(_enemy)
 {
     if (_enemy.targeting.player.active)
@@ -1507,136 +1521,42 @@ function scr_enemy_building_target_update(_enemy)
 }
 
 
-/// @description Returns the fast edge distance between an enemy and its validated target.
-
-function scr_enemy_target_edge_distance(
-    _enemy,
-    _target
-)
+function scr_enemy_target_edge_distance(_enemy, _target)
 {
-    var _enemy_x =
-        _enemy.x;
+    var _ex = _enemy.x;
+    var _ey = _enemy.y;
+    var _enemy_radius = _enemy.visual.radius;
 
-    var _enemy_y =
-        _enemy.y;
-
-    var _enemy_radius =
-        _enemy.visual.radius;
-
-
-    // ========================================================================
-    // CPU / PLAYER
-    // ========================================================================
-    //
-    // Enemy targeting only uses CPU, player, or buildings.
-    // Checking these two explicit targets lets every remaining target use the
-    // building path without object_is_ancestor() every step.
-
-    var _object =
-        _target.object_index;
-
-
-    if (
-        _object == o_cpu
-        || _object == o_player
-    )
+    // CPU / player are circular targets.
+    if (_target.object_index == o_cpu || _target.object_index == o_player)
     {
-        var _target_radius = _target.visual.radius;
-
-        var _dx =
-            _target.x
-            - _enemy_x;
-
-        var _dy =
-            _target.y
-            - _enemy_y;
-
+        var _dx = _target.x - _ex;
+        var _dy = _target.y - _ey;
 
         return max(
             0,
-            sqrt(
-                (_dx * _dx)
-                + (_dy * _dy)
-            )
+            sqrt((_dx * _dx) + (_dy * _dy))
             - _enemy_radius
-            - _target_radius
+            - _target.visual.radius
         );
     }
 
+    // Everything else is a building.
+    var _cell_size = global.vtd_level.map.cell_size;
+    var _half_w = _target.footprint.width_cells * _cell_size * 0.5;
+    var _half_h = _target.footprint.height_cells * _cell_size * 0.5;
 
-    // ========================================================================
-    // BUILDING
-    // ========================================================================
-    //
-    // All remaining ordinary enemy targets are building objects.
+    var _closest_x = clamp(_ex, _target.x - _half_w, _target.x + _half_w);
+    var _closest_y = clamp(_ey, _target.y - _half_h, _target.y + _half_h);
 
-    var _cell_size =
-        global.vtd_level.map.cell_size;
-
-    var _half_width =
-        _target.footprint.width_cells
-        * _cell_size
-        * 0.5;
-
-    var _half_height =
-        _target.footprint.height_cells
-        * _cell_size
-        * 0.5;
-
-
-    var _target_left =
-        _target.x
-        - _half_width;
-
-    var _target_right =
-        _target.x
-        + _half_width;
-
-    var _target_top =
-        _target.y
-        - _half_height;
-
-    var _target_bottom =
-        _target.y
-        + _half_height;
-
-
-    var _closest_x =
-        clamp(
-            _enemy_x,
-            _target_left,
-            _target_right
-        );
-
-    var _closest_y =
-        clamp(
-            _enemy_y,
-            _target_top,
-            _target_bottom
-        );
-
-
-    var _dx =
-        _enemy_x
-        - _closest_x;
-
-    var _dy =
-        _enemy_y
-        - _closest_y;
-
-
-    var _interaction_tolerance =
-        _cell_size * 0.25;
-
+    var _dx = _ex - _closest_x;
+    var _dy = _ey - _closest_y;
 
     return max(
         0,
-        sqrt(
-            (_dx * _dx)
-            + (_dy * _dy)
-        )
+        sqrt((_dx * _dx) + (_dy * _dy))
         - _enemy_radius
-        - _interaction_tolerance
+        - (_cell_size * 0.25)
     );
 }
 
@@ -1841,8 +1761,8 @@ function scr_enemy_draw(_enemy)
 
     return true;
 }
-/// @description Applies support-shield, natural-shield and health damage.
 
+/// @description Applies support-shield, natural-shield and health damage.
 function scr_enemy_damage(_enemy, _damage)
 {
     if (!instance_exists(_enemy))
@@ -2061,27 +1981,11 @@ function scr_enemy_cleanup(_enemy)
 }
 
 /// @description Returns whether a building is a valid enemy target.
-
 function scr_enemy_building_target_valid(_building)
 {
-    if (!instance_exists(_building))
-        return false;
-
-    if (
-        _building.object_index != o_building_par
-        && !object_is_ancestor(_building.object_index, o_building_par)
-    )
-    {
-        return false;
-    }
-
-    if (!variable_instance_exists(_building, "BuildingState"))
-        return false;
-
-    if (_building.BuildingState == BuildingState.DESTROYED)
-        return false;
-
-    return _building.vitals.hp.current > 0;
+    return instance_exists(_building)
+        && _building.BuildingState != BuildingState.DESTROYED
+        && _building.vitals.hp.current > 0;
 }
 
 /// @description Returns the closest valid building, optionally inside a local scan range.
