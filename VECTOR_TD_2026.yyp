@@ -75,7 +75,6 @@
     {"id":{"name":"o_pickup","path":"objects/o_pickup/o_pickup.yy",},},
     {"id":{"name":"o_player","path":"objects/o_player/o_player.yy",},},
     {"id":{"name":"o_projectile_enemy","path":"objects/o_projectile_enemy/o_projectile_enemy.yy",},},
-    {"id":{"name":"o_projectile_par","path":"objects/o_projectile_par/o_projectile_par.yy",},},
     {"id":{"name":"o_projectile_player","path":"objects/o_projectile_player/o_projectile_player.yy",},},
     {"id":{"name":"o_projectile_tower","path":"objects/o_projectile_tower/o_projectile_tower.yy",},},
     {"id":{"name":"o_refinery","path":"objects/o_refinery/o_refinery.yy",},},
