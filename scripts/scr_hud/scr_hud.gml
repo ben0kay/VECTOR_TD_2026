@@ -1880,18 +1880,22 @@ function scr_hud_static_surface_build(_hud)
         _hud.hud.static_surface;
 
 
-    if (surface_exists(_surface_data.id))
-        surface_free(_surface_data.id);
+    if (surface_exists(_surface_data.surface_id))
+    {
+        surface_free(
+            _surface_data.surface_id
+        );
+    }
 
 
-    _surface_data.id =
+    _surface_data.surface_id =
         surface_create(
             _gui_width,
             _gui_height
         );
 
 
-    if (!surface_exists(_surface_data.id))
+    if (!surface_exists(_surface_data.surface_id))
         return false;
 
 
@@ -1903,7 +1907,7 @@ function scr_hud_static_surface_build(_hud)
 
 
     surface_set_target(
-        _surface_data.id
+        _surface_data.surface_id
     );
 
     draw_clear_alpha(
@@ -1921,8 +1925,6 @@ function scr_hud_static_surface_build(_hud)
     var _row_height =
         _top.row_height;
 
-
-    // TOP BACKGROUND
 
     draw_set_alpha(
         _top.background_alpha
@@ -1959,8 +1961,6 @@ function scr_hud_static_surface_build(_hud)
         _row_height
     );
 
-
-    // TOP CELL LAYOUT
 
     var _time_width = 130;
     var _cpu_width = 180;
@@ -2142,8 +2142,6 @@ function scr_hud_static_surface_build(_hud)
         _row_height
     );
 
-
-    // BOTTOM HUD SHELL
 
     var _bottom =
         _hud.hud.bottom;
