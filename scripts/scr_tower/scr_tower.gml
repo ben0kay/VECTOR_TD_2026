@@ -407,15 +407,26 @@ function scr_tower_aim_update(
 }
 
 /// @description Updates one active tower's cooldown, target, aim, and firing.
+
 function scr_tower_update(_tower)
 {
     if (!instance_exists(_tower))
         return false;
-	
-	scr_tower_recoil_update(_tower);
 
-    if (_tower.BuildingState != BuildingState.ACTIVE)
+
+    scr_tower_recoil_update(
+        _tower
+    );
+
+
+    if (
+        _tower.BuildingState
+        != BuildingState.ACTIVE
+    )
+    {
         return true;
+    }
+
 
     var _fps =
         max(
@@ -423,15 +434,22 @@ function scr_tower_update(_tower)
             game_get_speed(gamespeed_fps)
         );
 
-    var _weapon =
-    _tower.combat.weapon;
 
-	_weapon.cooldown.remaining =
-	    max(
-	        0,
-	        _weapon.cooldown.remaining
-	        - (1 / _fps)
-	    );
+    var _weapon =
+        _tower.combat.weapon;
+
+
+    // ========================================================================
+    // WEAPON TIMERS
+    // ========================================================================
+
+    _weapon.cooldown.remaining =
+        max(
+            0,
+            _weapon.cooldown.remaining
+            - (1 / _fps)
+        );
+
 
     if (_weapon.trace.active)
     {
@@ -442,13 +460,26 @@ function scr_tower_update(_tower)
                 - (1 / _fps)
             );
 
+
         if (_weapon.trace.remaining <= 0)
-            _weapon.trace.active = false;
+        {
+            _weapon.trace.active =
+                false;
+        }
     }
 
+
+    // ========================================================================
+    // CHEAP TARGET SAFETY
+    // ========================================================================
+    //
+    // Instance existence remains every frame because aiming and firing
+    // dereference the target immediately afterwards.
+    //
+    // Expensive validity checks are staggered separately.
+
     if (
-        !scr_tower_target_valid(
-            _tower,
+        !instance_exists(
             _tower.targeting.target
         )
     )
@@ -457,20 +488,62 @@ function scr_tower_update(_tower)
             noone;
     }
 
-    // Searches remain staggered between tower instances.
+
+    // ========================================================================
+    // PERIODIC CURRENT-TARGET VALIDATION
+    // ========================================================================
+    //
+    // Full validation includes stealth, fog, range, LOS and target filters.
+    // There is no need to perform all of that every Step.
 
     if (
-        !instance_exists(
+        instance_exists(
             _tower.targeting.target
         )
         && IFRAMES_5
     )
     {
-        _tower.targeting.target =
+        if (
+            !scr_tower_target_valid(
+                _tower,
+                _tower.targeting.target
+            )
+        )
+        {
+            _tower.targeting.target =
+                noone;
+        }
+    }
+
+
+    // ========================================================================
+    // PERIODIC TARGET ACQUISITION / RECONSIDERATION
+    // ========================================================================
+    //
+    // Every tower gets an opportunity approximately every 10 frames to
+    // acquire a target or replace its current target with a better one.
+    //
+    // IFRAMES_10 is staggered by instance id.
+
+    if (IFRAMES_10)
+    {
+        var _candidate =
             scr_tower_target_acquire(
                 _tower
             );
+
+
+        if (instance_exists(_candidate))
+        {
+            _tower.targeting.target =
+                _candidate;
+        }
     }
+
+
+    // ========================================================================
+    // NO TARGET
+    // ========================================================================
 
     if (
         !instance_exists(
@@ -484,6 +557,11 @@ function scr_tower_update(_tower)
         return true;
     }
 
+
+    // ========================================================================
+    // AIM
+    // ========================================================================
+
     if (
         !scr_tower_aim_update(
             _tower,
@@ -495,13 +573,21 @@ function scr_tower_update(_tower)
         return false;
     }
 
+
+    // ========================================================================
+    // FIRE
+    // ========================================================================
+
     if (
         _tower.targeting.aim.aligned
         && _weapon.cooldown.remaining <= 0
     )
     {
-        scr_tower_fire(_tower);
+        scr_tower_fire(
+            _tower
+        );
     }
+
 
     return true;
 }

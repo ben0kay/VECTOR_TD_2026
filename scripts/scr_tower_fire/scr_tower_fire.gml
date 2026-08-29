@@ -282,7 +282,7 @@ break;
     return true;
 }
 
-/// @description Acquires an enemy using the tower's targeting mode.
+/// @description Acquires the best valid enemy currently inside tower range.
 
 function scr_tower_target_acquire(_tower)
 {
@@ -290,42 +290,173 @@ function scr_tower_target_acquire(_tower)
         return noone;
 
 
-    var _best_enemy =
-        noone;
+    // ========================================================================
+    // LOCAL RANGE QUERY
+    // ========================================================================
+    //
+    // Only enemies intersecting the tower's actual weapon range are gathered.
+    // This replaces scanning every o_enemy instance in the room.
 
-    var _best_score =
-        infinity;
+    var _enemy_list =
+        ds_list_create();
 
+
+    var _distance_sorted =
+        _tower.targeting.mode
+        == TowerTargetMode.CLOSEST
+        || _tower.targeting.mode
+        == TowerTargetMode.FURTHEST;
+
+
+    collision_circle_list(
+        _tower.x,
+        _tower.y,
+        _tower.combat.range,
+        o_enemy,
+        false,
+        true,
+        _enemy_list,
+        _distance_sorted
+    );
+
+
+    var _count =
+        ds_list_size(
+            _enemy_list
+        );
+
+
+    if (_count <= 0)
+    {
+        ds_list_destroy(
+            _enemy_list
+        );
+
+        return noone;
+    }
+
+
+    // ========================================================================
+    // CLOSEST
+    // ========================================================================
+    //
+    // The collision list is already distance sorted.
+    // Stop immediately at the first valid enemy.
+
+    if (
+        _tower.targeting.mode
+        == TowerTargetMode.CLOSEST
+    )
+    {
+        for (
+            var i = 0;
+            i < _count;
+            ++i
+        )
+        {
+            var _enemy =
+                _enemy_list[| i];
+
+
+            if (
+                !scr_tower_target_valid(
+                    _tower,
+                    _enemy
+                )
+            )
+            {
+                continue;
+            }
+
+
+            ds_list_destroy(
+                _enemy_list
+            );
+
+            return _enemy;
+        }
+
+
+        ds_list_destroy(
+            _enemy_list
+        );
+
+        return noone;
+    }
+
+
+    // ========================================================================
+    // FURTHEST
+    // ========================================================================
+    //
+    // Sorted closest -> furthest, so inspect backwards and stop at the
+    // first valid enemy.
 
     if (
         _tower.targeting.mode
         == TowerTargetMode.FURTHEST
-        || _tower.targeting.mode
-        == TowerTargetMode.HIGHEST_HP
     )
     {
-        _best_score =
-            -infinity;
+        for (
+            var i = _count - 1;
+            i >= 0;
+            --i
+        )
+        {
+            var _enemy =
+                _enemy_list[| i];
+
+
+            if (
+                !scr_tower_target_valid(
+                    _tower,
+                    _enemy
+                )
+            )
+            {
+                continue;
+            }
+
+
+            ds_list_destroy(
+                _enemy_list
+            );
+
+            return _enemy;
+        }
+
+
+        ds_list_destroy(
+            _enemy_list
+        );
+
+        return noone;
     }
 
 
-    var _enemy_count =
-        instance_number(
-            o_enemy
-        );
+    // ========================================================================
+    // HP-BASED TARGETING
+    // ========================================================================
+
+    var _best_enemy =
+        noone;
+
+
+    var _best_score =
+        _tower.targeting.mode
+        == TowerTargetMode.LOWEST_HP
+        ? infinity
+        : -infinity;
 
 
     for (
         var i = 0;
-        i < _enemy_count;
+        i < _count;
         ++i
     )
     {
         var _enemy =
-            instance_find(
-                o_enemy,
-                i
-            );
+            _enemy_list[| i];
 
 
         if (
@@ -340,69 +471,44 @@ function scr_tower_target_acquire(_tower)
 
 
         var _score =
-            0;
+            _enemy.vitals.hp.current;
 
 
         switch (_tower.targeting.mode)
         {
-            case TowerTargetMode.CLOSEST:
-            case TowerTargetMode.FURTHEST:
-            {
-                _score =
-                    point_distance(
-                        _tower.x,
-                        _tower.y,
-                        _enemy.x,
-                        _enemy.y
-                    );
-            }
-            break;
-
-
-            case TowerTargetMode.LOWEST_HP:
-            case TowerTargetMode.HIGHEST_HP:
-            {
-                _score =
-                    _enemy.vitals.hp.current;
-            }
-            break;
-        }
-
-
-        var _better =
-            false;
-
-
-        switch (_tower.targeting.mode)
-        {
-            case TowerTargetMode.CLOSEST:
             case TowerTargetMode.LOWEST_HP:
             {
-                _better =
-                    _score < _best_score;
+                if (_score < _best_score)
+                {
+                    _best_score =
+                        _score;
+
+                    _best_enemy =
+                        _enemy;
+                }
             }
             break;
 
 
-            case TowerTargetMode.FURTHEST:
             case TowerTargetMode.HIGHEST_HP:
             {
-                _better =
-                    _score > _best_score;
+                if (_score > _best_score)
+                {
+                    _best_score =
+                        _score;
+
+                    _best_enemy =
+                        _enemy;
+                }
             }
             break;
-        }
-
-
-        if (_better)
-        {
-            _best_score =
-                _score;
-
-            _best_enemy =
-                _enemy;
         }
     }
+
+
+    ds_list_destroy(
+        _enemy_list
+    );
 
 
     return _best_enemy;
