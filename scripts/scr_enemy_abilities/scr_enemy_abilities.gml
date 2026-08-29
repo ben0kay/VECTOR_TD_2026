@@ -281,13 +281,15 @@ function scr_enemy_transport_release_queue_update()
         }
 
         scr_enemy_spawn(
-            _release.enemy_key,
-            _release.x,
-            _release.y,
-            _release.angle,
-            _release.modifiers,
-            _release.major_wave_number
-        );
+    _release.enemy_key,
+    _release.x,
+    _release.y,
+    _release.x,
+    _release.y,
+    _release.angle,
+    _release.modifiers,
+    _release.major_wave_number
+);
 
         array_delete(
             _queue,
