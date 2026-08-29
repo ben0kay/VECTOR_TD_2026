@@ -182,7 +182,40 @@ function scr_debug_menu_update(_hud)
     var _menu = _hud.hud.debug_menu;
 
 
-    // F1 is now the only enemy-debug hotkey.
+	// ============================================================
+    // GLOBAL DEBUG HOTKEYS
+    // ============================================================
+
+    // F4 - HUD visibility.
+
+    if (keyboard_check_pressed(vk_f4))
+    {
+        _hud.hud.debug.hide =
+            !_hud.hud.debug.hide;
+    }
+
+
+    // F5 - Building drawing visibility.
+
+    if (keyboard_check_pressed(vk_f5))
+    {
+        _hud.hud.debug.hide_buildings =
+            !_hud.hud.debug.hide_buildings;
+
+        var _visible =
+            !_hud.hud.debug.hide_buildings;
+
+        with (o_building_par)
+        {
+            visible =
+                _visible;
+        }
+    }
+
+
+    // ============================================================
+    // ENEMY DEBUG MENU
+    // ============================================================
 
     if (keyboard_check_pressed(vk_f1))
     {

@@ -3,12 +3,6 @@
 if (!variable_global_exists("vtd_level")) exit;
 if (!is_struct(global.vtd_level)) exit;
 
-if (keyboard_check_pressed(vk_f4))
-{
-    hud.debug.hide = !hud.debug.hide;
-}
-
-
 if (
     global.LevelState
     == LevelState.CHASSIS_SELECT

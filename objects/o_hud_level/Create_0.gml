@@ -10,7 +10,8 @@ hud =
 {
 	debug: 
 	{
-		hide: false
+		hide: false,
+		hide_buildings: false
 	},
 	
 	static_surface:
