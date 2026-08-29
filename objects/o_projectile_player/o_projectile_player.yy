@@ -15,7 +15,10 @@
     "name":"entities",
     "path":"folders/objects/entities.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"o_projectile_par",
+    "path":"objects/o_projectile_par/o_projectile_par.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

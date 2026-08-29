@@ -1,23 +1,17 @@
 {
   "$GMObject":"",
-  "%Name":"o_projectile_enemy",
+  "%Name":"o_projectile_par",
   "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":7,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"o_projectile_enemy",
+  "name":"o_projectile_par",
   "overriddenProperties":[],
   "parent":{
     "name":"entities",
     "path":"folders/objects/entities.yy",
   },
-  "parentObjectId":{
-    "name":"o_projectile_par",
-    "path":"objects/o_projectile_par/o_projectile_par.yy",
-  },
+  "parentObjectId":null,
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

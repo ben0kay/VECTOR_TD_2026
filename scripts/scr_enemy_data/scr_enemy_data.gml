@@ -442,12 +442,12 @@ function scr_enemy_data_hunter()
 
             visual:
             {
-                sprite: -1,
+                sprite: s_enemy_hunter,
                 draw_function: scr_enemy_visual_hunter,
- 				scale_x: 1,
- 				scale_y: 1,
-                radius: 11,
-                color: c_red
+ 				scale_x: 0.27,
+ 				scale_y: 0.27,
+                radius: 11.2,
+                color: c_orange
             },
 
             vitals:
@@ -778,19 +778,19 @@ function scr_enemy_data_kamikaze()
                 scale_x: 1,
                 scale_y: 1,
                 draw_function: scr_enemy_visual_kamikaze,
-                radius: 15,
+                radius: 14,
                 color: c_lime
             },
 
             vitals:
             {
-                hp_maximum: 24,
-                shield_maximum: 25
+                hp_maximum: 19,
+                shield_maximum: 10
             },
 
             movement:
             {
-                speed: 3.2,
+                speed: 2,
                 layer: EnemyMovementLayer.GROUND
             },
 
