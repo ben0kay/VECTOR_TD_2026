@@ -36,7 +36,9 @@ Preserve unrelated fields when replacing data definitions.
 
 Use one registration function per tower and enemy.
 
-Use structs, enums, switches and draw_angle; do not use image_angle as gameplay-facing direction.
+Use structs, enums IF NECESSARY, switches and draw_angle; do not use image_angle as gameplay-facing direction.
+
+Simple booleans to gate logic would be good. Looking for performance over anything else
 
 With dynamic struct string keys, use variable_struct_get/set.
 
