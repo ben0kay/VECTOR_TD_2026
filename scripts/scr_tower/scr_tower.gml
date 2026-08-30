@@ -93,18 +93,34 @@ function scr_tower_initialize(_tower)
 
 
     // ========================================================================
-    // VISUALS
-    // ========================================================================
+	// VISUALS
+	// ========================================================================
 
-    _tower.visual.turret_color =
-        _tower.building_data.visual.turret_color;
+	var _visual_data = _tower.building_data.visual;
 
-    _tower.visual.draw_angle = 0;
-    _tower.visual.draw_function = scr_tower_visual_ground;
-	_tower.visual.recoil = scr_tower_recoil_runtime_create(_tower.building_data.visual);
+	_tower.visual.turret_color = _visual_data.turret_color;
+	_tower.visual.draw_angle = 0;
+	_tower.visual.draw_function = scr_tower_visual_ground;
+	_tower.visual.sprite = -1;
+	_tower.visual.sprite_color = c_white;
+	_tower.visual.scale_x = 1;
+	_tower.visual.scale_y = 1;
+	_tower.visual.recoil = scr_tower_recoil_runtime_create(_visual_data);
 
-    if (variable_struct_exists(_data, "draw_function"))
-        _tower.visual.draw_function = _data.draw_function;
+	if (variable_struct_exists(_data, "draw_function"))
+	    _tower.visual.draw_function = _data.draw_function;
+
+	if (variable_struct_exists(_visual_data, "sprite"))
+	    _tower.visual.sprite = _visual_data.sprite;
+
+	if (variable_struct_exists(_visual_data, "sprite_color"))
+	    _tower.visual.sprite_color = _visual_data.sprite_color;
+
+	if (variable_struct_exists(_visual_data, "scale_x"))
+	    _tower.visual.scale_x = _visual_data.scale_x;
+
+	if (variable_struct_exists(_visual_data, "scale_y"))
+	    _tower.visual.scale_y = _visual_data.scale_y;
 
 	
 	// ========================================================================

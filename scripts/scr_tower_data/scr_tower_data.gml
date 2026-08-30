@@ -59,7 +59,11 @@ function scr_tower_data_basic_ground()
             visual:
             {
                 color: c_aqua,
-                turret_color: c_yellow
+                turret_color: c_yellow,
+				    sprite: s_tower_basic,
+				    sprite_color: c_white,
+				    scale_x: 0.5,
+				    scale_y: 0.5
             },
 
             footprint:
