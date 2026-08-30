@@ -1,17 +1,9 @@
-show_debug_message(
-    "ENEMY COLLISION | other="
-    + string(other)
-    + " target="
-    + string(targeting.target)
-    + " contact="
-    + string(attack.type == EnemyAttack.CONTACT)
-    + " destroy="
-    + string(movement.destroy_on_impact)
-);
+var _target = targeting.target;
 
 if (attack.type == EnemyAttack.CONTACT
     && movement.destroy_on_impact
-    && other == targeting.target)
+    && instance_exists(_target)
+    && place_meeting(x, y, _target))
 {
     scr_enemy_attack(id);
 

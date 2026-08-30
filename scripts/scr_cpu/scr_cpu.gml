@@ -35,8 +35,7 @@ function scr_cpu_initialize(_cpu)
         radius: 64,
         color: c_blue
     };
-		
-		_cpu.mask_index = s_collision_square;	
+			
 		
 		
 	var _cell = scr_building_position_to_cell(_cpu.x, _cpu.y);
@@ -54,6 +53,23 @@ function scr_cpu_initialize(_cpu)
 	        y: _cell.y - floor(_height * 0.5)
 	    }
 	};
+
+	// ========================================================================
+	// COLLISION MASK
+	// ========================================================================
+
+	_cpu.mask_index = s_collision_square;
+
+	var _cell_size = global.vtd_level.map.cell_size;
+
+	_cpu.image_xscale =
+	    (_cpu.footprint.width_cells * _cell_size)
+	    / sprite_get_width(s_collision_square);
+
+	_cpu.image_yscale =
+	    (_cpu.footprint.height_cells * _cell_size)
+	    / sprite_get_height(s_collision_square);	
+
 
     global.vtd_level.entities.cpu = _cpu;
 

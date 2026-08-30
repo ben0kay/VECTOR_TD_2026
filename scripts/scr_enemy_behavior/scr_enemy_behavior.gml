@@ -56,11 +56,11 @@ function scr_enemy_behavior_standard_update(_enemy)
                 );
 
                 _enemy.x += lengthdir_x(_enemy.movement.speed, _direction);
-                _enemy.y += lengthdir_y(_enemy.movement.speed, _direction);
+				_enemy.y += lengthdir_y(_enemy.movement.speed, _direction);
 
-                _enemy.movement.direction = _direction;
+				_enemy.movement.direction = _direction;
 
-                return true;
+				return true;
             }
 
 
@@ -153,6 +153,8 @@ function scr_enemy_behavior_standard_update(_enemy)
 
     return true;
 }
+
+
 /// @description Dispatches one enemy's configured primary behavior.
 
 function scr_enemy_behavior_update(_enemy)
