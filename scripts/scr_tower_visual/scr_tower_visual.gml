@@ -137,12 +137,9 @@ function scr_tower_draw(_tower)
         return false;
 
     var _visual = _tower.visual;
+    var _offset = scr_tower_recoil_offset_get(_tower);
 
-    var _offset =
-        scr_tower_recoil_offset_get(_tower);
-
-    if (_visual.sprite != -1
-        && sprite_exists(_visual.sprite))
+    if (_visual.sprite != -1 && sprite_exists(_visual.sprite))
     {
         draw_sprite_ext(
             _visual.sprite,
@@ -158,23 +155,44 @@ function scr_tower_draw(_tower)
     }
     else
     {
-        var _previous_matrix =
-            matrix_get(matrix_world);
+        var _draw_function = _visual.draw_function;
 
-        var _recoil_matrix = matrix_build( _offset.x,  _offset.y ,0 ,0 ,0 ,0 ,1 ,1 ,1
+        if (_offset.x == 0 && _offset.y == 0)
+        {
+            if (!is_undefined(_draw_function))
+                _draw_function(_tower);
+            else
+                scr_tower_visual_ground(_tower);
+        }
+        else
+        {
+            var _previous_matrix = matrix_get(matrix_world);
+
+            var _recoil_matrix = matrix_build(
+                _offset.x,
+                _offset.y,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1
             );
 
-        matrix_set(matrix_world, _recoil_matrix);
+            matrix_set(matrix_world, _recoil_matrix);
 
-        if (!is_undefined(_visual.draw_function))
-            _visual.draw_function(_tower);
-        else
-            scr_tower_visual_ground(_tower);
+            if (!is_undefined(_draw_function))
+                _draw_function(_tower);
+            else
+                scr_tower_visual_ground(_tower);
 
-        matrix_set(matrix_world, _previous_matrix);
+            matrix_set(matrix_world, _previous_matrix);
+        }
     }
 
     // Trace remains at its real muzzle position.
+
     scr_tower_weapon_trace_draw(_tower);
 
     return true;

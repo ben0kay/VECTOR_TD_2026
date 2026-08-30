@@ -1,5 +1,8 @@
 /// @description Draws one tower and its construction state.
 
+if (OUTSIDE_VIEW_128)
+    exit;
+
 event_inherited();
 
 if (BuildingState != BuildingState.ACTIVE)

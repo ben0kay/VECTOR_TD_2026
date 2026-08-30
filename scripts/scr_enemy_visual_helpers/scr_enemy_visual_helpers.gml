@@ -788,32 +788,32 @@ function scr_enemy_visual_helper_local_polygon(
 /// @description Draws a rotated outlined rectangle using local-space coordinates.
 
 function scr_enemy_visual_helper_local_box(
-    _x,
-    _y,
-    _angle,
-    _x1,
-    _y1,
-    _x2,
-    _y2,
+    _x, _y, _angle,
+    _x1, _y1, _x2, _y2,
     _width = 1
 )
 {
-    var _points =
-    [
-        [_x1, _y1],
-        [_x2, _y1],
-        [_x2, _y2],
-        [_x1, _y2]
-    ];
+    var _cos = dcos(_angle);
+    var _sin = dsin(_angle);
 
+    var _ax = _x + (_x1 * _cos) + (_y1 * _sin);
+    var _ay = _y - (_x1 * _sin) + (_y1 * _cos);
 
-    return scr_enemy_visual_helper_local_polygon(
-        _x,
-        _y,
-        _angle,
-        _points,
-        _width
-    );
+    var _bx = _x + (_x2 * _cos) + (_y1 * _sin);
+    var _by = _y - (_x2 * _sin) + (_y1 * _cos);
+
+    var _cx = _x + (_x2 * _cos) + (_y2 * _sin);
+    var _cy = _y - (_x2 * _sin) + (_y2 * _cos);
+
+    var _dx = _x + (_x1 * _cos) + (_y2 * _sin);
+    var _dy = _y - (_x1 * _sin) + (_y2 * _cos);
+
+    draw_line_width(_ax, _ay, _bx, _by, _width);
+    draw_line_width(_bx, _by, _cx, _cy, _width);
+    draw_line_width(_cx, _cy, _dx, _dy, _width);
+    draw_line_width(_dx, _dy, _ax, _ay, _width);
+
+    return true;
 }
 
 // ============================================================================
