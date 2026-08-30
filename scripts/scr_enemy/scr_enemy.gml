@@ -220,65 +220,37 @@ function scr_enemy_initialize(_enemy)
 	// ========================================================================
 	// MINIMAP
 	// ========================================================================
-	//
-	// Colour always comes from _enemy.visual.color.
-	// Definitions only control marker size and radar-contact fade duration.
 
-	var _minimap_size =
-	    1.5;
-
-	var _minimap_fade_time =
-	    4;
+	var _minimap_size = 1;
+	var _minimap_fade_time = 2.5;
 
 	if (
-	    variable_struct_exists(
-	        _data,
-	        "minimap"
-	    )
+	    variable_struct_exists(_data, "minimap")
 	    && is_struct(_data.minimap)
 	)
 	{
-	    if (
-	        variable_struct_exists(
-	            _data.minimap,
-	            "size"
-	        )
-	    )
-	    {
-	        _minimap_size =
-	            max(
-	                0.5,
-	                _data.minimap.size
-	            );
-	    }
+	    if (variable_struct_exists(_data.minimap, "size"))
+	        _minimap_size = max(0.5, _data.minimap.size);
 
-	    if (
-	        variable_struct_exists(
-	            _data.minimap,
-	            "fade_time"
-	        )
-	    )
-	    {
-	        _minimap_fade_time =
-	            max(
-	                0.1,
-	                _data.minimap.fade_time
-	            );
-	    }
+	    if (variable_struct_exists(_data.minimap, "fade_time"))
+	        _minimap_fade_time = max(0.1, _data.minimap.fade_time);
 	}
 
 	_enemy.minimap =
 	{
-	    size:
-	        _minimap_size,
+	    size: _minimap_size,
+	    fade_time: _minimap_fade_time,
+	    contact_remaining: 0,
 
-	    fade_time:
-	        _minimap_fade_time,
+	    cache_valid: false,
+	    inside_range: false,
 
-	    contact_remaining:
-	        0
+	    cached_offset_x: 0,
+	    cached_offset_y: 0,
+
+	    sweep_angle_seen: 0,
+	    sweep_angle_valid: false
 	};
-
 
     // ========================================================================
     // VITALS

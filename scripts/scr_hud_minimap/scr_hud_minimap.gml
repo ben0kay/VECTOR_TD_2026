@@ -1165,202 +1165,133 @@ function scr_hud_minimap_draw(_hud)
 
 
         // ====================================================================
-        // ENEMIES / RADAR CONTACTS
-        // ====================================================================
+		// ENEMIES / RADAR CONTACTS
+		// ====================================================================
 
-        var _enemy_count =
-            instance_number(
-                o_enemy
-            );
+		var _enemy_count = instance_number(o_enemy);
+		var _radar = _map.radar;
 
-        var _radar =
-            _map.radar;
+		var _fps = max(1, game_get_speed(gamespeed_fps));
+		var _delta_seconds = 1 / _fps;
 
+		for (var i = 0; i < _enemy_count; ++i)
+		{
+		    var _enemy = instance_find(o_enemy, i);
 
-        var _fps =
-            max(
-                1,
-                game_get_speed(
-                    gamespeed_fps
-                )
-            );
+		    if (!instance_exists(_enemy))
+		        continue;
 
-        var _delta_seconds =
-            1 / _fps;
+		    var _enemy_minimap = _enemy.minimap;
 
+		    _enemy_minimap.contact_remaining = max(
+		        0,
+		        _enemy_minimap.contact_remaining - _delta_seconds
+		    );
 
-        for (
-            var i = 0;
-            i < _enemy_count;
-            ++i
-        )
-        {
-            var _enemy =
-                instance_find(
-                    o_enemy,
-                    i
-                );
+		    // Each enemy refreshes once every 10 frames. Enemy ID staggers updates.
 
+		    var _refresh_due =
+		        (VTD_TICK + real(_enemy.id)) mod 10 == 0;
 
-            if (!instance_exists(_enemy))
-                continue;
+		    if (_refresh_due)
+		    {
+		        var _enemy_dx = _enemy.x - _player.x;
+		        var _enemy_dy = _enemy.y - _player.y;
 
+		        var _distance_squared =
+		            (_enemy_dx * _enemy_dx)
+		            + (_enemy_dy * _enemy_dy);
 
-            var _enemy_minimap =
-                _enemy.minimap;
+		        _enemy_minimap.cache_valid = true;
+		        _enemy_minimap.inside_range =
+		            _distance_squared <= _range_squared;
 
+		        _enemy_minimap.cached_offset_x =
+		            _enemy_dx * _map_scale;
 
-            _enemy_minimap.contact_remaining =
-                max(
-                    0,
-                    _enemy_minimap.contact_remaining
-                    - _delta_seconds
-                );
+		        _enemy_minimap.cached_offset_y =
+		            _enemy_dy * _map_scale;
 
+		        if (_enemy_minimap.inside_range)
+		        {
+		            var _enemy_angle = point_direction(
+		                0,
+		                0,
+		                _enemy_dx,
+		                _enemy_dy
+		            );
 
-            var _enemy_dx =
-                _enemy.x
-                - _player.x;
+		            if (
+		                _enemy_minimap.sweep_angle_valid
+		                && scr_hud_minimap_radar_sweep_crossed(
+		                    _enemy_minimap.sweep_angle_seen,
+		                    _radar.sweep_angle,
+		                    _enemy_angle
+		                )
+		            )
+		            {
+		                _enemy_minimap.contact_remaining =
+		                    _enemy_minimap.fade_time;
+		            }
+		        }
 
-            var _enemy_dy =
-                _enemy.y
-                - _player.y;
+		        _enemy_minimap.sweep_angle_seen =
+		            _radar.sweep_angle;
 
-            var _enemy_distance_squared =
-                (_enemy_dx * _enemy_dx)
-                + (_enemy_dy * _enemy_dy);
+		        _enemy_minimap.sweep_angle_valid =
+		            true;
+		    }
 
+		    if (
+		        !_enemy_minimap.cache_valid
+		        || !_enemy_minimap.inside_range
+		        || _enemy_minimap.contact_remaining <= 0
+		    )
+		    {
+		        continue;
+		    }
 
-            if (
-                _enemy_distance_squared
-                > _range_squared
-            )
-            {
-                continue;
-            }
+		    var _enemy_map_x =
+		        _center_x + _enemy_minimap.cached_offset_x;
 
+		    var _enemy_map_y =
+		        _center_y + _enemy_minimap.cached_offset_y;
 
-            var _enemy_angle =
-                point_direction(
-                    _player.x,
-                    _player.y,
-                    _enemy.x,
-                    _enemy.y
-                );
+		    var _fade_alpha = clamp(
+		        _enemy_minimap.contact_remaining
+		        / _enemy_minimap.fade_time,
+		        0,
+		        1
+		    );
 
+		    var _dot_size = _enemy_minimap.size;
 
-            if (
-                scr_hud_minimap_radar_sweep_crossed(
-                    _radar.previous_sweep_angle,
-                    _radar.sweep_angle,
-                    _enemy_angle
-                )
-            )
-            {
-                _enemy_minimap.contact_remaining =
-                    _enemy_minimap.fade_time;
-            }
+		    draw_set_color(_enemy.visual.color);
 
+		    draw_set_alpha(0.08 * _fade_alpha);
+		    draw_circle(
+		        _enemy_map_x,
+		        _enemy_map_y,
+		        _dot_size * 4,
+		        false
+		    );
 
-            if (
-                _enemy_minimap.contact_remaining
-                <= 0
-            )
-            {
-                continue;
-            }
+		    draw_set_alpha(0.22 * _fade_alpha);
+		    draw_circle(
+		        _enemy_map_x,
+		        _enemy_map_y,
+		        _dot_size * 2.5,
+		        false
+		    );
 
-
-            // Direct world-to-minimap conversion.
-            // No temporary { x, y } struct is created.
-
-            var _enemy_map_x =
-                _center_x
-                + (
-                    _enemy_dx
-                    * _map_scale
-                );
-
-            var _enemy_map_y =
-                _center_y
-                + (
-                    _enemy_dy
-                    * _map_scale
-                );
-
-
-            var _fade_alpha =
-                clamp(
-                    _enemy_minimap.contact_remaining
-                    / _enemy_minimap.fade_time,
-                    0,
-                    1
-                );
-
-
-            var _dot_size =
-                _enemy_minimap.size;
-
-
-            draw_set_color(
-                _enemy.visual.color
-            );
-
-
-            draw_set_alpha(
-                0.08
-                * _fade_alpha
-            );
-
-
-            draw_circle(
-                _enemy_map_x,
-                _enemy_map_y,
-                _dot_size * 4.67,
-                false
-            );
-
-
-            draw_set_alpha(
-                0.18
-                * _fade_alpha
-            );
-
-
-            draw_circle(
-                _enemy_map_x,
-                _enemy_map_y,
-                _dot_size * 3.33,
-                false
-            );
-
-
-            draw_set_alpha(
-                0.45
-                * _fade_alpha
-            );
-
-
-            draw_circle(
-                _enemy_map_x,
-                _enemy_map_y,
-                _dot_size * 2,
-                false
-            );
-
-
-            draw_set_alpha(
-                _fade_alpha
-            );
-
-
-            draw_circle(
-                _enemy_map_x,
-                _enemy_map_y,
-                _dot_size,
-                false
-            );
-        }
+		    draw_set_alpha(_fade_alpha);
+		    draw_circle(
+		        _enemy_map_x,
+		        _enemy_map_y,
+		        _dot_size,
+		        false
+		    );
+		}
 
 
         // ====================================================================
