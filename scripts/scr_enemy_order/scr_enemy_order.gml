@@ -290,87 +290,47 @@ function scr_enemy_order_fallback(_enemy)
 }
 
 
-/// @description Assigns one tactical order and its one-time pathable target.
+/// @description Assigns one tactical order to an enemy.
 
-function scr_enemy_order_assign(
-    _enemy,
-    _order_type
-)
+function scr_enemy_order_assign(_enemy, _order_type)
 {
     if (!instance_exists(_enemy))
         return false;
 
-    if (
-        _enemy.EnemyBehavior
-        == EnemyBehavior.BRAINLESS
-    )
-    {
-        return false;
-    }
+    _enemy.order.type = EnemyOrder.NONE;
+    _enemy.order.target = noone;
 
-
-    _enemy.order.type =
-        EnemyOrder.NONE;
-
-    _enemy.order.target =
-        noone;
-
+    // No tactical order is valid for every enemy, including brainless ones.
 
     if (_order_type == EnemyOrder.NONE)
         return true;
 
+    // Brainless enemies cannot receive active tactical orders.
 
-    var _target =
-        scr_enemy_order_target_get(
-            _enemy,
-            _order_type
-        );
+    if (_enemy.EnemyBehavior == EnemyBehavior.BRAINLESS)
+        return false;
+
+    var _target = scr_enemy_order_target_get(_enemy, _order_type);
 
     if (!instance_exists(_target))
-    {
-        // No pathable special target exists at spawn, so this enemy permanently
-        // returns to its ordinary definition-driven target behaviour.
+        return scr_enemy_order_fallback(_enemy);
 
-        return scr_enemy_order_fallback(
-            _enemy
-        );
-    }
+    _enemy.order.type = _order_type;
+    _enemy.order.target = _target;
 
+    _enemy.targeting.breach = noone;
+    _enemy.targeting.strategic = _target;
+    _enemy.targeting.target = _target;
 
-    _enemy.order.type =
-        _order_type;
-
-    _enemy.order.target =
-        _target;
-
-    _enemy.targeting.breach =
-        noone;
-
-    _enemy.targeting.strategic =
-        _target;
-
-    _enemy.targeting.target =
-        _target;
-
-    _enemy.order.player_follow.x =
-        _target.x;
-
-    _enemy.order.player_follow.y =
-        _target.y;
-
+    _enemy.order.player_follow.x = _target.x;
+    _enemy.order.player_follow.y = _target.y;
     _enemy.order.player_follow.remaining =
         _enemy.order.player_follow.interval_seconds;
 
-    _enemy.navigation.reachable =
-        true;
+    _enemy.navigation.reachable = true;
+    _enemy.EnemyState = EnemyState.MOVING;
 
-    _enemy.EnemyState =
-        EnemyState.MOVING;
-
-    scr_navigation_enemy_repath_request(
-        _enemy,
-        true
-    );
+    scr_navigation_enemy_repath_request(_enemy, true);
 
     return true;
 }

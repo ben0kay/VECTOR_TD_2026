@@ -780,7 +780,7 @@ function scr_enemy_data_kamikaze()
                 scale_y: 1,
                 draw_function: scr_enemy_visual_kamikaze,
                 radius: 14,
-                color: c_lime
+                color: c_orange
             },
 
             vitals:

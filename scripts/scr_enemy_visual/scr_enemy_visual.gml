@@ -230,7 +230,15 @@ function scr_enemy_visual_kamikaze(_enemy)
         return false;
 
 
-    var _radius = _enemy.visual.radius;
+    var _x =
+        _enemy.x;
+
+    var _y =
+        _enemy.y;
+
+    var _radius =
+        _enemy.visual.radius;
+
 
     // Instance offset prevents every kamikaze rotating in sync.
 
@@ -246,13 +254,27 @@ function scr_enemy_visual_kamikaze(_enemy)
     // OUTER BODY
     // ========================================================================
 
+    draw_set_alpha(1);
     draw_set_color(_enemy.visual.color);
 
+
+    // Main circular outline.
+
     draw_circle(
-        _enemy.x,
-        _enemy.y,
+        _x,
+        _y,
         _radius,
-        false
+        true
+    );
+
+
+    // Inner structural ring.
+
+    draw_circle(
+        _x,
+        _y,
+        _radius * 0.72,
+        true
     );
 
 
@@ -260,57 +282,77 @@ function scr_enemy_visual_kamikaze(_enemy)
     // ROTATING ARMS
     // ========================================================================
 
-    for (var i = 0; i < 4; ++i)
-    {
-        var _arm_angle = _spin + (i * 90);
-
-        draw_line_width(
-            _enemy.x + lengthdir_x(_radius * 0.55, _arm_angle),
-            _enemy.y + lengthdir_y(_radius * 0.55, _arm_angle),
-            _enemy.x + lengthdir_x(_radius, _arm_angle),
-            _enemy.y + lengthdir_y(_radius, _arm_angle),
-            3
-        );
-    }
+    scr_enemy_visual_helper_radial_ticks(
+        _x,
+        _y,
+        _radius * 0.72,
+        _radius * 0.28,
+        4,
+        _spin,
+        3
+    );
 
 
     // ========================================================================
-    // ROTATING INNER SQUARE
+    // ROTATING INNER DIAMOND
     // ========================================================================
-
-    var _square_radius = _radius * 0.52;
-
-    var _x1 = _enemy.x + lengthdir_x(_square_radius, _spin + 45);
-    var _y1 = _enemy.y + lengthdir_y(_square_radius, _spin + 45);
-
-    var _x2 = _enemy.x + lengthdir_x(_square_radius, _spin + 135);
-    var _y2 = _enemy.y + lengthdir_y(_square_radius, _spin + 135);
-
-    var _x3 = _enemy.x + lengthdir_x(_square_radius, _spin + 225);
-    var _y3 = _enemy.y + lengthdir_y(_square_radius, _spin + 225);
-
-    var _x4 = _enemy.x + lengthdir_x(_square_radius, _spin + 315);
-    var _y4 = _enemy.y + lengthdir_y(_square_radius, _spin + 315);
-
 
     draw_set_color(c_white);
 
-    draw_line_width(_x1, _y1, _x2, _y2, 2);
-    draw_line_width(_x2, _y2, _x3, _y3, 2);
-    draw_line_width(_x3, _y3, _x4, _y4, 2);
-    draw_line_width(_x4, _y4, _x1, _y1, 2);
+    scr_enemy_visual_helper_diamond(
+        _x,
+        _y,
+        _radius * 0.48,
+        _spin,
+        2
+    );
 
 
-    // One bright corner makes the rotation especially obvious.
+    // ========================================================================
+    // EXPLOSIVE CORE
+    // ========================================================================
+
+    draw_set_color(_enemy.visual.color);
 
     draw_circle(
-        _x1,
-        _y1,
-        2,
+        _x,
+        _y,
+        _radius * 0.25,
         true
     );
 
 
+    // Small rotating spokes between the core and diamond.
+
+    scr_enemy_visual_helper_spokes(
+        _x,
+        _y,
+        _radius * 0.27,
+        _radius * 0.43,
+        4,
+        _spin + 45,
+        1
+    );
+
+
+    // ========================================================================
+    // CENTER
+    // ========================================================================
+
+    draw_set_color(c_white);
+
+    draw_circle(
+        _x,
+        _y,
+        max(
+            1.5,
+            _radius * 0.07
+        ),
+        false
+    );
+
+
+    draw_set_alpha(1);
     draw_set_color(c_white);
 
     return true;
