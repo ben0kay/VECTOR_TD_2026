@@ -1,3 +1,50 @@
+/// @description Draws one building's optional baked body and effects.
+
+function scr_building_baked_draw(
+    _building,
+    _angle = 0,
+    _offset_x = 0,
+    _offset_y = 0,
+    _color = c_white
+)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    var _baked = _building.visual.baked;
+
+    if (is_undefined(_baked.body))
+        return false;
+
+    var _sprite = _baked.body();
+
+    if (!sprite_exists(_sprite))
+        return false;
+
+    draw_sprite_ext(
+        _sprite,
+        0,
+        _building.x + _offset_x,
+        _building.y + _offset_y,
+        1,
+        1,
+        _angle,
+        _color,
+        1
+    );
+
+    if (!is_undefined(_baked.effects))
+    {
+        _baked.effects(
+            _building,
+            _offset_x,
+            _offset_y
+        );
+    }
+
+    return true;
+}
+
 /// @description Draws the Solar Generator's vector assembly.
 
 function scr_energy_generator_draw(_building)
@@ -1399,3 +1446,4 @@ function scr_utility_shield_generator_draw(_building)
 
     return true;
 }
+

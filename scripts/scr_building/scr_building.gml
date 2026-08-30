@@ -57,11 +57,30 @@ function scr_building_initialize(_building)
     };
 
 
-    _building.visual =
+   _building.visual =
+{
+    color: _data.visual.color,
+
+    baked:
     {
-        color:
-            _data.visual.color
-    };
+        body: undefined,
+        effects: undefined
+    }
+};
+
+if (
+    variable_struct_exists(_data.visual, "baked")
+    && is_struct(_data.visual.baked)
+)
+{
+    var _baked = _data.visual.baked;
+
+    if (variable_struct_exists(_baked, "body"))
+        _building.visual.baked.body = _baked.body;
+
+    if (variable_struct_exists(_baked, "effects"))
+        _building.visual.baked.effects = _baked.effects;
+}
 
 
     _building.footprint =

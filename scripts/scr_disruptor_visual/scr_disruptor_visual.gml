@@ -1,9 +1,9 @@
-/// @description Draws the complete procedural Disruptor.
+/// @description Draws the complete Disruptor visual.
 
 function scr_tower_visual_disruptor(_tower)
 {
     scr_tower_visual_disruptor_body(_tower);
-    scr_tower_visual_disruptor_effects(_tower);
+    scr_tower_disruptor_baked_effects(_tower, 0, 0);
 
     return true;
 }
@@ -144,26 +144,121 @@ function scr_tower_visual_disruptor_body(_tower)
     return true;
 }
 
-/// @description Draws the Disruptor's animated inner field.
+/// @description Returns a sprite baked from the static Disruptor body.
 
-function scr_tower_visual_disruptor_effects(_tower)
+function scr_tower_disruptor_baked_body()
 {
-    var _spin = global.vtd.tick * 2.5;
+    static _sprite = -1;
 
-    draw_set_color(_tower.visual.turret_color);
+    if (sprite_exists(_sprite))
+        return _sprite;
 
-    scr_enemy_visual_helper_arc_segments(
-        _tower.x,
-        _tower.y,
-        14,
-        3,
-        65,
-        _spin,
-        3,
-        2
+    var _size = 128;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+
+    var _preview =
+    {
+        id: 0,
+        x: _size * 0.5,
+        y: _size * 0.5,
+
+        visual:
+        {
+            draw_angle: 0,
+            turret_color: c_white
+        }
+    };
+
+    scr_tower_visual_disruptor_body(_preview);
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface,
+        0,
+        0,
+        _size,
+        _size,
+        false,
+        false,
+        _size * 0.5,
+        _size * 0.5
     );
 
-    draw_set_color(c_white);
+    surface_free(_surface);
+
+    return _sprite;
+}
+
+
+/// @description Draws the Disruptor's baked rotating arcs.
+
+function scr_tower_disruptor_baked_effects(
+    _tower,
+    _offset_x,
+    _offset_y
+)
+{
+    static _sprite = -1;
+
+    if (!sprite_exists(_sprite))
+    {
+        var _size = 64;
+        var _surface = surface_create(_size, _size);
+
+        if (!surface_exists(_surface))
+            return false;
+
+        surface_set_target(_surface);
+        draw_clear_alpha(c_black, 0);
+        draw_set_color(c_white);
+
+        scr_enemy_visual_helper_arc_segments(
+            _size * 0.5,
+            _size * 0.5,
+            14,
+            3,
+            65,
+            0,
+            3,
+            2
+        );
+
+        surface_reset_target();
+
+        _sprite = sprite_create_from_surface(
+            _surface,
+            0,
+            0,
+            _size,
+            _size,
+            false,
+            false,
+            _size * 0.5,
+            _size * 0.5
+        );
+
+        surface_free(_surface);
+        draw_set_color(c_white);
+    }
+
+    draw_sprite_ext(
+        _sprite,
+        0,
+        _tower.x + _offset_x,
+        _tower.y + _offset_y,
+        1,
+        1,
+        global.vtd.tick * 2.5,
+        _tower.visual.turret_color,
+        1
+    );
 
     return true;
 }

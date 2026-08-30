@@ -63,8 +63,9 @@ function scr_tower_data_basic_ground()
                 turret_color: c_yellow,
 				    sprite: s_tower_basic,
 				    sprite_color: c_white,
-				    scale_x: 0.5,
+				    scale_x: 0.56,
 				    scale_y: 0.5
+				
             },
 
             footprint:
@@ -850,7 +851,13 @@ order: 90
 visual:
 {
     color: make_color_rgb(65, 20, 85),
-    turret_color: make_color_rgb(200, 70, 255)
+    turret_color: make_color_rgb(200, 70, 255),
+
+    baked:
+    {
+        body: scr_tower_disruptor_baked_body,
+        effects: scr_tower_disruptor_baked_effects
+    }
 },
 
 footprint: { width_cells: 2, height_cells: 2 },

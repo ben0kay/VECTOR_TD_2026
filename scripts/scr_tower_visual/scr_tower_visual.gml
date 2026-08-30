@@ -128,7 +128,6 @@ function scr_tower_visual_ground(_tower)
     return true;
 }
 
-
 /// @description Draws the configured tower and active weapon trace.
 
 function scr_tower_draw(_tower)
@@ -138,96 +137,75 @@ function scr_tower_draw(_tower)
 
     var _visual = _tower.visual;
     var _offset = scr_tower_recoil_offset_get(_tower);
-    var _baked_sprite = -1;
-    var _baked_used = false;
 
-    switch (_tower.identity.key)
+    var _baked_used = scr_building_baked_draw(
+        _tower,
+        _visual.draw_angle,
+        _offset.x,
+        _offset.y,
+        _visual.turret_color
+    );
+
+    if (!_baked_used)
     {
-        case "tower_minigun":
-            _baked_sprite = scr_tower_minigun_baked_sprite_get();
-        break;
-
-        case "tower_disruptor":
-            _baked_sprite = scr_tower_disruptor_baked_sprite_get();
-        break;
-    }
-
-    if (sprite_exists(_baked_sprite))
-    {
-        _baked_used = true;
-
-        draw_sprite_ext(
-            _baked_sprite,
-            0,
-            _tower.x + _offset.x,
-            _tower.y + _offset.y,
-            1,
-            1,
-            _visual.draw_angle,
-            _visual.turret_color,
-            1
-        );
-    }
-    else if (_visual.sprite != -1 && sprite_exists(_visual.sprite))
-    {
-        draw_sprite_ext(
-            _visual.sprite,
-            0,
-            _tower.x + _offset.x,
-            _tower.y + _offset.y,
-            _visual.scale_x,
-            _visual.scale_y,
-            _visual.draw_angle,
-            _visual.sprite_color,
-            1
-        );
-    }
-    else
-    {
-        var _draw_function = _visual.draw_function;
-
-        if (_offset.x == 0 && _offset.y == 0)
+        if (_visual.sprite != -1 && sprite_exists(_visual.sprite))
         {
-            if (!is_undefined(_draw_function))
-                _draw_function(_tower);
-            else
-                scr_tower_visual_ground(_tower);
+            draw_sprite_ext(
+                _visual.sprite,
+                0,
+                _tower.x + _offset.x,
+                _tower.y + _offset.y,
+                _visual.scale_x,
+                _visual.scale_y,
+                _visual.draw_angle,
+                _visual.sprite_color,
+                1
+            );
         }
         else
         {
-            var _previous_matrix = matrix_get(matrix_world);
+            var _draw_function = _visual.draw_function;
 
-            matrix_set(
-                matrix_world,
-                matrix_build(
-                    _offset.x, _offset.y, 0,
-                    0, 0, 0,
-                    1, 1, 1
-                )
-            );
-
-            if (!is_undefined(_draw_function))
-                _draw_function(_tower);
+            if (_offset.x == 0 && _offset.y == 0)
+            {
+                if (!is_undefined(_draw_function))
+                    _draw_function(_tower);
+                else
+                    scr_tower_visual_ground(_tower);
+            }
             else
-                scr_tower_visual_ground(_tower);
+            {
+                var _previous_matrix = matrix_get(matrix_world);
 
-            matrix_set(matrix_world, _previous_matrix);
+                matrix_set(
+                    matrix_world,
+                    matrix_build(
+                        _offset.x,
+                        _offset.y,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        1
+                    )
+                );
+
+                if (!is_undefined(_draw_function))
+                    _draw_function(_tower);
+                else
+                    scr_tower_visual_ground(_tower);
+
+                matrix_set(matrix_world, _previous_matrix);
+            }
         }
-    }
-
-    if (
-        _baked_used
-        && _tower.identity.key == "tower_disruptor"
-    )
-    {
-        scr_tower_visual_disruptor_effects(_tower);
     }
 
     scr_tower_weapon_trace_draw(_tower);
 
     return true;
 }
-
 /// @description Draws the attack range of a selected tower.
 
 function scr_tower_range_draw(_tower)
