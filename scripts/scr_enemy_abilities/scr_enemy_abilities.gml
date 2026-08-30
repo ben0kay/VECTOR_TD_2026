@@ -4,26 +4,27 @@ function scr_enemy_transport_release(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-    if (
-        !scr_enemy_has_ability(
-            _enemy,
-            EnemyAbility.TRANSPORT_ENEMIES
-        )
-    )
-    {
-        return false;
-    }
-
     var _transport =
         _enemy.ability_runtime.transport;
 
-    if (!is_struct(_transport))
-        return false;
 
     if (_transport.triggered)
         return false;
 
     _transport.triggered = true;
+	
+	// A flying transporter cannot release ground cargo while directly
+// above permanent terrain. Its children would spawn trapped inside it.
+
+	if (_enemy.movement.layer == EnemyMovementLayer.FLYING
+	    && scr_world_circle_solid(
+	        _enemy.x,
+	        _enemy.y,
+	        8
+	    ))
+	{
+	    return true;
+	}
 
 
     // ========================================================================

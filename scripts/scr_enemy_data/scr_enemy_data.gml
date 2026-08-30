@@ -25,6 +25,7 @@ function scr_enemy_data_initialize()
     if (!scr_enemy_data_flyer()) return false;
 	if (!scr_enemy_data_heavy_flyer()) return false;
 	if (!scr_enemy_data_gunship()) return false;
+	if (!scr_enemy_data_flying_transporter()) return false;
 
 
     // Modernized original Vector enemies.
@@ -2463,6 +2464,101 @@ function scr_enemy_data_transporter_mk2()
                             enemy_key: "enemy_hunter_mk2",
                             count_min: 10,
                             count_max: 14,
+                            inherit_modifiers: true
+                        }
+                    ]
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+/// @description Registers the flying enemy Transporter.
+
+function scr_enemy_data_flying_transporter()
+{
+    variable_struct_set(
+        global.vtd.data.enemies,
+        "enemy_transporter_flying",
+        {
+            identity:
+            {
+                key: "enemy_transporter_flying",
+                name: "Flying Transporter"
+            },
+
+            visual:
+            {
+                sprite: -1,
+                scale_x: 1,
+                scale_y: 1,
+                draw_function:     scr_enemy_visual_flying_transporter,
+                radius: 30,
+                color: make_color_rgb(90, 210, 255)
+            },
+
+            vitals:
+            {
+                hp_maximum: 350,
+                shield_maximum: 100
+            },
+
+            movement:
+            {
+                speed: 1.1,
+                layer: EnemyMovementLayer.FLYING
+            },
+
+            targeting:
+            {
+                target_type: EnemyTarget.CPU
+            },
+
+            navigation:
+            {
+                blocked_action: EnemyBlockedAction.WAIT
+            },
+
+            attack:
+            {
+                type: EnemyAttack.CONTACT,
+                damage: 20,
+                range: 8,
+                cooldown_seconds: 1.2
+            },
+
+            rewards:
+                scr_enemy_rewards_create(
+                    20,
+                    10
+                ),
+
+            abilities:
+            [
+                EnemyAbility.TRANSPORT_ENEMIES
+            ],
+
+            ability_data:
+            {
+                transport:
+                {
+                    spawn_radius: 42,
+
+                    cargo:
+                    [
+                        {
+                            enemy_key: "enemy_weak",
+                            count_min: 4,
+                            count_max: 7,
+                            inherit_modifiers: true
+                        },
+
+                        {
+                            enemy_key: "enemy_hunter",
+                            count_min: 1,
+                            count_max: 2,
                             inherit_modifiers: true
                         }
                     ]

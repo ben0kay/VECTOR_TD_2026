@@ -271,7 +271,8 @@ function scr_world_data_initialize()
 			    { enemy_key: "enemy_shield_generator", weight: 5,  unlock_seconds: 264 },
 			    { enemy_key: "enemy_siege_beam",       weight: 4,  unlock_seconds: 288 },
 			    { enemy_key: "enemy_siege_rocket",     weight: 4,  unlock_seconds: 312 },
-			    { enemy_key: "enemy_heavy_flyer",      weight: 3,  unlock_seconds: 360 }
+			    { enemy_key: "enemy_heavy_flyer",      weight: 3,  unlock_seconds: 340 },
+				{ enemy_key: "enemy_transporter_flying",      weight: 2,  unlock_seconds: 360 }
 			]
 				},
 
