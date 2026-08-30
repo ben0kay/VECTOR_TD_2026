@@ -5,90 +5,45 @@ function scr_enemy_unique_centipede_create(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-
     _enemy.centipede =
     {
-        detached:
-            false,
-
-        master:
-            noone,
-
-        follow_delay:
-            0,
-
-        last_direction:
-            _enemy.movement.direction,
+        detached: false,
+        master: noone,
+        follow_delay: 0,
+        last_direction: _enemy.movement.direction,
 
         trail: [],
+        trail_stagger: 1,
 
-        trail_stagger:
-            1,
-
-        maximum_children:
-            0,
-
+        maximum_children: 0,
+        pending_children: 0,
+        children_created: false,
         children: []
     };
 
+    // Child created by a Centipede head.
 
-    // ========================================================================
-    // CHILD CREATED BY A CENTIPEDE HEAD
-    // ========================================================================
-
-    if (
-        variable_instance_exists(
-            _enemy,
-            "centipede_master"
-        )
-    )
+    if (variable_instance_exists(_enemy, "centipede_master"))
     {
-        _enemy.centipede.master =
-            _enemy.centipede_master;
+        _enemy.centipede.master = _enemy.centipede_master;
 
+        if (variable_instance_exists(_enemy, "centipede_follow_delay"))
+            _enemy.centipede.follow_delay = _enemy.centipede_follow_delay;
 
-        if (
-            variable_instance_exists(
-                _enemy,
-                "centipede_follow_delay"
-            )
-        )
+        if (!instance_exists(_enemy.centipede.master))
         {
-            _enemy.centipede.follow_delay =
-                _enemy.centipede_follow_delay;
-        }
-
-
-        if (
-            !instance_exists(
-                _enemy.centipede.master
-            )
-        )
-        {
-            show_debug_message(
-                "CENTIPEDE ERROR - child received an invalid master."
-            );
-
+            show_debug_message("CENTIPEDE ERROR - child received an invalid master.");
             return false;
         }
-
 
         return true;
     }
 
-
-    // ========================================================================
-    // HEAD CONFIGURATION
-    // ========================================================================
+    // Head configuration.
 
     if (
-        !variable_struct_exists(
-            _enemy.enemy_data.unique,
-            "centipede"
-        )
-        || !is_struct(
-            _enemy.enemy_data.unique.centipede
-        )
+        !variable_struct_exists(_enemy.enemy_data.unique, "centipede")
+        || !is_struct(_enemy.enemy_data.unique.centipede)
     )
     {
         show_debug_message(
@@ -99,97 +54,26 @@ function scr_enemy_unique_centipede_create(_enemy)
         return false;
     }
 
+    var _settings = _enemy.enemy_data.unique.centipede;
+    var _runtime = _enemy.centipede;
 
-    var _settings =
-        _enemy.enemy_data.unique.centipede;
+    _runtime.trail_stagger = max(1, floor(_settings.trail_stagger));
 
-    var _runtime =
-        _enemy.centipede;
+    _runtime.maximum_children = max(
+        floor(_settings.child_count_minimum),
+        floor(_settings.child_count_maximum)
+    );
 
-
-    _runtime.trail_stagger =
-        max(
-            1,
-            floor(
-                _settings.trail_stagger
-            )
-        );
-
-    _runtime.maximum_children =
-        max(
-            floor(
-                _settings.child_count_minimum
-            ),
-
-            floor(
-                _settings.child_count_maximum
-            )
-        );
-
+    _runtime.pending_children = irandom_range(
+        floor(_settings.child_count_minimum),
+        floor(_settings.child_count_maximum)
+    );
 
     var _maximum_history =
-        (
-            _runtime.maximum_children
-            * _runtime.trail_stagger
-        )
-        + 5;
-
+        (_runtime.maximum_children * _runtime.trail_stagger) + 5;
 
     repeat (_maximum_history)
-    {
-        array_push(
-            _runtime.trail,
-            {
-                x: _enemy.x,
-                y: _enemy.y
-            }
-        );
-    }
-
-
-    var _child_count =
-        irandom_range(
-            floor(
-                _settings.child_count_minimum
-            ),
-
-            floor(
-                _settings.child_count_maximum
-            )
-        );
-
-
-    for (
-        var i = 1;
-        i <= _child_count;
-        ++i
-    )
-    {
-        var _child =
-            scr_enemy_unique_centipede_child_create(
-                _enemy,
-                _settings.child_key,
-                i * _runtime.trail_stagger
-            );
-
-
-        if (!instance_exists(_child))
-        {
-            show_debug_message(
-                "CENTIPEDE ERROR - child creation failed: "
-                + _enemy.identity.key
-            );
-
-            return false;
-        }
-
-
-        array_push(
-            _runtime.children,
-            _child
-        );
-    }
-
+        array_push(_runtime.trail, { x: _enemy.x, y: _enemy.y });
 
     return true;
 }
@@ -370,47 +254,51 @@ function scr_enemy_unique_centipede_step_start(_child)
 }
 
 
-/// @description Records the head's position after its ordinary movement.
+/// @description Creates pending children and records the head's position.
 
 function scr_enemy_unique_centipede_step_finish(_head)
 {
     if (!instance_exists(_head))
         return false;
 
+    var _runtime = _head.centipede;
+    var _settings = _head.enemy_data.unique.centipede;
 
-    var _runtime =
-        _head.centipede;
+    // Create children after the head's complete Create Event has finished.
 
-
-    array_push(
-        _runtime.trail,
-        {
-            x: _head.x,
-            y: _head.y
-        }
-    );
-
-
-    var _maximum_history =
-        (
-            _runtime.maximum_children
-            * _runtime.trail_stagger
-        )
-        + 5;
-
-
-    while (
-        array_length(_runtime.trail)
-        > _maximum_history
-    )
+    if (!_runtime.children_created)
     {
-        array_delete(
-            _runtime.trail,
-            0,
-            1
-        );
+        _runtime.children_created = true;
+
+        for (var i = 1; i <= _runtime.pending_children; ++i)
+        {
+            var _child = scr_enemy_unique_centipede_child_create(
+                _head,
+                _settings.child_key,
+                i * _runtime.trail_stagger
+            );
+
+            if (!instance_exists(_child))
+            {
+                show_debug_message(
+                    "CENTIPEDE ERROR - deferred child creation failed: "
+                    + _head.identity.key
+                );
+
+                return false;
+            }
+
+            array_push(_runtime.children, _child);
+        }
     }
 
+    array_push(_runtime.trail, { x: _head.x, y: _head.y });
+
+    var _maximum_history =
+        (_runtime.maximum_children * _runtime.trail_stagger) + 5;
+
+    while (array_length(_runtime.trail) > _maximum_history)
+        array_delete(_runtime.trail, 0, 1);
 
     return true;
 }

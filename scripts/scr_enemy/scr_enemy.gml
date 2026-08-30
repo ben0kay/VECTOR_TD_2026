@@ -2885,18 +2885,27 @@ function scr_enemy_die(_enemy, _damage)
 	scr_effect_enemy_death_create(_enemy);
 
 
-    // ========================================================================
-    // DEATH ABILITIES
-    // ========================================================================
+// ========================================================================
+// DEATH ABILITIES
+// ========================================================================
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.EXPLODE_ON_DEATH))
-        scr_enemy_explode(_enemy);
+for (var i = 0; i < array_length(_enemy.abilities); ++i)
+{
+    switch (_enemy.abilities[i])
+    {
+        case EnemyAbility.EXPLODE_ON_DEATH:
+            scr_enemy_explode(_enemy);
+        break;
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.SPLIT_ON_DEATH))
-        scr_enemy_split(_enemy);
+        case EnemyAbility.SPLIT_ON_DEATH:
+            scr_enemy_split(_enemy);
+        break;
 
-    if (scr_enemy_has_ability(_enemy, EnemyAbility.TRANSPORT_ENEMIES))
-        scr_enemy_transport_release(_enemy);
+        case EnemyAbility.TRANSPORT_ENEMIES:
+            scr_enemy_transport_release(_enemy);
+        break;
+    }
+}
 
 
     // ========================================================================
