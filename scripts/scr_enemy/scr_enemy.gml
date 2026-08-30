@@ -543,10 +543,15 @@ function scr_enemy_initialize(_enemy)
 
 
     // ========================================================================
-    // TARGETING
-    // ========================================================================
+	// TARGETING
+	// ========================================================================
 
-    _enemy.targeting =
+	var _range_sight = 384;
+
+	if (variable_struct_exists(_data.targeting, "range_sight"))
+	    _range_sight = max(0, _data.targeting.range_sight);
+
+	_enemy.targeting =
 	{
 	    target: noone,
 	    strategic: noone,
@@ -555,7 +560,8 @@ function scr_enemy_initialize(_enemy)
 	    target_x: 0,
 	    target_y: 0,
 
-	    target_type: _data.targeting.target_type
+	    target_type: _data.targeting.target_type,
+	    range_sight: _range_sight
 	};
 
 
@@ -1448,19 +1454,20 @@ function scr_enemy_target_acquire(_enemy)
     switch (_enemy.targeting.target_type)
     {
         case EnemyTarget.CPU:
-        {
             return global.vtd_level.entities.cpu;
-        }
 
         case EnemyTarget.BUILDING:
         {
-            return scr_enemy_closest_building_get(_enemy);
+            var _building = scr_enemy_closest_building_get(_enemy);
+
+            if (instance_exists(_building))
+                return _building;
+
+            return global.vtd_level.entities.cpu;
         }
 
         case EnemyTarget.PLAYER:
-        {
             return global.vtd_level.entities.player;
-        }
     }
 
     return noone;
@@ -1485,19 +1492,45 @@ function scr_enemy_building_target_update(_enemy)
     if (_enemy.targeting.player.active)
         return true;
 
+    var _current = _enemy.targeting.strategic;
+
+    // Do not discover that the remembered building is gone until close enough.
+
+    if (!instance_exists(_current))
+    {
+        var _dx = _enemy.targeting.target_x - _enemy.x;
+        var _dy = _enemy.targeting.target_y - _enemy.y;
+
+        var _notice_range = max(
+            _enemy.targeting.range_sight,
+            _enemy.attack.range
+        );
+
+        if (
+            _enemy.path_index != -1
+            && (_dx * _dx) + (_dy * _dy)
+                > _notice_range * _notice_range
+        )
+        {
+            return true;
+        }
+
+        scr_navigation_enemy_stop(_enemy);
+
+        var _replacement = scr_enemy_target_acquire(_enemy);
+
+        scr_enemy_strategic_target_set(_enemy, _replacement);
+
+        if (instance_exists(_replacement))
+            scr_navigation_enemy_repath_request(_enemy, false);
+
+        return true;
+    }
+
     var _candidate = scr_enemy_closest_building_get(_enemy, 512);
 
     if (!instance_exists(_candidate))
         return true;
-
-    var _current = _enemy.targeting.strategic;
-
-    if (!instance_exists(_current))
-    {
-        scr_enemy_strategic_target_set(_enemy, _candidate);
-        scr_navigation_enemy_repath_request(_enemy, true);
-        return true;
-    }
 
     var _old_dx = _enemy.targeting.target_x - _enemy.x;
     var _old_dy = _enemy.targeting.target_y - _enemy.y;
@@ -1505,11 +1538,8 @@ function scr_enemy_building_target_update(_enemy)
     var _new_dx = _candidate.x - _enemy.x;
     var _new_dy = _candidate.y - _enemy.y;
 
-    var _old_distance =
-        (_old_dx * _old_dx) + (_old_dy * _old_dy);
-
-    var _new_distance =
-        (_new_dx * _new_dx) + (_new_dy * _new_dy);
+    var _old_distance = (_old_dx * _old_dx) + (_old_dy * _old_dy);
+    var _new_distance = (_new_dx * _new_dx) + (_new_dy * _new_dy);
 
     if (_new_distance >= _old_distance)
         return true;

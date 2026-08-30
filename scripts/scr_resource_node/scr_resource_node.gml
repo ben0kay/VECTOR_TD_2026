@@ -128,7 +128,7 @@ function scr_resource_node_initialize(_node)
     return true;
 }
 
-/// @description Draws the primitive crystal used by unsprited resource nodes.
+/// @description Draws a simple primitive resource node.
 
 function scr_resource_node_visual_crystal(_node)
 {
@@ -138,52 +138,8 @@ function scr_resource_node_visual_crystal(_node)
 
     var _radius =
         global.vtd_level.map.cell_size
-        * 0.38
+        * 0.28
         * _node.visual.scale;
-
-    var _angle =
-        _node.visual.rotation;
-
-
-    var _dx =
-        lengthdir_x(
-            _radius,
-            _angle
-        );
-
-    var _dy =
-        lengthdir_y(
-            _radius,
-            _angle
-        );
-
-
-    var _right_x =
-        _node.x + _dx;
-
-    var _right_y =
-        _node.y + _dy;
-
-    var _left_x =
-        _node.x - _dx;
-
-    var _left_y =
-        _node.y - _dy;
-
-
-    // Perpendicular vector.
-
-    var _top_x =
-        _node.x - _dy;
-
-    var _top_y =
-        _node.y + _dx;
-
-    var _bottom_x =
-        _node.x + _dy;
-
-    var _bottom_y =
-        _node.y - _dx;
 
 
     draw_set_color(
@@ -191,58 +147,30 @@ function scr_resource_node_visual_crystal(_node)
     );
 
 
-    draw_triangle(
-        _top_x,
-        _top_y,
-        _right_x,
-        _right_y,
-        _node.x,
-        _node.y,
-        false
-    );
-
-
-    draw_triangle(
-        _node.x,
-        _node.y,
-        _bottom_x,
-        _bottom_y,
-        _left_x,
-        _left_y,
-        false
-    );
-
-
-    draw_line_width(
-        _top_x,
-        _top_y,
-        _bottom_x,
-        _bottom_y,
-        2
-    );
-
-
-    draw_line_width(
-        _left_x,
-        _left_y,
-        _right_x,
-        _right_y,
-        2
-    );
-
-
-    draw_set_color(
-        c_white
-    );
-
+    // Main resource marker.
 
     draw_circle(
         _node.x,
         _node.y,
-        2,
+        _radius,
         true
     );
 
+
+    // Small center point.
+
+    draw_circle(
+        _node.x,
+        _node.y,
+        max(
+            1,
+            _radius * 0.12
+        ),
+        false
+    );
+
+
+    draw_set_color(c_white);
 
     return true;
 }

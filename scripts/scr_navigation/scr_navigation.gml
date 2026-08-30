@@ -244,32 +244,40 @@ function scr_navigation_enemy_update(_enemy)
 
 
     // ------------------------------------------------------------------------
-    // REMEMBERED DEAD BUILDING
-    // ------------------------------------------------------------------------
-    //
-    // A building hunter whose chosen building died keeps following the
-    // already-created path toward its remembered destination.
-    //
-    // It does not learn that the building is gone merely because the
-    // navigation grid changed.
+	// REMEMBERED DEAD BUILDING
+	// ------------------------------------------------------------------------
 
-    var _remembering_building =
-        _enemy.targeting.target_type == EnemyTarget.BUILDING
-        && !_enemy.targeting.player.active
-        && _enemy.order.type == EnemyOrder.NONE
-        && !instance_exists(_enemy.targeting.strategic)
-        && _enemy.path_index != -1;
+	var _remembering_building =
+	    _enemy.targeting.target_type == EnemyTarget.BUILDING
+	    && !_enemy.targeting.player.active
+	    && _enemy.order.type == EnemyOrder.NONE
+	    && !instance_exists(_enemy.targeting.strategic)
+	    && _enemy.path_index != -1;
 
-    if (_remembering_building)
-    {
-        _nav.revision_seen = _revision;
-        _nav.needs_path = false;
+	if (_remembering_building)
+	{
+	    var _dx = _enemy.targeting.target_x - _enemy.x;
+	    var _dy = _enemy.targeting.target_y - _enemy.y;
 
-        _lazy.breach_pending = false;
-        _lazy.breach_timer = 0;
+	    var _notice_range = max(
+	        _enemy.targeting.range_sight,
+	        _enemy.attack.range
+	    );
 
-        return true;
-    }
+	    if (
+	        (_dx * _dx) + (_dy * _dy)
+	        > _notice_range * _notice_range
+	    )
+	    {
+	        _nav.revision_seen = _revision;
+	        _nav.needs_path = false;
+
+	        _lazy.breach_pending = false;
+	        _lazy.breach_timer = 0;
+
+	        return true;
+	    }
+	}
 
 
     // ------------------------------------------------------------------------
