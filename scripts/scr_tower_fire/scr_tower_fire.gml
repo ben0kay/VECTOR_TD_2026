@@ -586,11 +586,15 @@ function scr_tower_fire(_tower)
                 _weapon.beam.width,
                 _weapon.beam.visual_seconds
             );
+			
+			scr_particles_laser_impact(
+			    _target_x,
+			    _target_y,
+			    _weapon.beam.color_outer
+			);
 
             _fired = true;
 
-            // FUTURE PARTICLE HOOK:
-            // Emit laser heat and ember particles along this trace.
         }
         break;
 		

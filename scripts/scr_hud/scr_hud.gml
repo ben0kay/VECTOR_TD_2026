@@ -826,7 +826,62 @@ function scr_hud_storage_status_get(_storage)
 
 /// @description Draws the expanded two-row level information bar.
 
+/// @description Draws cached top-bar values and refreshes them periodically.
+
 function scr_hud_top_bar_draw(_hud)
+{
+    if (!instance_exists(_hud))
+        return false;
+
+    var _cache = _hud.hud.top.values_surface;
+    var _width = display_get_gui_width();
+    var _height = _hud.hud.top.height;
+
+    var _size_changed =
+        _cache.width != _width
+        || _cache.height != _height;
+
+    if (
+        !surface_exists(_cache.surface_id)
+        || _size_changed
+    )
+    {
+        if (surface_exists(_cache.surface_id))
+            surface_free(_cache.surface_id);
+
+        _cache.surface_id =
+            surface_create(_width, _height);
+
+        if (!surface_exists(_cache.surface_id))
+            return false;
+
+        _cache.width = _width;
+        _cache.height = _height;
+        _cache.next_update = 0;
+    }
+
+    if (global.vtd.tick >= _cache.next_update)
+    {
+        surface_set_target(_cache.surface_id);
+        draw_clear_alpha(c_black, 0);
+
+        scr_hud_top_bar_values_draw(_hud);
+
+        surface_reset_target();
+
+        _cache.next_update =
+            global.vtd.tick
+            + _cache.update_interval;
+    }
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_surface(_cache.surface_id, 0, 0);
+
+    return true;
+}
+
+function scr_hud_top_bar_values_draw(_hud)
 {
     if (!instance_exists(_hud))
         return false;

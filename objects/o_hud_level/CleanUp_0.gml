@@ -43,3 +43,12 @@ if (
     global.vtd_level.entities.hud =
         noone;
 }
+
+if (
+    variable_struct_exists(hud.top, "values_surface")
+    && surface_exists(hud.top.values_surface.surface_id)
+)
+{
+    surface_free(hud.top.values_surface.surface_id);
+    hud.top.values_surface.surface_id = -1;
+}

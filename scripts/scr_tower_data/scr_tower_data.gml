@@ -275,6 +275,11 @@ visual:
 	    kick_distance: 1,
 	    recovery_speed: 50
 	},
+	
+	    baked:
+    {
+        body: scr_tower_minigun_baked_body
+    }
 },
 
 footprint: { width_cells: 2, height_cells: 2 },

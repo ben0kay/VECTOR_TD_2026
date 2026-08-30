@@ -28,12 +28,21 @@ hud =
     },
 
     top:
-    {
-        height: 104,
-        row_height: 52,
-        color: c_aqua,
-        background_alpha: 0.92
-    },
+	{
+	    height: 104,
+	    row_height: 52,
+	    color: c_aqua,
+	    background_alpha: 0.92,
+
+	    values_surface:
+	    {
+	        surface_id: -1,
+	        width: 0,
+	        height: 0,
+	        next_update: 0,
+	        update_interval: 6
+	    }
+	},
 
     bottom:
     {
