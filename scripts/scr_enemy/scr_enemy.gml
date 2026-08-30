@@ -3455,13 +3455,9 @@ function scr_enemy_attack_line_of_sight_cache_update(
     return _cache.clear;
 }
 
-
 /// @description Returns whether an enemy's attack has clear sight of its target.
 
-function scr_enemy_attack_line_of_sight_clear(
-    _enemy,
-    _target
-)
+function scr_enemy_attack_line_of_sight_clear(_enemy, _target)
 {
     if (!instance_exists(_enemy))
         return false;
@@ -3469,172 +3465,39 @@ function scr_enemy_attack_line_of_sight_clear(
     if (!instance_exists(_target))
         return false;
 
-    if (
-        !variable_instance_exists(
-            _enemy,
-            "enemy_data"
-        )
-        || !is_struct(_enemy.enemy_data)
-        || !variable_struct_exists(
-            _enemy.enemy_data,
-            "attack"
-        )
-        || !is_struct(_enemy.enemy_data.attack)
-    )
-    {
-        show_debug_message(
-            "ENEMY ATTACK LOS ERROR - attack definition is missing: "
-            + string(_enemy.id)
-        );
-
-        return false;
-    }
-
-
-    var _attack_data =
-        _enemy.enemy_data.attack;
-
-
-    // LOS is optional. Most enemies stop here without creating any cache.
-
-    if (
-        !variable_struct_exists(
-            _attack_data,
-            "line_of_sight"
-        )
-    )
-    {
-        return true;
-    }
-
-
-    var _line_data =
-        _attack_data.line_of_sight;
-
-
-    if (!is_struct(_line_data))
-    {
-        show_debug_message(
-            "ENEMY ATTACK LOS ERROR - line_of_sight must be a struct: "
-            + _enemy.identity.key
-        );
-
-        return false;
-    }
-
-    if (
-        !variable_struct_exists(
-            _line_data,
-            "required"
-        )
-    )
-    {
-        show_debug_message(
-            "ENEMY ATTACK LOS ERROR - required field is missing: "
-            + _enemy.identity.key
-        );
-
-        return false;
-    }
-
-
-    if (!_line_data.required)
+    if (_enemy.movement.layer == EnemyMovementLayer.FLYING)
         return true;
 
+    var _hits = ds_list_create();
 
-    // Only an enemy whose attack requires LOS creates this optional runtime.
-
-    if (
-        !variable_struct_exists(
-            _enemy.attack,
-            "line_of_sight_cache"
-        )
-    )
-    {
-        var _interval_minimum =
-            variable_struct_exists(
-                _line_data,
-                "interval_minimum"
-            )
-            ? _line_data.interval_minimum
-            : 8;
-
-        var _interval_maximum =
-            variable_struct_exists(
-                _line_data,
-                "interval_maximum"
-            )
-            ? _line_data.interval_maximum
-            : 15;
-
-        var _movement_refresh_distance =
-            variable_struct_exists(
-                _line_data,
-                "movement_refresh_distance"
-            )
-            ? _line_data.movement_refresh_distance
-            : 32;
-
-        var _blocked_function =
-            variable_struct_exists(
-                _line_data,
-                "blocked_function"
-            )
-            ? _line_data.blocked_function
-            : scr_world_line_blocked_by_dead;
-
-
-        _enemy.attack.line_of_sight_cache =
-            scr_enemy_attack_line_of_sight_cache_create(
-                _interval_minimum,
-                _interval_maximum,
-                _movement_refresh_distance,
-                _blocked_function
-            );
-    }
-
-
-    if (
-        !is_struct(
-            _enemy.attack.line_of_sight_cache
-        )
-    )
-    {
-        show_debug_message(
-            "ENEMY ATTACK LOS ERROR - cache creation failed: "
-            + _enemy.identity.key
-        );
-
-        return false;
-    }
-
-
-    var _interval_multiplier =
-        1;
-
-
-    // Enemies outside the visible area may refresh less often.
-
-    if (
-        variable_instance_exists(
-            _enemy,
-            "performance"
-        )
-        && is_struct(_enemy.performance)
-        && !_enemy.performance.visibility.visible
-    )
-    {
-        _interval_multiplier =
-            _enemy.performance.lazy_factor;
-    }
-
-
-    return scr_enemy_attack_line_of_sight_cache_update(
-        _enemy,
-        _target,
-        _enemy.attack.line_of_sight_cache,
-        _interval_multiplier
+    collision_line_list(
+        _enemy.x,
+        _enemy.y,
+        _target.x,
+        _target.y,
+        o_solid,
+        false,
+        true,
+        _hits,
+        true
     );
+
+    var _clear = true;
+
+    for (var i = 0; i < ds_list_size(_hits); ++i)
+    {
+        var _hit = _hits[| i];
+
+        if (_hit == _target)
+            continue;
+
+        _clear = false;
+        break;
+    }
+
+    ds_list_destroy(_hits);
+
+    return _clear;
 }
 
 
