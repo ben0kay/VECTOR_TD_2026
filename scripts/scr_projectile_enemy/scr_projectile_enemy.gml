@@ -45,13 +45,14 @@ function scr_projectile_enemy_create(
         o_projectile_enemy,
         {
             projectile_owner: _owner,
+			projectile_movement_layer: _owner.movement.layer,
             projectile_damage: _damage,
             projectile_speed: _projectile_data.speed,
             projectile_lifetime: _projectile_data.lifetime_seconds,
             projectile_radius: _projectile_data.radius,
             projectile_color: _projectile_data.color,
             projectile_angle: _draw_angle,
-
+		
             projectile_impact: _impact,
             projectile_damage_radius: _damage_radius,
             projectile_rocket: _rocket
@@ -66,7 +67,6 @@ function scr_projectile_enemy_initialize(_projectile)
     if (!instance_exists(_projectile))
         return false;
 
-
     _projectile.combat =
     {
         owner: _projectile.projectile_owner,
@@ -75,18 +75,16 @@ function scr_projectile_enemy_initialize(_projectile)
         damage_radius: max(0, _projectile.projectile_damage_radius)
     };
 
-
     _projectile.movement =
     {
-        speed: _projectile.projectile_speed
+        speed: _projectile.projectile_speed,
+        layer: _projectile.projectile_movement_layer
     };
-
 
     _projectile.life =
     {
         remaining: _projectile.projectile_lifetime
     };
-
 
     _projectile.visual =
     {
@@ -96,10 +94,40 @@ function scr_projectile_enemy_initialize(_projectile)
         rocket: _projectile.projectile_rocket
     };
 
+    _projectile.mask_index = s_collision_circle;
+
+    var _collision_scale =
+        _projectile.visual.radius / 16;
+
+    _projectile.image_xscale = _collision_scale;
+    _projectile.image_yscale = _collision_scale;
 
     return true;
 }
 
+/// @description Resolves one hostile projectile collision.
+
+function scr_projectile_enemy_impact(_projectile, _target)
+{
+    if (!instance_exists(_projectile))
+        return false;
+
+    switch (_projectile.combat.impact)
+    {
+        case ProjectileImpact.DIRECT:
+            scr_projectile_enemy_damage_target(_projectile, _target);
+        break;
+
+        case ProjectileImpact.EXPLOSIVE:
+            scr_projectile_enemy_explosion_apply(_projectile);
+        break;
+    }
+
+    if (instance_exists(_projectile))
+        instance_destroy(_projectile);
+
+    return true;
+}
 
 /// @description Returns an approximate collision radius for a hostile target.
 
@@ -131,203 +159,6 @@ function scr_projectile_enemy_target_radius(_target)
 
 
     return 0;
-}
-
-
-/// @description Considers one instance as the possible first projectile hit.
-
-function scr_projectile_enemy_hit_consider(
-    _projectile,
-    _target,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y,
-    _result
-)
-{
-    if (!instance_exists(_target))
-        return _result;
-
-
-    var _target_radius = scr_projectile_enemy_target_radius(_target);
-    var _collision_radius = _target_radius + _projectile.visual.radius;
-
-    var _distance_squared = scr_point_segment_distance_squared(
-        _target.x,
-        _target.y,
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y
-    );
-
-
-    if (_distance_squared > _collision_radius * _collision_radius)
-        return _result;
-
-
-    var _travel_distance = point_distance(
-        _start_x,
-        _start_y,
-        _target.x,
-        _target.y
-    );
-
-
-    if (_travel_distance < _result.distance)
-    {
-        _result.target = _target;
-        _result.distance = _travel_distance;
-    }
-
-
-    return _result;
-}
-
-
-/// @description Finds the first CPU, player, or building crossed by a projectile.
-
-function scr_projectile_enemy_hit_find(
-    _projectile,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    var _result =
-    {
-        target: noone,
-        distance: infinity
-    };
-
-
-    _result = scr_projectile_enemy_hit_consider(
-        _projectile,
-        global.vtd_level.entities.cpu,
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y,
-        _result
-    );
-
-
-    _result = scr_projectile_enemy_hit_consider(
-        _projectile,
-        global.vtd_level.entities.player,
-        _start_x,
-        _start_y,
-        _end_x,
-        _end_y,
-        _result
-    );
-
-
-    var _building_count = instance_number(o_building_par);
-
-    for (var i = 0; i < _building_count; ++i)
-    {
-        var _building = instance_find(o_building_par, i);
-
-        if (!scr_enemy_building_target_valid(_building))
-            continue;
-
-        _result = scr_projectile_enemy_hit_consider(
-            _projectile,
-            _building,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y,
-            _result
-        );
-    }
-
-
-    return _result.target;
-}
-
-/// @description Returns the squared distance from a point to a line segment.
-
-function scr_point_segment_distance_squared(
-    _point_x,
-    _point_y,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    var _segment_x =
-        _end_x - _start_x;
-
-    var _segment_y =
-        _end_y - _start_y;
-
-    var _length_squared =
-        (_segment_x * _segment_x)
-        + (_segment_y * _segment_y);
-
-
-    // The segment has no length, so compare against its starting point.
-
-    if (_length_squared <= 0)
-    {
-        var _difference_x =
-            _point_x - _start_x;
-
-        var _difference_y =
-            _point_y - _start_y;
-
-
-        return (
-            (_difference_x * _difference_x)
-            + (_difference_y * _difference_y)
-        );
-    }
-
-
-    // Find the closest position along the segment.
-    // Zero is the start and one is the end.
-
-    var _amount =
-        (
-            ((_point_x - _start_x) * _segment_x)
-            + ((_point_y - _start_y) * _segment_y)
-        )
-        / _length_squared;
-
-
-    _amount =
-        clamp(
-            _amount,
-            0,
-            1
-        );
-
-
-    var _closest_x =
-        _start_x
-        + (_segment_x * _amount);
-
-    var _closest_y =
-        _start_y
-        + (_segment_y * _amount);
-
-
-    var _distance_x =
-        _point_x - _closest_x;
-
-    var _distance_y =
-        _point_y - _closest_y;
-
-
-    return (
-        (_distance_x * _distance_x)
-        + (_distance_y * _distance_y)
-    );
 }
 
 
@@ -369,160 +200,33 @@ function scr_projectile_enemy_damage_target(_projectile, _target)
     return false;
 }
 
-/// @description Moves one hostile projectile and resolves its first impact.
+/// @description Moves one hostile projectile.
 
 function scr_projectile_enemy_update(_projectile)
 {
     if (!instance_exists(_projectile))
         return false;
 
-
-    var _fps =
-        max(
-            1,
-            game_get_speed(gamespeed_fps)
-        );
+    var _fps = max(1, game_get_speed(gamespeed_fps));
 
     _projectile.life.remaining =
-        max(
-            0,
-            _projectile.life.remaining
-            - (1 / _fps)
-        );
-
+        max(0, _projectile.life.remaining - (1 / _fps));
 
     if (_projectile.life.remaining <= 0)
     {
-        instance_destroy(
-            _projectile
-        );
-
+        instance_destroy(_projectile);
         return true;
     }
 
+    _projectile.x += lengthdir_x(
+        _projectile.movement.speed,
+        _projectile.visual.draw_angle
+    );
 
-    var _start_x =
-        _projectile.x;
-
-    var _start_y =
-        _projectile.y;
-
-    var _end_x =
-        _start_x
-        + lengthdir_x(
-            _projectile.movement.speed,
-            _projectile.visual.draw_angle
-        );
-
-    var _end_y =
-        _start_y
-        + lengthdir_y(
-            _projectile.movement.speed,
-            _projectile.visual.draw_angle
-        );
-
-
-    // ========================================================================
-    // PERMANENT TERRAIN
-    // ========================================================================
-
-    var _terrain_hit =
-        scr_projectile_enemy_terrain_hit_get(
-            _projectile,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-
-    if (_terrain_hit.hit)
-    {
-        _projectile.x =
-            _terrain_hit.x;
-
-        _projectile.y =
-            _terrain_hit.y;
-
-
-        if (
-            _projectile.combat.impact
-            == ProjectileImpact.EXPLOSIVE
-        )
-        {
-            scr_projectile_enemy_explosion_apply(
-                _projectile
-            );
-        }
-
-
-        instance_destroy(
-            _projectile
-        );
-
-        return true;
-    }
-
-
-    // ========================================================================
-    // PLAYER STRUCTURES
-    // ========================================================================
-
-    var _target =
-        scr_projectile_enemy_hit_find(
-            _projectile,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-
-    if (instance_exists(_target))
-    {
-        _projectile.x =
-            _end_x;
-
-        _projectile.y =
-            _end_y;
-
-
-        switch (_projectile.combat.impact)
-        {
-            case ProjectileImpact.DIRECT:
-            {
-                scr_projectile_enemy_damage_target(
-                    _projectile,
-                    _target
-                );
-            }
-            break;
-
-
-            case ProjectileImpact.EXPLOSIVE:
-            {
-                scr_projectile_enemy_explosion_apply(
-                    _projectile
-                );
-            }
-            break;
-        }
-
-
-        instance_destroy(
-            _projectile
-        );
-
-        return true;
-    }
-
-
-    _projectile.x =
-        _end_x;
-
-    _projectile.y =
-        _end_y;
-
+    _projectile.y += lengthdir_y(
+        _projectile.movement.speed,
+        _projectile.visual.draw_angle
+    );
 
     return true;
 }
@@ -783,96 +487,3 @@ function scr_projectile_enemy_explosion_apply(_projectile)
     return true;
 }
 
-/// @description Finds the first permanent terrain collision along a projectile segment.
-
-function scr_projectile_enemy_terrain_hit_get(
-    _projectile,
-    _start_x,
-    _start_y,
-    _end_x,
-    _end_y
-)
-{
-    var _distance =
-        point_distance(
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-    var _spacing =
-        max(
-            2,
-            _projectile.visual.radius * 0.5
-        );
-
-    var _steps =
-        max(
-            1,
-            ceil(_distance / _spacing)
-        );
-
-
-    for (var i = 1; i <= _steps; ++i)
-    {
-        var _amount =
-            i / _steps;
-
-        var _check_x =
-            lerp(
-                _start_x,
-                _end_x,
-                _amount
-            );
-
-        var _check_y =
-            lerp(
-                _start_y,
-                _end_y,
-                _amount
-            );
-
-        var _cell =
-            scr_building_position_to_cell(
-                _check_x,
-                _check_y
-            );
-
-
-        if (!scr_world_cell_inside(_cell.x, _cell.y))
-        {
-            return
-            {
-                hit: true,
-                x: _check_x,
-                y: _check_y
-            };
-        }
-
-
-        if (
-            scr_world_cell_type_get(
-                _cell.x,
-                _cell.y
-            )
-            == WorldCellType.DEAD
-        )
-        {
-            return
-            {
-                hit: true,
-                x: _check_x,
-                y: _check_y
-            };
-        }
-    }
-
-
-    return
-    {
-        hit: false,
-        x: _end_x,
-        y: _end_y
-    };
-}

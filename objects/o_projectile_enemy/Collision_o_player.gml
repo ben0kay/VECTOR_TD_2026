@@ -1,0 +1,1 @@
+scr_projectile_enemy_impact(id, other);
