@@ -27,6 +27,19 @@ if (has_unique)
 
 scr_enemy_draw(id);
 
+draw_set_alpha(1);
+draw_set_color(c_red);
+
+draw_rectangle(
+    bbox_left,
+    bbox_top,
+    bbox_right,
+    bbox_bottom,
+    true
+);
+
+draw_set_color(c_white);
+
 // ========================================================================
 // TEMP DEBUG - RANGED ENEMY LOS CHECK - CHANGE SNIPER TO ALL RANGED. DO NOT DELETE THIS COMMENTED BLOCK CODE
 // ========================================================================

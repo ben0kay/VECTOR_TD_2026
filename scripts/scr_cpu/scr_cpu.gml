@@ -36,6 +36,9 @@ function scr_cpu_initialize(_cpu)
         color: c_blue
     };
 		
+		_cpu.mask_index = s_collision_square;	
+		
+		
 	var _cell = scr_building_position_to_cell(_cpu.x, _cpu.y);
 	var _width = 3;
 	var _height = 3;
