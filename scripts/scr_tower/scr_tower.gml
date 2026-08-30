@@ -203,6 +203,7 @@ function scr_tower_initialize(_tower)
     var _projectile = undefined;
     var _beam = undefined;
     var _hitscan = undefined;
+	var _shockwave = undefined;
 
     if (variable_struct_exists(_weapon_data, "projectile"))
         _projectile = _weapon_data.projectile;
@@ -212,6 +213,9 @@ function scr_tower_initialize(_tower)
 
     if (variable_struct_exists(_weapon_data, "hitscan"))
         _hitscan = _weapon_data.hitscan;
+		
+	if (variable_struct_exists(_weapon_data, "shockwave"))
+    _shockwave = _weapon_data.shockwave;
 
 	var _critical_chance = 0;
     var _critical_multiplier = 1;
@@ -287,6 +291,7 @@ function scr_tower_initialize(_tower)
             projectile: _projectile,
             beam: _beam,
             hitscan: _hitscan,
+			shockwave: _shockwave,
 
             trace:
             {

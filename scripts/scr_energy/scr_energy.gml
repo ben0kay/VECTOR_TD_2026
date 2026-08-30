@@ -1648,6 +1648,21 @@ function scr_energy_network_alert_update(_network)
 function scr_energy_participants_get()
 {
     var _participants = [];
+	
+	var _cpu = instance_find(o_cpu, 0);
+
+	if (
+	    instance_exists(_cpu)
+	    && _cpu.energy.participates
+	    && _cpu.BuildingState == BuildingState.ACTIVE
+	)
+	{
+	    _cpu.energy.network_id = -1;
+	    _cpu.energy.connected = false;
+	    _cpu.energy.supplied = false;
+
+	    array_push(_participants, _cpu);
+	}
 
 
     var _building_count =

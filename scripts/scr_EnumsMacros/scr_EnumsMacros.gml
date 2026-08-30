@@ -189,7 +189,7 @@ enum FoundationType
 // TOWERS / WEAPONS
 // ============================================================================
 
-enum TowerWeaponType { PROJECTILE, HITSCAN, BEAM }
+enum TowerWeaponType { PROJECTILE, HITSCAN, BEAM, SHOCKWAVE }
 enum TowerMuzzleMode { CENTER, ALTERNATING }
 
 

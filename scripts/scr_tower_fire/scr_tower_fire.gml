@@ -640,6 +640,34 @@ function scr_tower_fire(_tower)
             // Emit laser heat and ember particles along this trace.
         }
         break;
+		
+		case TowerWeaponType.SHOCKWAVE:
+		{
+		    var _area =
+		    {
+		        shape: AttackAreaShape.CIRCLE,
+		        radius: _tower.combat.range,
+		        falloff: _weapon.shockwave.falloff
+		    };
+
+		    var _hit_count = scr_attack_area_apply(
+		        _tower, DamageSource.TOWER, _weapon.damage_type,
+		        _tower.targeting.layer, _tower.x, _tower.y,
+		        0, _damage.amount, _area
+		    );
+
+		    if (_hit_count > 0)
+		    {
+		        scr_effect_shockwave_create(
+		            _tower.x, _tower.y, _tower.combat.range,
+		            _weapon.shockwave.color,
+		            _tower.targeting.layer
+		        );
+
+		        _fired = true;
+		    }
+		}
+		break;
     }
 
 

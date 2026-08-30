@@ -14,6 +14,7 @@ function scr_tower_data_initialize()
 	if (!scr_tower_data_disruptor()) return false;
 	if (!scr_tower_data_mortar()) return false;
 	if (!scr_tower_data_aa_rocket()) return false;
+	if (!scr_tower_data_shockwave()) return false;
 
     // FUTURE TOWERS:
     // artillery
@@ -1082,6 +1083,74 @@ tower:
             color: make_color_rgb(90, 220, 255),
             impact: ProjectileImpact.EXPLOSIVE,
             damage_radius: 96
+        }
+    }
+}
+}
+);
+
+return true;
+}
+
+/// @description Registers the ground Shockwave Tower.
+
+function scr_tower_data_shockwave()
+{
+variable_struct_set(
+global.vtd.data.buildings,
+"tower_shockwave",
+{
+identity:
+{
+    key: "tower_shockwave",
+    name: "Shockwave Tower",
+    type: BuildingType.TOWER,
+    description_short: "Periodic radial ground damage.",
+    description_long: "Releases an energy shockwave that damages every ground enemy in range, with damage falling off toward the edge."
+},
+
+build_menu: { order: 120 },
+
+visual:
+{
+    color: make_color_rgb(45, 15, 70),
+    turret_color: make_color_rgb(205, 80, 255)
+},
+
+footprint: { width_cells: 2, height_cells: 2 },
+vitals: { hp_maximum: 340 },
+construction: { time_seconds: 6 },
+
+economy:
+{
+    cost: [{ resource_key: "resource_credits", amount: 400 }]
+},
+
+tower:
+{
+    range: 420,
+    turn_speed_degrees_per_second: 720,
+    fire_angle_tolerance_degrees: 180,
+    target_mode: TowerTargetMode.CLOSEST,
+    target_layer: EnemyMovementLayer.GROUND,
+    target_filter: TowerTargetFilter.ANY,
+    requires_line_of_sight: false,
+    draw_function: scr_tower_visual_shockwave,
+
+    weapon:
+    {
+        type: TowerWeaponType.SHOCKWAVE,
+        damage_type: DamageType.ELECTRICAL,
+        damage: 60,
+        energy_cost: 12,
+        cooldown_seconds: 3,
+
+        muzzle: { mode: TowerMuzzleMode.CENTER, distance: 0, spacing: 0 },
+
+        shockwave:
+        {
+            color: make_color_rgb(205, 80, 255),
+            falloff: { enabled: true, minimum_multiplier: 0.2, exponent: 1 }
         }
     }
 }

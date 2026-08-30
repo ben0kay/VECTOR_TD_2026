@@ -1960,3 +1960,27 @@ function scr_tower_visual_aa_rocket(_tower)
 
     return true;
 }
+
+/// @description Draws the Shockwave Tower.
+
+function scr_tower_visual_shockwave(_tower)
+{
+    var _x = _tower.x;
+    var _y = _tower.y;
+    var _angle = _tower.visual.draw_angle;
+    var _color = _tower.visual.turret_color;
+
+    draw_set_color(_color);
+
+    scr_enemy_visual_helper_diamond(_x, _y, 22, _angle, 2);
+    scr_enemy_visual_helper_radial_ticks(_x, _y, 17, 7, 8, -_angle, 2);
+
+    draw_circle(_x, _y, 11, false);
+    draw_circle(_x, _y, 6, false);
+
+    draw_set_alpha(0.25);
+    draw_circle(_x, _y, 5, false);
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+}

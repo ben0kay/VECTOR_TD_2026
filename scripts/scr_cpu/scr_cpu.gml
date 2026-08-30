@@ -36,8 +36,19 @@ function scr_cpu_initialize(_cpu)
         color: c_blue
     };
 			
-		
-		
+	_cpu.BuildingState = BuildingState.ACTIVE;
+
+	_cpu.energy = scr_energy_runtime_create(
+	{
+	    energy:
+	    {
+	        role: EnergyRole.NODE,
+	        connection_range: 384
+	    }
+	}
+	);	
+	
+	
 	var _cell = scr_building_position_to_cell(_cpu.x, _cpu.y);
 	var _width = 3;
 	var _height = 3;
