@@ -15,8 +15,8 @@
     "path":"folders/objects/buildings.yy",
   },
   "parentObjectId":{
-    "name":"o_solid",
-    "path":"objects/o_solid/o_solid.yy",
+    "name":"o_solid_par",
+    "path":"objects/o_solid_par/o_solid_par.yy",
   },
   "persistent":false,
   "physicsAngularDamping":0.1,

@@ -1,9 +1,9 @@
 {
   "$GMObject":"",
-  "%Name":"o_solid",
+  "%Name":"o_solid_par",
   "eventList":[],
   "managed":true,
-  "name":"o_solid",
+  "name":"o_solid_par",
   "overriddenProperties":[],
   "parent":{
     "name":"world",

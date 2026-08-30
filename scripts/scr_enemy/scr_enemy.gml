@@ -3475,7 +3475,7 @@ function scr_enemy_attack_line_of_sight_clear(_enemy, _target)
         _enemy.y,
         _target.x,
         _target.y,
-        o_solid,
+        o_solid_par,
         false,
         true,
         _hits,

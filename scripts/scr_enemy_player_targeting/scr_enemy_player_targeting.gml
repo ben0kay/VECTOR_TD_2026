@@ -370,7 +370,7 @@ function scr_enemy_player_line_of_sight_clear(_enemy, _player)
         _enemy.y,
         _player.x,
         _player.y,
-        o_solid,
+        o_solid_par,
         false,
         true
     ) == noone;

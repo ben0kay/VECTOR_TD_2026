@@ -195,7 +195,7 @@ function scr_enemy_combat_segment_clear(_enemy, _start_x, _start_y, _end_x, _end
         _start_y,
         _end_x,
         _end_y,
-        o_solid,
+        o_solid_par,
         false,
         true
     ) == noone;
@@ -278,7 +278,7 @@ function scr_enemy_combat_destination_valid(
 	        _world_x,
 	        _world_y,
 	        _enemy.visual.radius,
-	        o_solid,
+	        o_solid_par,
 	        false,
 	        true
 	    ) != noone
@@ -497,7 +497,7 @@ function scr_enemy_combat_destination_move(_enemy)
 	        _next_x,
 	        _next_y,
 	        _enemy.visual.radius,
-	        o_solid,
+	        o_solid_par,
 	        false,
 	        true
 	    ) != noone

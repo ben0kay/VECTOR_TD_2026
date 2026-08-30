@@ -12,8 +12,8 @@
     "path":"folders/objects/world.yy",
   },
   "parentObjectId":{
-    "name":"o_solid",
-    "path":"objects/o_solid/o_solid.yy",
+    "name":"o_world_solid",
+    "path":"objects/o_world_solid/o_world_solid.yy",
   },
   "persistent":false,
   "physicsAngularDamping":0.1,

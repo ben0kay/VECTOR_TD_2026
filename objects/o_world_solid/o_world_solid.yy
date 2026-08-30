@@ -1,16 +1,13 @@
 {
   "$GMObject":"",
-  "%Name":"o_cpu",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "%Name":"o_world_solid",
+  "eventList":[],
   "managed":true,
-  "name":"o_cpu",
+  "name":"o_world_solid",
   "overriddenProperties":[],
   "parent":{
-    "name":"buildings",
-    "path":"folders/objects/buildings.yy",
+    "name":"world",
+    "path":"folders/objects/world.yy",
   },
   "parentObjectId":{
     "name":"o_solid_par",

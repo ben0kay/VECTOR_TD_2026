@@ -105,7 +105,7 @@ function scr_tower_data_basic_ground()
                 [{
                     resource_key: "resource_bullets",
 
-                    starting: 200,
+                    starting: 300,
                     maximum: 300,
 
                     amount_per_attack: 1,
@@ -139,7 +139,7 @@ function scr_tower_data_basic_ground()
 
                     projectile:
                     {
-                        speed: 14,
+                        speed: 16,
                         lifetime_seconds: 3,
                         radius: 3,
                         color: c_yellow,
@@ -198,7 +198,7 @@ economy:
 
 tower:
 {
-    range: 360,
+    range: 512,
     target_mode: TowerTargetMode.CLOSEST,
     target_layer: EnemyMovementLayer.FLYING,
     requires_line_of_sight: false,
@@ -286,7 +286,7 @@ economy:
 
 tower:
 {
-    range: 250,
+    range: 288,
     target_mode: TowerTargetMode.CLOSEST,
     target_layer: EnemyMovementLayer.GROUND,
     requires_line_of_sight: true,
@@ -314,7 +314,7 @@ tower:
 
         projectile:
         {
-            speed: 18,
+            speed: 21,
             lifetime_seconds: 2,
             radius: 3,
             color: c_lime,
@@ -1045,7 +1045,7 @@ economy:
 
 tower:
 {
-    range: 480,
+    range: 440,
     target_mode: TowerTargetMode.CLOSEST,
     target_layer: EnemyMovementLayer.FLYING,
     target_filter: TowerTargetFilter.ANY,
