@@ -1,12 +1,19 @@
-var _target = targeting.target;
-
-if (attack.type == EnemyAttack.CONTACT
-    && movement.destroy_on_impact
-    && instance_exists(_target)
-    && place_meeting(x, y, _target))
+if (
+    attack.type != EnemyAttack.CONTACT
+    || !movement.destroy_on_impact
+)
 {
-    scr_enemy_attack(id);
-
-    if (instance_exists(id))
-        instance_destroy();
+    exit;
 }
+
+var _damageable =
+    other.object_index == o_cpu|| object_is_ancestor(other.object_index, o_building_par);
+
+if (_damageable)
+{
+    targeting.target = other;
+    scr_enemy_attack(id);
+}
+
+if (instance_exists(id))
+    instance_destroy();

@@ -2163,110 +2163,27 @@ function scr_enemy_explosion_target_distance(_world_x, _world_y, _target)
 
 
 
-/// @description Moves one brainless enemy straight ahead until impact.
+/// @description Moves one brainless enemy directly forward.
 
 function scr_enemy_brainless_update(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
+    _enemy.x += lengthdir_x(
+        _enemy.movement.speed,
+        _enemy.movement.direction
+    );
 
-    var _start_x = _enemy.x;
-    var _start_y = _enemy.y;
-
-    var _end_x =
-        _start_x
-        + lengthdir_x(
-            _enemy.movement.speed,
-            _enemy.movement.direction
-        );
-
-    var _end_y =
-        _start_y
-        + lengthdir_y(
-            _enemy.movement.speed,
-            _enemy.movement.direction
-        );
-
+    _enemy.y += lengthdir_y(
+        _enemy.movement.speed,
+        _enemy.movement.direction
+    );
 
     _enemy.visual.draw_angle =
         _enemy.movement.direction;
 
-
-    // ========================================================================
-    // PERMANENT TERRAIN IMPACT
-    // ========================================================================
-
-    if (
-        scr_world_moving_circle_solid(
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y,
-            _enemy.visual.radius
-        )
-    )
-    {
-        // This is terrain removal, not a player/tower kill.
-        //
-        // FUTURE:
-        // impact particles
-        // terrain-impact sound
-        // optional explosion-on-terrain behavior
-
-        instance_destroy(_enemy);
-        return true;
-    }
-
-
-    // ========================================================================
-    // ENTITY IMPACT
-    // ========================================================================
-
-    // This sweep finds the first CPU, player, or building crossed.
-
-    var _target =
-        scr_projectile_enemy_hit_find(
-            _enemy,
-            _start_x,
-            _start_y,
-            _end_x,
-            _end_y
-        );
-
-
-    if (instance_exists(_target))
-    {
-        _enemy.targeting.target = _target;
-
-        scr_enemy_attack(_enemy);
-
-
-        if (
-            instance_exists(_enemy)
-            && _enemy.movement.destroy_on_impact
-        )
-        {
-            // Impact deaths are not credited to the player or a tower.
-
-            instance_destroy(_enemy);
-        }
-
-
-        return true;
-    }
-
-
-    // ========================================================================
-    // MOVEMENT
-    // ========================================================================
-
-    _enemy.x = _end_x;
-    _enemy.y = _end_y;
-
-
     var _margin = 128;
-
 
     if (
         _enemy.x < -_margin
@@ -2277,7 +2194,6 @@ function scr_enemy_brainless_update(_enemy)
     {
         instance_destroy(_enemy);
     }
-
 
     return true;
 }
