@@ -180,21 +180,16 @@ function scr_tower_trace_set(
 }
 
 
-/// @description Returns whether an enemy is valid for one tower.
-
 function scr_tower_target_valid(_tower, _enemy)
 {
-    if (!instance_exists(_tower))
-        return false;
-
-    if (!instance_exists(_enemy))
+    if (!instance_exists(_tower) || !instance_exists(_enemy))
         return false;
 
     if (_enemy.EnemyState == EnemyState.DEAD)
         return false;
-	
-	if (scr_enemy_stealth_cloaked(_enemy))
-    return false;
+
+    if (scr_enemy_stealth_cloaked(_enemy))
+        return false;
 
     if (_enemy.movement.layer != _tower.targeting.layer)
         return false;
@@ -202,21 +197,12 @@ function scr_tower_target_valid(_tower, _enemy)
     if (!scr_fog_position_visible(_enemy.x, _enemy.y))
         return false;
 
+    var _range = _tower.combat.range + _enemy.visual.radius;
+    var _dx = _enemy.x - _tower.x;
+    var _dy = _enemy.y - _tower.y;
 
-    if (
-        point_distance(
-            _tower.x,
-            _tower.y,
-            _enemy.x,
-            _enemy.y
-        )
-        > _tower.combat.range
-        + _enemy.visual.radius
-    )
-    {
+    if ((_dx * _dx) + (_dy * _dy) > _range * _range)
         return false;
-    }
-
 
     if (
         _tower.targeting.requires_line_of_sight
@@ -231,53 +217,20 @@ function scr_tower_target_valid(_tower, _enemy)
         return false;
     }
 
-
     switch (_tower.targeting.filter)
     {
         case TowerTargetFilter.NOT_SLOWED:
-        {
-            if (
-                scr_enemy_effect_active(
-                    _enemy,
-                    EnemyEffect.SLOW
-                )
-            )
-            {
-                return false;
-            }
-        }
-        break;
-
+            return !scr_enemy_effect_active(_enemy, EnemyEffect.SLOW);
 
         case TowerTargetFilter.NOT_STASIS:
-        {
-            if (
-                scr_enemy_effect_active(
-                    _enemy,
-                    EnemyEffect.STASIS
-                )
-            )
-            {
-                return false;
-            }
-        }
-        break;
-		
-		case TowerTargetFilter.NOT_DISRUPTED:
-		{
-		    if (
-		        scr_enemy_effect_active(
-		            _enemy,
-		            EnemyEffect.DAMAGE_OVER_TIME
-		        )
-		    )
-		    {
-		        return false;
-		    }
-		}
-break;
-    }
+            return !scr_enemy_effect_active(_enemy, EnemyEffect.STASIS);
 
+        case TowerTargetFilter.NOT_DISRUPTED:
+            return !scr_enemy_effect_active(
+                _enemy,
+                EnemyEffect.DAMAGE_OVER_TIME
+            );
+    }
 
     return true;
 }

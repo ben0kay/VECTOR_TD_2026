@@ -425,13 +425,13 @@ function scr_tower_visual_minigun(_tower)
     // ========================================================================
 
     scr_enemy_visual_helper_polygon(
-        _x,
-        _y,
-        19,
-        8,
-        _angle + 22.5,
-        2
-    );
+	    _x,
+	    _y,
+	    19,
+	    6,
+	    _angle + 30,
+	    2
+	);
 
 
     draw_circle(
@@ -1384,27 +1384,24 @@ function scr_tower_visual_disruptor(_tower)
     // ========================================================================
 
     scr_enemy_visual_helper_arc_segments(
-        _x,
-        _y,
-        19,
-        6,
-        32,
-        _spin,
-        4,
-        2
-    );
+    _x, _y,
+    19,
+    6,
+    32,
+    _spin,
+    2,
+    2
+	);
 
-
-    scr_enemy_visual_helper_arc_segments(
-        _x,
-        _y,
-        13,
-        3,
-        65,
-        -_spin,
-        5,
-        2
-    );
+	scr_enemy_visual_helper_arc_segments(
+	    _x, _y,
+	    13,
+	    3,
+	    65,
+	    -_spin,
+	    3,
+	    2
+	);
 
 
     // ========================================================================
