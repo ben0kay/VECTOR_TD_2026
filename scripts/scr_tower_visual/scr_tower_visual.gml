@@ -138,8 +138,37 @@ function scr_tower_draw(_tower)
 
     var _visual = _tower.visual;
     var _offset = scr_tower_recoil_offset_get(_tower);
+    var _baked_sprite = -1;
+    var _baked_used = false;
 
-    if (_visual.sprite != -1 && sprite_exists(_visual.sprite))
+    switch (_tower.identity.key)
+    {
+        case "tower_minigun":
+            _baked_sprite = scr_tower_minigun_baked_sprite_get();
+        break;
+
+        case "tower_disruptor":
+            _baked_sprite = scr_tower_disruptor_baked_sprite_get();
+        break;
+    }
+
+    if (sprite_exists(_baked_sprite))
+    {
+        _baked_used = true;
+
+        draw_sprite_ext(
+            _baked_sprite,
+            0,
+            _tower.x + _offset.x,
+            _tower.y + _offset.y,
+            1,
+            1,
+            _visual.draw_angle,
+            _visual.turret_color,
+            1
+        );
+    }
+    else if (_visual.sprite != -1 && sprite_exists(_visual.sprite))
     {
         draw_sprite_ext(
             _visual.sprite,
@@ -168,19 +197,14 @@ function scr_tower_draw(_tower)
         {
             var _previous_matrix = matrix_get(matrix_world);
 
-            var _recoil_matrix = matrix_build(
-                _offset.x,
-                _offset.y,
-                0,
-                0,
-                0,
-                0,
-                1,
-                1,
-                1
+            matrix_set(
+                matrix_world,
+                matrix_build(
+                    _offset.x, _offset.y, 0,
+                    0, 0, 0,
+                    1, 1, 1
+                )
             );
-
-            matrix_set(matrix_world, _recoil_matrix);
 
             if (!is_undefined(_draw_function))
                 _draw_function(_tower);
@@ -191,7 +215,13 @@ function scr_tower_draw(_tower)
         }
     }
 
-    // Trace remains at its real muzzle position.
+    if (
+        _baked_used
+        && _tower.identity.key == "tower_disruptor"
+    )
+    {
+        scr_tower_visual_disruptor_effects(_tower);
+    }
 
     scr_tower_weapon_trace_draw(_tower);
 
@@ -392,168 +422,6 @@ function scr_tower_visual_anti_air(_tower)
         _node_y,
         3,
         true
-    );
-
-
-    draw_set_color(c_white);
-
-    return true;
-}
-
-/// @description Draws the Twin Minigun Tower.
-
-function scr_tower_visual_minigun(_tower)
-{
-    var _x =
-        _tower.x;
-
-    var _y =
-        _tower.y;
-
-    var _angle =
-        _tower.visual.draw_angle;
-
-    var _color =
-        _tower.visual.turret_color;
-
-
-    draw_set_color(_color);
-
-
-    // ========================================================================
-    // LOW ROTARY BASE
-    // ========================================================================
-
-    scr_enemy_visual_helper_polygon(
-	    _x,
-	    _y,
-	    19,
-	    6,
-	    _angle + 30,
-	    2
-	);
-
-
-    draw_circle(
-        _x,
-        _y,
-        12,
-        true
-    );
-
-
-    // ========================================================================
-    // CENTRAL WEAPON HOUSING
-    // ========================================================================
-
-    scr_enemy_visual_helper_local_box(
-        _x,
-        _y,
-        _angle,
-
-        -9,
-        -10,
-
-        15,
-        10,
-
-        2
-    );
-
-
-    // ========================================================================
-    // LEFT MINIGUN
-    // ========================================================================
-
-    scr_enemy_visual_helper_local_box(
-        _x,
-        _y,
-        _angle,
-
-        10,
-        -10,
-
-        34,
-        -4,
-
-        2
-    );
-
-
-    // ========================================================================
-    // RIGHT MINIGUN
-    // ========================================================================
-
-    scr_enemy_visual_helper_local_box(
-        _x,
-        _y,
-        _angle,
-
-        10,
-        4,
-
-        34,
-        10,
-
-        2
-    );
-
-
-    // Barrel tips.
-
-    var _left_x =
-        _x
-        + lengthdir_x(38, _angle)
-        + lengthdir_x(7, _angle - 90);
-
-    var _left_y =
-        _y
-        + lengthdir_y(38, _angle)
-        + lengthdir_y(7, _angle - 90);
-
-
-    var _right_x =
-        _x
-        + lengthdir_x(38, _angle)
-        + lengthdir_x(7, _angle + 90);
-
-    var _right_y =
-        _y
-        + lengthdir_y(38, _angle)
-        + lengthdir_y(7, _angle + 90);
-
-
-    draw_circle(
-        _left_x,
-        _left_y,
-        4,
-        true
-    );
-
-    draw_circle(
-        _right_x,
-        _right_y,
-        4,
-        true
-    );
-
-
-    // ========================================================================
-    // REAR AMMO / MOTOR BLOCK
-    // ========================================================================
-
-    scr_enemy_visual_helper_local_box(
-        _x,
-        _y,
-        _angle,
-
-        -17,
-        -8,
-
-        -7,
-        8,
-
-        2
     );
 
 
@@ -1356,243 +1224,6 @@ function scr_tower_visual_stasis(_tower)
     return true;
 }
 
-/// @description Draws the Disruptor Tower.
-
-function scr_tower_visual_disruptor(_tower)
-{
-    var _x =
-        _tower.x;
-
-    var _y =
-        _tower.y;
-
-    var _angle =
-        _tower.visual.draw_angle;
-
-    var _color =
-        _tower.visual.turret_color;
-
-    var _spin =
-        global.vtd.tick * 2.5;
-
-
-    draw_set_color(_color);
-
-
-    // ========================================================================
-    // DISRUPTION FIELD BASE
-    // ========================================================================
-
-    scr_enemy_visual_helper_arc_segments(
-    _x, _y,
-    19,
-    6,
-    32,
-    _spin,
-    2,
-    2
-	);
-
-	scr_enemy_visual_helper_arc_segments(
-	    _x, _y,
-	    13,
-	    3,
-	    65,
-	    -_spin,
-	    3,
-	    2
-	);
-
-
-    // ========================================================================
-    // CENTRAL ELECTROMAGNETIC CORE
-    // ========================================================================
-
-    scr_enemy_visual_helper_polygon(
-        _x,
-        _y,
-        8,
-        6,
-        -_spin,
-        2
-    );
-
-
-    draw_circle(
-        _x,
-        _y,
-        3,
-        false
-    );
-
-
-    // ========================================================================
-    // FORKED DISRUPTION EMITTER
-    // ========================================================================
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        5,
-        -5,
-
-        27,
-        -8,
-
-        3
-    );
-
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        5,
-        5,
-
-        27,
-        8,
-
-        3
-    );
-
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        27,
-        -8,
-
-        38,
-        -13,
-
-        2
-    );
-
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        27,
-        8,
-
-        38,
-        13,
-
-        2
-    );
-
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        27,
-        -8,
-
-        38,
-        -3,
-
-        2
-    );
-
-
-    scr_enemy_visual_helper_local_line(
-        _x,
-        _y,
-        _angle,
-
-        27,
-        8,
-
-        38,
-        3,
-
-        2
-    );
-
-
-    // ========================================================================
-    // DISRUPTION NODES
-    // ========================================================================
-
-    var _node_distance =
-        38;
-
-
-    var _node_a_x =
-        _x
-        + lengthdir_x(
-            _node_distance,
-            _angle
-        )
-        + lengthdir_x(
-            8,
-            _angle - 90
-        );
-
-    var _node_a_y =
-        _y
-        + lengthdir_y(
-            _node_distance,
-            _angle
-        )
-        + lengthdir_y(
-            8,
-            _angle - 90
-        );
-
-
-    var _node_b_x =
-        _x
-        + lengthdir_x(
-            _node_distance,
-            _angle
-        )
-        + lengthdir_x(
-            8,
-            _angle + 90
-        );
-
-    var _node_b_y =
-        _y
-        + lengthdir_y(
-            _node_distance,
-            _angle
-        )
-        + lengthdir_y(
-            8,
-            _angle + 90
-        );
-
-
-    draw_circle(
-        _node_a_x,
-        _node_a_y,
-        3,
-        false
-    );
-
-    draw_circle(
-        _node_b_x,
-        _node_b_y,
-        3,
-        false
-    );
-
-
-    draw_set_color(c_white);
-
-    return true;
-}
 
 /// @description Draws the Mortar Tower.
 
