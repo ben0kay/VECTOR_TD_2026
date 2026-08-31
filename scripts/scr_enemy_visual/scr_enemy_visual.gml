@@ -394,7 +394,10 @@ function scr_enemy_visual_draw(_enemy)
         return false;
 
     var _visual = _enemy.visual;
-    var _hover = scr_enemy_visual_hover_offset_get(_enemy);
+    var _hover = 0;
+
+    if (_enemy.movement.layer == EnemyMovementLayer.FLYING)
+        _hover = scr_enemy_visual_hover_offset_get(_enemy);
 
     if (scr_enemy_baked_draw(_enemy, _hover))
         return true;
@@ -1308,18 +1311,18 @@ function scr_enemy_visual_splitter_child(_enemy)
 
 /// @description Returns the visual hover offset for one flying enemy.
 
+/// @description Returns a subtle visual hover offset for one flying enemy.
+
 function scr_enemy_visual_hover_offset_get(_enemy)
 {
     if (!instance_exists(_enemy))
         return 0;
 
-    if (_enemy.movement.layer != EnemyMovementLayer.FLYING)
-        return 0;
+    var _phase = real(_enemy.id) mod 360;
 
-    return -12 + sin(
-        (global.vtd.tick * 1.2)
-        + real(_enemy.id)
-    ) * 1.5;
+    return -12
+        + dsin(global.vtd.tick * 1.2 + _phase)
+        * 0.45;
 }
 
 
