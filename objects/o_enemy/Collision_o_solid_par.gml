@@ -8,9 +8,23 @@ if (
 
 var _damageable =
     other.object_index == o_cpu
-    || object_is_ancestor(other.object_index, o_building_par);
+    || object_is_ancestor(
+        other.object_index,
+        o_building_par
+    );
 
-// Brainless enemies impact whatever solid they touch.
+// Flying impact enemies ignore unrelated buildings.
+
+if (
+    movement.layer == EnemyMovementLayer.FLYING
+    && other != targeting.target
+)
+{
+    exit;
+}
+
+// Brainless enemies die against any solid.
+// Damageable buildings also receive the impact.
 
 if (movement.brainless)
 {
@@ -26,15 +40,13 @@ if (movement.brainless)
     exit;
 }
 
-// Regular enemies ignore solids that are not their chosen target.
-
-var _target = targeting.target;
-
-if (!instance_exists(_target) || other != _target)
-    exit;
+// Regular contact enemies attack whichever building they physically hit.
 
 if (_damageable)
+{
+    targeting.target = other;
     scr_enemy_attack(id);
 
-if (instance_exists(id))
-    instance_destroy();
+    if (instance_exists(id))
+        instance_destroy();
+}
