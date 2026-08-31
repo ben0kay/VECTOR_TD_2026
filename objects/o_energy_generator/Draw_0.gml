@@ -1,4 +1,16 @@
-/// @description Draws one energy generator.
+/// @description Draws one Energy Generator.
 
 event_inherited();
-scr_energy_generator_draw(id);
+
+if (
+    !scr_building_baked_draw(
+        id,
+        0,
+        0,
+        0,
+        visual.color
+    )
+)
+{
+    scr_energy_generator_draw(id);
+}

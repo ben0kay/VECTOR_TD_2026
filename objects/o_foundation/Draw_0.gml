@@ -1,3 +1,14 @@
 /// @description Draws one foundation tile.
 
-scr_foundation_draw(id);
+if (
+    !scr_building_baked_draw(
+        id,
+        0,
+        0,
+        0,
+        visual.color
+    )
+)
+{
+    scr_foundation_draw(id);
+}
