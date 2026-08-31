@@ -637,11 +637,11 @@ function scr_enemy_initialize(_enemy)
         },
 		
 		area: variable_struct_exists(_data.attack, "area") ? _data.attack.area : undefined,
-	    beam_hitbox: noone,
-	    projectile: undefined,
 
-        projectile:
-            undefined
+		beam_hitbox: noone,
+		beam_reach: 0,
+		beam_target: noone,
+		projectile: undefined
     };
 
 
@@ -2971,47 +2971,81 @@ function scr_enemy_damage_target(
     return false;
 }
 
-/// @description Returns shared Siege Beam drawing and collision geometry.
+/// @description Returns the Siege Beam's extending geometry.
 
 function scr_enemy_siege_beam_geometry_get(_enemy, _target)
 {
-    var _distance = _enemy.visual.radius * 1.22;
+    var _muzzle_distance = _enemy.visual.radius * 1.22;
 
     var _start_x =
         _enemy.x
         + lengthdir_x(
-            _distance,
+            _muzzle_distance,
             _enemy.visual.turret_angle
         );
 
     var _start_y =
         _enemy.y
         + lengthdir_y(
-            _distance,
+            _muzzle_distance,
             _enemy.visual.turret_angle
         );
 
-    var _end_x =
-        instance_exists(_target)
-        ? _target.x
-        : _start_x;
+    var _target_x = instance_exists(_target) ? _target.x : _start_x;
+    var _target_y = instance_exists(_target) ? _target.y : _start_y;
 
-    var _end_y =
-        instance_exists(_target)
-        ? _target.y
-        : _start_y;
+    var _direction =
+        point_direction(
+            _start_x,
+            _start_y,
+            _target_x,
+            _target_y
+        );
+
+    var _full_length =
+        point_distance(
+            _start_x,
+            _start_y,
+            _target_x,
+            _target_y
+        );
+
+    var _current_length =
+        min(
+            _enemy.attack.beam_reach,
+            _full_length
+        );
 
     return
     {
         start_x: _start_x,
         start_y: _start_y,
-        end_x: _end_x,
-        end_y: _end_y
+
+        end_x:
+            _start_x
+            + lengthdir_x(
+                _current_length,
+                _direction
+            ),
+
+        end_y:
+            _start_y
+            + lengthdir_y(
+                _current_length,
+                _direction
+            ),
+
+        target_x: _target_x,
+        target_y: _target_y,
+
+        direction: _direction,
+        full_length: _full_length,
+        current_length: _current_length
     };
 }
 
 
-/// @description Removes one Siege Beam enemy's active hitbox.
+/// @description Removes and resets one Siege Beam.
 
 function scr_enemy_siege_beam_hitbox_stop(_enemy)
 {
@@ -3023,11 +3057,14 @@ function scr_enemy_siege_beam_hitbox_stop(_enemy)
             _enemy.attack.beam_hitbox
         );
 
+    _enemy.attack.beam_reach = 0;
+    _enemy.attack.beam_target = noone;
+
     return true;
 }
 
 
-/// @description Creates or updates one Siege Beam enemy's hitbox.
+/// @description Extends and updates one Siege Beam hitbox.
 
 function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
 {
@@ -3041,6 +3078,50 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
 
     if (_area.shape != AttackAreaShape.CAPSULE)
         return false;
+
+
+    // Reset extension when switching targets.
+
+    if (_enemy.attack.beam_target != _target)
+    {
+        _enemy.attack.beam_target = _target;
+        _enemy.attack.beam_reach = 0;
+    }
+
+
+    var _geometry =
+        scr_enemy_siege_beam_geometry_get(
+            _enemy,
+            _target
+        );
+
+    var _beam_data =
+        _enemy.enemy_data
+            .ability_data
+            .beam;
+
+    var _fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+    _enemy.attack.beam_reach =
+        min(
+            _geometry.full_length,
+            _enemy.attack.beam_reach
+            + (_beam_data.extension_speed / _fps)
+        );
+
+
+    // Recalculate using the newly extended reach.
+
+    _geometry =
+        scr_enemy_siege_beam_geometry_get(
+            _enemy,
+            _target
+        );
+
 
     if (!instance_exists(_enemy.attack.beam_hitbox))
     {
@@ -3057,12 +3138,6 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
 
     if (!instance_exists(_enemy.attack.beam_hitbox))
         return false;
-
-    var _geometry =
-        scr_enemy_siege_beam_geometry_get(
-            _enemy,
-            _target
-        );
 
     return scr_beam_hitbox_geometry_set(
         _enemy.attack.beam_hitbox,
@@ -3171,8 +3246,8 @@ function scr_enemy_siege_beam_update(_enemy)
                 scr_world_line_blocked_by_dead(
                     _geometry.start_x,
                     _geometry.start_y,
-                    _geometry.end_x,
-                    _geometry.end_y
+                    _geometry.target_x,
+_geometry.target_y
                 );
 
             if (

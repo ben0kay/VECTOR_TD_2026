@@ -1472,7 +1472,7 @@ function scr_enemy_data_siege_beam()
                     EnemyAttack.CONTINUOUS_BEAM,
 
                 damage: 24,
-                range: 620,
+                range: 768,
                 cooldown_seconds: 0,
 				
 				area:
@@ -1553,7 +1553,8 @@ function scr_enemy_data_siege_beam()
                     inner_color:
                         c_white,
 
-                    width: 5
+                    width: 5,
+					extension_speed: 2000
                 }
             }
         }

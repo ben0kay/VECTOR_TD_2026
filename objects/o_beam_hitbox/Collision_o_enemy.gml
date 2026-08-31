@@ -1,1 +1,1 @@
-scr_beam_hitbox_player_side_damage(id, other);
+scr_beam_hitbox_enemy_damage(id, other);
