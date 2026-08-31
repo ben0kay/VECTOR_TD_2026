@@ -365,27 +365,36 @@ function scr_navigation_enemy_update(_enemy)
 
 
     // ------------------------------------------------------------------------
-    // BREACH RETRY
-    // ------------------------------------------------------------------------
+	// BREACH RETRY
+	// ------------------------------------------------------------------------
 
-    if (_lazy.breach_pending)
-    {
-        _lazy.breach_timer--;
+	if (_lazy.breach_pending)
+	{
+	    _lazy.breach_timer--;
 
-        if (_lazy.breach_timer <= 0)
-        {
-            _lazy.breach_pending = false;
-            _lazy.breach_attempts++;
+	    if (_lazy.breach_timer <= 0)
+	    {
+	        _lazy.breach_timer = 0;
 
-            if (!scr_navigation_enemy_breach_begin(_enemy))
-            {
-                var _factor = _lazy.outside_view ? _lazy.factor : 1;
+	        if (!scr_navigation_path_budget_claim())
+	            return true;
 
-                _lazy.breach_pending = true;
-                _lazy.breach_timer = irandom_range(30, 60) * _factor;
-            }
-        }
-    }
+	        _lazy.breach_pending = false;
+	        _lazy.breach_attempts++;
+
+	        if (!scr_navigation_enemy_breach_begin(_enemy))
+	        {
+	            var _factor =
+	                _lazy.outside_view
+	                ? _lazy.factor
+	                : 1;
+
+	            _lazy.breach_pending = true;
+	            _lazy.breach_timer =
+	                irandom_range(30, 60) * _factor;
+	        }
+	    }
+	}
 
 
     // ------------------------------------------------------------------------

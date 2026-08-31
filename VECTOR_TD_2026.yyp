@@ -179,6 +179,7 @@
     {"id":{"name":"scr_upgrade_data","path":"scripts/scr_upgrade_data/scr_upgrade_data.yy",},},
     {"id":{"name":"scr_upgrade","path":"scripts/scr_upgrade/scr_upgrade.yy",},},
     {"id":{"name":"scr_utility","path":"scripts/scr_utility/scr_utility.yy",},},
+    {"id":{"name":"scr_venemy_kamikaze_baked","path":"scripts/scr_venemy_kamikaze_baked/scr_venemy_kamikaze_baked.yy",},},
     {"id":{"name":"scr_world_data","path":"scripts/scr_world_data/scr_world_data.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
     {"id":{"name":"s_collision_circle","path":"sprites/s_collision_circle/s_collision_circle.yy",},},

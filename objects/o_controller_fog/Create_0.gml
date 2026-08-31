@@ -50,12 +50,13 @@ fog =
     },
 
     render:
-    {
-        scale: 4,
+	{
+	    scale: 4,
+	    dirty: true,
 
-        fog_surface: -1,
-        shroud_surface: -1
-    }
+	    fog_surface: -1,
+	    shroud_surface: -1
+	}
 };
 
 ds_grid_clear(

@@ -144,6 +144,8 @@ function scr_level_initialize()
 
         world: undefined,
 
+	    building_occupancy: array_create(_columns * _rows, noone),
+
         navigation:
 		{
 		    ready: false,

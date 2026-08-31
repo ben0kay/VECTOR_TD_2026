@@ -2220,56 +2220,30 @@ function scr_enemy_visual_direction_update(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
+    var _visual = _enemy.visual;
+    var _movement = _enemy.movement;
+    var _combat = _enemy.combat_movement.data;
 
-    var _has_advanced_visual =
-        variable_struct_exists(
-            _enemy.visual,
-            "hull_angle"
-        )
-        && variable_struct_exists(
-            _enemy.visual,
-            "turret_angle"
-        );
+    // Brainless enemies face directly along their movement direction.
 
-
-    // ========================================================================
-    // BRAINLESS MOVEMENT
-    // ========================================================================
-
-    if (_enemy.movement.brainless)
+    if (_movement.brainless)
     {
-        _enemy.visual.draw_angle =
-            _enemy.movement.direction;
-
-        if (_has_advanced_visual)
-        {
-            _enemy.visual.hull_angle =
-                _enemy.movement.direction;
-
-            _enemy.visual.turret_angle =
-                _enemy.movement.direction;
-        }
+        _visual.draw_angle = _movement.direction;
+        _visual.hull_angle = _movement.direction;
+        _visual.turret_angle = _movement.direction;
 
         return true;
     }
 
-
-    // ========================================================================
-    // ACTUAL MOVEMENT
-    // ========================================================================
-
-    var _moved_x =
-        _enemy.x
-        - _enemy.xprevious;
-
-    var _moved_y =
-        _enemy.y
-        - _enemy.yprevious;
+    var _moved_x = _enemy.x - _enemy.xprevious;
+    var _moved_y = _enemy.y - _enemy.yprevious;
 
     var _moved =
-        abs(_moved_x) > 0.01
-        || abs(_moved_y) > 0.01;
+        (_moved_x * _moved_x)
+        + (_moved_y * _moved_y)
+        > 0.0001;
 
+    // Hull follows actual movement.
 
     if (_moved)
     {
@@ -2281,176 +2255,76 @@ function scr_enemy_visual_direction_update(_enemy)
                 _enemy.y
             );
 
+        _visual.hull_angle =
+            scr_enemy_angle_approach(
+                _visual.hull_angle,
+                _movement_angle,
+                _combat.hull_turn_speed
+            );
 
-        if (_has_advanced_visual)
-        {
-            var _turn_speed = 6;
-
-            if (
-                variable_instance_exists(
-                    _enemy,
-                    "combat_movement"
-                )
-                && is_struct(
-                    _enemy.combat_movement
-                )
-            )
-            {
-                _turn_speed =
-                    _enemy.combat_movement
-                        .data
-                        .hull_turn_speed;
-            }
-
-
-            _enemy.visual.hull_angle =
-                scr_enemy_angle_approach(
-                    _enemy.visual.hull_angle,
-                    _movement_angle,
-                    _turn_speed
-                );
-
-            _enemy.visual.draw_angle =
-                _enemy.visual.hull_angle;
-        }
-        else
-        {
-            _enemy.visual.draw_angle =
-                _movement_angle;
-        }
+        _visual.draw_angle =
+            _visual.hull_angle;
     }
 
+    // Calculate target direction once and reuse it.
 
-    // ========================================================================
-    // TURRET TRACKING
-    // ========================================================================
+    var _target =
+        _enemy.targeting.target;
 
-    if (
-        _has_advanced_visual
-        && instance_exists(
-            _enemy.targeting.target
-        )
-    )
+    var _has_target =
+        instance_exists(_target);
+
+    var _target_angle = 0;
+
+    if (_has_target)
     {
-        var _target_angle =
+        _target_angle =
             point_direction(
                 _enemy.x,
                 _enemy.y,
-                _enemy.targeting.target.x,
-                _enemy.targeting.target.y
+                _target.x,
+                _target.y
             );
 
-        var _turret_speed = 8;
-
-
-        if (
-            variable_instance_exists(
-                _enemy,
-                "combat_movement"
-            )
-            && is_struct(
-                _enemy.combat_movement
-            )
-        )
-        {
-            _turret_speed =
-                _enemy.combat_movement
-                    .data
-                    .turret_turn_speed;
-        }
-
-
-        _enemy.visual.turret_angle =
+        _visual.turret_angle =
             scr_enemy_angle_approach(
-                _enemy.visual.turret_angle,
+                _visual.turret_angle,
                 _target_angle,
-                _turret_speed
+                _combat.turret_turn_speed
             );
     }
 
-
-    // ========================================================================
-    // ORDINARY STATIONARY ATTACKERS
-    // ========================================================================
+    // Ordinary stationary attackers turn their entire hull toward the target.
 
     if (
         !_moved
-        && _enemy.EnemyState
-            == EnemyState.ATTACKING
-        && instance_exists(
-            _enemy.targeting.target
-        )
+        && _enemy.EnemyState == EnemyState.ATTACKING
+        && _has_target
+        && _combat.type == EnemyCombatMovement.STATIONARY
     )
     {
-        var _uses_separate_hull =
-            false;
-
-
-        if (
-            variable_instance_exists(
-                _enemy,
-                "combat_movement"
-            )
-            && is_struct(
-                _enemy.combat_movement
-            )
-        )
-        {
-            _uses_separate_hull =
-                _enemy.combat_movement
-                    .data.type
-                != EnemyCombatMovement
-                    .STATIONARY;
-        }
-
-
-        if (!_uses_separate_hull)
-        {
-            _enemy.visual.draw_angle =
-                point_direction(
-                    _enemy.x,
-                    _enemy.y,
-                    _enemy.targeting.target.x,
-                    _enemy.targeting.target.y
-                );
-
-            if (_has_advanced_visual)
-            {
-                _enemy.visual.hull_angle =
-                    _enemy.visual.draw_angle;
-            }
-        }
+        _visual.draw_angle = _target_angle;
+        _visual.hull_angle = _target_angle;
     }
-
 
     // A newly assigned native path may not have moved yet.
 
     if (
         !_moved
-        && _enemy.EnemyState
-            == EnemyState.MOVING
+        && _enemy.EnemyState == EnemyState.MOVING
         && _enemy.path_index != -1
     )
     {
-        if (_has_advanced_visual)
-        {
-            _enemy.visual.hull_angle =
-                scr_enemy_angle_approach(
-                    _enemy.visual.hull_angle,
-                    _enemy.direction,
-                    6
-                );
+        _visual.hull_angle =
+            scr_enemy_angle_approach(
+                _visual.hull_angle,
+                _enemy.direction,
+                6
+            );
 
-            _enemy.visual.draw_angle =
-                _enemy.visual.hull_angle;
-        }
-        else
-        {
-            _enemy.visual.draw_angle =
-                _enemy.direction;
-        }
+        _visual.draw_angle =
+            _visual.hull_angle;
     }
-
 
     return true;
 }

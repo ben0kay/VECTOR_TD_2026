@@ -7,9 +7,6 @@ function scr_fog_reveal_circle(
     _world_radius
 )
 {
-    if (!instance_exists(_fog_controller))
-        return false;
-
 
     var _fog = _fog_controller.fog;
 
@@ -54,17 +51,6 @@ function scr_fog_revealer_range_get(_instance)
     if (!instance_exists(_instance))
         return 0;
 
-
-    if (
-        variable_instance_exists(_instance, "vision")
-        && is_struct(_instance.vision)
-        && variable_struct_exists(_instance.vision, "range")
-    )
-    {
-        return max(0, _instance.vision.range);
-    }
-
-
     switch (_instance.object_index)
     {
         case o_player:
@@ -74,17 +60,7 @@ function scr_fog_revealer_range_get(_instance)
             return 420;
 
         case o_tower:
-        {
-            if (
-                variable_instance_exists(_instance, "combat")
-                && is_struct(_instance.combat)
-            )
-            {
-                return _instance.combat.range;
-            }
-
-            return 280;
-        }
+            return max(0, _instance.combat.range);
 
         case o_miner:
             return 150;
@@ -92,7 +68,6 @@ function scr_fog_revealer_range_get(_instance)
         case o_storage:
             return 130;
     }
-
 
     return 110;
 }
@@ -102,8 +77,6 @@ function scr_fog_revealer_range_get(_instance)
 
 function scr_fog_visibility_update(_fog_controller)
 {
-    if (!instance_exists(_fog_controller))
-        return false;
 
 
     var _fog =
@@ -164,14 +137,8 @@ function scr_fog_visibility_update(_fog_controller)
 
     with (o_building_par)
     {
-        if (
-            variable_instance_exists(
-                id,
-                "BuildingState"
-            )
-            && BuildingState
-                == BuildingState.ACTIVE
-        )
+        if  BuildingState == BuildingState.ACTIVE
+        
         {
             scr_fog_reveal_circle(
                 other.id,
@@ -191,6 +158,7 @@ function scr_fog_visibility_update(_fog_controller)
     //
     // Gameplay data has changed.
     // The surface will rebuild once during the next Draw event.
+	_fog.render.dirty = true;
 
     return true;
 }
@@ -324,7 +292,8 @@ function scr_fog_update(_fog_controller)
     return true;
 }
 
-/// @description Draws the cached fog-of-war surface.
+
+/// @description Draws fog surfaces and rebuilds them only when dirty.
 
 function scr_fog_draw(_fog_controller)
 {
@@ -336,183 +305,65 @@ function scr_fog_draw(_fog_controller)
     if (!_fog.enabled)
         return true;
 
-
     var _render = _fog.render;
-
-    var _scale =
-        _render.scale;
-
-    var _fog_scale =
-        _scale;
-
-    var _width =
-        ceil(room_width / _scale);
-
-    var _height =
-        ceil(room_height / _scale);
-
+    var _scale = _render.scale;
+    var _width = ceil(room_width / _scale);
+    var _height = ceil(room_height / _scale);
 
     if (!surface_exists(_render.shroud_surface))
     {
         _render.shroud_surface =
-            surface_create(
-                _width,
-                _height
-            );
+            surface_create(_width, _height);
 
         if (!surface_exists(_render.shroud_surface))
             return false;
 
-        surface_set_target(
-            _render.shroud_surface
-        );
-
-        draw_clear_alpha(
-            c_black,
-            1
-        );
-
+        surface_set_target(_render.shroud_surface);
+        draw_clear_alpha(c_black, 1);
         surface_reset_target();
-    }
 
+        _render.dirty = true;
+    }
 
     if (!surface_exists(_render.fog_surface))
     {
         _render.fog_surface =
-            surface_create(
-                _width,
-                _height
-            );
+            surface_create(_width, _height);
 
         if (!surface_exists(_render.fog_surface))
             return false;
+
+        _render.dirty = true;
     }
 
-
-    var _player =
-        global.vtd_level.entities.player;
-
-    var _cpu =
-        global.vtd_level.entities.cpu;
-
-
-    surface_set_target(
-        _render.shroud_surface
-    );
-
-    gpu_set_blendmode(
-        bm_subtract
-    );
-
-
-    if (instance_exists(_player))
+    if (_render.dirty)
     {
-        draw_circle(
-            _player.x / _scale,
-            _player.y / _scale,
-            scr_fog_revealer_range_get(_player) / _scale,
-            false
-        );
+        // Permanently explored shroud.
+
+        surface_set_target(_render.shroud_surface);
+        gpu_set_blendmode(bm_subtract);
+
+        scr_fog_revealers_draw(_scale);
+
+        gpu_set_blendmode(bm_normal);
+        surface_reset_target();
+
+        // Current visibility fog.
+
+        surface_set_target(_render.fog_surface);
+        draw_clear_alpha(c_black, _fog.alpha.explored);
+        gpu_set_blendmode(bm_subtract);
+
+        scr_fog_revealers_draw(_scale);
+
+        gpu_set_blendmode(bm_normal);
+        surface_reset_target();
+
+        _render.dirty = false;
     }
 
-
-    if (instance_exists(_cpu))
-    {
-        draw_circle(
-            _cpu.x / _scale,
-            _cpu.y / _scale,
-            scr_fog_revealer_range_get(_cpu) / _scale,
-            false
-        );
-    }
-
-
-    with (o_building_par)
-    {
-        if (BuildingState == BuildingState.ACTIVE)
-        {
-            draw_circle(
-                x / _fog_scale,
-                y / _fog_scale,
-                scr_fog_revealer_range_get(id) / _fog_scale,
-                false
-            );
-        }
-    }
-
-
-    gpu_set_blendmode(
-        bm_normal
-    );
-
-    surface_reset_target();
-
-
-    surface_set_target(
-        _render.fog_surface
-    );
-
-    draw_clear_alpha(
-        c_black,
-        _fog.alpha.explored
-    );
-
-    gpu_set_blendmode(
-        bm_subtract
-    );
-
-
-    if (instance_exists(_player))
-    {
-        draw_circle(
-            _player.x / _scale,
-            _player.y / _scale,
-            scr_fog_revealer_range_get(_player) / _scale,
-            false
-        );
-    }
-
-
-    if (instance_exists(_cpu))
-    {
-        draw_circle(
-            _cpu.x / _scale,
-            _cpu.y / _scale,
-            scr_fog_revealer_range_get(_cpu) / _scale,
-            false
-        );
-    }
-
-
-    with (o_building_par)
-    {
-        if (BuildingState == BuildingState.ACTIVE)
-        {
-            draw_circle(
-                x / _fog_scale,
-                y / _fog_scale,
-                scr_fog_revealer_range_get(id) / _fog_scale,
-                false
-            );
-        }
-    }
-
-
-    gpu_set_blendmode(
-        bm_normal
-    );
-
-    surface_reset_target();
-
-
-    draw_set_color(
-        c_white
-    );
-
-    draw_set_alpha(
-        1
-    );
-
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
     draw_surface_ext(
         _render.shroud_surface,
@@ -525,7 +376,6 @@ function scr_fog_draw(_fog_controller)
         _fog.alpha.unexplored
     );
 
-
     draw_surface_ext(
         _render.fog_surface,
         0,
@@ -537,6 +387,51 @@ function scr_fog_draw(_fog_controller)
         1
     );
 
+    return true;
+}
+
+/// @description Draws all active friendly fog revealers at surface scale.
+
+function scr_fog_revealers_draw(_scale)
+{
+    var _player = global.vtd_level.entities.player;
+    var _cpu = global.vtd_level.entities.cpu;
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+
+    if (instance_exists(_player))
+    {
+        draw_circle(
+            _player.x / _scale,
+            _player.y / _scale,
+            scr_fog_revealer_range_get(_player) / _scale,
+            false
+        );
+    }
+
+    if (instance_exists(_cpu))
+    {
+        draw_circle(
+            _cpu.x / _scale,
+            _cpu.y / _scale,
+            scr_fog_revealer_range_get(_cpu) / _scale,
+            false
+        );
+    }
+
+    with (o_building_par)
+    {
+        if (BuildingState == BuildingState.ACTIVE)
+        {
+            draw_circle(
+                x / _scale,
+                y / _scale,
+                scr_fog_revealer_range_get(id) / _scale,
+                false
+            );
+        }
+    }
 
     return true;
 }

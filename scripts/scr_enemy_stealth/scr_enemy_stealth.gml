@@ -55,13 +55,6 @@ function scr_enemy_stealth_available(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-    if (!variable_instance_exists(_enemy, "stealth"))
-        return false;
-
-    if (!is_struct(_enemy.stealth))
-        return false;
-
-
     return (
         _enemy.stealth.modifier
         || _enemy.stealth.field.active
@@ -73,11 +66,16 @@ function scr_enemy_stealth_available(_enemy)
 
 function scr_enemy_stealth_cloaked(_enemy)
 {
-    if (!scr_enemy_stealth_available(_enemy))
+    if (!instance_exists(_enemy))
         return false;
 
+    var _stealth = _enemy.stealth;
 
-    return !_enemy.stealth.reveal.active;
+    return (
+        _stealth.modifier
+        || _stealth.field.active
+    )
+    && !_stealth.reveal.active;
 }
 
 

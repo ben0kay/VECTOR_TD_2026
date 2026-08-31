@@ -222,141 +222,7 @@ function scr_enemy_visual_hunter(_enemy)
 }
 
 
-/// @description Draws the rotating circular kamikaze enemy.
 
-function scr_enemy_visual_kamikaze(_enemy)
-{
-    if (!instance_exists(_enemy))
-        return false;
-
-
-    var _x =
-        _enemy.x;
-
-    var _y =
-        _enemy.y;
-
-    var _radius =
-        _enemy.visual.radius;
-
-
-    // Instance offset prevents every kamikaze rotating in sync.
-
-    var _spin =
-        (
-            global.vtd.tick * 6
-            + real(_enemy.id)
-        )
-        mod 360;
-
-
-    // ========================================================================
-    // OUTER BODY
-    // ========================================================================
-
-    draw_set_alpha(1);
-    draw_set_color(_enemy.visual.color);
-
-
-    // Main circular outline.
-
-    draw_circle(
-        _x,
-        _y,
-        _radius,
-        true
-    );
-
-
-    // Inner structural ring.
-
-    draw_circle(
-        _x,
-        _y,
-        _radius * 0.72,
-        true
-    );
-
-
-    // ========================================================================
-    // ROTATING ARMS
-    // ========================================================================
-
-    scr_enemy_visual_helper_radial_ticks(
-        _x,
-        _y,
-        _radius * 0.72,
-        _radius * 0.28,
-        4,
-        _spin,
-        3
-    );
-
-
-    // ========================================================================
-    // ROTATING INNER DIAMOND
-    // ========================================================================
-
-    draw_set_color(c_white);
-
-    scr_enemy_visual_helper_diamond(
-        _x,
-        _y,
-        _radius * 0.48,
-        _spin,
-        2
-    );
-
-
-    // ========================================================================
-    // EXPLOSIVE CORE
-    // ========================================================================
-
-    draw_set_color(_enemy.visual.color);
-
-    draw_circle(
-        _x,
-        _y,
-        _radius * 0.25,
-        true
-    );
-
-
-    // Small rotating spokes between the core and diamond.
-
-    scr_enemy_visual_helper_spokes(
-        _x,
-        _y,
-        _radius * 0.27,
-        _radius * 0.43,
-        4,
-        _spin + 45,
-        1
-    );
-
-
-    // ========================================================================
-    // CENTER
-    // ========================================================================
-
-    draw_set_color(c_white);
-
-    draw_circle(
-        _x,
-        _y,
-        max(
-            1.5,
-            _radius * 0.07
-        ),
-        false
-    );
-
-
-    draw_set_alpha(1);
-    draw_set_color(c_white);
-
-    return true;
-}
 
 function scr_enemy_baked_draw(_enemy, _offset_y = 0)
 {
@@ -435,250 +301,138 @@ function scr_enemy_health_bar_draw(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-
-    var _hp =
-        _enemy.vitals.hp;
-
-    var _shield =
-        _enemy.vitals.shield;
-
-    var _support =
-        _shield.support;
-
-
-    // ========================================================================
-    // BAR VISIBILITY
-    // ========================================================================
-    //
-    // Do not draw any bars for a completely untouched enemy.
-    //
-    // However, if either shield is visible, the health bar is also drawn
-    // underneath it so the shield bars never appear to float by themselves.
+    var _hp = _enemy.vitals.hp;
+    var _shield = _enemy.vitals.shield;
+    var _support = _shield.support;
 
     var _health_damaged =
-        _hp.current
-        < _hp.maximum;
+        _hp.current < _hp.maximum;
 
-
-    var _natural_shield_visible =
+    var _natural_visible =
         _shield.enabled
         && _shield.maximum > 0
         && _shield.current > 0;
 
-
-    var _support_shield_visible =
+    var _support_visible =
         _support.enabled
         && _support.maximum > 0
         && _support.current > 0;
 
-
     if (
         !_health_damaged
-        && !_natural_shield_visible
-        && !_support_shield_visible
+        && !_natural_visible
+        && !_support_visible
     )
     {
         return true;
     }
 
+    var _radius = _enemy.visual.radius;
+    var _left = _enemy.x - _radius;
+    var _width = _radius * 2;
 
-    // ========================================================================
-    // SHARED GEOMETRY
-    // ========================================================================
+    // Bars no longer follow flying hover movement.
 
-    var _radius =
-        _enemy.visual.radius;
+    var _hp_top =
+        _enemy.y - _radius - 8;
 
-    var _hover =
-        scr_enemy_visual_hover_offset_get(
-            _enemy
-        );
+    var _natural_top =
+        _hp_top - 4;
 
-    var _bar_width =
-        _radius * 2;
+    var _support_top =
+        _hp_top - 4 - (_natural_visible ? 4 : 0);
 
-    var _bar_left =
-        _enemy.x
-        - _radius;
+    // All backgrounds.
 
-    var _hp_bar_top =
-        _enemy.y
-        + _hover
-        - _radius
-        - 8;
+    draw_set_color(c_dkgray);
 
-
-    // ========================================================================
-    // NATURAL SHIELD BAR
-    // ========================================================================
-
-    if (_natural_shield_visible)
+    if (_natural_visible)
     {
-        var _shield_percent =
-            clamp(
-                _shield.current
-                / _shield.maximum,
-                0,
-                1
-            );
-
-
-        var _shield_bar_top =
-            _hp_bar_top
-            - 4;
-
-
-        draw_set_color(
-            c_dkgray
-        );
-
-
         draw_rectangle(
-            _bar_left,
-            _shield_bar_top,
-            _bar_left + _bar_width,
-            _shield_bar_top + 2,
-            false
-        );
-
-
-        draw_set_color(
-            _shield.color
-        );
-
-
-        draw_rectangle(
-            _bar_left,
-            _shield_bar_top,
-            _bar_left
-            + (
-                _bar_width
-                * _shield_percent
-            ),
-            _shield_bar_top + 2,
+            _left,
+            _natural_top,
+            _left + _width,
+            _natural_top + 2,
             false
         );
     }
 
-
-    // ========================================================================
-    // TEMPORARY SUPPORT SHIELD BAR
-    // ========================================================================
-
-    if (_support_shield_visible)
+    if (_support_visible)
     {
-        var _support_percent =
-            clamp(
-                _support.current
-                / _support.maximum,
-                0,
-                1
-            );
-
-
-        var _support_bar_top =
-            _hp_bar_top
-            - 4;
-
-
-        if (_natural_shield_visible)
-        {
-            _support_bar_top -=
-                4;
-        }
-
-
-        draw_set_color(
-            c_dkgray
-        );
-
-
         draw_rectangle(
-            _bar_left,
-            _support_bar_top,
-            _bar_left + _bar_width,
-            _support_bar_top + 2,
-            false
-        );
-
-
-        draw_set_color(
-            _support.color
-        );
-
-
-        draw_rectangle(
-            _bar_left,
-            _support_bar_top,
-            _bar_left
-            + (
-                _bar_width
-                * _support_percent
-            ),
-            _support_bar_top + 2,
+            _left,
+            _support_top,
+            _left + _width,
+            _support_top + 2,
             false
         );
     }
 
+    draw_rectangle(
+        _left,
+        _hp_top,
+        _left + _width,
+        _hp_top + 3,
+        false
+    );
 
-    // ========================================================================
-    // HEALTH BAR
-    // ========================================================================
-    //
-    // Once any bar is relevant, health remains the bottom baseline even
-    // when HP itself is still full.
+    // Natural shield fill.
+
+    if (_natural_visible)
+    {
+        var _percent =
+            clamp(_shield.current / _shield.maximum, 0, 1);
+
+        draw_set_color(_shield.color);
+
+        draw_rectangle(
+            _left,
+            _natural_top,
+            _left + (_width * _percent),
+            _natural_top + 2,
+            false
+        );
+    }
+
+    // Support shield fill.
+
+    if (_support_visible)
+    {
+        var _percent =
+            clamp(_support.current / _support.maximum, 0, 1);
+
+        draw_set_color(_support.color);
+
+        draw_rectangle(
+            _left,
+            _support_top,
+            _left + (_width * _percent),
+            _support_top + 2,
+            false
+        );
+    }
+
+    // Health fill.
 
     var _hp_percent =
-        clamp(
-            _hp.current
-            / max(
-                1,
-                _hp.maximum
-            ),
-            0,
-            1
-        );
+        clamp(_hp.current / max(1, _hp.maximum), 0, 1);
 
-
-    draw_set_color(
-        c_dkgray
-    );
-
+    draw_set_color(c_red);
 
     draw_rectangle(
-        _bar_left,
-        _hp_bar_top,
-        _bar_left + _bar_width,
-        _hp_bar_top + 3,
+        _left,
+        _hp_top,
+        _left + (_width * _hp_percent),
+        _hp_top + 3,
         false
     );
 
-
-    draw_set_color(
-        c_red
-    );
-
-
-    draw_rectangle(
-        _bar_left,
-        _hp_bar_top,
-        _bar_left
-        + (
-            _bar_width
-            * _hp_percent
-        ),
-        _hp_bar_top + 3,
-        false
-    );
-
-
-    draw_set_color(
-        c_white
-    );
-
+    draw_set_color(c_white);
 
     return true;
 }
+
+
 /// @description Draws the large triangular Splitter enemy.
 
 function scr_enemy_visual_splitter(_enemy)

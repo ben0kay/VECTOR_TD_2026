@@ -816,13 +816,7 @@ function scr_building_footprint_valid(
 }
 
 
-/// @description Reserves an instance's footprint on the ground grid.
-
-function scr_building_footprint_reserve(
-    _building,
-    _cell_x,
-    _cell_y
-)
+function scr_building_footprint_reserve(_building, _cell_x, _cell_y)
 {
     if (!instance_exists(_building))
         return false;
@@ -830,39 +824,30 @@ function scr_building_footprint_reserve(
     if (_building.footprint.reserved)
         return false;
 
-
     var _valid = false;
-
 
     switch (_building.identity.type)
     {
         case BuildingType.MINER:
-        {
             _valid = scr_miner_placement_valid(
                 _building.building_data,
                 _cell_x,
                 _cell_y
             );
-        }
         break;
 
-
         default:
-        {
             _valid = scr_building_footprint_valid(
                 _cell_x,
                 _cell_y,
                 _building.footprint.width_cells,
                 _building.footprint.height_cells
             );
-        }
         break;
     }
 
-
     if (!_valid)
         return false;
-
 
     var _cells = scr_building_footprint_cells_get(
         _cell_x,
@@ -871,6 +856,7 @@ function scr_building_footprint_reserve(
         _building.footprint.height_cells
     );
 
+    var _columns = global.vtd_level.map.columns;
 
     for (var i = 0; i < array_length(_cells); ++i)
     {
@@ -881,21 +867,23 @@ function scr_building_footprint_reserve(
             _cell.x,
             _cell.y
         );
-    }
 
+        var _index =
+            (_cell.y * _columns) + _cell.x;
+
+        global.vtd_level.navigation.building_occupancy[_index] =
+            _building;
+    }
 
     _building.footprint.origin.x = _cell_x;
     _building.footprint.origin.y = _cell_y;
     _building.footprint.cells = _cells;
     _building.footprint.reserved = true;
 
-
     global.vtd_level.navigation.revision++;
-
 
     return true;
 }
-
 
 /// @description Releases an instance's footprint from the ground grid.
 
@@ -907,16 +895,11 @@ function scr_building_footprint_release(_building)
     if (!_building.footprint.reserved)
         return true;
 
-
-    var _released_cells = _building.footprint.cells;
-
-
-    // Mark the building unreserved before refreshing. This prevents
-    // scr_building_at_cell() from finding the building being released.
+    var _released_cells =
+        _building.footprint.cells;
 
     _building.footprint.cells = [];
     _building.footprint.reserved = false;
-
 
     if (
         variable_global_exists("vtd_level")
@@ -924,9 +907,16 @@ function scr_building_footprint_release(_building)
         && global.vtd_level.navigation.ready
     )
     {
+        var _columns =
+            global.vtd_level.map.columns;
+
         for (var i = 0; i < array_length(_released_cells); ++i)
         {
             var _cell = _released_cells[i];
+            var _index = (_cell.y * _columns) + _cell.x;
+
+            global.vtd_level.navigation.building_occupancy[_index] =
+                noone;
 
             scr_navigation_cell_refresh(
                 _cell.x,
@@ -934,10 +924,8 @@ function scr_building_footprint_release(_building)
             );
         }
 
-
         global.vtd_level.navigation.revision++;
     }
-
 
     return true;
 }
@@ -1237,73 +1225,27 @@ function scr_building_draw(_building)
 
 /// @description Returns the initialized building occupying one grid cell.
 
+/// @description Returns the initialized building occupying one grid cell.
+
 function scr_building_at_cell(_cell_x, _cell_y)
 {
-    var _building_count =
-        instance_number(
-            o_building_par
-        );
+    if (!scr_building_cell_inside_map(_cell_x, _cell_y))
+        return noone;
 
+    var _index =
+        (_cell_y * global.vtd_level.map.columns)
+        + _cell_x;
 
-    for (var i = 0; i < _building_count; ++i)
-    {
-        var _building =
-            instance_find(
-                o_building_par,
-                i
-            );
+    var _building =
+        global.vtd_level.navigation.building_occupancy[_index];
 
-        if (!instance_exists(_building))
-            continue;
+    if (!instance_exists(_building))
+        return noone;
 
+    if (_building.BuildingState == BuildingState.DESTROYED)
+        return noone;
 
-        // A building is visible to instance searches while its Create event
-        // is still running. Ignore it until its runtime is initialized.
-
-        if (!variable_instance_exists(_building, "BuildingState"))
-            continue;
-
-        if (!variable_instance_exists(_building, "footprint"))
-            continue;
-
-        if (!is_struct(_building.footprint))
-            continue;
-
-
-        if (_building.BuildingState == BuildingState.DESTROYED)
-            continue;
-
-        if (!_building.footprint.reserved)
-            continue;
-
-        if (!is_array(_building.footprint.cells))
-            continue;
-
-
-        for (
-            var cell_index = 0;
-            cell_index < array_length(_building.footprint.cells);
-            ++cell_index
-        )
-        {
-            var _cell =
-                _building.footprint.cells[cell_index];
-
-            if (!is_struct(_cell))
-                continue;
-
-            if (
-                _cell.x == _cell_x
-                && _cell.y == _cell_y
-            )
-            {
-                return _building;
-            }
-        }
-    }
-
-
-    return noone;
+    return _building;
 }
 
 /// @description Completes construction and activates one building.
