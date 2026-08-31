@@ -1,3 +1,174 @@
+/// @description Returns the baked slow-effect sprite.
+
+function scr_enemy_effect_slow_baked()
+{
+    static _sprite = -1;
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _radius = 20;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    for (var section = 0; section < 4; ++section)
+    {
+        var _start = section * 90;
+        var _end = _start + 48;
+        var _previous_x = _centre + lengthdir_x(_radius, _start);
+        var _previous_y = _centre + lengthdir_y(_radius, _start);
+
+        for (var _angle = _start + 8; _angle <= _end; _angle += 8)
+        {
+            var _next_x = _centre + lengthdir_x(_radius, _angle);
+            var _next_y = _centre + lengthdir_y(_radius, _angle);
+
+            draw_line(_previous_x, _previous_y, _next_x, _next_y);
+
+            _previous_x = _next_x;
+            _previous_y = _next_y;
+        }
+
+        var _mark_angle = _start + 24;
+
+        draw_line(
+            _centre + lengthdir_x(_radius - 2, _mark_angle),
+            _centre + lengthdir_y(_radius - 2, _mark_angle),
+            _centre + lengthdir_x(_radius + 3, _mark_angle),
+            _centre + lengthdir_y(_radius + 3, _mark_angle)
+        );
+    }
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    return _sprite;
+}
+
+
+/// @description Returns the baked stasis-effect sprite.
+
+function scr_enemy_effect_stasis_baked()
+{
+    static _sprite = -1;
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _radius = 16;
+    var _outer = 23;
+    var _inner = _radius * 0.55;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    draw_circle(_centre, _centre, _outer, true);
+
+    draw_line(_centre - _radius, _centre, _centre + _radius, _centre);
+    draw_line(_centre, _centre - _radius, _centre, _centre + _radius);
+
+    draw_line(_centre, _centre - _inner, _centre + _inner, _centre);
+    draw_line(_centre + _inner, _centre, _centre, _centre + _inner);
+    draw_line(_centre, _centre + _inner, _centre - _inner, _centre);
+    draw_line(_centre - _inner, _centre, _centre, _centre - _inner);
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    return _sprite;
+}
+
+
+/// @description Returns the baked disruption-effect sprite.
+
+function scr_enemy_effect_disruption_baked()
+{
+    static _sprite = -1;
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _radius = 21;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    for (var i = 0; i < 3; ++i)
+    {
+        var _angle = i * 120;
+        var _middle_angle = _angle + 18;
+        var _end_angle = _angle + 34;
+
+        var _middle_x = _centre + lengthdir_x(_radius + 3, _middle_angle);
+        var _middle_y = _centre + lengthdir_y(_radius + 3, _middle_angle);
+
+        draw_line(
+            _centre + lengthdir_x(_radius - 3, _angle),
+            _centre + lengthdir_y(_radius - 3, _angle),
+            _middle_x,
+            _middle_y
+        );
+
+        draw_line(
+            _middle_x,
+            _middle_y,
+            _centre + lengthdir_x(_radius - 2, _end_angle),
+            _centre + lengthdir_y(_radius - 2, _end_angle)
+        );
+    }
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    return _sprite;
+}
+
 /// @description Returns whether an enemy currently has one effect.
 
 function scr_enemy_effect_active(_enemy, _effect)
@@ -108,6 +279,238 @@ function scr_enemy_effect_apply(_enemy, _effect_data, _source = noone)
         break;
     }
 
+
+    return true;
+}
+
+/// @description Returns the baked natural-shield energy fill.
+
+function scr_enemy_shield_fill_baked()
+{
+    static _sprite = -1;
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    draw_circle(_centre, _centre, 23, false);
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    return _sprite;
+}
+
+
+/// @description Returns one baked natural-shield segment level.
+
+function scr_enemy_shield_natural_baked(_segments)
+{
+    static _sprites = array_create(8, -1);
+
+    _segments = clamp(round(_segments), 1, 8);
+
+    var _index = _segments - 1;
+    var _sprite = _sprites[_index];
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _radius = 23;
+    var _segment_radius = 26;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    draw_circle(_centre, _centre, _radius, true);
+
+    for (var i = 0; i < _segments; ++i)
+    {
+        var _angle = i * 45;
+
+        draw_line(
+            _centre + lengthdir_x(_segment_radius, _angle - 12),
+            _centre + lengthdir_y(_segment_radius, _angle - 12),
+            _centre + lengthdir_x(_segment_radius, _angle + 12),
+            _centre + lengthdir_y(_segment_radius, _angle + 12)
+        );
+    }
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    _sprites[_index] = _sprite;
+
+    return _sprite;
+}
+
+
+/// @description Returns the baked support-shield boundary.
+
+function scr_enemy_shield_support_baked()
+{
+    static _sprite = -1;
+
+    if (sprite_exists(_sprite))
+        return _sprite;
+
+    var _size = 64;
+    var _centre = _size * 0.5;
+    var _surface = surface_create(_size, _size);
+
+    if (!surface_exists(_surface))
+        return -1;
+
+    surface_set_target(_surface);
+    draw_clear_alpha(c_black, 0);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+
+    draw_circle(_centre, _centre, 28, true);
+
+    surface_reset_target();
+
+    _sprite = sprite_create_from_surface(
+        _surface, 0, 0, _size, _size,
+        false, false,
+        _centre, _centre
+    );
+
+    surface_free(_surface);
+
+    return _sprite;
+}
+
+/// @description Draws an enemy's baked natural and support shields.
+
+function scr_enemy_shield_draw(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _shield = _enemy.vitals.shield;
+    var _support = _shield.support;
+
+    var _natural_active =
+        _shield.enabled
+        && _shield.current > 0
+        && _shield.maximum > 0;
+
+    var _support_active =
+        _support.enabled
+        && _support.current > 0
+        && _support.maximum > 0;
+
+    if (!_natural_active && !_support_active)
+        return true;
+
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _base_radius = _enemy.visual.radius;
+    var _phase = real(_enemy.id);
+
+
+    // NATURAL SHIELD
+
+    if (_natural_active)
+    {
+        var _ratio = clamp(_shield.current / _shield.maximum, 0, 1);
+        var _radius = _base_radius + 7 + dsin(global.vtd.tick * 3 + _phase);
+        var _scale = _radius / 23;
+        var _segments = max(1, ceil(_ratio * 8));
+
+        var _fill_sprite = scr_enemy_shield_fill_baked();
+        var _shield_sprite = scr_enemy_shield_natural_baked(_segments);
+
+        if (sprite_exists(_fill_sprite))
+        {
+            draw_sprite_ext(
+                _fill_sprite, 0, _x, _y,
+                _scale, _scale, 0,
+                _shield.color,
+                0.035 + (_shield.hit_flash * 0.05)
+            );
+        }
+
+        if (sprite_exists(_shield_sprite))
+        {
+            draw_sprite_ext(
+                _shield_sprite, 0, _x, _y,
+                _scale, _scale, 0,
+                _shield.color,
+                clamp(
+                    0.35
+                    + (_ratio * 0.25)
+                    + (_shield.hit_flash * 0.35),
+                    0,
+                    1
+                )
+            );
+        }
+    }
+
+
+    // TEMPORARY SUPPORT SHIELD
+
+    if (_support_active)
+    {
+        var _ratio = clamp(_support.current / _support.maximum, 0, 1);
+        var _radius = _base_radius + 12 + dsin(global.vtd.tick * 5 + _phase);
+        var _scale = _radius / 28;
+        var _sprite = scr_enemy_shield_support_baked();
+
+        if (sprite_exists(_sprite))
+        {
+            draw_sprite_ext(
+                _sprite, 0, _x, _y,
+                _scale, _scale, 0,
+                _support.color,
+                clamp(
+                    0.3
+                    + (_ratio * 0.25)
+                    + (_support.hit_flash * 0.35),
+                    0,
+                    1
+                )
+            );
+        }
+    }
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
     return true;
 }
@@ -336,24 +739,14 @@ function scr_enemy_effects_update(_enemy)
 }
 
 
-/// @description Draws active enemy status-effect visuals.
+/// @description Draws an enemy's baked status effects.
 
 function scr_enemy_effects_draw(_enemy)
 {
     if (!instance_exists(_enemy))
         return false;
 
-
-    var _effects =
-        _enemy.effects;
-
-
-    // ========================================================================
-    // NOTHING ACTIVE
-    // ========================================================================
-    //
-    // Every enemy owns the effects runtime.
-    // If nothing is active, leave immediately.
+    var _effects = _enemy.effects;
 
     if (
         !_effects.slow.active
@@ -364,342 +757,78 @@ function scr_enemy_effects_draw(_enemy)
         return true;
     }
 
-
-    var _x =
-        _enemy.x;
-
-    var _y =
-        _enemy.y;
-
-    var _radius =
-        _enemy.visual.radius;
+    var _x = _enemy.x;
+    var _y = _enemy.y;
+    var _radius = _enemy.visual.radius;
+    var _phase = real(_enemy.id);
 
 
-    // ========================================================================
     // CRYO SLOW
-    // ========================================================================
 
     if (_effects.slow.active)
     {
-        var _cryo_radius =
-            _radius + 4;
+        var _sprite = scr_enemy_effect_slow_baked();
 
-        var _spin =
-            (
-                global.vtd.tick * 1.5
-                + real(_enemy.id)
-            )
-            mod 360;
-
-
-        draw_set_alpha(0.75);
-        draw_set_color(c_aqua);
-
-
-        // Four separated curved sections create a rotating frozen outline.
-
-        for (var section = 0; section < 4; ++section)
+        if (sprite_exists(_sprite))
         {
-            var _section_start =
-                _spin
-                + (section * 90);
+            var _scale = (_radius + 4) / 20;
 
-            var _section_end =
-                _section_start + 48;
-
-            var _previous_x =
-                _x
-                + lengthdir_x(
-                    _cryo_radius,
-                    _section_start
-                );
-
-            var _previous_y =
-                _y
-                + lengthdir_y(
-                    _cryo_radius,
-                    _section_start
-                );
-
-
-            for (
-                var _angle = _section_start + 8;
-                _angle <= _section_end;
-                _angle += 8
-            )
-            {
-                var _next_x =
-                    _x
-                    + lengthdir_x(
-                        _cryo_radius,
-                        _angle
-                    );
-
-                var _next_y =
-                    _y
-                    + lengthdir_y(
-                        _cryo_radius,
-                        _angle
-                    );
-
-
-                draw_line(
-                    _previous_x,
-                    _previous_y,
-                    _next_x,
-                    _next_y
-                );
-
-
-                _previous_x =
-                    _next_x;
-
-                _previous_y =
-                    _next_y;
-            }
-        }
-
-
-        // Small outward ice marks.
-
-        for (var i = 0; i < 4; ++i)
-        {
-            var _mark_angle =
-                _spin
-                + 24
-                + (i * 90);
-
-
-            draw_line(
-                _x
-                + lengthdir_x(
-                    _cryo_radius - 2,
-                    _mark_angle
-                ),
-
-                _y
-                + lengthdir_y(
-                    _cryo_radius - 2,
-                    _mark_angle
-                ),
-
-                _x
-                + lengthdir_x(
-                    _cryo_radius + 3,
-                    _mark_angle
-                ),
-
-                _y
-                + lengthdir_y(
-                    _cryo_radius + 3,
-                    _mark_angle
-                )
+            draw_sprite_ext(
+                _sprite, 0, _x, _y,
+                _scale, _scale,
+                global.vtd.tick * 1.5 + _phase,
+                c_aqua, 0.75
             );
         }
     }
 
 
-    // ========================================================================
     // STASIS
-    // ========================================================================
 
     if (_effects.stasis.active)
     {
-        var _stasis_radius =
-            _radius + 7;
+        var _sprite = scr_enemy_effect_stasis_baked();
 
-        var _pulse =
-            0.65
-            + dsin(
-                global.vtd.tick * 8
-                + real(_enemy.id)
-            )
-            * 0.2;
-
-
-        draw_set_alpha(_pulse);
-
-        draw_set_color(
-            make_color_rgb(
-                120,
-                170,
-                255
-            )
-        );
-
-
-        draw_circle(
-            _x,
-            _y,
-            _stasis_radius,
-            true
-        );
-
-
-        // Horizontal and vertical containment lines.
-
-        draw_line(
-            _x - _radius,
-            _y,
-            _x + _radius,
-            _y
-        );
-
-        draw_line(
-            _x,
-            _y - _radius,
-            _x,
-            _y + _radius
-        );
-
-
-        // Diamond-shaped inner lock.
-
-        var _inner_radius =
-            _radius * 0.55;
-
-
-        draw_line(
-            _x,
-            _y - _inner_radius,
-            _x + _inner_radius,
-            _y
-        );
-
-        draw_line(
-            _x + _inner_radius,
-            _y,
-            _x,
-            _y + _inner_radius
-        );
-
-        draw_line(
-            _x,
-            _y + _inner_radius,
-            _x - _inner_radius,
-            _y
-        );
-
-        draw_line(
-            _x - _inner_radius,
-            _y,
-            _x,
-            _y - _inner_radius
-        );
-    }
-
-
-    // ========================================================================
-    // DISRUPTION / DAMAGE OVER TIME
-    // ========================================================================
-
-    if (_effects.damage_over_time.active)
-    {
-        var _dot_radius =
-            _radius + 5;
-
-        var _dot_spin =
-            (
-                global.vtd.tick * -3
-                + real(_enemy.id)
-            )
-            mod 360;
-
-        var _dot_pulse =
-            0.55
-            + dsin(
-                global.vtd.tick * 7
-                + real(_enemy.id)
-            )
-            * 0.25;
-
-
-        draw_set_alpha(_dot_pulse);
-
-        draw_set_color(
-            make_color_rgb(
-                190,
-                70,
-                255
-            )
-        );
-
-
-        // Rotating electrical disruption marks.
-
-        for (var i = 0; i < 3; ++i)
+        if (sprite_exists(_sprite))
         {
-            var _angle =
-                _dot_spin
-                + (i * 120);
+            var _scale = (_radius + 7) / 23;
+            var _alpha = 0.65 + dsin(global.vtd.tick * 8 + _phase) * 0.2;
 
-            var _middle_angle =
-                _angle + 18;
-
-            var _end_angle =
-                _angle + 34;
-
-
-            var _middle_x =
-                _x
-                + lengthdir_x(
-                    _dot_radius + 3,
-                    _middle_angle
-                );
-
-            var _middle_y =
-                _y
-                + lengthdir_y(
-                    _dot_radius + 3,
-                    _middle_angle
-                );
-
-
-            draw_line(
-                _x
-                + lengthdir_x(
-                    _dot_radius - 3,
-                    _angle
-                ),
-
-                _y
-                + lengthdir_y(
-                    _dot_radius - 3,
-                    _angle
-                ),
-
-                _middle_x,
-                _middle_y
-            );
-
-
-            draw_line(
-                _middle_x,
-                _middle_y,
-
-                _x
-                + lengthdir_x(
-                    _dot_radius - 2,
-                    _end_angle
-                ),
-
-                _y
-                + lengthdir_y(
-                    _dot_radius - 2,
-                    _end_angle
-                )
+            draw_sprite_ext(
+                _sprite, 0, _x, _y,
+                _scale, _scale,
+                0,
+                make_color_rgb(120, 170, 255),
+                _alpha
             );
         }
     }
 
 
-    // ========================================================================
-    // RESTORE DRAWING STATE
-    // ========================================================================
+    // DISRUPTION / DAMAGE OVER TIME
+
+    if (_effects.damage_over_time.active)
+    {
+        var _sprite = scr_enemy_effect_disruption_baked();
+
+        if (sprite_exists(_sprite))
+        {
+            var _scale = (_radius + 5) / 21;
+            var _alpha = 0.55 + dsin(global.vtd.tick * 7 + _phase) * 0.25;
+
+            draw_sprite_ext(
+                _sprite, 0, _x, _y,
+                _scale, _scale,
+                global.vtd.tick * -3 + _phase,
+                make_color_rgb(190, 70, 255),
+                _alpha
+            );
+        }
+    }
 
     draw_set_alpha(1);
     draw_set_color(c_white);
 
-
     return true;
 }
+

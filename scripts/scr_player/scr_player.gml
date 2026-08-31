@@ -33,14 +33,24 @@ function scr_player_initialize(_player)
 
 
     // ========================================================================
-    // COLLISION
-    // ========================================================================
+	// COLLISION
+	// ========================================================================
 
-    _player.collision =
-    {
-        half_width: 14,
-        half_height: 14
-    };
+	_player.collision =
+	{
+	    half_width: 14,
+	    half_height: 14
+	};
+
+	_player.mask_index = s_collision_square;
+
+	_player.image_xscale =
+	    (_player.collision.half_width * 2)
+	    / sprite_get_width(s_collision_square);
+
+	_player.image_yscale =
+	    (_player.collision.half_height * 2)
+	    / sprite_get_height(s_collision_square);
 
 
     // ========================================================================
@@ -787,82 +797,25 @@ function scr_player_damage(
 
 /// @description Moves the player along one axis against square solids.
 
-function scr_player_axis_move(
-    _player,
-    _amount,
-    _horizontal
-)
+function scr_player_axis_move(_player, _amount, _horizontal)
 {
-    if (!instance_exists(_player))
-        return false;
-
     if (_amount == 0)
         return true;
 
-
-    var _steps =
-        max(
-            1,
-            ceil(abs(_amount))
-        );
-
-    var _step =
-        _amount / _steps;
-
+    var _steps = max(1, ceil(abs(_amount)));
+    var _step = _amount / _steps;
 
     repeat (_steps)
     {
-        var _next_x =
-            _player.x
-            + (
-                _horizontal
-                ? _step
-                : 0
-            );
+        var _next_x = _player.x + (_horizontal ? _step : 0);
+        var _next_y = _player.y + (_horizontal ? 0 : _step);
 
-        var _next_y =
-            _player.y
-            + (
-                _horizontal
-                ? 0
-                : _step
-            );
-
-
-        var _left =
-            _next_x
-            - _player.collision.half_width;
-
-        var _right =
-            _next_x
-            + _player.collision.half_width;
-
-        var _top =
-            _next_y
-            - _player.collision.half_height;
-
-        var _bottom =
-            _next_y
-            + _player.collision.half_height;
-
-
-        if (
-            scr_world_rectangle_gameplay_solid(
-                _left,
-                _top,
-                _right,
-                _bottom
-            )
-        )
-        {
+        if (place_meeting(_next_x, _next_y, o_solid_par))
             break;
-        }
-
 
         _player.x = _next_x;
         _player.y = _next_y;
     }
-
 
     return true;
 }

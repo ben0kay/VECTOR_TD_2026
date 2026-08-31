@@ -3465,15 +3465,12 @@ function scr_enemy_step_event_finish(
 
 
     if (_visible)
-    {
-        scr_enemy_visual_direction_update(
-            _enemy
-        );
+	{
+	    if (IFRAMES_2)
+	        scr_enemy_visual_direction_update(_enemy);
 
-        scr_particles_enemy_update(
-            _enemy
-        );
-    }
+	    scr_particles_enemy_update(_enemy);
+	}
 
 
     var _shield_active =
