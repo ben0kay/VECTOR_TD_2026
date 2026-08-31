@@ -2,6 +2,7 @@
 
 function scr_enemy_siege_beam_geometry_get(_enemy, _target)
 {
+    var _beam = _enemy.attack.beam;
     var _muzzle_distance = _enemy.visual.radius * 1.22;
 
     var _start_x =
@@ -39,7 +40,7 @@ function scr_enemy_siege_beam_geometry_get(_enemy, _target)
 
     var _current_length =
         min(
-            _enemy.attack.beam_reach,
+            _beam.reach,
             _full_length
         );
 
@@ -79,13 +80,18 @@ function scr_enemy_siege_beam_hitbox_stop(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-    _enemy.attack.beam_hitbox =
+    var _beam = _enemy.attack.beam;
+
+    if (!is_struct(_beam))
+        return true;
+
+    _beam.hitbox =
         scr_beam_hitbox_remove(
-            _enemy.attack.beam_hitbox
+            _beam.hitbox
         );
 
-    _enemy.attack.beam_reach = 0;
-    _enemy.attack.beam_target = noone;
+    _beam.reach = 0;
+    _beam.target = noone;
 
     return true;
 }
@@ -98,7 +104,12 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
     if (!instance_exists(_enemy) || !instance_exists(_target))
         return false;
 
-    var _area = _enemy.attack.area;
+    var _beam = _enemy.attack.beam;
+
+    if (!is_struct(_beam))
+        return false;
+
+    var _area = _beam.area;
 
     if (!is_struct(_area))
         return false;
@@ -109,10 +120,10 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
 
     // Reset extension when switching targets.
 
-    if (_enemy.attack.beam_target != _target)
+    if (_beam.target != _target)
     {
-        _enemy.attack.beam_target = _target;
-        _enemy.attack.beam_reach = 0;
+        _beam.target = _target;
+        _beam.reach = 0;
     }
 
 
@@ -133,10 +144,10 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
             game_get_speed(gamespeed_fps)
         );
 
-    _enemy.attack.beam_reach =
+    _beam.reach =
         min(
             _geometry.full_length,
-            _enemy.attack.beam_reach
+            _beam.reach
             + (_beam_data.extension_speed / _fps)
         );
 
@@ -150,9 +161,9 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
         );
 
 
-    if (!instance_exists(_enemy.attack.beam_hitbox))
+    if (!instance_exists(_beam.hitbox))
     {
-        _enemy.attack.beam_hitbox =
+        _beam.hitbox =
             scr_beam_hitbox_create(
                 _enemy,
                 DamageSource.ENEMY,
@@ -163,11 +174,11 @@ function scr_enemy_siege_beam_hitbox_update(_enemy, _target)
             );
     }
 
-    if (!instance_exists(_enemy.attack.beam_hitbox))
+    if (!instance_exists(_beam.hitbox))
         return false;
 
     return scr_beam_hitbox_geometry_set(
-        _enemy.attack.beam_hitbox,
+        _beam.hitbox,
         _geometry.start_x,
         _geometry.start_y,
         _geometry.end_x,
@@ -228,8 +239,8 @@ function scr_enemy_siege_beam_update(_enemy)
                     scr_world_line_blocked_by_dead(
                         _geometry.start_x,
                         _geometry.start_y,
-                        _geometry.end_x,
-                        _geometry.end_y
+                        _geometry.target_x,
+                        _geometry.target_y
                     );
 
                 if (!_blocked)

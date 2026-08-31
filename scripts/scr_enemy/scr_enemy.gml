@@ -611,94 +611,83 @@ function scr_enemy_initialize(_enemy)
 
 
     // ========================================================================
-    // ATTACK
-    // ========================================================================
+	// ATTACK
+	// ========================================================================
 
-    _enemy.attack =
-    {
-        type:
-            _data.attack.type,
+	_enemy.attack =
+	{
+	    type: _data.attack.type,
+	    damage: _data.attack.damage,
+	    range: _data.attack.range,
 
-        damage:
-            _data.attack.damage,
+	    requires_line_of_sight:
+	        _requires_line_of_sight,
 
-        range:
-            _data.attack.range,
+	    cooldown:
+	    {
+	        duration: _data.attack.cooldown_seconds,
+	        remaining: 0
+	    },
 
-        requires_line_of_sight:
-            _requires_line_of_sight,
-
-        cooldown:
-        {
-            duration:
-                _data.attack.cooldown_seconds,
-
-            remaining: 0
-        },
-		
-		area: variable_struct_exists(_data.attack, "area") ? _data.attack.area : undefined,
-
-		beam_hitbox: noone,
-		beam_reach: 0,
-		beam_target: noone,
-		projectile: undefined
-    };
+	    projectile: undefined,
+	    beam: undefined
+	};
 
 
-    if (
-        _enemy.attack.type
-        == EnemyAttack.PROJECTILE
-    )
-    {
-        var _projectile =
-            _data.attack.projectile;
+	if (_enemy.attack.type == EnemyAttack.PROJECTILE)
+	{
+	    var _projectile = _data.attack.projectile;
+
+	    _enemy.attack.projectile =
+	    {
+	        speed: _projectile.speed,
+	        lifetime_seconds: _projectile.lifetime_seconds,
+	        radius: _projectile.radius,
+	        color: _projectile.color,
+	        shot_count: _projectile.shot_count,
+	        spread_degrees: _projectile.spread_degrees,
+
+	        impact:
+	            variable_struct_exists(_projectile, "impact")
+	            ? _projectile.impact
+	            : ProjectileImpact.DIRECT,
+
+	        damage_radius:
+	            variable_struct_exists(_projectile, "damage_radius")
+	            ? _projectile.damage_radius
+	            : 0,
+
+	        rocket:
+	            variable_struct_exists(_projectile, "rocket")
+	            ? _projectile.rocket
+	            : false
+	    };
+	}
 
 
-        _enemy.attack.projectile =
-        {
-            speed:
-                _projectile.speed,
+	if (_enemy.attack.type == EnemyAttack.CONTINUOUS_BEAM)
+	{
+	    if (
+	        !variable_struct_exists(_data.attack, "area")
+	        || !is_struct(_data.attack.area)
+	    )
+	    {
+	        show_debug_message(
+	            "ENEMY ERROR - continuous beam area missing: "
+	            + _enemy.identity.key
+	        );
 
-            lifetime_seconds:
-                _projectile.lifetime_seconds,
+	        return false;
+	    }
 
-            radius:
-                _projectile.radius,
-
-            color:
-                _projectile.color,
-
-            shot_count:
-                _projectile.shot_count,
-
-            spread_degrees:
-                _projectile.spread_degrees,
-
-            impact:
-                variable_struct_exists(
-                    _projectile,
-                    "impact"
-                )
-                ? _projectile.impact
-                : ProjectileImpact.DIRECT,
-
-            damage_radius:
-                variable_struct_exists(
-                    _projectile,
-                    "damage_radius"
-                )
-                ? _projectile.damage_radius
-                : 0,
-
-            rocket:
-                variable_struct_exists(
-                    _projectile,
-                    "rocket"
-                )
-                ? _projectile.rocket
-                : false
-        };
-    }
+	    _enemy.attack.beam =
+	    {
+	        area: _data.attack.area,
+	        hitbox: noone,
+	        reach: 0,
+	        target: noone
+	    };
+	}
 
 
     // ========================================================================
