@@ -51,6 +51,23 @@ if (!instance_exists(_cpu))
     exit;
 }
 
+// ========================================================================
+// FLANK ROUTES
+// ========================================================================
+
+var _world_data =
+    scr_world_data_current_get();
+
+if (!scr_navigation_flanking_initialize(_world_data))
+{
+    show_debug_message(
+        "LEVEL ERROR - flank-route initialization failed."
+    );
+
+    instance_destroy();
+    exit;
+}
+
 
 // ========================================================================
 // PLAYER
