@@ -1126,7 +1126,12 @@ build_menu: { order: 120 },
 visual:
 {
     color: make_color_rgb(45, 15, 70),
-    turret_color: make_color_rgb(205, 80, 255)
+    turret_color: make_color_rgb(205, 80, 255),
+	baked:
+	{
+	    body: scr_tower_shockwave_baked_body,
+	    effects: scr_tower_shockwave_baked_effects
+	}
 },
 
 footprint: { width_cells: 2, height_cells: 2 },

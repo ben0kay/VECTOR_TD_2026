@@ -1,9 +1,9 @@
-/// @description Draws the complete Disruptor visual.
+/// @description Draws the complete procedural Disruptor visual.
 
 function scr_tower_visual_disruptor(_tower)
 {
     scr_tower_visual_disruptor_body(_tower);
-    scr_tower_disruptor_baked_effects(_tower, 0, 0);
+    scr_tower_visual_disruptor_effects(_tower);
 
     return true;
 }
@@ -196,8 +196,31 @@ function scr_tower_disruptor_baked_body()
     return _sprite;
 }
 
+/// @description Draws the Disruptor's procedural arc effects.
 
-/// @description Draws the Disruptor's baked rotating arcs.
+function scr_tower_visual_disruptor_effects(
+    _tower,
+    _angle = global.vtd.tick * 2.5
+)
+{
+    draw_set_color(_tower.visual.turret_color);
+
+    scr_enemy_visual_helper_arc_segments(
+        _tower.x, _tower.y,
+        14,
+        3,
+        65,
+        _angle,
+        3,
+        2
+    );
+
+    draw_set_color(c_white);
+
+    return true;
+}
+
+/// @description Bakes and draws the Disruptor's rotating arc effects.
 
 function scr_tower_disruptor_baked_effects(
     _tower,
@@ -215,37 +238,34 @@ function scr_tower_disruptor_baked_effects(
         if (!surface_exists(_surface))
             return false;
 
+        var _preview =
+        {
+            x: _size * 0.5,
+            y: _size * 0.5,
+
+            visual:
+            {
+                turret_color: c_white
+            }
+        };
+
         surface_set_target(_surface);
         draw_clear_alpha(c_black, 0);
-        draw_set_color(c_white);
 
-        scr_enemy_visual_helper_arc_segments(
-            _size * 0.5,
-            _size * 0.5,
-            14,
-            3,
-            65,
-            0,
-            3,
-            2
-        );
+        scr_tower_visual_disruptor_effects(_preview, 0);
 
         surface_reset_target();
 
         _sprite = sprite_create_from_surface(
             _surface,
-            0,
-            0,
-            _size,
-            _size,
-            false,
-            false,
+            0, 0,
+            _size, _size,
+            false, false,
             _size * 0.5,
             _size * 0.5
         );
 
         surface_free(_surface);
-        draw_set_color(c_white);
     }
 
     draw_sprite_ext(
@@ -253,8 +273,7 @@ function scr_tower_disruptor_baked_effects(
         0,
         _tower.x + _offset_x,
         _tower.y + _offset_y,
-        1,
-        1,
+        1, 1,
         global.vtd.tick * 2.5,
         _tower.visual.turret_color,
         1
@@ -262,4 +281,3 @@ function scr_tower_disruptor_baked_effects(
 
     return true;
 }
-

@@ -1531,75 +1531,45 @@ function scr_world_line_blocked_by_dead(
     _end_y
 )
 {
-    if (!variable_global_exists("vtd_level"))
-        return false;
-
-    if (!is_struct(global.vtd_level))
-        return false;
 
 
-    var _cell_size =
-        global.vtd_level.map.cell_size;
+    var _level = global.vtd_level;
+
+
+    var _cell_size = _level.map.cell_size;
+    var _columns = _level.map.columns;
+    var _rows = _level.map.rows;
+    var _grid = _level.world.grid.cell_type;
 
     var _x0 = floor(_start_x / _cell_size);
     var _y0 = floor(_start_y / _cell_size);
-
     var _x1 = floor(_end_x / _cell_size);
     var _y1 = floor(_end_y / _cell_size);
 
-
     var _difference_x = abs(_x1 - _x0);
     var _difference_y = abs(_y1 - _y0);
-
-    var _step_x = -1;
-    var _step_y = -1;
-
-    if (_x0 < _x1)
-        _step_x = 1;
-
-    if (_y0 < _y1)
-        _step_y = 1;
-
-
-    var _error =
-        _difference_x
-        - _difference_y;
-
-    var _guard =
-        global.vtd_level.map.columns
-        + global.vtd_level.map.rows
-        + 4;
-
+    var _step_x = _x0 < _x1 ? 1 : -1;
+    var _step_y = _y0 < _y1 ? 1 : -1;
+    var _error = _difference_x - _difference_y;
+    var _guard = _columns + _rows + 4;
 
     repeat (_guard)
     {
         if (
-            scr_building_cell_inside_map(
-                _x0,
-                _y0
-            )
+            _x0 >= 0
+            && _y0 >= 0
+            && _x0 < _columns
+            && _y0 < _rows
+            && ds_grid_get(_grid, _x0, _y0) == WorldCellType.DEAD
         )
         {
-            if (
-                scr_world_cell_type_get(
-                    _x0,
-                    _y0
-                )
-                == WorldCellType.DEAD
-            )
-            {
-                return true;
-            }
+            return true;
         }
-
 
         if (_x0 == _x1 && _y0 == _y1)
             break;
 
-
-        var _error_double =
-            _error * 2;
-
+        var _error_double = _error * 2;
 
         if (_error_double > -_difference_y)
         {
@@ -1607,14 +1577,12 @@ function scr_world_line_blocked_by_dead(
             _x0 += _step_x;
         }
 
-
         if (_error_double < _difference_x)
         {
             _error += _difference_x;
             _y0 += _step_y;
         }
     }
-
 
     return false;
 }
