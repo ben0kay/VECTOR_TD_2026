@@ -301,6 +301,14 @@ function scr_level_initialize()
         return false;
     }
 	
+	if (!scr_navigation_flanking_initialize(_world_data))
+	{
+	    show_debug_message(
+	        "LEVEL ERROR - flank-route initialization failed."
+	    );
+
+	    return false;
+	}
 
 
 

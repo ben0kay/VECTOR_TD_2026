@@ -574,8 +574,18 @@ function scr_enemy_initialize(_enemy)
 		        breach_attempts: 0,
 
 		        outside_view: false
-		    }
+		    },
 
+		flank:
+		{
+		    active: false,
+
+		    x: 0,
+		    y: 0,
+
+		    cell_x: -1,
+		    cell_y: -1
+		},
     };
 
 
@@ -586,6 +596,8 @@ function scr_enemy_initialize(_enemy)
         _enemy.navigation.path_id =
             path_add();
     }
+	
+	scr_navigation_enemy_flank_assign(_enemy);
 
 
     // ========================================================================

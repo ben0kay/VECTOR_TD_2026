@@ -175,7 +175,17 @@ function scr_world_data_initialize()
                 }
             },
 
-
+			navigation:
+			{
+			    flanking:
+			    {
+			        enabled: true,
+			        chance: 0.20,
+			        distance_ratio: 0.22,
+			        candidates_per_corner: 6,
+			        search_radius_cells: 8
+			    }
+			},
             // ================================================================
             // ENEMY PRESSURE
             // ================================================================

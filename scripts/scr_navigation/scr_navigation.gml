@@ -134,64 +134,99 @@ function scr_navigation_enemy_path_build(_enemy)
     if (!instance_exists(_enemy.targeting.target))
         return false;
 
-    var _grid =
-        scr_navigation_enemy_grid_get(_enemy);
+    var _grid = scr_navigation_enemy_grid_get(_enemy);
 
     if (_grid < 0)
         return false;
 
-
     var _path = _enemy.navigation.path_id;
     var _target = _enemy.targeting.target;
+    var _flank = _enemy.navigation.flank;
+    var _path_found = false;
 
-    var _path_found =
-        scr_navigation_path_to_target(
-            _enemy,
-            _target,
-            _grid,
-            _path
-        );
+    // Player pursuit and explicit orders permanently cancel the initial flank.
 
+    if (
+        _flank.active
+        && (
+            _enemy.targeting.player.active
+            || _enemy.order.type != EnemyOrder.NONE
+        )
+    )
+    {
+        _flank.active = false;
+    }
+
+    // Try the initial flank coordinate first.
+
+    if (_flank.active)
+    {
+        var _flank_open =
+            mp_grid_get_cell(
+                _grid,
+                _flank.cell_x,
+                _flank.cell_y
+            ) == 0;
+
+        if (_flank_open)
+        {
+            path_clear_points(_path);
+
+            _path_found =
+                mp_grid_path(
+                    _grid,
+                    _path,
+                    _enemy.x,
+                    _enemy.y,
+                    _flank.x,
+                    _flank.y,
+                    true
+                );
+        }
+
+        // A blocked or unreachable flank falls back to normal navigation.
+
+        if (!_path_found)
+            _flank.active = false;
+    }
+
+    if (!_path_found)
+    {
+        _path_found =
+            scr_navigation_path_to_target(
+                _enemy,
+                _target,
+                _grid,
+                _path
+            );
+    }
 
     if (!_path_found)
     {
         _enemy.navigation.reachable = false;
-		
-		        if (
+
+        if (
             scr_enemy_order_active(_enemy)
-            && _enemy.targeting.target
-                == _enemy.order.target
+            && _enemy.targeting.target == _enemy.order.target
         )
         {
-            scr_enemy_order_fallback(
-                _enemy
-            );
-
+            scr_enemy_order_fallback(_enemy);
             return false;
         }
-		
-        _enemy.navigation.needs_path = false;
 
+        _enemy.navigation.needs_path = false;
         _enemy.navigation.revision_seen =
             global.vtd_level.navigation.revision;
 
         path_clear_points(_path);
 
-
-        // Do not perform the expensive breach route on this same frame.
-        // Each blocked enemy receives a different delayed breach check.
-
         if (
-            _enemy.navigation.blocked_action
-            == EnemyBlockedAction.BREACH
-            && _enemy.targeting.target
-                == _enemy.targeting.strategic
+            _enemy.navigation.blocked_action == EnemyBlockedAction.BREACH
+            && _enemy.targeting.target == _enemy.targeting.strategic
         )
         {
             var _outside_multiplier =
-                _enemy.navigation.lazy.outside_view
-                ? 2
-                : 1;
+                _enemy.navigation.lazy.outside_view ? 2 : 1;
 
             _enemy.navigation.lazy.breach_pending = true;
 
@@ -203,21 +238,17 @@ function scr_navigation_enemy_path_build(_enemy)
                 * _outside_multiplier;
         }
 
-
         return false;
     }
 
-
     _enemy.navigation.reachable = true;
     _enemy.navigation.needs_path = false;
-
     _enemy.navigation.revision_seen =
         global.vtd_level.navigation.revision;
 
     _enemy.navigation.lazy.breach_pending = false;
     _enemy.navigation.lazy.breach_timer = 0;
     _enemy.navigation.lazy.breach_attempts = 0;
-
 
     with (_enemy)
     {
@@ -228,7 +259,6 @@ function scr_navigation_enemy_path_build(_enemy)
             true
         );
     }
-
 
     return true;
 }
@@ -241,6 +271,36 @@ function scr_navigation_enemy_update(_enemy)
     var _nav = _enemy.navigation;
     var _lazy = _nav.lazy;
     var _revision = global.vtd_level.navigation.revision;
+	
+	var _flank = _nav.flank;
+
+	if (
+	    _flank.active
+	    && _enemy.path_index == -1
+	    && !_nav.needs_path
+	)
+	{
+	    var _dx = _flank.x - _enemy.x;
+	    var _dy = _flank.y - _enemy.y;
+	    var _arrival_distance =
+	        global.vtd_level.map.cell_size;
+
+	    if (
+	        (_dx * _dx) + (_dy * _dy)
+	        <= _arrival_distance * _arrival_distance
+	    )
+	    {
+	        _flank.active = false;
+	        scr_navigation_enemy_repath_request(_enemy, true);
+
+	        return true;
+	    }
+
+	    // Path stopped before reaching the flank point.
+
+	    scr_navigation_enemy_repath_request(_enemy, true);
+	    return true;
+	}
 
 
     // ------------------------------------------------------------------------
@@ -799,3 +859,250 @@ function scr_navigation_enemy_cleanup(_enemy)
     return true;
 }
 
+/// @description Finds open route-point cells around one desired world position.
+
+function scr_navigation_flanking_zone_build(
+    _world_x,
+    _world_y,
+    _count,
+    _search_radius
+)
+{
+    var _points = [];
+    var _cell_size = global.vtd_level.map.cell_size;
+    var _columns = global.vtd_level.map.columns;
+    var _rows = global.vtd_level.map.rows;
+    var _grid = global.vtd_level.navigation.grid_ground;
+
+    var _center_x = clamp(floor(_world_x / _cell_size), 1, _columns - 2);
+    var _center_y = clamp(floor(_world_y / _cell_size), 1, _rows - 2);
+
+    for (var _radius = 0; _radius <= _search_radius; ++_radius)
+    {
+        for (var _offset_y = -_radius; _offset_y <= _radius; ++_offset_y)
+        {
+            for (var _offset_x = -_radius; _offset_x <= _radius; ++_offset_x)
+            {
+                if (
+                    _radius > 0
+                    && abs(_offset_x) != _radius
+                    && abs(_offset_y) != _radius
+                )
+                {
+                    continue;
+                }
+
+                var _cell_x = _center_x + _offset_x;
+                var _cell_y = _center_y + _offset_y;
+
+                if (!scr_building_cell_inside_map(_cell_x, _cell_y))
+                    continue;
+
+                if (mp_grid_get_cell(_grid, _cell_x, _cell_y) != 0)
+                    continue;
+
+                var _position =
+                    scr_building_cell_to_position(_cell_x, _cell_y);
+
+                array_push(
+                    _points,
+                    {
+                        x: _position.x,
+                        y: _position.y,
+                        cell_x: _cell_x,
+                        cell_y: _cell_y
+                    }
+                );
+
+                if (array_length(_points) >= _count)
+                    return _points;
+            }
+        }
+    }
+
+    return _points;
+}
+
+
+/// @description Creates optional shared flank-route zones for the level.
+
+function scr_navigation_flanking_initialize(_world_data)
+{
+    global.vtd_level.navigation.flanking =
+    {
+        enabled: false,
+        chance: 0,
+
+        top_left: [],
+        top_right: [],
+        bottom_left: [],
+        bottom_right: []
+    };
+
+    if (!variable_struct_exists(_world_data, "navigation"))
+        return true;
+
+    var _navigation_data = _world_data.navigation;
+
+    if (
+        !is_struct(_navigation_data)
+        || !variable_struct_exists(_navigation_data, "flanking")
+        || !is_struct(_navigation_data.flanking)
+    )
+    {
+        return true;
+    }
+
+    var _data = _navigation_data.flanking;
+
+    if (
+        !variable_struct_exists(_data, "enabled")
+        || !_data.enabled
+    )
+    {
+        return true;
+    }
+
+    var _cpu = global.vtd_level.entities.cpu;
+
+    if (!instance_exists(_cpu))
+        return false;
+
+    var _chance = variable_struct_exists(_data, "chance")
+        ? clamp(_data.chance, 0, 1)
+        : 0.20;
+
+    var _distance_ratio = variable_struct_exists(_data, "distance_ratio")
+        ? clamp(_data.distance_ratio, 0.05, 0.40)
+        : 0.22;
+
+    var _candidate_count = variable_struct_exists(_data, "candidates_per_corner")
+        ? max(1, floor(_data.candidates_per_corner))
+        : 6;
+
+    var _search_radius = variable_struct_exists(_data, "search_radius_cells")
+        ? max(1, floor(_data.search_radius_cells))
+        : 8;
+
+    var _distance =
+        min(
+            global.vtd_level.map.width,
+            global.vtd_level.map.height
+        )
+        * _distance_ratio;
+
+    var _runtime = global.vtd_level.navigation.flanking;
+
+    _runtime.chance = _chance;
+
+    _runtime.top_left =
+        scr_navigation_flanking_zone_build(
+            _cpu.x - _distance,
+            _cpu.y - _distance,
+            _candidate_count,
+            _search_radius
+        );
+
+    _runtime.top_right =
+        scr_navigation_flanking_zone_build(
+            _cpu.x + _distance,
+            _cpu.y - _distance,
+            _candidate_count,
+            _search_radius
+        );
+
+    _runtime.bottom_left =
+        scr_navigation_flanking_zone_build(
+            _cpu.x - _distance,
+            _cpu.y + _distance,
+            _candidate_count,
+            _search_radius
+        );
+
+    _runtime.bottom_right =
+        scr_navigation_flanking_zone_build(
+            _cpu.x + _distance,
+            _cpu.y + _distance,
+            _candidate_count,
+            _search_radius
+        );
+
+    _runtime.enabled = true;
+
+    return true;
+}
+
+
+/// @description Assigns one optional initial flank point to an enemy.
+
+function scr_navigation_enemy_flank_assign(_enemy)
+{
+    if (!instance_exists(_enemy))
+        return false;
+
+    var _flank = _enemy.navigation.flank;
+    var _level_flanking = global.vtd_level.navigation.flanking;
+
+    if (
+        !is_struct(_level_flanking)
+        || !_level_flanking.enabled
+        || _enemy.movement.brainless
+        || _enemy.movement.layer != EnemyMovementLayer.GROUND
+        || random(1) >= _level_flanking.chance
+    )
+    {
+        return true;
+    }
+
+    var _cpu = global.vtd_level.entities.cpu;
+
+    if (!instance_exists(_cpu))
+        return true;
+
+    var _left = _enemy.x < _cpu.x;
+    var _top = _enemy.y < _cpu.y;
+    var _zone;
+
+    if (_left)
+        _zone = _top
+            ? _level_flanking.top_left
+            : _level_flanking.bottom_left;
+    else
+        _zone = _top
+            ? _level_flanking.top_right
+            : _level_flanking.bottom_right;
+
+    var _count = array_length(_zone);
+
+    if (_count <= 0)
+        return true;
+
+    var _start = irandom(_count - 1);
+    var _grid = global.vtd_level.navigation.grid_ground;
+
+    for (var i = 0; i < _count; ++i)
+    {
+        var _point = _zone[(_start + i) mod _count];
+
+        if (
+            mp_grid_get_cell(
+                _grid,
+                _point.cell_x,
+                _point.cell_y
+            ) != 0
+        )
+        {
+            continue;
+        }
+
+        _flank.active = true;
+        _flank.x = _point.x;
+        _flank.y = _point.y;
+        _flank.cell_x = _point.cell_x;
+        _flank.cell_y = _point.cell_y;
+
+        return true;
+    }
+
+    return true;
+}

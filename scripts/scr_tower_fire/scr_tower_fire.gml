@@ -133,7 +133,7 @@ function scr_tower_muzzle_position_get(_tower)
     };
 }
 
-
+		
 /// @description Switches an alternating weapon to its other muzzle.
 
 function scr_tower_muzzle_advance(_tower)
