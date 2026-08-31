@@ -365,7 +365,7 @@ function scr_enemy_baked_draw(_enemy, _offset_y = 0)
     if (is_undefined(_baked.body))
         return false;
 
-    var _sprite = _baked.body();
+    var _sprite = _baked.body(_enemy);
 
     if (!sprite_exists(_sprite))
         return false;
