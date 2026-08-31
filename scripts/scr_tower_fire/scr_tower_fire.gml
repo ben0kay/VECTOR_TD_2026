@@ -204,6 +204,24 @@ function scr_tower_target_valid(_tower, _enemy)
     if ((_dx * _dx) + (_dy * _dy) > _range * _range)
         return false;
 
+    switch (_tower.targeting.filter)
+    {
+        case TowerTargetFilter.NOT_SLOWED:
+            if (scr_enemy_effect_active(_enemy, EnemyEffect.SLOW))
+                return false;
+        break;
+
+        case TowerTargetFilter.NOT_STASIS:
+            if (scr_enemy_effect_active(_enemy, EnemyEffect.STASIS))
+                return false;
+        break;
+
+        case TowerTargetFilter.NOT_DISRUPTED:
+            if (scr_enemy_effect_active(_enemy, EnemyEffect.DAMAGE_OVER_TIME))
+                return false;
+        break;
+    }
+
     if (
         _tower.targeting.requires_line_of_sight
         && scr_world_line_blocked_by_dead(
@@ -215,21 +233,6 @@ function scr_tower_target_valid(_tower, _enemy)
     )
     {
         return false;
-    }
-
-    switch (_tower.targeting.filter)
-    {
-        case TowerTargetFilter.NOT_SLOWED:
-            return !scr_enemy_effect_active(_enemy, EnemyEffect.SLOW);
-
-        case TowerTargetFilter.NOT_STASIS:
-            return !scr_enemy_effect_active(_enemy, EnemyEffect.STASIS);
-
-        case TowerTargetFilter.NOT_DISRUPTED:
-            return !scr_enemy_effect_active(
-                _enemy,
-                EnemyEffect.DAMAGE_OVER_TIME
-            );
     }
 
     return true;
