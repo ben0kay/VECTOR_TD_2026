@@ -1321,8 +1321,8 @@ function scr_enemy_visual_hover_offset_get(_enemy)
     var _phase = real(_enemy.id) mod 360;
 
     return -12
-        + dsin(global.vtd.tick * 1.2 + _phase)
-        * 0.45;
+        + dsin(global.vtd.tick * 1.5 + _phase)
+        * 1.25;
 }
 
 
