@@ -8,9 +8,6 @@ function scr_navigation_enemy_grid_get(_enemy)
     if (!instance_exists(_enemy))
         return -1;
 
-    if (!is_struct(global.vtd_level))
-        return -1;
-
     if (!global.vtd_level.navigation.ready)
         return -1;
 
@@ -97,7 +94,7 @@ function scr_navigation_enemy_repath_request(
     else
     {
         _enemy.navigation.repath_timer =
-            irandom_range(15, 30)
+            irandom_range(20, 45)
             * _lazy_factor;
     }
 
@@ -396,12 +393,19 @@ function scr_navigation_enemy_update(_enemy)
     // ------------------------------------------------------------------------
 
     if (_nav.needs_path)
-    {
-        _nav.repath_timer--;
+	{
+	    _nav.repath_timer--;
 
-        if (_nav.repath_timer <= 0)
-            return scr_navigation_enemy_path_build(_enemy);
-    }
+	    if (_nav.repath_timer <= 0)
+	    {
+	        _nav.repath_timer = 0;
+
+	        if (!scr_navigation_path_budget_claim())
+	            return true;
+
+	        return scr_navigation_enemy_path_build(_enemy);
+	    }
+	}
 
     return true;
 }
@@ -1103,6 +1107,30 @@ function scr_navigation_enemy_flank_assign(_enemy)
 
         return true;
     }
+
+    return true;
+}
+
+/// @description Claims one enemy path calculation for the current frame.
+
+function scr_navigation_path_budget_claim()
+{
+    var _budget =
+        global.vtd_level.navigation.path_budget;
+
+    var _frame =
+        global.vtd.tick;
+
+    if (_budget.frame != _frame)
+    {
+        _budget.frame = _frame;
+        _budget.used = 0;
+    }
+
+    if (_budget.used >= _budget.maximum)
+        return false;
+
+    _budget.used++;
 
     return true;
 }

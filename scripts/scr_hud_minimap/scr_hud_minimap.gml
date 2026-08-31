@@ -483,51 +483,25 @@ function scr_hud_minimap_static_terrain_destroy(_hud)
 }
 
 
-/// @description Rebuilds the static dead-terrain minimap surface.
+/// @description Rebuilds cached dead terrain and stationary buildings.
+
 function scr_hud_minimap_static_terrain_rebuild(_hud)
 {
     if (!instance_exists(_hud))
         return false;
 
-    var _map =
-        _hud.hud.minimap;
+    var _map = _hud.hud.minimap;
+    var _terrain = _map.static_terrain;
 
-    var _terrain =
-        _map.static_terrain;
-
-    var _map_width =
-        _map.width
-        - (_map.padding * 2);
-
-    var _map_height =
-        _map.height
-        - _map.header_height
-        - (_map.padding * 2);
-
-    var _scale =
-        min(
-            _map_width,
-            _map_height
-        )
-        / (_map.range * 2);
+    var _map_width = _map.width - (_map.padding * 2);
+    var _map_height = _map.height - _map.header_height - (_map.padding * 2);
+    var _scale = min(_map_width, _map_height) / (_map.range * 2);
 
     var _surface_width =
-        max(
-            1,
-            ceil(
-                global.vtd_level.map.width
-                * _scale
-            )
-        );
+        max(1, ceil(global.vtd_level.map.width * _scale));
 
     var _surface_height =
-        max(
-            1,
-            ceil(
-                global.vtd_level.map.height
-                * _scale
-            )
-        );
+        max(1, ceil(global.vtd_level.map.height * _scale));
 
     var _surface_valid =
         surface_exists(_terrain.surface)
@@ -537,89 +511,74 @@ function scr_hud_minimap_static_terrain_rebuild(_hud)
     if (!_surface_valid)
     {
         if (surface_exists(_terrain.surface))
-        {
             surface_free(_terrain.surface);
-        }
 
         _terrain.surface =
-            surface_create(
-                _surface_width,
-                _surface_height
-            );
+            surface_create(_surface_width, _surface_height);
 
-        _terrain.width =
-            _surface_width;
-
-        _terrain.height =
-            _surface_height;
+        _terrain.width = _surface_width;
+        _terrain.height = _surface_height;
     }
 
     if (!surface_exists(_terrain.surface))
         return false;
 
-
     surface_set_target(_terrain.surface);
+    draw_clear_alpha(c_black, 0);
 
-    draw_clear_alpha(
-        c_black,
-        0
-    );
+    // Static DEAD terrain.
 
     draw_set_alpha(0.8);
-    draw_set_color(
-        make_color_rgb(
-            55,
-            65,
-            70
-        )
-    );
+    draw_set_color(make_color_rgb(55, 65, 70));
 
-    var _dead_cell_count =
-        instance_number(o_dead_cell);
+    var _dead_count = instance_number(o_dead_cell);
 
-    for (
-        var i = 0;
-        i < _dead_cell_count;
-        ++i
-    )
+    for (var i = 0; i < _dead_count; ++i)
     {
-        var _dead_cell =
-            instance_find(
-                o_dead_cell,
-                i
-            );
+        var _dead = instance_find(o_dead_cell, i);
 
-        if (!instance_exists(_dead_cell))
+        if (!instance_exists(_dead))
             continue;
 
-        var _x =
-            floor(
-                _dead_cell.x
-                * _scale
-            );
+        var _x = floor(_dead.x * _scale);
+        var _y = floor(_dead.y * _scale);
 
-        var _y =
-            floor(
-                _dead_cell.y
-                * _scale
-            );
+        draw_rectangle(_x - 2, _y - 2, _x + 2, _y + 2, false);
+    }
 
-        draw_rectangle(
-            _x - 2,
-            _y - 2,
-            _x + 2,
-            _y + 2,
-            false
-        );
+    // Stationary buildings.
+
+    var _building_count = instance_number(o_building_par);
+
+    for (var i = 0; i < _building_count; ++i)
+    {
+        var _building = instance_find(o_building_par, i);
+
+        if (!instance_exists(_building))
+            continue;
+
+        if (_building.BuildingState == BuildingState.DESTROYED)
+            continue;
+
+        var _x = floor(_building.x * _scale);
+        var _y = floor(_building.y * _scale);
+
+        draw_set_alpha(1);
+        draw_set_color(c_lime);
+        draw_rectangle(_x - 3, _y - 3, _x + 3, _y + 3, false);
+
+        draw_set_alpha(0.5);
+        draw_set_color(c_aqua);
+        draw_rectangle(_x - 4, _y - 4, _x + 4, _y + 4, true);
     }
 
     surface_reset_target();
 
-    _terrain.scale =
-        _scale;
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
-    _terrain.dirty =
-        false;
+    _terrain.scale = _scale;
+    _terrain.dirty = false;
 
     return true;
 }
@@ -1512,4 +1471,19 @@ function scr_hud_minimap_radar_sweep_crossed(
         mod 360;
 
     return _target_offset <= _travelled;
+}
+
+/// @description Marks the cached minimap terrain/building surface dirty.
+
+function scr_hud_minimap_static_terrain_mark_dirty()
+{
+    var _hud =
+        global.vtd_level.entities.hud;
+
+    if (!instance_exists(_hud))
+        return false;
+
+    _hud.hud.minimap.static_terrain.dirty = true;
+
+    return true;
 }

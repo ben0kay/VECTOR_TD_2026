@@ -377,12 +377,9 @@ function scr_build_mode_place(_controller)
     scr_level_result_building_placed(
         _building
     );
+	
+	scr_hud_minimap_static_terrain_mark_dirty();
 
-
-    show_debug_message(
-        "BUILD PLACED: "
-        + _data.identity.name
-    );
 
 
     return _building;

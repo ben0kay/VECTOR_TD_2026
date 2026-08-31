@@ -1037,13 +1037,14 @@ function scr_building_damage(
 
 
     if (_building.vitals.hp.current <= 0)
-    {
-        _building.BuildingState =
-            BuildingState.DESTROYED;
+{
+    _building.BuildingState =
+        BuildingState.DESTROYED;
 
-        instance_destroy(_building);
-    }
+    scr_hud_minimap_static_terrain_mark_dirty();
 
+    instance_destroy(_building);
+}
 
     return true;
 }

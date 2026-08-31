@@ -1,5 +1,5 @@
 /// @description Draws one enemy using optional unique events.
-
+/*
 if (
     !variable_instance_exists(
         id,
@@ -10,7 +10,7 @@ if (
 {
     exit;
 }
-
+*/
 
 if (!performance.visibility.visible)
     exit;

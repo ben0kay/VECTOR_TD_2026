@@ -145,14 +145,21 @@ function scr_level_initialize()
         world: undefined,
 
         navigation:
-        {
-            ready: false,
-            revision: 0,
-            grid_ground: -1,
-            grid_breach: -1,
-            grid_flying: -1
-        },
+		{
+		    ready: false,
+		    revision: 0,
 
+		    grid_ground: -1,
+		    grid_breach: -1,
+		    grid_flying: -1,
+
+		    path_budget:
+		    {
+		        maximum: 3,
+		        used: 0,
+		        frame: -1
+		    }
+		},
 
 		
 		
