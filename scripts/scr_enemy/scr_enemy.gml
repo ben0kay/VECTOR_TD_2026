@@ -2974,70 +2974,39 @@ function scr_enemy_siege_beam_update(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-
-    var _target =
-        _enemy.targeting.target;
+    var _target = _enemy.targeting.target;
 
     if (!instance_exists(_target))
         return true;
 
-
-    var _edge_distance =
-        scr_enemy_target_edge_distance(
-            _enemy,
-            _target
-        );
-
-    var _combat =
-        _enemy.combat_movement;
-
-    var _combat_data =
-        _combat.data;
-
-    var _line_clear =
-        scr_enemy_attack_line_of_sight_clear(
-            _enemy,
-            _target
-        );
+    var _combat = _enemy.combat_movement;
+    var _combat_data = _combat.data;
 
 
     switch (_enemy.EnemyState)
     {
         case EnemyState.SPAWNING:
         {
-            _enemy.EnemyState =
-                EnemyState.MOVING;
-
-            scr_navigation_enemy_repath_request(
-                _enemy,
-                true
-            );
+            _enemy.EnemyState = EnemyState.MOVING;
+            scr_navigation_enemy_repath_request(_enemy, true);
         }
         break;
 
 
         case EnemyState.MOVING:
         {
+            var _edge_distance =
+                scr_enemy_target_edge_distance(_enemy, _target);
+
             if (
-                _edge_distance
-                    <= _combat_data.preferred_range
-                && _line_clear
+                _edge_distance <= _combat_data.preferred_range
+                && scr_enemy_attack_line_of_sight_clear(_enemy, _target)
             )
             {
-                scr_navigation_enemy_stop(
-                    _enemy
-                );
+                scr_navigation_enemy_stop(_enemy);
+                _enemy.EnemyState = EnemyState.ATTACKING;
 
-                _enemy.EnemyState =
-                    EnemyState.ATTACKING;
-
-
-                if (
-                    !scr_enemy_combat_anchor_begin(
-                        _enemy,
-                        _target
-                    )
-                )
+                if (!scr_enemy_combat_anchor_begin(_enemy, _target))
                 {
                     show_debug_message(
                         "ENEMY COMBAT ERROR - siege beam anchor failed: "
@@ -3047,52 +3016,31 @@ function scr_enemy_siege_beam_update(_enemy)
                     return false;
                 }
 
-
                 break;
             }
 
-
-            scr_navigation_enemy_update(
-                _enemy
-            );
+            scr_navigation_enemy_update(_enemy);
         }
         break;
 
 
         case EnemyState.ATTACKING:
         {
-            _line_clear =
-                scr_enemy_attack_line_of_sight_clear(
-                    _enemy,
-                    _target
-                );
-
+            var _edge_distance =
+                scr_enemy_target_edge_distance(_enemy, _target);
 
             if (
-                _edge_distance
-                    > _combat_data.maximum_range
-                || !_line_clear
+                _edge_distance > _combat_data.maximum_range
+                || !scr_enemy_attack_line_of_sight_clear(_enemy, _target)
             )
             {
-                _combat.anchor.valid =
-                    false;
+                _combat.anchor.valid = false;
+                _combat.destination.active = false;
+                _enemy.EnemyState = EnemyState.MOVING;
 
-                _combat.destination.active =
-                    false;
-
-                _enemy.EnemyState =
-                    EnemyState.MOVING;
-
-                scr_navigation_enemy_repath_request(
-                    _enemy,
-                    true
-                );
-
+                scr_navigation_enemy_repath_request(_enemy, true);
                 break;
             }
-
-
-            // Turret tracking remains independent from hull movement.
 
             var _target_angle =
                 point_direction(
@@ -3109,22 +3057,9 @@ function scr_enemy_siege_beam_update(_enemy)
                     _combat_data.turret_turn_speed
                 );
 
+            scr_enemy_combat_movement_update(_enemy, _target);
 
-            // The beam platform may roam inside its combat anchor while
-            // continuing to attack.
-
-            scr_enemy_combat_movement_update(
-                _enemy,
-                _target
-            );
-
-
-            var _fps =
-                max(
-                    1,
-                    game_get_speed(gamespeed_fps)
-                );
-
+            var _fps = max(1, game_get_speed(gamespeed_fps));
 
             if (
                 !scr_enemy_damage_target(
@@ -3149,16 +3084,11 @@ function scr_enemy_siege_beam_update(_enemy)
         case EnemyState.STUNNED:
         case EnemyState.DEAD:
         {
-            scr_navigation_enemy_stop(
-                _enemy
-            );
-
-            _combat.destination.active =
-                false;
+            scr_navigation_enemy_stop(_enemy);
+            _combat.destination.active = false;
         }
         break;
     }
-
 
     return true;
 }
