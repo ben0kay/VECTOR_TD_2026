@@ -1,0 +1,1 @@
+scr_beam_hitbox_player_side_damage(id, other);

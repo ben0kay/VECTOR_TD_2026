@@ -1474,6 +1474,12 @@ function scr_enemy_data_siege_beam()
                 damage: 24,
                 range: 620,
                 cooldown_seconds: 0,
+				
+				area:
+				{
+				    shape: AttackAreaShape.CAPSULE,
+				    radius: 5
+				},
 
                 line_of_sight:
                 {

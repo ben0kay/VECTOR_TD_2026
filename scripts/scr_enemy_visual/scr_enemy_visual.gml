@@ -1977,21 +1977,12 @@ function scr_enemy_visual_siege_beam(_enemy)
     if (!instance_exists(_enemy))
         return false;
 
-
     var _x = _enemy.x;
     var _y = _enemy.y;
-
-    var _radius =
-        _enemy.visual.radius;
-
-    var _hull_angle =
-        _enemy.visual.hull_angle;
-
-    var _turret_angle =
-        _enemy.visual.turret_angle;
-
-    var _color =
-        _enemy.visual.color;
+    var _radius = _enemy.visual.radius;
+    var _hull_angle = _enemy.visual.hull_angle;
+    var _turret_angle = _enemy.visual.turret_angle;
+    var _color = _enemy.visual.color;
 
 
     // ========================================================================
@@ -2005,23 +1996,14 @@ function scr_enemy_visual_siege_beam(_enemy)
 
     for (var i = 0; i < 6; ++i)
     {
-        var _a1 =
-            _hull_angle
-            + 30
-            + (i * 60);
-
-        var _a2 =
-            _hull_angle
-            + 30
-            + (((i + 1) mod 6) * 60);
+        var _a1 = _hull_angle + 30 + (i * 60);
+        var _a2 = _hull_angle + 30 + (((i + 1) mod 6) * 60);
 
         draw_line_width(
             _x + lengthdir_x(_radius, _a1),
             _y + lengthdir_y(_radius, _a1),
-
             _x + lengthdir_x(_radius, _a2),
             _y + lengthdir_y(_radius, _a2),
-
             3
         );
     }
@@ -2057,20 +2039,16 @@ function scr_enemy_visual_siege_beam(_enemy)
     draw_line_width(
         _x + _track_side_x - _track_front_x,
         _y + _track_side_y - _track_front_y,
-
         _x + _track_side_x + _track_front_x,
         _y + _track_side_y + _track_front_y,
-
         5
     );
 
     draw_line_width(
         _x - _track_side_x - _track_front_x,
         _y - _track_side_y - _track_front_y,
-
         _x - _track_side_x + _track_front_x,
         _y - _track_side_y + _track_front_y,
-
         5
     );
 
@@ -2080,17 +2058,8 @@ function scr_enemy_visual_siege_beam(_enemy)
     draw_line_width(
         _x,
         _y,
-
-        _x + lengthdir_x(
-            _radius * 0.55,
-            _hull_angle
-        ),
-
-        _y + lengthdir_y(
-            _radius * 0.55,
-            _hull_angle
-        ),
-
+        _x + lengthdir_x(_radius * 0.55, _hull_angle),
+        _y + lengthdir_y(_radius * 0.55, _hull_angle),
         2
     );
 
@@ -2126,46 +2095,40 @@ function scr_enemy_visual_siege_beam(_enemy)
             _turret_angle + 90
         );
 
-    var _muzzle_x =
-        _x + lengthdir_x(
-            _radius * 1.22,
-            _turret_angle
+
+    // Shared visual and collision geometry.
+
+    var _geometry =
+        scr_enemy_siege_beam_geometry_get(
+            _enemy,
+            _enemy.targeting.target
         );
 
-    var _muzzle_y =
-        _y + lengthdir_y(
-            _radius * 1.22,
-            _turret_angle
-        );
+    var _muzzle_x = _geometry.start_x;
+    var _muzzle_y = _geometry.start_y;
 
 
     draw_line_width(
         _x + _turret_side_x,
         _y + _turret_side_y,
-
         _muzzle_x + _turret_side_x,
         _muzzle_y + _turret_side_y,
-
         4
     );
 
     draw_line_width(
         _x - _turret_side_x,
         _y - _turret_side_y,
-
         _muzzle_x - _turret_side_x,
         _muzzle_y - _turret_side_y,
-
         4
     );
 
     draw_line_width(
         _muzzle_x + _turret_side_x,
         _muzzle_y + _turret_side_y,
-
         _muzzle_x - _turret_side_x,
         _muzzle_y - _turret_side_y,
-
         3
     );
 
@@ -2175,16 +2138,10 @@ function scr_enemy_visual_siege_beam(_enemy)
     // ========================================================================
 
     if (
-        _enemy.EnemyState
-            == EnemyState.ATTACKING
-        && instance_exists(
-            _enemy.targeting.target
-        )
+        _enemy.EnemyState == EnemyState.ATTACKING
+        && instance_exists(_enemy.targeting.target)
     )
     {
-        var _target =
-            _enemy.targeting.target;
-
         var _beam =
             _enemy.enemy_data
                 .ability_data
@@ -2198,39 +2155,43 @@ function scr_enemy_visual_siege_beam(_enemy)
             * 2;
 
 
+        // Outer glow.
+
         draw_set_alpha(0.35);
         draw_set_color(_beam.color);
 
         draw_line_width(
             _muzzle_x,
             _muzzle_y,
-            _target.x,
-            _target.y,
+            _geometry.end_x,
+            _geometry.end_y,
             _beam.width + 6
         );
 
+
+        // Main unstable beam.
 
         draw_set_alpha(0.9);
 
         draw_line_width(
             _muzzle_x,
             _muzzle_y,
-            _target.x + _flicker,
-            _target.y - _flicker,
+            _geometry.end_x + _flicker,
+            _geometry.end_y - _flicker,
             _beam.width
         );
 
 
+        // Bright central core.
+
         draw_set_alpha(1);
-        draw_set_color(
-            _beam.inner_color
-        );
+        draw_set_color(_beam.inner_color);
 
         draw_line_width(
             _muzzle_x,
             _muzzle_y,
-            _target.x,
-            _target.y,
+            _geometry.end_x,
+            _geometry.end_y,
             1
         );
 
