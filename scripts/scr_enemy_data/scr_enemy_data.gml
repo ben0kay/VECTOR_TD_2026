@@ -2504,6 +2504,11 @@ function scr_enemy_data_flying_transporter()
                 draw_function:     scr_enemy_visual_flying_transporter,
                 radius: 30,
                 color: make_color_rgb(90, 210, 255)
+				baked:
+				    {
+				        body: scr_enemy_flying_transporter_baked_body,
+				        effects: scr_enemy_flying_transporter_baked_effects
+				    }
             },
 
             vitals:

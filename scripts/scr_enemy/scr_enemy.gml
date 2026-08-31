@@ -156,27 +156,35 @@ function scr_enemy_initialize(_enemy)
 
 
     _enemy.visual =
-    {
-        sprite:
-            _data.visual.sprite,
+	    {
+	    sprite: _data.visual.sprite,
+	    draw_function: _data.visual.draw_function,
+	    draw_angle: 0,
+	    scale_x: _scale_x,
+	    scale_y: _scale_y,
+	    radius: _data.visual.radius,
+	    color: _data.visual.color,
 
-        draw_function:
-            _data.visual.draw_function,
+	    baked:
+	    {
+	        body: undefined,
+	        effects: undefined
+	    }
+	};
 
-        draw_angle: 0,
+	if (
+	    variable_struct_exists(_data.visual, "baked")
+	    && is_struct(_data.visual.baked)
+	)
+	{
+	    var _baked = _data.visual.baked;
 
-        scale_x:
-            _scale_x,
+	    if (variable_struct_exists(_baked, "body"))
+	        _enemy.visual.baked.body = _baked.body;
 
-        scale_y:
-            _scale_y,
-
-        radius:
-            _data.visual.radius,
-
-        color:
-            _data.visual.color
-    };
+	    if (variable_struct_exists(_baked, "effects"))
+	        _enemy.visual.baked.effects = _baked.effects;
+	}
 		
 	// ========================================================================
 	// COLLISION MASK
