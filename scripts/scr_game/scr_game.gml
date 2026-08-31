@@ -144,7 +144,7 @@ function scr_level_initialize()
 
         world: undefined,
 
-	    building_occupancy: array_create(_columns * _rows, noone),
+	    
 
         navigation:
 		{
@@ -154,6 +154,8 @@ function scr_level_initialize()
 		    grid_ground: -1,
 		    grid_breach: -1,
 		    grid_flying: -1,
+			
+			building_occupancy: array_create(_columns * _rows, noone),
 
 		    path_budget:
 		    {
@@ -170,7 +172,8 @@ function scr_level_initialize()
             player: noone,
             camera: noone,
             cpu: noone,
-            build_controller: noone
+            build_controller: noone,
+			hud: noone
         },
 
         resources:

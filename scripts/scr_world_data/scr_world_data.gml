@@ -439,7 +439,7 @@ function scr_world_data_initialize()
 		        [
 		            {
 		                enemy_key: "enemy_weak", count: 24, modifiers: [],
-		                delay_seconds: 0, stagger_min_seconds: 0.08, stagger_max_seconds: 0.16,
+		                delay_seconds: 0, stagger_min_seconds: 0.1, stagger_max_seconds: 0.18,
 		                side: SpawnSide.INHERIT
 		            }
 		        ]
@@ -453,7 +453,7 @@ function scr_world_data_initialize()
 		        [
 		            {
 		                enemy_key: "enemy_weak", count: 22, modifiers: [],
-		                delay_seconds: 0, stagger_min_seconds: 0.07, stagger_max_seconds: 0.14,
+		                delay_seconds: 0, stagger_min_seconds: 0.1, stagger_max_seconds: 0.18,
 		                side: SpawnSide.INHERIT
 		            },
 

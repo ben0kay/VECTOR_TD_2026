@@ -1037,6 +1037,54 @@ function scr_building_damage(
     return true;
 }
 
+/// @description Draws vector selection corners around a building.
+
+function scr_building_selection_draw(_building)
+{
+    if (!instance_exists(_building))
+        return false;
+
+    var _cell_size = global.vtd_level.map.cell_size;
+
+    var _width =
+        _building.footprint.width_cells
+        * _cell_size;
+
+    var _height =
+        _building.footprint.height_cells
+        * _cell_size;
+
+    var _padding = 6;
+    var _corner = 10;
+
+    var _left = _building.x - (_width * 0.5) - _padding;
+    var _top = _building.y - (_height * 0.5) - _padding;
+    var _right = _building.x + (_width * 0.5) + _padding;
+    var _bottom = _building.y + (_height * 0.5) + _padding;
+
+    draw_set_alpha(1);
+    draw_set_color(c_aqua);
+
+    // TOP LEFT
+    draw_line_width(_left, _top, _left + _corner, _top, 2);
+    draw_line_width(_left, _top, _left, _top + _corner, 2);
+
+    // TOP RIGHT
+    draw_line_width(_right - _corner, _top, _right, _top, 2);
+    draw_line_width(_right, _top, _right, _top + _corner, 2);
+
+    // BOTTOM LEFT
+    draw_line_width(_left, _bottom, _left + _corner, _bottom, 2);
+    draw_line_width(_left, _bottom - _corner, _left, _bottom, 2);
+
+    // BOTTOM RIGHT
+    draw_line_width(_right - _corner, _bottom, _right, _bottom, 2);
+    draw_line_width(_right, _bottom - _corner, _right, _bottom, 2);
+
+    draw_set_color(c_white);
+
+    return true;
+}
 
 /// @description Draws one generic vector building.
 
@@ -1045,6 +1093,37 @@ function scr_building_draw(_building)
     if (!instance_exists(_building))
         return false;
 
+
+    // ========================================================================
+    // SELECTION STATE
+    // ========================================================================
+
+    var _selected = noone;
+
+    if (
+        instance_exists(global.vtd_level.entities.hud)
+    )
+    {
+        _selected =
+            global.vtd_level.entities.hud.hud.selection.target;
+    }
+
+    var _has_selection =
+        instance_exists(_selected);
+
+    var _is_selected =
+        _has_selection
+        && _selected == _building;
+
+    var _draw_alpha =
+        (_has_selection && !_is_selected)
+        ? 0.75
+        : 1;
+
+
+    // ========================================================================
+    // BOUNDS
+    // ========================================================================
 
     var _cell_size =
         global.vtd_level.map.cell_size;
@@ -1070,9 +1149,12 @@ function scr_building_draw(_building)
         _building.y + (_height * 0.5);
 
 
-    draw_set_color(
-        _building.visual.color
-    );
+    // ========================================================================
+    // BASE
+    // ========================================================================
+
+    draw_set_alpha(_draw_alpha);
+    draw_set_color(_building.visual.color);
 
     draw_rectangle(
         _left,
@@ -1084,7 +1166,7 @@ function scr_building_draw(_building)
 
 
     draw_set_alpha(
-        0.3
+        0.3 * _draw_alpha
     );
 
     draw_rectangle(
@@ -1095,82 +1177,76 @@ function scr_building_draw(_building)
         true
     );
 
-    draw_set_alpha(
-        1
-    );
-	
-	// ========================================================================
-	// CONSTRUCTION OVERLAY
-	// ========================================================================
 
-	if (_building.BuildingState == BuildingState.CONSTRUCTING)
-	{
-	    var _construction_percent =
-	        _building.construction.percent;
+    // ========================================================================
+    // CONSTRUCTION OVERLAY
+    // ========================================================================
 
-	    var _scan_y =
-	        lerp(
-	            _bottom,
-	            _top,
-	            _construction_percent
-	        );
+    if (_building.BuildingState == BuildingState.CONSTRUCTING)
+    {
+        var _construction_percent =
+            _building.construction.percent;
+
+        var _scan_y =
+            lerp(
+                _bottom,
+                _top,
+                _construction_percent
+            );
 
 
-	    // Unfinished upper section.
+        // Unfinished upper section.
 
-	    draw_set_color(c_black);
-	    draw_set_alpha(0.65);
+        draw_set_color(c_black);
+        draw_set_alpha(0.65 * _draw_alpha);
 
-	    draw_rectangle(
-	        _left,
-	        _top,
-	        _right,
-	        _scan_y,
-	        true
-	    );
-
-
-	    // Moving vector construction scan.
-
-	    draw_set_color(c_aqua);
-	    draw_set_alpha(0.9);
-
-	    draw_line(
-	        _left,
-	        _scan_y,
-	        _right,
-	        _scan_y
-	    );
+        draw_rectangle(
+            _left,
+            _top,
+            _right,
+            _scan_y,
+            true
+        );
 
 
-	    // Construction progress bar.
+        // Moving vector construction scan.
 
-	    draw_set_alpha(1);
-	    draw_set_color(c_dkgray);
+        draw_set_color(c_aqua);
+        draw_set_alpha(0.9 * _draw_alpha);
 
-	    draw_rectangle(
-	        _left,
-	        _bottom + 4,
-	        _right,
-	        _bottom + 8,
-	        false
-	    );
-
-	    draw_set_color(c_aqua);
-
-	    draw_rectangle(
-	        _left,
-	        _bottom + 4,
-	        _left
-	        + ((_right - _left)
-	        * _construction_percent),
-	        _bottom + 8,
-	        false
-	    );
+        draw_line(
+            _left,
+            _scan_y,
+            _right,
+            _scan_y
+        );
 
 
-	    draw_set_alpha(1);
-	}
+        // Construction progress bar.
+
+        draw_set_alpha(_draw_alpha);
+        draw_set_color(c_dkgray);
+
+        draw_rectangle(
+            _left,
+            _bottom + 4,
+            _right,
+            _bottom + 8,
+            false
+        );
+
+        draw_set_color(c_aqua);
+
+        draw_rectangle(
+            _left,
+            _bottom + 4,
+            _left
+            + ((_right - _left)
+            * _construction_percent),
+            _bottom + 8,
+            false
+        );
+    }
 
 
     // ========================================================================
@@ -1186,9 +1262,8 @@ function scr_building_draw(_building)
         );
 
 
-    draw_set_color(
-        c_dkgray
-    );
+    draw_set_alpha(_draw_alpha);
+    draw_set_color(c_dkgray);
 
     draw_rectangle(
         _left,
@@ -1199,9 +1274,7 @@ function scr_building_draw(_building)
     );
 
 
-    draw_set_color(
-        c_lime
-    );
+    draw_set_color(c_lime);
 
     draw_rectangle(
         _left,
@@ -1214,16 +1287,25 @@ function scr_building_draw(_building)
     );
 
 
-    draw_set_color(
-        c_white
-    );
+    // ========================================================================
+    // SELECTION OVERLAY
+    // ========================================================================
 
+    draw_set_alpha(1);
+
+    if (_is_selected)
+    {
+        scr_building_selection_draw(
+            _building
+        );
+    }
+
+
+    draw_set_alpha(1);
+    draw_set_color(c_white);
 
     return true;
 }
-
-
-/// @description Returns the initialized building occupying one grid cell.
 
 /// @description Returns the initialized building occupying one grid cell.
 

@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_venemy_kamikaze_baked",
+  "%Name":"scr_enemy_kamikaze_baked",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_venemy_kamikaze_baked",
+  "name":"scr_enemy_kamikaze_baked",
   "parent":{
     "name":"visuals",
     "path":"folders/scripts/enemy scripts/visuals.yy",

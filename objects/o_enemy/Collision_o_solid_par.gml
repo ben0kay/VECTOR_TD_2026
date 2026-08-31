@@ -8,7 +8,6 @@ if (
 
 var _damageable =
     other.object_index == o_cpu
-    || other.object_index == o_building_par
     || object_is_ancestor(other.object_index, o_building_par);
 
 // Brainless enemies impact whatever solid they touch.

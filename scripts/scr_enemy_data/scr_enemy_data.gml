@@ -779,8 +779,13 @@ function scr_enemy_data_kamikaze()
                 scale_x: 1,
                 scale_y: 1,
                 draw_function: scr_enemy_visual_kamikaze,
-                radius: 14,
-                color: c_orange
+                radius: 13,
+                color: c_orange,
+				baked:
+				{
+				    body: scr_enemy_kamikaze_baked_body,
+					effects: scr_enemy_kamikaze_baked_effects
+				}
             },
 
             vitals:
@@ -2185,7 +2190,7 @@ function scr_enemy_data_berserker()
 
 			    berserker:
 			    {
-			        maximum_speed_multiplier: 2.5,
+			        maximum_speed_multiplier: 3,
 			        curve_power: 1.5
 			    }
 			},

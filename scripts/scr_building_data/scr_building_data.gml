@@ -905,7 +905,12 @@ build_menu:
 
 visual:
 {
-    color: make_color_rgb(60, 170, 220)
+    color: make_color_rgb(60, 170, 220),
+	baked:
+	{
+	    body: scr_energy_generator_baked_body,
+	    effects: scr_energy_generator_baked_effects
+	}
 },
 
 footprint: { width_cells: 2, height_cells: 2 },
@@ -1533,7 +1538,12 @@ function scr_building_data_utility_shield_generator()
                         90,
                         180,
                         255
-                    )
+                    ),
+						baked:
+	{
+	    body: scr_utility_shield_generator_baked_body,
+	    effects: scr_utility_shield_generator_baked_effects
+	}
             },
 
             footprint:

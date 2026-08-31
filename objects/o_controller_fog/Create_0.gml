@@ -39,8 +39,8 @@ fog =
 
     update_interval:
     {
-        minimum: 3,
-        maximum: 5
+        minimum: 2,
+        maximum: 2
     },
 
     alpha:
