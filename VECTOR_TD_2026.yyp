@@ -118,6 +118,7 @@
     {"id":{"name":"scr_enemy_advanced","path":"scripts/scr_enemy_advanced/scr_enemy_advanced.yy",},},
     {"id":{"name":"scr_enemy_beam","path":"scripts/scr_enemy_beam/scr_enemy_beam.yy",},},
     {"id":{"name":"scr_enemy_behavior","path":"scripts/scr_enemy_behavior/scr_enemy_behavior.yy",},},
+    {"id":{"name":"scr_enemy_beserker","path":"scripts/scr_enemy_beserker/scr_enemy_beserker.yy",},},
     {"id":{"name":"scr_enemy_data","path":"scripts/scr_enemy_data/scr_enemy_data.yy",},},
     {"id":{"name":"scr_enemy_effects","path":"scripts/scr_enemy_effects/scr_enemy_effects.yy",},},
     {"id":{"name":"scr_enemy_flyer_transporter","path":"scripts/scr_enemy_flyer_transporter/scr_enemy_flyer_transporter.yy",},},

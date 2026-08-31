@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_enemy_visual",
+  "%Name":"scr_enemy_beserker",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_enemy_visual",
+  "name":"scr_enemy_beserker",
   "parent":{
     "name":"visuals",
     "path":"folders/scripts/enemy scripts/visuals.yy",

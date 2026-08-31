@@ -2107,8 +2107,14 @@ function scr_enemy_data_berserker()
                 draw_function:
                     scr_enemy_visual_berserker,
 
-                radius: 14,
-                color: make_color_rgb(255, 55, 25)
+                radius: 16,
+                color: make_color_rgb(255, 55, 25),
+				baked:
+				{
+				    body: scr_enemy_berserker_baked_body,
+				    effects: scr_enemy_berserker_baked_effects
+				}
+			
             },
 
             vitals:

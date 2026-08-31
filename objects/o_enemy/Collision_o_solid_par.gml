@@ -6,26 +6,36 @@ if (
     exit;
 }
 
-// Flyers ignore unrelated solids and only impact their selected target.
-
-if (
-    movement.layer == EnemyMovementLayer.FLYING
-    && other != targeting.target
-)
-{
-    exit;
-}
-
 var _damageable =
     other.object_index == o_cpu
     || other.object_index == o_building_par
     || object_is_ancestor(other.object_index, o_building_par);
 
-if (_damageable)
+// Brainless enemies impact whatever solid they touch.
+
+if (movement.brainless)
 {
-    targeting.target = other;
-    scr_enemy_attack(id);
+    if (_damageable)
+    {
+        targeting.target = other;
+        scr_enemy_attack(id);
+    }
+
+    if (instance_exists(id))
+        instance_destroy();
+
+    exit;
 }
+
+// Regular enemies ignore solids that are not their chosen target.
+
+var _target = targeting.target;
+
+if (!instance_exists(_target) || other != _target)
+    exit;
+
+if (_damageable)
+    scr_enemy_attack(id);
 
 if (instance_exists(id))
     instance_destroy();
