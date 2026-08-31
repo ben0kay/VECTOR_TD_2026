@@ -190,7 +190,7 @@ function scr_energy_generator_body(_building)
 
 /// @description Returns a sprite baked from the Solar Generator's static body.
 
-function scr_energy_generator_baked_body(_building)
+function scr_energy_generator_baked_body()
 {
     static _sprite = -1;
 
