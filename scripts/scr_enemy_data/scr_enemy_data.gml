@@ -362,9 +362,6 @@ function scr_enemy_data_valid(_data)
 }
 
 
-
-
-
 function scr_enemy_data_weak()
 {
     variable_struct_set(

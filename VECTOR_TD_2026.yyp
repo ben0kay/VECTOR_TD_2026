@@ -49,6 +49,7 @@
   },
   "name":"VECTOR_TD_2026",
   "resources":[
+    {"id":{"name":"CODING_PREFERENCES","path":"notes/CODING_PREFERENCES/CODING_PREFERENCES.yy",},},
     {"id":{"name":"future_ideas","path":"notes/future_ideas/future_ideas.yy",},},
     {"id":{"name":"Note5","path":"notes/Note5/Note5.yy",},},
     {"id":{"name":"player_chassis_idea","path":"notes/player_chassis_idea/player_chassis_idea.yy",},},
@@ -96,6 +97,7 @@
     {"id":{"name":"r_world_test_2","path":"rooms/r_world_test_2/r_world_test_2.yy",},},
     {"id":{"name":"r_world_test","path":"rooms/r_world_test/r_world_test.yy",},},
     {"id":{"name":"scr_attack_area","path":"scripts/scr_attack_area/scr_attack_area.yy",},},
+    {"id":{"name":"scr_baking","path":"scripts/scr_baking/scr_baking.yy",},},
     {"id":{"name":"scr_beam_hitbox","path":"scripts/scr_beam_hitbox/scr_beam_hitbox.yy",},},
     {"id":{"name":"scr_beserker","path":"scripts/scr_beserker/scr_beserker.yy",},},
     {"id":{"name":"scr_boot","path":"scripts/scr_boot/scr_boot.yy",},},
@@ -108,6 +110,7 @@
     {"id":{"name":"scr_camera","path":"scripts/scr_camera/scr_camera.yy",},},
     {"id":{"name":"scr_centipede","path":"scripts/scr_centipede/scr_centipede.yy",},},
     {"id":{"name":"scr_combat_movement","path":"scripts/scr_combat_movement/scr_combat_movement.yy",},},
+    {"id":{"name":"scr_config","path":"scripts/scr_config/scr_config.yy",},},
     {"id":{"name":"scr_cpu","path":"scripts/scr_cpu/scr_cpu.yy",},},
     {"id":{"name":"scr_culling","path":"scripts/scr_culling/scr_culling.yy",},},
     {"id":{"name":"scr_damage","path":"scripts/scr_damage/scr_damage.yy",},},

@@ -1,0 +1,25 @@
+Read and REMEMBER before doing work.
+
+If multiple adjacent functions in the same .gml file need replacing, give me one complete code block containing the entire file—or one continuous replacement section—in the correct order.
+I prefer vertically compressed code (check some functions in the project for examples) but KEEP horizontal SPACES between operators like = { , etc.
+I need you to give me code by pasting in chat. NEVER update the github yourself
+I dont like when u put like 1 little thing on its own line unless necessary.
+I like ENUMS where appropriate. - I like these on 1 line too. Or recently we are using script callbacks for things where it fits better than an ENUM.
+I like you giving me full functions instead of inserting little snippets so i dont mess things up. unless the snippet is small then i will allow exceptions. but not if too many snippets in same function
+I highly prefer OPTIMIZATION/PERFORMANCE where appropriate. 
+I like using structs to group similar named variables together. 
+I like using culling techniques and things like MACROS for something like #macro VTD_TICK global.vtd.tick #macro IFRAMES_2 \ (((VTD_TICK + real(id)) mod 2) == 0) #macro GAMEPLAY_ACTIVE \ (global.GameState == GameState.PLAYING \ && global.LevelState == LevelState.PLAYING) #macro OUTSIDE_VIEW_64 \ (!scr_culling_check_instance(id, 64)) 
+I like designing cool looking sprites purely within gamemaker primitive drawing and then baking it as sprite 
+I like using separate global variables to declare states like global.GameState or global.PlayerState or global.LevelState 
+I like you providing easier / alternative ideas if possible 
+I like you inserting small commented placeholders for future things that could go there, like //insert audio function here.
+I prefer not to have things overengineered just for the sake of it
+never use built in variables as instance variables to change (e.g we would use word_id instead of just id.)
+dont add endless safety instance / variable checks if its obvious it does exist. don't do unecessary function calling if it isn't required... simple if checks or boolean before going into a function is good
+I prefer using draw_angle instead of image_angle. Likewise scale_x instead of image_xscale
+I like my sprite primitives that we draw to be easily adjustable overall by using one variable like radius - which would configure its size and also collision radius. We'll use a sprite for collision like s_circle or s_eliptical
+I like to keep my script gml files organized when possible so i don't get lost and overwhelmed
+If we are designing and implementing lots of matchups like kinetic bonus vs shield / armour - i like being able to tweak all the stats from 1 single spot for ease-of-access. like a config file for big more global parameters to edit. not for indiviual enemy / tower things though.
+Sometimes when appropriate, instead of booleans allowing/disallowing, we can use numbers instead - helps with implementing upgrades or allowing things to happen later, like combat_allow_weapons
+i like placing things in my global config script file to allow easy tweaking of things globally if i think it needs adjusting
+don't use made up gamemaker functions. for example draw_arc is not gamemaker. we have a reusable draw_arc custom function we made already
