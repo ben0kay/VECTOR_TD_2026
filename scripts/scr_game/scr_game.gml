@@ -91,18 +91,15 @@ function scr_game_initialize()
 
 /// @description Creates the runtime belonging to the current level.
 
-function scr_level_initialize()
+function scr_level_initialize(
+    _world_key = "world_test",
+    _handcrafted = false
+)
 {
     global.LevelState = LevelState.INITIALIZING;
     global.CameraState = CameraState.FOLLOW_PLAYER;
 
-
-    var _world_key = "world_test";
-
-    var _world_data =
-        scr_world_data_get(
-            _world_key
-        );
+    var _world_data = scr_world_data_get(_world_key);
 
     if (!scr_world_data_valid(_world_data))
     {
@@ -114,17 +111,16 @@ function scr_level_initialize()
         return false;
     }
 
-
     var _cell_size = global.vtd.settings.grid_cell_size;
     var _columns = ceil(room_width / _cell_size);
     var _rows = ceil(room_height / _cell_size);
-
 
     global.vtd_level =
     {
         identity:
         {
-            world_key: _world_key
+            world_key: _world_key,
+            handcrafted: _handcrafted
         },
 
         time:
@@ -144,36 +140,33 @@ function scr_level_initialize()
 
         world: undefined,
 
-	    
-
         navigation:
-		{
-		    ready: false,
-		    revision: 0,
+        {
+            ready: false,
+            revision: 0,
 
-		    grid_ground: -1,
-		    grid_breach: -1,
-		    grid_flying: -1,
-			
-			building_occupancy: array_create(_columns * _rows, noone),
+            grid_ground: -1,
+            grid_breach: -1,
+            grid_flying: -1,
 
-		    path_budget:
-		    {
-		        maximum: 3,
-		        used: 0,
-		        frame: -1
-		    }
-		},
+            building_occupancy:
+                array_create(_columns * _rows, noone),
 
-		
-		
+            path_budget:
+            {
+                maximum: 3,
+                used: 0,
+                frame: -1
+            }
+        },
+
         entities:
         {
             player: noone,
             camera: noone,
             cpu: noone,
             build_controller: noone,
-			hud: noone
+            hud: noone
         },
 
         resources:
@@ -181,11 +174,11 @@ function scr_level_initialize()
             entries: {}
         },
 
-		upgrades:
-		{
-		    level:
-		        scr_upgrade_level_runtime_create()
-		},
+        upgrades:
+        {
+            level:
+                scr_upgrade_level_runtime_create()
+        },
 
         waves:
         {
@@ -223,11 +216,6 @@ function scr_level_initialize()
         }
     };
 
-
-    // ========================================================================
-    // BUILD CAPACITY
-    // ========================================================================
-
     if (!scr_build_limits_initialize(_world_data))
     {
         show_debug_message(
@@ -237,11 +225,6 @@ function scr_level_initialize()
         return false;
     }
 
-
-    // ========================================================================
-    // LEVEL ECONOMY
-    // ========================================================================
-
     if (!scr_resource_level_initialize(_world_data))
     {
         show_debug_message(
@@ -250,11 +233,6 @@ function scr_level_initialize()
 
         return false;
     }
-
-
-    // ========================================================================
-    // NAVIGATION
-    // ========================================================================
 
     global.vtd_level.navigation.grid_ground =
         mp_grid_create(
@@ -286,13 +264,7 @@ function scr_level_initialize()
             _cell_size
         );
 
-
     global.vtd_level.navigation.ready = true;
-
-
-    // ========================================================================
-    // WORLD
-    // ========================================================================
 
     if (!scr_world_initialize())
     {
@@ -303,27 +275,25 @@ function scr_level_initialize()
         return false;
     }
 
-
-    if (!scr_world_generate(_world_key))
+    if (!_handcrafted)
     {
-        show_debug_message(
-            "LEVEL ERROR - world generation failed."
-        );
+        if (!scr_world_generate(_world_key))
+        {
+            show_debug_message(
+                "LEVEL ERROR - world generation failed."
+            );
 
-        return false;
+            return false;
+        }
     }
-	
-
-
-
 
     global.LevelState = LevelState.CHASSIS_SELECT;
 
-
     show_debug_message(
-        "VECTOR TD 2026 - LEVEL INITIALIZED"
+        _handcrafted
+        ? "VECTOR TD 2026 - HANDCRAFTED LEVEL INITIALIZED"
+        : "VECTOR TD 2026 - GENERATED LEVEL INITIALIZED"
     );
-
 
     return true;
 }

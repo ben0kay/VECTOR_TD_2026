@@ -6,7 +6,7 @@
   "name":"scr_shield_gen_visual",
   "parent":{
     "name":"visual",
-    "path":"folders/scripts/building scripts/tower/visual.yy",
+    "path":"folders/scripts/building scripts/visual.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

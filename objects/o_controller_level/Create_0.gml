@@ -6,7 +6,6 @@ if (instance_number(object_index) > 1)
     exit;
 }
 
-
 if (!variable_global_exists("vtd"))
 {
     show_debug_message(
@@ -18,7 +17,23 @@ if (!variable_global_exists("vtd"))
 }
 
 
-if (!scr_level_initialize())
+// ========================================================================
+// ROOM CONFIGURATION
+// ========================================================================
+//
+// These can be overridden in this controller instance's Creation Code.
+
+if (!variable_instance_exists(id, "level_world_key"))
+    level_world_key = "world_test";
+
+if (!variable_instance_exists(id, "level_handcrafted"))
+    level_handcrafted = false;
+
+
+if (!scr_level_initialize(
+    level_world_key,
+    level_handcrafted
+))
 {
     show_debug_message(
         "LEVEL ERROR - initialization failed."
@@ -30,26 +45,47 @@ if (!scr_level_initialize())
 
 
 // ========================================================================
-// CPU
+// GENERATED LEVEL CONTENT
 // ========================================================================
 
-var _cpu =
-    instance_create_layer(
+if (!level_handcrafted)
+{
+    var _cpu = instance_create_layer(
         room_width * 0.5,
         room_height * 0.5,
         "Buildings",
         o_cpu
     );
 
-if (!instance_exists(_cpu))
-{
-    show_debug_message(
-        "LEVEL ERROR - CPU creation failed."
+    if (!instance_exists(_cpu))
+    {
+        show_debug_message(
+            "LEVEL ERROR - CPU creation failed."
+        );
+
+        instance_destroy();
+        exit;
+    }
+
+
+    var _player = instance_create_layer(
+        (room_width * 0.5) - 256,
+        room_height * 0.5,
+        "Player",
+        o_player
     );
 
-    instance_destroy();
-    exit;
+    if (!instance_exists(_player))
+    {
+        show_debug_message(
+            "LEVEL ERROR - player creation failed."
+        );
+
+        instance_destroy();
+        exit;
+    }
 }
+
 
 // ========================================================================
 // FLANK ROUTES
@@ -58,37 +94,30 @@ if (!instance_exists(_cpu))
 var _world_data =
     scr_world_data_current_get();
 
-if (!scr_navigation_flanking_initialize(_world_data))
+if (!level_handcrafted)
 {
-    show_debug_message(
-        "LEVEL ERROR - flank-route initialization failed."
-    );
+    if (!scr_navigation_flanking_initialize(_world_data))
+    {
+        show_debug_message(
+            "LEVEL ERROR - flank-route initialization failed."
+        );
 
-    instance_destroy();
-    exit;
+        instance_destroy();
+        exit;
+    }
 }
-
-
-// ========================================================================
-// PLAYER
-// ========================================================================
-
-var _player =
-    instance_create_layer(
-        (room_width * 0.5) - 256,
-        room_height * 0.5,
-        "Player",
-        o_player
-    );
-
-if (!instance_exists(_player))
+else
 {
-    show_debug_message(
-        "LEVEL ERROR - player creation failed."
-    );
+    global.vtd_level.navigation.flanking =
+    {
+        enabled: false,
+        chance: 0,
 
-    instance_destroy();
-    exit;
+        top_left: [],
+        top_right: [],
+        bottom_left: [],
+        bottom_right: []
+    };
 }
 
 
@@ -96,13 +125,12 @@ if (!instance_exists(_player))
 // CAMERA
 // ========================================================================
 
-var _camera =
-    instance_create_layer(
-        0,
-        0,
-        "Controller",
-        o_camera
-    );
+var _camera = instance_create_layer(
+    0,
+    0,
+    "Controller",
+    o_camera
+);
 
 if (!instance_exists(_camera))
 {
@@ -119,13 +147,12 @@ if (!instance_exists(_camera))
 // ENERGY CONTROLLER
 // ========================================================================
 
-var _energy_controller =
-    instance_create_layer(
-        0,
-        0,
-        "Controller",
-        o_controller_energy
-    );
+var _energy_controller = instance_create_layer(
+    0,
+    0,
+    "Controller",
+    o_controller_energy
+);
 
 if (!instance_exists(_energy_controller))
 {
@@ -142,13 +169,12 @@ if (!instance_exists(_energy_controller))
 // FOG OF WAR
 // ========================================================================
 
-var _fog =
-    instance_create_layer(
-        0,
-        0,
-        "Controller",
-        o_controller_fog
-    );
+var _fog = instance_create_layer(
+    0,
+    0,
+    "Controller",
+    o_controller_fog
+);
 
 if (!instance_exists(_fog))
 {
@@ -165,13 +191,12 @@ if (!instance_exists(_fog))
 // BUILD CONTROLLER
 // ========================================================================
 
-var _build_controller =
-    instance_create_layer(
-        0,
-        0,
-        "Controller",
-        o_controller_build
-    );
+var _build_controller = instance_create_layer(
+    0,
+    0,
+    "Controller",
+    o_controller_build
+);
 
 if (!instance_exists(_build_controller))
 {
@@ -188,13 +213,12 @@ if (!instance_exists(_build_controller))
 // ENEMY SPAWNER
 // ========================================================================
 
-var _spawner =
-    instance_create_layer(
-        0,
-        0,
-        "Controller",
-        o_enemy_spawner
-    );
+var _spawner = instance_create_layer(
+    0,
+    0,
+    "Controller",
+    o_enemy_spawner
+);
 
 if (!instance_exists(_spawner))
 {
@@ -208,5 +232,7 @@ if (!instance_exists(_spawner))
 
 
 show_debug_message(
-    "VECTOR TD 2026 - TEST WORLD READY"
+    level_handcrafted
+    ? "VECTOR TD 2026 - HANDCRAFTED WORLD READY"
+    : "VECTOR TD 2026 - GENERATED WORLD READY"
 );

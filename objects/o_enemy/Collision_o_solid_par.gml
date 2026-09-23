@@ -6,25 +6,43 @@ if (
     exit;
 }
 
-var _damageable =
-    other.object_index == o_cpu
-    || object_is_ancestor(
+var _is_cpu =
+    other.object_index == o_cpu;
+
+var _is_building =
+    object_is_ancestor(
         other.object_index,
         o_building_par
     );
 
-// Flying impact enemies ignore unrelated buildings.
+var _damageable =
+    _is_cpu || _is_building;
 
-if (
-    movement.layer == EnemyMovementLayer.FLYING
-    && other != targeting.target
-)
+
+// ========================================================================
+// FLYING IMPACT ENEMIES
+// ========================================================================
+//
+// Current contact flyers pass over buildings and impact only the CPU.
+
+if (movement.layer == EnemyMovementLayer.FLYING)
 {
+    if (!_is_cpu)
+        exit;
+
+    targeting.target = other;
+    scr_enemy_attack(id);
+
+    if (instance_exists(id))
+        instance_destroy();
+
     exit;
 }
 
-// Brainless enemies die against any solid.
-// Damageable buildings also receive the impact.
+
+// ========================================================================
+// BRAINLESS GROUND ENEMIES
+// ========================================================================
 
 if (movement.brainless)
 {
@@ -40,7 +58,10 @@ if (movement.brainless)
     exit;
 }
 
-// Regular contact enemies attack whichever building they physically hit.
+
+// ========================================================================
+// ORDINARY GROUND IMPACT ENEMIES
+// ========================================================================
 
 if (_damageable)
 {

@@ -264,7 +264,7 @@ function scr_particles_initialize()
 
     part_type_sprite(
         _types.ember,
-        s_particle_ember,
+        s_particle_ember_orange,
         false,
         false,
         false

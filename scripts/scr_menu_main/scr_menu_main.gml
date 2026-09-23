@@ -52,11 +52,10 @@ function scr_menu_main_create()
             ),
 
             scr_menu_main_button_create(
-                MainMenuAction.SANDBOX,
-                "SANDBOX",
-                "COMING SOON",
-                false
-            ),
+		    MainMenuAction.SANDBOX,
+		    "HANDCRAFTED TEST",
+		    "ROOM 2"
+			),
 
             scr_menu_main_button_create(
                 MainMenuAction.RESEARCH,
@@ -252,13 +251,12 @@ function scr_menu_main_action_execute(_menu, _action)
 
 
         case MainMenuAction.SANDBOX:
-        {
-            return scr_menu_main_message_set(
-                _menu,
-                "SANDBOX MODE IS NOT YET AVAILABLE.",
-                c_gray
-            );
-        }
+		{
+		    return scr_menu_main_transition_begin(
+		        _menu,
+		        r_world_test_2
+		    );
+		}
 
 
         case MainMenuAction.RESEARCH:

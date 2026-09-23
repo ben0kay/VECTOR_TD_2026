@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_building_visual",
   "parent":{
-    "name":"building scripts",
-    "path":"folders/scripts/building scripts.yy",
+    "name":"visual",
+    "path":"folders/scripts/building scripts/visual.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
